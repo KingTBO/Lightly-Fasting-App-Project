@@ -426,16 +426,23 @@ function accountHtml(){
 }
 function emailSheet(step,email,err){
   if(!CL||!CL.ready()){ return toast(L('Cloud backup isn’t set up yet.','云备份还没有设置好。')); }
-  var h='<h3>'+L('Sign in with email','邮箱登录')+'</h3>';
-  if(step!=='code'){
-    h+='<p class="lede">'+L('We’ll email you a 6-digit code. No password to remember.','我们会给你发一个 6 位验证码，不用记密码。')+'</p><div class="group"><div class="field"><label for="emIn">'+L('Email','邮箱')+'</label><input id="emIn" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com" value="'+esc(email||'')+'" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div>'+(err?'<p class="note" style="color:var(--red)">'+esc(err)+'</p>':'')+
-      '<div class="btns"><button class="btn" data-act="emsend">'+L('Send code','发送验证码')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>';
+  var code=CL.codeOn(), h='<h3>'+L('Sign in with email','邮箱登录')+'</h3>';
+  if(step!=='sent'){
+    h+='<p class="lede">'+(code?L('We’ll email you a sign-in link and a 6-digit code. No password to remember.','我们会给你发一封带登录链接和 6 位验证码的邮件，不用记密码。'):L('We’ll email you a sign-in link. Tap it and you’re in. No password to remember.','我们会给你发一封登录邮件，点里面的链接就能登录，不用记密码。'))+'</p><div class="group"><div class="field"><label for="emIn">'+L('Email','邮箱')+'</label><input id="emIn" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com" value="'+esc(email||'')+'" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div>'+(err?'<p class="note err" role="alert" style="color:var(--red)">'+esc(err)+'</p>':'')+
+      '<div class="btns"><button class="btn" data-act="emsend">'+L('Send sign-in link','发送登录链接')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>';
   }else{
-    h+='<p class="lede">'+L('Enter the code we sent to ','输入我们发到这里的验证码：')+esc(email)+L('. You can also tap the link in that email.','。也可以直接点邮件里的链接。')+'</p><div class="group"><div class="field"><label for="emCode">'+L('Code','验证码')+'</label><input id="emCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456" style="width:9ch;text-align:center;letter-spacing:.2em;border:0;background:var(--fill);border-radius:8px;min-height:36px;color:var(--label);font:inherit;font-size:1.0625rem"></div></div>'+(err?'<p class="note" style="color:var(--red)">'+esc(err)+'</p>':'')+
-      '<div class="btns"><button class="btn" data-act="emverify" data-e="'+esc(email)+'">'+L('Sign in','登录')+'</button><button class="btn sec" data-act="emback" data-e="'+esc(email)+'">'+L('Use a different email','换一个邮箱')+'</button></div>';
+    h+='<p class="lede">'+L('Check your email at ','请查收邮件：')+'<b>'+esc(email)+'</b>'+L('. Tap the sign-in link in it. It can take a minute, and may land in spam.','。点邮件里的登录链接即可，可能要等一分钟，也可能在垃圾邮件里。')+'</p>'+
+      '<p class="note">'+L('Open the link on this phone, in the same browser or app you’re using now. If it opens somewhere else, you’ll be signed in there instead.','请在这台手机上、用你现在用的浏览器或应用打开链接。如果在别处打开，登录的就是别处。')+'</p>';
+    if(code) h+='<div class="group"><div class="field"><label for="emCode">'+L('Code','验证码')+'</label><input id="emCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456" style="width:9ch;text-align:center;letter-spacing:.2em;border:0;background:var(--fill);border-radius:8px;min-height:36px;color:var(--label);font:inherit;font-size:1.0625rem"></div></div>';
+    h+=(err?'<p class="note err" role="alert" style="color:var(--red)">'+esc(err)+'</p>':'')+'<div class="btns">'+(code?'<button class="btn" data-act="emverify" data-e="'+esc(email)+'">'+L('Sign in with code','用验证码登录')+'</button>':'')+
+      '<button class="btn sec" id="emResend" data-act="emresend" data-e="'+esc(email)+'">'+L('Send again','再发一次')+'</button><button class="btn sec" data-act="emback" data-e="'+esc(email)+'">'+L('Use a different email','换一个邮箱')+'</button></div>';
   }
   openSheet(h); var i=$('emIn')||$('emCode'); if(i) setTimeout(function(){ try{ i.focus(); }catch(e){} },350);
+  if(step==='sent') resendCool();
 }
+var emCool=0;
+function resendCool(){ var b=$('emResend'); if(!b) return; var left=Math.ceil((emCool-Date.now())/1000); if(left>0){ b.disabled=true; b.textContent=L('Send again in ','可再发送：')+left+L(' s',' 秒'); setTimeout(resendCool,1000); } else { b.disabled=false; b.textContent=L('Send again','再发一次'); } }
+function emailErr(x){ return x&&(x.status===429||/rate|seconds|too many/i.test(x.message||''))?L('Too many emails just now. Wait a minute and try again.','邮件发得太频繁了，请等一分钟再试。'):L('Couldn’t send the email: ','邮件没发出去：')+x.message; }
 
 /* ---------- Me ---------- */
 function renderMe(){
@@ -558,9 +565,10 @@ var A={
   emback:function(b){ emailSheet('email',b.dataset.e); },
   soon:function(b){ toast(({apple:L('Apple sign-in is coming. Email works now.','Apple 登录即将推出，现在可用邮箱。'),google:L('Google sign-in is coming. Email works now.','Google 登录即将推出，现在可用邮箱。'),wechat:'微信登录会随中国大陆版本推出，现在可用邮箱。',phone:'手机号登录会随中国大陆版本推出，现在可用邮箱。'})[b.dataset.k]); },
   emsend:function(b){ var e=($('emIn').value||'').trim(); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return emailSheet('email',e,L('That doesn’t look like an email address.','这个邮箱地址看起来不对。')); b.disabled=true; b.textContent=L('Sending…','发送中…');
-    CL.sendCode(e).then(function(){ emailSheet('code',e); }).catch(function(x){ emailSheet('email',e,L('Couldn’t send the email: ','邮件没发出去：')+x.message); }); },
-  emverify:function(b){ var e=b.dataset.e, c=($('emCode').value||'').trim(); if(c.length<6) return emailSheet('code',e,L('Enter the 6-digit code.','请输入 6 位验证码。')); b.disabled=true; b.textContent=L('Checking…','验证中…');
-    CL.verify(e,c).then(function(){ closeSheet(); toast(L('Signed in.','已登录。')); renderMe(); syncNow(true); }).catch(function(x){ emailSheet('code',e,L('That code didn’t work. ','验证码不对：')+x.message); }); },
+    emCool=Date.now()+60000; CL.sendCode(e).then(function(){ emailSheet('sent',e); }).catch(function(x){ emCool=0; emailSheet('email',e,emailErr(x)); }); },
+  emresend:function(b){ var e=b.dataset.e; if(Date.now()<emCool) return; emCool=Date.now()+60000; CL.sendCode(e).then(function(){ emailSheet('sent',e); toast(L('Sent again.','已重新发送。')); }).catch(function(x){ emCool=0; emailSheet('sent',e,emailErr(x)); }); },
+  emverify:function(b){ var e=b.dataset.e, c=($('emCode').value||'').trim(); if(c.length<6) return emailSheet('sent',e,L('Enter the 6-digit code.','请输入 6 位验证码。')); b.disabled=true; b.textContent=L('Checking…','验证中…');
+    CL.verify(e,c).then(function(){ closeSheet(); toast(L('Signed in.','已登录。')); renderMe(); syncNow(true); }).catch(function(x){ emailSheet('sent',e,L('That code didn’t work. ','验证码不对：')+x.message); }); },
   signout:function(){ openSheet('<h3>'+L('Sign out?','退出登录？')+'</h3><p class="lede">'+L('Your fasts stay on this phone and in your account. You can sign back in any time.','记录会保留在这台手机和你的账号里，随时可以重新登录。')+'</p><div class="btns"><button class="btn dark" data-act="signoutok">'+L('Sign out','退出登录')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   signoutok:function(){ CL.signOut(); sync.at=0; sync.err=''; closeSheet(); renderMe(); },
   syncnow:function(){ syncNow(false); },
@@ -613,7 +621,8 @@ window.addEventListener('resize',fitDisc);
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
 if(!S.onboarded){ updateToday(); obStart(); } else { showTab('today'); }
 scheduleGoal();
-if(CL&&CL.ready()){ CL.fromHash().then(function(a){ if(a){ toast(L('Signed in.','已登录。')); showTab('me'); } }).catch(function(){ }).then(function(){ if(cloudOn()) syncNow(true); }); }
+if(CL&&CL.ready()){ window.addEventListener('storage',function(ev){ if(ev.key===CL.AK&&ev.newValue){ closeSheet(); renderMe(); toast(L('Signed in.','已登录。')); syncNow(true); } });
+  CL.fromHash().then(function(a){ if(a){ closeSheet(); toast(L('Signed in.','已登录。')); showTab('me'); } }).catch(function(x){ if(x&&x.linkError){ showTab('me'); toast(/expired|otp/i.test(x.linkError+x.message)?L('That link expired or was already used. Send a new one.','链接已过期或已用过，请重新发送。'):L('Couldn’t sign in with that link. Send a new one.','这个链接登录失败，请重新发送。')); } }).then(function(){ if(cloudOn()) syncNow(true); }); }
 var lastT=performance.now(), lastSec=0, frame=0;
 function loop(t){
   var dt=Math.min((t-lastT)/1000,.1); lastT=t; frame++;

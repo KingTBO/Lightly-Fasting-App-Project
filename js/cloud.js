@@ -28,13 +28,15 @@ function setAuth(a){ try{ if(a) localStorage.setItem(AK,JSON.stringify(a)); else
 function toAuth(r){ return {access:r.access_token,refresh:r.refresh_token,exp:Math.floor(Date.now()/1000)+(r.expires_in||3600),email:(r.user&&r.user.email)||'',uid:(r.user&&r.user.id)||''}; }
 function call(path,o){ o=o||{}; var c=cfg(), h={apikey:c.key,'Content-Type':'application/json'}; if(o.token) h.Authorization='Bearer '+o.token; else h.Authorization='Bearer '+c.key; for(var k in (o.headers||{})) h[k]=o.headers[k];
   return fetch(c.url.replace(/\/$/,'')+path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){ return r.text().then(function(t){ var j=null; try{ j=t?JSON.parse(t):null; }catch(e){} if(!r.ok){ var m=(j&&(j.msg||j.error_description||j.message||j.error))||('HTTP '+r.status); var e=new Error(m); e.status=r.status; throw e; } return j; }); }); }
+function codeOn(){ return !!cfg().code; }
 function sendCode(email){ return call('/auth/v1/otp?redirect_to='+encodeURIComponent(location.origin+location.pathname),{method:'POST',body:{email:email,create_user:true}}); }
 function verify(email,code){ return call('/auth/v1/verify',{method:'POST',body:{type:'email',email:email,token:String(code).replace(/\s/g,'')}}).then(function(r){ var a=toAuth(r); setAuth(a); return a; }); }
 /* returning from a magic link: the tokens arrive in the URL hash */
 function fromHash(){
-  var h=location.hash.replace(/^#/,''); if(h.indexOf('access_token=')<0) return Promise.resolve(null);
-  var p={}; h.split('&').forEach(function(x){ var i=x.indexOf('='); p[x.slice(0,i)]=decodeURIComponent(x.slice(i+1)); });
+  var h=location.hash.replace(/^#/,''); if(h.indexOf('access_token=')<0&&h.indexOf('error=')<0) return Promise.resolve(null);
+  var p={}; h.split('&').forEach(function(x){ var i=x.indexOf('='); if(i>0) p[x.slice(0,i)]=decodeURIComponent(x.slice(i+1).replace(/\+/g,' ')); });
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+  if(p.error||!p.access_token){ var er=new Error(p.error_description||p.error||'link failed'); er.linkError=p.error_code||p.error||'error'; return Promise.reject(er); }
   return call('/auth/v1/user',{token:p.access_token}).then(function(u){ var a=toAuth({access_token:p.access_token,refresh_token:p.refresh_token,expires_in:+p.expires_in||3600,user:u}); setAuth(a); return a; });
 }
 function token(){
@@ -48,6 +50,6 @@ function signOut(){ var a=getAuth(); setAuth(null); if(a&&ready()) call('/auth/v
 function pull(){ return token().then(function(t){ return call('/rest/v1/lightly_state?select=data,updated_at',{token:t}); }).then(function(rows){ return rows&&rows[0]||null; }); }
 function push(data){ var a=getAuth(); return token().then(function(t){ return call('/rest/v1/lightly_state?on_conflict=user_id',{method:'POST',token:t,headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{user_id:a.uid,data:data,updated_at:new Date().toISOString()}}); }); }
 
-root.LightlyCloud={ready:ready,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,signOut:signOut,pull:pull,push:push};
+root.LightlyCloud={ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,signOut:signOut,pull:pull,push:push};
 if(typeof module!=='undefined'&&module.exports) module.exports=root.LightlyCloud;
 })(typeof self!=='undefined'?self:this);

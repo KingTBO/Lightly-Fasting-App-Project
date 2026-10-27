@@ -32,8 +32,8 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
 (async()=>{await new Promise(r=>mock.listen(0,r));await new Promise(r=>srv.listen(0,r));
  const murl='http://localhost:'+mock.address().port,url='http://localhost:'+srv.address().port+'/';
  const b=await chromium.launch();
- async function device(seedState){const ctx=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});
-  await ctx.route('**/js/config.js',rt=>rt.fulfill({contentType:'text/javascript',body:`window.LIGHTLY_CLOUD={url:'${murl}',key:'anon'};`}));
+ async function device(seedState,code){code=code!==false;const ctx=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});
+  await ctx.route('**/js/config.js',rt=>rt.fulfill({contentType:'text/javascript',body:`window.LIGHTLY_CLOUD={url:'${murl}',key:'anon'${code?",code:true":''}};`}));
   const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   if(seedState)await p.addInitScript(s=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',s);sessionStorage.s=1}},JSON.stringify(seedState));
   await p.goto(url);await p.waitForTimeout(500);return {ctx,p,errs};}
@@ -42,7 +42,7 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  // device 1: sign in with a wrong code, then the right one, backup lands in the mock
  const d1=await device(base([f('one',now-48*H)]));
  await d1.p.click('#tabs [data-tab=me]');await d1.p.click('[data-act=emailsheet]');await d1.p.fill('#emIn','tb@example.com');await d1.p.click('[data-act=emsend]');await d1.p.waitForSelector('#emCode');
- await d1.p.fill('#emCode','000000');await d1.p.click('[data-act=emverify]');await d1.p.waitForSelector('#sheet .note');assert.match(await d1.p.textContent('#sheet .note'),/didn.t work/);ok('wrong code is refused');
+ await d1.p.fill('#emCode','000000');await d1.p.click('[data-act=emverify]');await d1.p.waitForSelector('#sheet .note.err');assert.match(await d1.p.textContent('#sheet .note.err'),/didn.t work/);ok('wrong code is refused');
  await d1.p.fill('#emCode','123456');await d1.p.click('[data-act=emverify]');await d1.p.waitForTimeout(1200);
  assert.match(await d1.p.textContent('#me .me-card b'),/tb@example.com/);assert(rows['uid-tb@example.com'],'backup written');assert.strictEqual(rows['uid-tb@example.com'].data.fasts.length,1);ok('email code sign-in and first backup');
  // device 2: fresh install, has a different fast, signs in as the same person: fasts are combined, account settings win
@@ -53,5 +53,13 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  // sign out keeps local data
  await d2.p.click('#tabs [data-tab=me]');await d2.p.click('[data-act=signout]');await d2.p.click('[data-act=signoutok]');await d2.p.waitForTimeout(300);
  assert(await d2.p.$('[data-act=emailsheet]'),'signed-out card is back');assert.strictEqual((await d2.p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).fasts.length,2);ok('sign out keeps local fasts');
- assert.deepStrictEqual(d1.errs.concat(d2.errs),[]);console.log('cloud e2e ok');await b.close();mock.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});
+ // link-only emails (no code field): send, then return through the link; also an expired link
+ const d3=await device(base([f('three',now-30*H)]),false);
+ await d3.p.click('#tabs [data-tab=me]');await d3.p.click('[data-act=emailsheet]');await d3.p.fill('#emIn','link@example.com');await d3.p.click('[data-act=emsend]');await d3.p.waitForSelector('#emResend');
+ assert(!(await d3.p.$('#emCode')),'no code field when code emails are off');assert(await d3.p.isDisabled('#emResend'),'resend is cooling down');ok('link-only sheet has no code field and a resend cooldown');
+ await d3.p.goto(url+'#access_token=tok-link@example.com&refresh_token=r&expires_in=3600&token_type=bearer&type=magiclink');await d3.p.reload();await d3.p.waitForTimeout(1500);
+ assert(await d3.p.evaluate(()=>!!localStorage.getItem('lightly:auth')),'signed in from the link');assert(!(await d3.p.evaluate(()=>location.hash)),'hash cleared');ok('returning through the magic link signs in');
+ const d4=await device(base([]),false);await d4.p.goto(url+'#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired');await d4.p.reload();await d4.p.waitForTimeout(800);
+ assert.match(await d4.p.textContent('#toast'),/expired/);assert(!(await d4.p.evaluate(()=>localStorage.getItem('lightly:auth'))));ok('expired link shows a friendly message');
+ assert.deepStrictEqual(d1.errs.concat(d2.errs,d3.errs,d4.errs),[]);console.log('cloud e2e ok');await b.close();mock.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});
 function ok(n){console.log('ok -',n);}

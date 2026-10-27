@@ -17,12 +17,14 @@ A fasting timer that follows the sky. Moon at night, sun by day, set by your rea
 
 ## Sign-in and backup (optional)
 
-Everything works signed out; an account only backs up fasts and settings. Email sign-in is built (6-digit code or magic link) on Supabase's REST API, with no SDK. It stays off until `js/config.js` has a project URL and anon key:
+Everything works signed out; an account only backs up fasts and settings. Email sign-in is built (magic link by default, with an optional 6-digit code) on Supabase's REST API, with no SDK. It stays off until `js/config.js` has a project URL and anon key:
 
 1. Create a free project at supabase.com. In the SQL editor run `supabase/schema.sql` (one table, Row Level Security so people only see their own row).
-2. Authentication > Providers: keep Email on. Authentication > Email Templates > Magic Link: include `{{ .Token }}` so the email carries the 6-digit code.
+2. Authentication > Providers: keep Email on. The default Supabase email works as is: it carries a "Sign in" link, and the app tells people to tap it. Editing the template needs custom SMTP (a paid-plan or own-provider feature). Only if you set up custom SMTP and add `{{ .Token }}` to the Magic Link template, set `code:true` in `js/config.js` to also show a code field.
 3. Authentication > URL Configuration: add the site URL (`https://kingtbo.github.io/Lightly-Fasting-App-Project/`) to the redirect allow-list.
 4. Put the Project URL and the anon public key in `js/config.js` (the anon key is meant to be public; never the service_role key).
+
+Limits to know about: Supabase's built-in email sender is rate-limited on the free plan (a few emails per hour for the whole project), so the app has a 60 second "Send again" cooldown and a friendly message on 429. For real users, plug in an SMTP provider (Resend, Postmark, etc.) under Authentication > SMTP. A magic link signs in whichever browser opens it: if someone installed the app to the home screen but taps the link in Safari, Safari is signed in, not the installed app. Custom SMTP plus `code:true` fixes that case, since the code can be typed into the installed app.
 
 Apple and Google buttons are placeholders, and WeChat and mainland phone sign-in belong to a separate China build (see the build plan).
 
