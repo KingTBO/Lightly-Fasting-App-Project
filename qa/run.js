@@ -14,7 +14,7 @@ const [,,file,tag]=process.argv;
   const steps=[['goal','#moments [data-go="goal"]',2300],['eat','#moments [data-go="eat"]',800],['eat2',null,3500]];
   for(const [n,sel,ms] of steps){ if(sel&&await p.$(sel)) await p.click(sel); await p.waitForTimeout(ms); await A(n); }
   if(await p.$('#planBtn')){ await p.click('#planBtn');await p.waitForTimeout(600);await A('plan-sheet');await p.click('#psMore');await p.waitForTimeout(500);await A('plan-more');await p.click('#psList [data-id="13"]');await p.waitForTimeout(700);await A('plan-picked');await p.click('#planBtn');await p.waitForTimeout(500);await p.click('#psList [data-id="16"]');await p.waitForTimeout(700);}
-  if(await p.$('#meScr')){ await p.click('#ph .tabs>span:nth-child(4)');await p.waitForTimeout(500);await A('me-out');await p.click('#meBtns button:first-child');await p.waitForTimeout(300);await A('me-in');await p.click('#ph .tabs>span:nth-child(1)');await p.waitForTimeout(400);}
+  if(await p.$('#meScr')){ await p.click('#ph .tabs>span:nth-of-type(4)');await p.waitForTimeout(500);await A('me-out');await p.click('#meBtns button:first-child');await p.waitForTimeout(300);await A('me-in');await p.click('#ph .tabs>span:nth-of-type(1)');await p.waitForTimeout(400);}
   if(await p.$('#rPrev')){ await p.click('#rPrev');await p.waitForTimeout(1200);await A('ram');
     for(const k of ['suhoor','iftar']){await p.click(`#rMoments [data-r="${k}"]`);await p.waitForTimeout(1600);await A('ram-'+k);}
     await p.click('#rMoments [data-r="mid"]');await p.waitForTimeout(1600);await p.click('#rAct');await p.waitForTimeout(600);await A('ram-sheet');await p.click('#rCancel');}
