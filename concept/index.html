@@ -113,15 +113,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16);transition:transform .3s cubic-bezier(.16,1,.3,1)}
 .sw[aria-checked="true"]{background:#34C759}.sw[aria-checked="true"]::after{transform:translateX(20px)}
 .row2{display:flex;align-items:center;justify-content:space-between;gap:12px}.row2 b{font-weight:500;font-size:16px;display:block}.row2 span{font-size:13px;color:var(--label-2)}
-.borrow{margin-top:clamp(80px,10vw,140px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:clamp(24px,5vw,72px)}
-.borrow .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.borrow .cols div{background:var(--card);border-radius:20px;padding:20px 22px}
-.borrow h3{font:600 19px var(--font-d);margin:0 0 10px;letter-spacing:-.02em}
-.borrow ul{margin:0;padding-left:18px;color:var(--label-2);font-size:15px;line-height:1.45}.borrow li+li{margin-top:8px}.borrow li b{color:var(--label);font-weight:600}
-.borrow .src{grid-column:2;font-size:13px;color:var(--label-2);margin:4px 0 0}
-@media (max-width:860px){.borrow{grid-template-columns:1fr}.borrow .src{grid-column:1}}
-@media (max-width:560px){.borrow .cols{grid-template-columns:1fr}}
-#disc{width:236px;height:236px;overflow:visible;touch-action:none}
+@media (max-width:860px){@media (max-width:560px){#disc{width:236px;height:236px;overflow:visible;touch-action:none}
 .read{text-align:center;padding:0 24px}
 .read .k{font:600 15px var(--font);color:var(--ink-2);min-height:20px;display:block}
 .read .big{font:600 56px/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:block}
@@ -921,25 +913,6 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
     </div>
   </section>
 
-  <section class="borrow" aria-labelledby="b-h">
-    <h2 class="h2" id="b-h" data-zh="从 (Not Boring) Weather 借鉴什么">What to borrow from (Not Boring) Weather</h2>
-    <div class="cols">
-      <div><h3 data-zh="借鉴">Borrow</h3><ul>
-        <li data-zh-html="1" data-zh="<b>可以摸的东西。</b>按住月亮或太阳拖一下，它会倾斜，光也跟着动，松手后弹回原位。">An object you can touch. <b>Press and drag the moon or sun</b> and it tilts, the light shifts with it, and it springs back when you let go.</li>
-        <li data-zh-html="1" data-zh="<b>真正的 3D 球体。</b>月亮有真实的月海和环形山，会像真的月亮一样轻轻晃动，明暗交界线顺着球面弯过去，太阳散发柔和的光。拖一下它会转。月相依然一眼能读。">Depth. <b>A real 3D ball.</b> The moon has its real seas and craters and rocks gently like the real one, the shadow edge wraps around the sphere, and the sun glows softly. Drag it and it rolls. The phase still reads at a glance.</li>
-        <li data-zh-html="1" data-zh="<b>声音。</b>每小时一声轻响，每次音高都略有不同，所以不会机械；满了有一声铃。">Sound. A soft tick each hour, <b>each a little different in pitch</b> so it never feels mechanical, and a chime when you reach full.</li>
-        <li data-zh-html="1" data-zh="<b>可以拖动的时间。</b>沿着时间轴拖动，每过一小时就有一下“咔哒”和震动。">Scrubbing through time. Drag along the timeline and <b>each hour clicks into place</b> with a tap.</li>
-        <li data-zh-html="1" data-zh="<b>以后可以出皮肤。</b>可收藏的月亮和太阳皮肤是一个不打扰人的收入方式，计时器本身永远免费。">Skins later. <b>Collectible moon and sun skins</b> are a gentle way to earn money, while the timer itself stays free.</li>
-      </ul></div>
-      <div><h3 data-zh="不照搬">Skip</h3><ul>
-        <li data-zh-html="1" data-zh="<b>完整的 3D 引擎。</b>他们用 3D 引擎和低多边形模型搭整个场景，只做 iPhone。我们先上安卓，很多是中低端手机，所以<b>只用一个小小的着色器画出真正的 3D 月亮和太阳</b>：不用引擎，不用模型，没有要下载的东西。老手机会自动换成平面版。">A full 3D engine. They build whole scenes with low-poly models, and only on iPhone. We launch on Android, where many phones are mid-range, so <b>one small shader draws a real 3D moon and sun</b>: no engine, no models, nothing to download. Older phones get the flat version automatically.</li>
-        <li data-zh-html="1" data-zh="<b>复古游戏的粗犷风格。</b>那会和苹果式的干净外观打架。我们把好玩放在手感和动效里，而不是外观。">The chunky retro-game look. It would clash with the clean Apple look. <b>We put the fun in touch and motion</b>, not in the styling.</li>
-        <li data-zh-html="1" data-zh="<b>静音时也出声。</b>他们的声音在静音开关打开时也会播放。断食常常在夜里，我们要跟随手机的静音设置。">Sound in silent mode. Their sounds play even with the mute switch on. Fasts often run at night, so <b>Lightly follows the phone's silent setting</b>.</li>
-        <li data-zh-html="1" data-zh="<b>很多数字。</b>天气应用要显示很多数据，我们只需要一个大数字：还剩多久。">Lots of numbers. A weather app has a lot of data to show. <b>We need one big number</b>: time left.</li>
-      </ul></div>
-    </div>
-    <p class="src" data-zh-html="1" data-zh="资料来源：<a href=&quot;https://apps.apple.com/app/id1531063436&quot;>App Store 页面</a>、<a href=&quot;https://www.tapsmart.com/apps/not-boring-weather-fun-alternative-weather-watchers/&quot;>TapSmart 评测</a>、<a href=&quot;https://www.revenuecat.com/blog/growth/andy-allen-not-boring-software-launched-podcast-2026&quot;>RevenueCat 对 Andy Allen 的访谈</a>、<a href=&quot;https://notbor.ing/llms.txt&quot;>notbor.ing</a>。公开资料没有写他们具体怎么画太阳和月亮。">Sources: <a href="https://apps.apple.com/app/id1531063436">App Store listing</a>, <a href="https://www.tapsmart.com/apps/not-boring-weather-fun-alternative-weather-watchers/">TapSmart review</a>, <a href="https://www.revenuecat.com/blog/growth/andy-allen-not-boring-software-launched-podcast-2026">RevenueCat interview with Andy Allen</a>, <a href="https://notbor.ing/llms.txt">notbor.ing</a>. None of them describe exactly how they draw the sun and moon.</p>
-  </section>
 
   <section class="notes" aria-labelledby="n-h">
     <h2 class="h2" id="n-h" data-zh="苹果的样子，安卓先上线">Apple's look, Android first</h2>
