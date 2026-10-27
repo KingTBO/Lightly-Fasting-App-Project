@@ -61,5 +61,13 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  assert(await d3.p.evaluate(()=>!!localStorage.getItem('lightly:auth')),'signed in from the link');assert(!(await d3.p.evaluate(()=>location.hash)),'hash cleared');ok('returning through the magic link signs in');
  const d4=await device(base([]),false);await d4.p.goto(url+'#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired');await d4.p.reload();await d4.p.waitForTimeout(800);
  assert.match(await d4.p.textContent('#toast'),/expired/);assert(!(await d4.p.evaluate(()=>localStorage.getItem('lightly:auth'))));ok('expired link shows a friendly message');
- assert.deepStrictEqual(d1.errs.concat(d2.errs,d3.errs,d4.errs),[]);console.log('cloud e2e ok');await b.close();mock.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});
+ // the link opens in a different, empty browser: the state rides along in ?r=, so no onboarding and straight to Today
+ const d5=await device(null,false);await d5.p.evaluate(()=>localStorage.clear());
+ const carried=await d3.p.evaluate(()=>LightlyCloud.pack(JSON.parse(localStorage.getItem('lightly:v1'))));assert(carried&&carried.length<=1800,'state packs small');
+ await d5.p.goto(url+'?r='+carried+'#access_token=tok-link@example.com&refresh_token=r&expires_in=3600&type=magiclink');await d5.p.reload();await d5.p.waitForTimeout(1800);
+ assert(await d5.p.evaluate(()=>document.getElementById('ob').hidden),'onboarding stays hidden');assert((await d5.p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).fasts.some(x=>x.id==='three'),'fasts carried over');assert.strictEqual(await d5.p.evaluate(()=>location.search),'');ok('link in a fresh browser skips onboarding and lands on Today');
+ // a brand-new account on a fresh browser still gets onboarding, once, after sign-in resolves
+ const d6=await device(null,false);await d6.p.evaluate(()=>localStorage.clear());await d6.p.goto(url+'#access_token=tok-new@example.com&refresh_token=r&expires_in=3600&type=magiclink');await d6.p.reload();await d6.p.waitForTimeout(1800);
+ assert(!(await d6.p.evaluate(()=>document.getElementById('ob').hidden)),'new account sees onboarding');ok('new account still gets onboarding');
+ assert.deepStrictEqual(d1.errs.concat(d2.errs,d3.errs,d4.errs,d5.errs,d6.errs),[]);console.log('cloud e2e ok');await b.close();mock.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});
 function ok(n){console.log('ok -',n);}
