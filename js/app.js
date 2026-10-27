@@ -413,12 +413,12 @@ function renderMe(){
    '<button class="row" data-act="redo"><span>'+L('Redo setup','重新设置')+'</span>'+CHEV+'</button></div>';
   h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group"><button class="row" data-act="export"><span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase"><span>'+L('Erase everything','清除所有数据')+'</span></button></div>';
   if(C.ramadanDay()===0) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
-  h+='<p class="gf" style="text-align:center">'+L('Lightly 轻伴 · web app · saved on this device','轻伴 Lightly · 网页版 · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
+  h+='<p class="gf" style="text-align:center">'+L('Lightly · web app · saved on this device','轻伴 · 网页版 · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
   $('me').innerHTML=h;
 }
 function sw(k,label,on,dis){ return '<div class="row"><span>'+label+'</span><button class="sw" role="switch" aria-checked="'+!!on+'" aria-label="'+esc(label)+'" data-act="sw" data-k="'+k+'"'+(dis?' disabled':'')+'></button></div>'; }
 function applyTheme(){ var r=document.documentElement; if(S.theme==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',S.theme); }
-function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'; tabLabels(); document.title=S.lang==='zh'?'轻伴 Lightly':'Lightly 轻伴'; }
+function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'; tabLabels(); document.title=S.lang==='zh'?'轻伴':'Lightly'; }
 
 /* ---------- onboarding ---------- */
 var ob={step:0,fasted:null,safe:[],plan:null};
@@ -428,11 +428,11 @@ function obHtml(i){
   var top='<div class="ob-top"><span class="ob-l">'+back+'</span>'+dots+'<span></span></div>', body='', cta='';
   function opt(v,label,sub,on){ return '<button class="plan'+(on?' sel':'')+'" data-act="obopt" data-v="'+v+'"><span class="pn"><b>'+label+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+CHECK+'</button>'; }
   if(i===0){
-    var tile='<svg viewBox="-80 -80 160 160" aria-hidden="true"><defs><radialGradient id="obM" cx=".38" cy=".34" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient></defs>'+
+    var tile='<svg id="obHero" viewBox="-80 -80 160 160" role="img" aria-label="'+L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。')+'"><defs><radialGradient id="obM" cx=".38" cy=".34" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient></defs>'+
       '<rect x="-80" y="-80" width="160" height="160" rx="36" style="fill:var(--night)"/>'+
-      '<g fill="#fff"><circle cx="-52" cy="-46" r="1.4" opacity=".7"/><circle cx="-30" cy="-60" r="1" opacity=".5"/><circle cx="46" cy="-52" r="1.5" opacity=".7"/><circle cx="58" cy="-22" r="1" opacity=".5"/><circle cx="-58" cy="30" r="1" opacity=".5"/><circle cx="50" cy="52" r="1.2" opacity=".6"/></g>'+
-      '<circle r="40" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-width="1.2"/><path d="'+phasePath(.3,40)+'" fill="url(#obM)"/></svg>';
-    body='<div class="grow"></div><div class="ob-hero">'+tile+'</div><h1 style="text-align:center">Lightly <span style="font-weight:600">轻伴</span></h1><p class="lede" style="text-align:center">'+L('A fast that follows the sky. A moon at night and a sun by day, set by your real sunrise and sunset.','跟着天空走的断食。夜里是月亮，白天是太阳，由你所在地的真实日出日落决定。')+'</p><div class="seg" style="margin:8px auto 0;width:min(260px,100%)"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div><div class="grow"></div>';
+      '<g fill="#fff" class="tw"><circle cx="-52" cy="-46" r="1.4" opacity=".7"/><circle cx="-30" cy="-60" r="1" opacity=".5"/><circle cx="46" cy="-52" r="1.5" opacity=".7"/><circle cx="58" cy="-22" r="1" opacity=".5"/><circle cx="-58" cy="30" r="1" opacity=".5"/><circle cx="50" cy="52" r="1.2" opacity=".6"/></g>'+
+      '<circle id="obHalo" r="52" fill="none" stroke="#F4EFE2" stroke-width="1.5" opacity="0"/><circle r="40" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-width="1.2"/><path id="obLit" d="" fill="url(#obM)"/></svg>';
+    body='<div class="grow"></div><div class="ob-hero">'+tile+'</div><h1 style="text-align:center">'+L('Lightly','轻伴')+'</h1><p class="lede" style="text-align:center">'+L('A fast that follows the sky. A moon at night and a sun by day, set by your real sunrise and sunset.','跟着天空走的断食。夜里是月亮，白天是太阳，由你所在地的真实日出日落决定。')+'</p><div class="seg" style="margin:8px auto 0;width:min(260px,100%)"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Get started','开始')+'</button>';
   }else if(i===1){
     body='<h1>'+L('Have you fasted before?','你以前断食过吗？')+'</h1><p class="lede">'+L('This only sets your starting plan.','这只会决定你的起始计划。')+'</p><div class="group">'+opt('first',L('This is my first time','这是第一次'),L('We’ll start gently.','我们会从温和的开始。'),ob.fasted==='first')+opt('before',L('I’ve fasted before','我以前断食过'),L('You can start with 16:8.','可以直接从 16:8 开始。'),ob.fasted==='before')+'</div><div class="grow"></div>';
@@ -460,8 +460,9 @@ function obRender(dir){
   var old=[].slice.call(box.children).filter(function(c){return c!==n;});
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transition=''; n.classList.remove('back'); n.classList.add('on'); old.forEach(function(o){ o.classList.remove('on'); o.classList.add(dir<0?'out':'past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); }); });
   var f=n.querySelector('h1'); if(f){ f.setAttribute('tabindex','-1'); }
+  heroStart();
 }
-function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); }
+function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); heroStart(true); }
 function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null}; $('ob').innerHTML=''; obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
@@ -469,6 +470,28 @@ function obFinish(){
   save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today');
 }
 
+/* ---------- the welcome moon: it waxes in, breathes, and follows your finger. Drag sideways to change the phase; it springs home. ---------- */
+var hero={p:0,t:.3,drag:false,x0:0,pull:0,loop:false,full:false,last:0,pulse:0};
+function hq(id){ var st=$('ob').lastElementChild; return st&&st.querySelector('#'+id); }
+function heroStart(keep){
+  var sv=hq('obHero'); if(!sv) return;
+  if(!sv.dataset.on){ sv.dataset.on='1'; sv.style.touchAction='none'; sv.style.cursor='grab';
+    sv.addEventListener('pointerdown',function(e){ hero.drag=true; hero.x0=e.clientX; try{ sv.setPointerCapture(e.pointerId); }catch(x){} sv.style.cursor='grabbing'; sBoop(); buzz(6); });
+    sv.addEventListener('pointermove',function(e){ if(hero.drag&&!reduce) hero.pull=(e.clientX-hero.x0)/sv.getBoundingClientRect().width; });
+    var up=function(){ hero.drag=false; hero.pull=0; sv.style.cursor='grab'; }; sv.addEventListener('pointerup',up); sv.addEventListener('pointercancel',up); }
+  if(reduce){ hero.p=.3; hq('obLit').setAttribute('d',phasePath(.3,40)); return; }
+  if(!keep) hero.p=0; hero.last=performance.now(); if(!hero.loop){ hero.loop=true; requestAnimationFrame(heroFrame); }
+}
+function heroFrame(t){
+  var lit=hq('obLit'); if(!lit||$('ob').hidden||ob.step!==0){ hero.loop=false; return; }
+  var dt=Math.min((t-hero.last)/1000,.05); hero.last=t;
+  var breathe=hero.drag?0:Math.sin(t/1000*.9)*.035, target=hero.drag?Math.min(1,Math.max(.04,.3+hero.pull*1.6)):.3+breathe;
+  hero.p+=(target-hero.p)*(1-Math.exp(-dt*(hero.drag?18:5)));            /* critically damped: no overshoot */
+  lit.setAttribute('d',phasePath(hero.p,40));
+  var full=hero.p>.93; if(full&&!hero.full){ hero.pulse=1; buzz([14,40,14]); sChime(); } hero.full=full; hero.pulse=Math.max(0,hero.pulse-dt/1.4);
+  var h=hq('obHalo'); h.setAttribute('r',(46+14*(1-hero.pulse)).toFixed(1)); h.setAttribute('opacity',(hero.pulse*.8).toFixed(2));
+  requestAnimationFrame(heroFrame);
+}
 /* ---------- click routing ---------- */
 var A={
   close:closeSheet,
