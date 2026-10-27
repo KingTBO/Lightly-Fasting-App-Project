@@ -51,7 +51,7 @@ const H=3600000,D=24*H;
  await p.click('#tabs [data-tab=today]');await p.click('#streakBtn');await p.click('#sheet [data-act=usecheat]');await p.waitForTimeout(300);s=await S();
  assert.strictEqual(s.flex.used.length,1);ok('cheat day used');
  // language
- await p.click('#tabs [data-tab=me]');await p.click('[data-act=lang][data-v=zh]');await p.waitForTimeout(200);assert.match(await p.textContent('#me .h-title'),/我的/);assert.strictEqual(await p.evaluate(()=>document.documentElement.lang),'zh-Hans');ok('language switch');
+ await p.click('#tabs [data-tab=me]');await p.click('#me [data-act=choice][data-k=lang]');await p.click('#sheet [data-act=pick][data-v=zh]');await p.waitForTimeout(450);assert.match(await p.textContent('#me .h-title'),/我的/);assert.strictEqual(await p.evaluate(()=>document.documentElement.lang),'zh-Hans');ok('language switch');
  // ramadan preview adds the plan
  await p.click('[data-act=sw][data-k=ram]');await p.click('[data-act=plan]');assert(await p.$('.plan[data-id="ramadan"]'));ok('Ramadan row appears only with season/preview');
  // ---- plan ladder, experienced setup, overtime, editing the end of a finished fast, email-only sign-in

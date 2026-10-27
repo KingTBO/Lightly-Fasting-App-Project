@@ -476,6 +476,19 @@ function emailErr(x){ return x&&(x.status===429||/rate|seconds|too many/i.test(x
 function fastSub(p){ return L('Fast '+p.fast+' hours','断食 '+p.fast+' 小时'); }
 
 /* ---------- Me ---------- */
+/* one-of-a-few settings open a list with a check mark, like iOS Settings */
+var CHOICES={
+  lang:{title:['Language','语言'],opts:[['en','English',''],['zh','中文','']],cur:function(){ return S.lang; }},
+  theme:{title:['Appearance','外观'],opts:[['auto',['Auto','自动'],['Follows your phone','跟随手机']],['light',['Light','浅色'],''],['dark',['Dark','深色'],'']],cur:function(){ return S.theme; }},
+  tstyle:{title:['Timer style','计时样式'],opts:[['a',['Classic','经典'],['Bold rounded numerals','圆润粗体数字']],['b',['Hero','大字'],['Very large, light numerals','超大轻体数字']],['c',['Card','卡片'],['Frosted card with time left and elapsed','毛玻璃卡片，同时显示剩余和已过']]],cur:function(){ return S.prefs.timerStyle||'b'; }}
+};
+function cl(x){ return typeof x==='string'?x:L(x[0],x[1]); }
+function choiceLabel(k,v){ var o=CHOICES[k].opts.filter(function(x){return x[0]===v;})[0]; return o?cl(o[1]):''; }
+function choiceSheet(k){
+  var c=CHOICES[k], cur=c.cur(), h='<h3>'+L(c.title[0],c.title[1])+'</h3><div class="group">';
+  c.opts.forEach(function(o){ h+='<button class="plan'+(o[0]===cur?' sel':'')+'" data-act="pick" data-k="'+k+'" data-v="'+o[0]+'"><span class="pn"><b>'+esc(cl(o[1]))+'</b>'+(o[2]?'<small>'+esc(cl(o[2]))+'</small>':'')+'</span>'+CHECK+'</button>'; });
+  openSheet(h+'</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
+}
 function renderMe(){
   var zh=S.lang==='zh', h='<h1 class="h-title">'+L('Me','我的')+'</h1>';
   h+=accountHtml();
@@ -486,9 +499,9 @@ function renderMe(){
    '<div class="row"><label for="usualStart">'+L('Usual start time','通常开始时间')+'</label><input id="usualStart" class="tin" type="time" value="'+esc(S.prefs.usualStart||'')+'" data-chg="usual" aria-label="'+L('Usual start time','通常开始时间')+'"></div>'+
    '<button class="row" data-act="cheat"><span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button></div>';
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
-   '<div class="row"><span>'+L('Language','语言')+'</span><div class="seg" role="group" aria-label="Language"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div></div>'+
-   '<div class="row"><span>'+L('Timer style','计时样式')+'</span><div class="seg" role="group" aria-label="Timer style"><button data-act="tstyle" data-v="a" aria-pressed="'+((S.prefs.timerStyle||'b')==='a')+'">'+L('Classic','经典')+'</button><button data-act="tstyle" data-v="b" aria-pressed="'+((S.prefs.timerStyle||'b')==='b')+'">'+L('Hero','大字')+'</button><button data-act="tstyle" data-v="c" aria-pressed="'+((S.prefs.timerStyle||'b')==='c')+'">'+L('Card','卡片')+'</button></div></div>'+
-   '<div class="row"><span>'+L('Appearance','外观')+'</span><div class="seg" role="group" aria-label="Appearance"><button data-act="theme" data-v="auto" aria-pressed="'+(S.theme==='auto')+'">'+L('Auto','自动')+'</button><button data-act="theme" data-v="light" aria-pressed="'+(S.theme==='light')+'">'+L('Light','浅色')+'</button><button data-act="theme" data-v="dark" aria-pressed="'+(S.theme==='dark')+'">'+L('Dark','深色')+'</button></div></div>'+
+   '<button class="row" data-act="choice" data-k="lang"><span>'+L('Language','语言')+'</span><span class="v">'+(S.lang==='zh'?'中文':'English')+'</span>'+CHEV+'</button>'+
+   '<button class="row" data-act="choice" data-k="theme"><span>'+L('Appearance','外观')+'</span><span class="v">'+choiceLabel('theme',S.theme)+'</span>'+CHEV+'</button>'+
+   '<button class="row" data-act="choice" data-k="tstyle"><span>'+L('Timer style','计时样式')+'</span><span class="v">'+choiceLabel('tstyle',S.prefs.timerStyle||'b')+'</span>'+CHEV+'</button>'+
    sw('sound',L('Sound','声音'),S.prefs.sound)+(navigator.vibrate?sw('haptics',L('Vibration','振动'),S.prefs.haptics):'')+sw('d3',L('3D moon and sun','3D 月亮和太阳'),S.prefs.d3&&!!orb,!orb)+
    sw('notify',L('Reminders','提醒'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>';
   h+='<div class="gf">'+L('Reminders tell you when your goal is reached. A web app can only do this while it is open or recently open; the phone app will do it properly.','提醒会在达成目标时通知你。网页应用只有在打开或刚刚打开时才能做到，手机应用会做得更好。')+'</div>';
@@ -625,6 +638,8 @@ var A={
   signoutok:function(){ CL.signOut(); sync.at=0; sync.err=''; closeSheet(); renderMe(); },
   syncnow:function(){ syncNow(false); },
   lang:function(b){ S.lang=b.dataset.v; save(); applyLang(); cache={}; if(!$('ob').hidden){ obRefresh(); } else renderMe(); updateToday(); },
+  choice:function(b){ choiceSheet(b.dataset.k); },
+  pick:function(b){ var f=A[b.dataset.k]; if(f) f(b); setTimeout(closeSheet,180); },
   theme:function(b){ S.theme=b.dataset.v; save(); applyTheme(); renderMe(); },
   sw:function(b){ var k=b.dataset.k, on=b.getAttribute('aria-checked')!=='true';
     if(k==='notify') return setNotify(on,function(){ if(!$('ob').hidden) obRefresh(); else renderMe(); });
