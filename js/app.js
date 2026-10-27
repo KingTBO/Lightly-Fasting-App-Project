@@ -444,7 +444,7 @@ var emCool=0;
 function resendCool(){ var b=$('emResend'); if(!b) return; var left=Math.ceil((emCool-Date.now())/1000); if(left>0){ b.disabled=true; b.textContent=L('Send again in ','可再发送：')+left+L(' s',' 秒'); setTimeout(resendCool,1000); } else { b.disabled=false; b.textContent=L('Send again','再发一次'); } }
 function emailErr(x){ return x&&(x.status===429||/rate|seconds|too many/i.test(x.message||''))?L('Too many emails just now. Wait a minute and try again.','邮件发得太频繁了，请等一分钟再试。'):L('Couldn’t send the email: ','邮件没发出去：')+x.message; }
 
-function fastSub(p){ return L('Fast '+p.fast+' hours, eat '+p.eat,'断食 '+p.fast+' 小时，进食 '+p.eat+' 小时'); }
+function fastSub(p){ return L('Fast '+p.fast+' hours','断食 '+p.fast+' 小时'); }
 
 /* ---------- Me ---------- */
 function renderMe(){
