@@ -174,6 +174,7 @@ function updateToday(){
   }else lastHour=-1;
   firstTick=false;
   fullS+=(((mode==='fast'&&el>=goal)?1:0)-fullS)*.12;
+  fitDisc();
 }
 
 var holdOn=false;
@@ -553,7 +554,10 @@ A.stsave=function(){ var s=new Date($('stS').value).getTime(), now=Date.now(); i
 
 /* ---------- boot ---------- */
 (function stars(){ var o='', s=7; function r(){ s=(s*9301+49297)%233280; return s/233280; } for(var i=0;i<70;i++) o+='<circle cx="'+(r()*390).toFixed(0)+'" cy="'+(r()*400).toFixed(0)+'" r="'+(0.6+r()*1.1).toFixed(1)+'" opacity="'+(0.3+r()*0.6).toFixed(2)+'"/>'; $('stars').innerHTML=o; })();
-function fitDisc(){ var h=ph.getBoundingClientRect().height; $('discWrap').style.setProperty('--ds',Math.max(.6,Math.min(1,(h-470)/236)).toFixed(3)); }
+var dsNow=1;
+/* the disc gives way first: it shrinks until the streak card and the button both fit above the tab bar */
+function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) return; var free=$('gap').offsetHeight-14, over=t.scrollHeight-t.clientHeight, d=(free>0?free:0)-(over>0?over:0);
+  if(Math.abs(d)<2) return; var n=Math.max(.4,Math.min(1,dsNow+d/236)); if(Math.abs(n-dsNow)<.004) return; dsNow=n; $('discWrap').style.setProperty('--ds',n.toFixed(3)); }
 window.addEventListener('resize',fitDisc);
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
 if(!S.onboarded){ updateToday(); obStart(); } else { showTab('today'); }

@@ -34,7 +34,7 @@ window.__audit=function(scope){
     if(e.closest('.tabs')||e.closest('.me-pick')) return; if(Math.min(r.height,Math.max(r.width,44))<min) out.push(['tap-size',name(e),r.width.toFixed(0)+'x'+r.height.toFixed(0)]); });
   // 6. overlaps between siblings-level blocks inside phones
   document.querySelectorAll('.ph').forEach(ph=>{ if(scope&&!root.contains(ph)&&ph!==root) return; const P=ph.getBoundingClientRect();
-    const els=[...ph.querySelectorAll('.act,.tabs,.track,.rcount,.read .tip,.read .big,.read .k,.disc-wrap,.nav,.sb,.rtoast.show,.me-card,.me-btns,.ob-cta')].filter(vis);
+    const els=[...ph.querySelectorAll('.act,.streak,.tabs,.track,.rcount,.read .tip,.read .big,.read .k,.disc-wrap,.nav,.sb,.rtoast.show,.me-card,.me-btns,.ob-cta')].filter(vis);
     for(let i=0;i<els.length;i++) for(let j=i+1;j<els.length;j++){ const a=els[i].getBoundingClientRect(), b=els[j].getBoundingClientRect(); if(els[i].contains(els[j])||els[j].contains(els[i])) continue;
       if(els[i].classList.contains('rtoast')||els[j].classList.contains('rtoast')) continue; if(!!els[i].closest('.me')!==!!els[j].closest('.me')) continue;
       const ox=Math.min(a.right,b.right)-Math.max(a.left,b.left), oy=Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top); if(ox>1&&oy>1) out.push(['overlap',name(els[i])+' × '+name(els[j]),oy.toFixed(1)+'px']); }

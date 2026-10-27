@@ -48,8 +48,8 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
      if(cr<(big?3:4.5))out.push(['contrast<'+(big?3:4.5),(e.className||e.tagName)+' "'+n.textContent.trim().slice(0,22)+'"',cr.toFixed(2)]);}
    return out;};
  const pages=[];
- for(const w of [390,1440])for(const scheme of ['light','dark'])for(const lng of ['en','zh']){
-  const h=w===390?844:900;
+ for(const w of [390,375,1440])for(const scheme of ['light','dark'])for(const lng of ['en','zh']){
+  const h=w===390?844:w===375?667:900;
   const run=async(kind,steps)=>{const ctx=await b.newContext({viewport:{width:w,height:h},colorScheme:scheme,timezoneId:'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});
    const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
    await p.addInitScript(([k,v])=>{ if(!sessionStorage.getItem('seeded')){localStorage.setItem(k,v);sessionStorage.setItem('seeded','1');} },['lightly:v1',JSON.stringify(seed(kind,lng))]);
