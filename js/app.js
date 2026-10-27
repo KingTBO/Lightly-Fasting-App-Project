@@ -60,6 +60,11 @@ function bestStreak(){
 }
 function curStreak(){ return C.streak(streakFasts(),S.flex.used); }
 function checkUnlocks(){ [24,36].forEach(function(k){ var r=C.longStatus(k,S.profile,{fasts:S.fasts,unwell:S.unwell,unlocked:S.unlocked}); if((r.st==='ok'||r.st==='wait'||r.st==='paused')&&!S.unlocked[k]){ S.unlocked[k]=Date.now(); save(); } }); }
+function usualTxt(){ var t=(S.prefs.usualStart||'20:00').split(':'); var d=new Date(); d.setHours(+t[0],+t[1],0,0); return clockMs(d.getTime()); }
+function pst(id){ return C.planStatus(id,S.profile,{fasts:S.fasts}); }
+function planOk(id){ return pst(id).st==='ok'; }
+function normalisePlan(){ if(S.planId==='ramadan') return; if(planOk(S.planId)) return; var best=['20','18','16','13'].filter(planOk)[0]||'13'; S.planId=best; save(); }
+function overTxt(h){ var m=Math.max(0,Math.round(h*60)), a=Math.floor(m/60), b=m%60; return S.lang==='zh'?'超出目标 '+(a?a+' 小时 ':'')+b+' 分':'+'+(a?a+' h ':'')+b+' m over your goal'; }
 function longSt(k){ checkUnlocks(); return C.longStatus(k,S.profile,{fasts:S.fasts,unwell:S.unwell,unlocked:S.unlocked}); }
 
 /* ---------- sound and haptics (tiny synthesized tones; the page follows the phone's silent switch) ---------- */
@@ -128,7 +133,7 @@ function updateToday(){
   moonV=C.moonAmt(hp,sun);
   mode=cur?'fast':(le&&now-le.end<eatH(le)*H?'eat':'idle');
   setSky(sk[1]);
-  if(S.planId==='ramadan'&&!inRamadan()){ S.planId='16'; p=plan(); save(); }
+  if(S.planId==='ramadan'&&!inRamadan()){ S.planId='16'; normalisePlan(); p=plan(); save(); }
   var ram=S.planId==='ramadan'&&!cur, goal=cur?cur.goalH:(mode==='eat'?le.goalH:p.fast), eatLen=le?eatH(le):0, eatEl=mode==='eat'?(now-le.end)/H:0;
   el=cur?(now-cur.start)/H:0;
   /* disc: new to full during the fast, then waning through the eating window */
@@ -141,10 +146,11 @@ function updateToday(){
   var ramadan=cur&&cur.planId==='ramadan';
   if(mode==='idle'){
     put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); put($('readBig'),'b',L('Ready','准备好了'));
-    put($('readTip'),'t',ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。')); put($('actLbl'),'a',L('Start Fast','开始断食'));
+    put($('readTip'),'t',ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。')); put($('actLbl'),'a',L('Start Fast','开始断食'));
   }else if(mode==='fast'){
     if(el<goal){ put($('readK'),'k',L('Time left','剩余时间')); put($('readBig'),'b',fmtH(goal-el),1); var tp=tipFor(el,goal,sk[1],moonV,ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); put($('readTip'),'t',tp[S.lang==='zh'?1:0]); }
-    else{ put($('readK'),'k',ramadan?L('Sunset has come','日落了'):L('Goal reached','目标达成')); put($('readBig'),'b',fmtH(el),1); put($('readTip'),'t',ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
+    else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); put($('readBig'),'b',fmtH(el),1); put($('readTip'),'t',ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
+      if(!ramadan&&over>=2&&!cur.nudged){ cur.nudged=true; save(); toast(L('You’re well past your goal. Eat when you’re ready; extra time isn’t scored.','已经超过目标很久了。准备好就可以吃东西，超出的时间不计分。')); } }
     if(!holdOn) put($('actLbl'),'a',L('Hold to End Fast','按住结束断食'));
   }else{
     put($('readK'),'k',L('Eating window left','进食窗口还剩')); put($('readBig'),'b',fmtH(eatLen-eatEl),1);
@@ -154,7 +160,7 @@ function updateToday(){
   var a0=mode==='eat'?le.end:mode==='fast'?cur.start:now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:ram?placeMs(sun.set,now):now+p.fast*H;
   var n=Math.min(Math.round(mode==='eat'?eatLen:ram?13:goal),36)||1; buildTicks(n);
   var tt=mode==='fast'?Math.min(el/goal,1):mode==='eat'?Math.min(eatEl/eatLen,1):0;
-  put($('endA'),'ea',mode==='fast'?clockMs(a0)+' ✎':mode==='idle'?L('Now','现在'):clockMs(a0));
+  put($('endA'),'ea',mode==='fast'||mode==='eat'?clockMs(a0)+' ✎':mode==='idle'?L('Now','现在'):clockMs(a0));
   put($('endB'),'eb','<b>'+clockMs(a1)+'</b>',1);
   $('tDone').style.strokeDasharray=(mode==='idle'?0:lenAt(tt))+' 9999';
   var q=tPt(tt); $('marker').setAttribute('cx',q.x.toFixed(1)); $('marker').setAttribute('cy',q.y.toFixed(1)); $('marker').style.opacity=mode==='idle'?0:1;
@@ -214,6 +220,7 @@ act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } i
 function startFlow(planId){
   var id=planId||S.planId, p=C.planById(id,S.customH);
   if(id==='ramadan'){ return startRamadan(); }
+  if(!p.long&&!planOk(id)){ normalisePlan(); p=plan(); toast(L('That plan opens later. Starting '+C.planLabel(p)+' instead.','那个计划稍后开放，先用 '+C.planLabel(p)+'。')); }
   if(p.long){ var st=longSt(p.fast); if(st.st!=='ok'){ toast(L('That fast isn’t available yet. Open your plan to see why.','这个断食现在还不能用，打开计划看看原因。')); return; } return longSafety(p); }
   beginFast(p,Date.now());
 }
@@ -235,16 +242,19 @@ function startRamadan(){
   beginFast({id:'ramadan',fast:(e-s)/H},Math.min(s,now));
 }
 function endFast(){
-  var cur=S.cur; if(!cur) return; var now=Date.now(), hrs=(now-cur.start)/H;
+  var cur=S.cur; if(!cur) return; var now=Date.now(), hrs=(now-cur.start)/H, openBefore=['16','18','20','23'].filter(planOk);
   S.cur=null;
   if(hrs<1/6){ save(); cache={}; shownP=-1; updateToday(); toast(L('Under 10 minutes, so it wasn’t saved.','不到 10 分钟，没有保存。')); return; }
   var f={id:uid(),start:cur.start,end:now,goalH:cur.goalH,plan:cur.planId};
   S.fasts.push(f); save(); cancelGoal(); sSave(); buzz([20,40,20]); cache={}; updateToday(); checkUnlocks();
-  var done=C.isDone(f), st=curStreak();
+  var done=C.isDone(f), st=curStreak(), news=['16','18','20','23'].filter(function(i){ return planOk(i)&&openBefore.indexOf(i)<0; }).map(function(i){ return C.planLabel(C.planById(i)); });
+  var ask=!S.prefs.backupAsked&&S.fasts.filter(C.isDone).length===1&&CL&&CL.ready()&&!CL.getAuth(); if(ask){ S.prefs.backupAsked=true; save(); }
   openSheet('<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span>'+
     '<div class="facts"><div><b>'+(f.plan==='ramadan'?'–':st)+'</b><span>'+L('day streak','天连续')+'</span></div><div><b>'+clockMs(now)+'</b><span>'+L('ended','结束时间')+'</span></div></div>'+
     '<p class="note">'+(done?L('You reached your goal. Eat gently and drink some water.','你达成了目标。慢慢吃，先喝点水。'):L('That still counts as a fast. Listening to your body is the point, and your streak is yours to keep going.','这也算一次断食。倾听身体才是重点，你的连续记录还可以继续。'))+'</p>'+
-    '<div class="btns"><button class="btn dark" data-act="close">'+L('Start Eating Window','开始进食窗口')+'</button></div>');
+    (news.length?'<p class="note" style="color:var(--label)"><b>'+L(news.join(' and ')+' is now open.',news.join('、')+' 现已开放。')+'</b> '+L('Choose it from the plan button on Today.','在今天页面的计划按钮里选择。')+'</p>':'')+
+    (ask?'<p class="note">'+L('Want to keep these fasts if you change phones? Back them up with your email. It’s optional, and everything works without it.','想在换手机时保留这些记录吗？可以用邮箱备份。这是可选的，不备份也能正常使用。')+'</p>':'')+
+    '<div class="btns"><button class="btn dark" data-act="close">'+L('Start Eating Window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>');
 }
 
 /* ---------- reminders (the browser can only notify while the app is alive) ---------- */
@@ -297,7 +307,7 @@ function renderDays(){
   var list=C.fastDays(all)[selDay]||[], fl=S.flex.used.indexOf(selDay)>=0, blk=C.flexBlock(selDay,{fasts:all,flex:S.flex});
   h+='<div class="gh">'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</div><div class="group">';
   if(!list.length&&!fl) h+='<div class="empty">'+(selDay>t?L('Nothing here yet.','这天还没有记录。'):L('No fast logged for this day.','这天没有记录断食。'))+'</div>';
-  list.sort(function(a,b){return a.end-b.end;}).forEach(function(f){ h+='<button class="row fast-row" data-act="edit" data-id="'+f.id+'"><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(C.isDone(f)?L('goal reached','达成目标'):L('ended early','提前结束'))+'</small></span>'+CHEV.replace('class="chev"','class="chev" style="margin-left:auto"')+'</button>'; });
+  list.sort(function(a,b){return a.end-b.end;}).forEach(function(f){ h+='<button class="row fast-row" data-act="edit" data-id="'+f.id+'"><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(C.isDone(f)?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+'</small></span>'+CHEV.replace('class="chev"','class="chev" style="margin-left:auto"')+'</button>'; });
   if(fl) h+='<div class="row"><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
   if(selDay<=t) h+='<button class="row" data-act="add" data-k="'+selDay+'" style="color:var(--blue)">'+L('Add a fast for this day','为这天补记一次断食')+'</button>';
   if(!fl&&selDay<=t&&!blk) h+='<button class="row" data-act="usecheat" data-k="'+selDay+'" style="color:var(--blue)">'+L('Use a cheat day for this day','这天使用弹性日')+'</button>';
@@ -364,18 +374,22 @@ function planRow(p,selId){
     else if(st.st==='paused'){ dis=true; pill='<span class="pill">'+L('Paused','已暂停')+'</span>'; sub=L('You said you felt unwell. Available again ','你说过身体不适，可用时间：')+dateLbl(st.until); }
     else if(st.st==='wait'){ dis=true; pill='<span class="pill">'+L('Rest first','先休息')+'</span>'; sub=L('Available again ','可用时间：')+dateLbl(st.until); }
     else sub=L('Unlocked. Water and electrolytes recommended.','已解锁。建议补充水分和电解质。');
-  }else if(p.custom) sub=L('Choose 12 to 23 hours','12 到 23 小时之间');
-  else sub=fastSub(p);
+  }else{
+    var ps=pst(p.id);
+    if(ps.st==='locked'){ dis=true; pill='<span class="pill">'+L('Locked','未解锁')+'</span>'; sub=S.lang==='zh'?zhProgress(C.planStatusLabel(ps)):C.planStatusLabel(ps); bar='<div class="bar"><i style="width:'+Math.round(ps.pct*100)+'%"></i></div>'; }
+    else sub=p.custom?L('Choose 12 to 23 hours','12 到 23 小时之间'):fastSub(p);
+  }
   var extra=p.custom&&!dis?'<span class="pr" style="min-width:0"></span>':'';
   var row='<button class="plan'+(selId===p.id?' sel':'')+'" data-act="pickplan" data-id="'+p.id+'"'+(dis?' disabled':'')+'><span class="pn"><b>'+esc(pName(p))+'</b><small>'+sub+'</small>'+bar+'</span>'+pill+'<span class="pr">'+lab+'</span>'+CHECK+'</button>';
   if(p.custom&&selId==='custom') row+='<div class="field"><label for="cH">'+L('Fasting hours','断食小时数')+'</label><input id="cH" type="number" min="12" max="23" step="1" inputmode="numeric" value="'+S.customH+'" data-chg="custom"></div>';
   return row;
 }
-function zhProgress(l){ return l.replace(/(\d+) of (\d+) fasts of 16 h or more/,'16 小时以上 $1/$2 次').replace(/(\d+) of (\d+) of 18 h or more/,'18 小时以上 $1/$2 次').replace(/week (\d+) of (\d+)/,'第 $1/$2 周').replace(/(\d+) of (\d+) fast of 24 h/,'24 小时断食 $1/$2 次').replace('First finish a 24 h fast, ','先完成一次 24 小时断食，').replace('24 h done, ','24 小时已完成，'); }
+function zhProgress(l){ return l.replace(/(\d+) of (\d+) fasts of (\d+) h or more/,'$3 小时以上 $1/$2 次').replace(/(\d+) of (\d+) of 18 h or more/,'18 小时以上 $1/$2 次').replace(/week (\d+) of (\d+)/,'第 $1/$2 周').replace(/(\d+) of (\d+) fast of 24 h/,'24 小时断食 $1/$2 次').replace('First finish a 24 h fast, ','先完成一次 24 小时断食，').replace('24 h done, ','24 小时已完成，'); }
 function pickPlan(id){
   var p=C.planById(id,S.customH);
   if(id==='ramadan'){ S.planId='ramadan'; if(S.cur){ toast(L('Ramadan runs dawn to sunset. End this fast first.','斋月从黎明到日落。先结束当前断食。')); return; } save(); closeSheet(); updateToday(); return startRamadan(); }
   if(p.long){ var st=longSt(p.fast); if(st.st!=='ok') return; if(S.cur){ return longSafety(p); } S.planId=id; save(); cache={}; updateToday(); return planSheet(); }
+  if(!planOk(id)) return;
   S.planId=id; if(S.cur){ S.cur.planId=id; S.cur.goalH=p.fast; S.cur.reached=(Date.now()-S.cur.start)/H>=p.fast; scheduleGoal(); }
   save(); cache={}; ticksKey=''; updateToday(); planSheet();
 }
@@ -419,8 +433,7 @@ function accountHtml(){
     return h;
   }
   h+='<div class="group"><div class="me-card"><span class="av"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><div><b>'+L('Not signed in','未登录')+'</b><span>'+L('Everything works. Fasts stay on this phone.','所有功能都能用，断食记录保存在这台手机上。')+'</span></div></div>'+
-   '<div class="signin"><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button>'+
-   '<button class="btn sec" data-act="soon" data-k="'+(zh?'wechat':'apple')+'">'+(zh?'微信登录':'Continue with Apple')+'</button><button class="btn sec" data-act="soon" data-k="'+(zh?'phone':'google')+'">'+(zh?'手机号登录':'Continue with Google')+'</button></div></div>'+
+   '<div class="signin"><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button></div></div>'+
    '<div class="gf" style="margin-top:-8px">'+L('Signing in is optional and only backs up your fasts, so you can change phones.','登录是可选的，只用来备份记录，换手机时不会丢。')+'</div>';
   return h;
 }
@@ -454,6 +467,7 @@ function renderMe(){
   h+='<div class="gh">'+L('Fasting','断食')+'</div><div class="group">'+
    '<button class="row" data-act="plan"><span>'+L('Plan','计划')+'</span><span class="v">'+(S.cur&&S.cur.planId==='ramadan'?L('Ramadan','斋月'):C.planLabel(p))+'</span>'+CHEV+'</button>'+
    '<button class="row" data-act="place"><span>'+L('Where you are','你的位置')+'</span><span class="v">'+esc(placeName())+'</span>'+CHEV+'</button>'+
+   '<div class="row"><label for="usualStart">'+L('Usual start time','通常开始时间')+'</label><input id="usualStart" class="tin" type="time" value="'+esc(S.prefs.usualStart||'')+'" data-chg="usual" aria-label="'+L('Usual start time','通常开始时间')+'"></div>'+
    '<button class="row" data-act="cheat"><span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button></div>';
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
    '<div class="row"><span>'+L('Language','语言')+'</span><div class="seg" role="group" aria-label="Language"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div></div>'+
@@ -473,34 +487,41 @@ function applyTheme(){ var r=document.documentElement; if(S.theme==='auto') r.re
 function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'; tabLabels(); document.title=S.lang==='zh'?'轻伴':'Lightly'; }
 
 /* ---------- onboarding ---------- */
-var ob={step:0,fasted:null,safe:[],plan:null};
+var ob={step:0,fasted:null,safe:[],plan:null,start:'20:00'};
+function obRisky(){ return !!(ob.safe.length&&ob.safe.indexOf('none')<0); }
+/* everyone: welcome, fasted before, safety, plan, where you are. People who have fasted before also get a step to make it theirs. */
+function obFlow(){ var f=['welcome','fasted','safety','plan']; if(ob.fasted==='before'&&!obRisky()) f.push('custom'); f.push('set'); return f; }
 function obHtml(i){
   var back=i>0?'<button class="ob-back" data-act="obback"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg>'+L('Back','返回')+'</button>':'<span></span>';
-  var dots='<span class="ob-dots" aria-hidden="true">'+[0,1,2,3,4].map(function(j){return '<i'+(j===i?' class="on"':'')+'></i>';}).join('')+'</span>';
+  var flow=obFlow(), key=flow[i]; var dots='<span class="ob-dots" aria-hidden="true">'+flow.map(function(j){return '<i'+(j===i?' class="on"':'')+'></i>';}).join('')+'</span>';
   var top='<div class="ob-top"><span class="ob-l">'+back+'</span>'+dots+'<span></span></div>', body='', cta='';
   function opt(v,label,sub,on){ return '<button class="plan'+(on?' sel':'')+'" data-act="obopt" data-v="'+v+'"><span class="pn"><b>'+label+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+CHECK+'</button>'; }
-  if(i===0){
+  if(key==='welcome'){
     var tile='<svg id="obHero" viewBox="-80 -80 160 160" role="img" aria-label="'+L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。')+'"><defs><radialGradient id="obM" cx=".38" cy=".34" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient></defs>'+
       '<rect x="-80" y="-80" width="160" height="160" rx="36" style="fill:var(--night)"/>'+
       '<g fill="#fff" class="tw"><circle cx="-52" cy="-46" r="1.4" opacity=".7"/><circle cx="-30" cy="-60" r="1" opacity=".5"/><circle cx="46" cy="-52" r="1.5" opacity=".7"/><circle cx="58" cy="-22" r="1" opacity=".5"/><circle cx="-58" cy="30" r="1" opacity=".5"/><circle cx="50" cy="52" r="1.2" opacity=".6"/></g>'+
       '<circle id="obHalo" r="52" fill="none" stroke="#F4EFE2" stroke-width="1.5" opacity="0"/><circle r="40" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-width="1.2"/><path id="obLit" d="" fill="url(#obM)"/></svg>';
     body='<div class="grow"></div><div class="ob-hero">'+tile+'</div><h1 style="text-align:center">'+L('Lightly','轻伴')+'</h1><p class="lede" style="text-align:center">'+L('A fast that follows the sky. A moon at night and a sun by day, set by your real sunrise and sunset.','跟着天空走的断食。夜里是月亮，白天是太阳，由你所在地的真实日出日落决定。')+'</p><div class="seg" style="margin:8px auto 0;width:min(260px,100%)"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Get started','开始')+'</button>';
-  }else if(i===1){
-    body='<h1>'+L('Have you fasted before?','你以前断食过吗？')+'</h1><p class="lede">'+L('This only sets your starting plan.','这只会决定你的起始计划。')+'</p><div class="group">'+opt('first',L('This is my first time','这是第一次'),L('We’ll start gently.','我们会从温和的开始。'),ob.fasted==='first')+opt('before',L('I’ve fasted before','我以前断食过'),L('You can start with 16:8.','可以直接从 16:8 开始。'),ob.fasted==='before')+'</div><div class="grow"></div>';
+  }else if(key==='fasted'){
+    body='<h1>'+L('Have you fasted before?','你以前断食过吗？')+'</h1><p class="lede">'+L('This only sets your starting plan.','这只会决定你的起始计划。')+'</p><div class="group">'+opt('first',L('This is my first time','这是第一次'),L('Start with 13:11 and build up.','从 13:11 开始，慢慢增加。'),ob.fasted==='first')+opt('before',L('I’ve fasted before','我以前断食过'),L('Every everyday plan is open, and you can tune it next.','所有日常计划都可用，下一步可以细调。'),ob.fasted==='before')+'</div><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext"'+(ob.fasted?'':' disabled')+'>'+L('Continue','继续')+'</button>';
-  }else if(i===2){
+  }else if(key==='safety'){
     function ck(v,label){ var on=ob.safe.indexOf(v)>=0; return '<button class="check" role="checkbox" aria-checked="'+on+'" data-act="obsafe" data-v="'+v+'"><span class="bx"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span>'+label+'</span></button>'; }
     body='<h1>'+L('Is any of this true for you?','下面有符合你的情况吗？')+'</h1><p class="lede">'+L('Fasting isn’t right for everyone. Pick all that apply.','断食并不适合所有人。可多选。')+'</p><div class="group">'+ck('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'))+ck('diab',L('I take medication for diabetes','我在服用糖尿病药物'))+ck('ed',L('I have had an eating disorder','我有过进食障碍'))+ck('none',L('None of these','都不是'))+'</div>'+
       (ob.safe.length&&ob.safe.indexOf('none')<0?'<p class="gf" style="padding:0 4px;color:var(--label)">'+L('Thank you for telling us. We’ll suggest the gentlest plan and never offer long fasts. Please talk to your doctor before fasting.','谢谢你告诉我们。我们会推荐最温和的计划，也不会提供长时间断食。断食前请先咨询医生。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obnext"'+(ob.safe.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
-  }else if(i===3){
-    var risky=ob.safe.length&&ob.safe.indexOf('none')<0, sug=risky||ob.fasted==='first'?'13':'16'; if(!ob.plan) ob.plan=sug;
-    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1><p class="lede">'+L('You can change it any time.','随时可以更改。')+'</p><div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"><span class="pn"><span class="pt"><b>'+pName(p)+'</b>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+'</span><small>'+fastSub(p)+'</small></span>'+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
+  }else if(key==='plan'){
+    var risky=obRisky(), sug=risky||ob.fasted==='first'?'13':'16', prof={fastedBefore:ob.fasted==='before',safety:risky}; if(!ob.plan||C.planStatus(ob.plan,prof,{fasts:[]}).st!=='ok') ob.plan=sug;
+    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1><p class="lede">'+(risky||ob.fasted==='first'?L('Everyone starts at 13:11. The next plan opens after three completed fasts.','大家都从 13:11 开始，完成三次后开放下一个计划。'):L('Every everyday plan is open. You can change it any time.','所有日常计划都已开放，随时可以更改。'))+'</p><div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ var lk=C.planStatus(p.id,prof,{fasts:[]}).st!=='ok';
+        return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"'+(lk?' disabled':'')+'><span class="pn"><span class="pt"><b>'+pName(p)+'</b>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+(lk?'<span class="pill">'+L('Locked','未解锁')+'</span>':'')+'</span><small>'+(lk?L('Opens as you go','随进度开放'):fastSub(p))+'</small></span>'+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
       '<p class="gf" style="padding:0 4px">'+(risky?L('Longer fasts stay off for you.','长时间断食对你保持关闭。'):L('A 24-hour fast unlocks later, as you build up.','24 小时断食会在你逐步适应后解锁。'))+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
+  }else if(key==='custom'){
+    body='<h1>'+L('Make it yours','按你的习惯来')+'</h1><p class="lede">'+L('Since you’ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="group"><div class="field"><label for="obStart">'+L('Usual start time','通常开始时间')+'</label><input id="obStart" class="tin" type="time" value="'+esc(ob.start||'20:00')+'" data-chg="obstart"></div></div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
+    cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else{
-    body='<h1>'+L('You’re set','准备好了')+'</h1><p class="lede">'+L('Lightly needs to know where you are to find your sunrise and sunset. Your first fast can start tonight.','Lightly 需要知道你在哪里，才能算出日出日落。今晚就可以开始第一次断食。')+'</p><div class="group"><button class="row" data-act="obgeo"><span class="stack"><span>'+L('Use my location','使用我的位置')+'</span><small>'+L('Stays on your phone','只留在你的手机上')+'</small></span><span class="v">'+(S.place.key==='here'?'✓':'')+'</span></button><div class="row"><span>'+L('Or pick a city','或选择城市')+'</span><select id="obCity" data-chg="obcity" aria-label="'+L('City','城市')+'">'+Object.keys(C.CITIES).map(function(k){ return '<option value="'+k+'"'+(S.place.key===k?' selected':'')+'>'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</option>'; }).join('')+'</select></div></div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
+    body='<h1>'+L('You’re set','准备好了')+'</h1><p class="lede">'+L('Lightly needs to know where you are to find your sunrise and sunset. Your first fast can start tonight.','Lightly 需要知道你在哪里，才能算出日出日落。今晚就可以开始第一次断食。')+'</p><div class="group"><button class="row" data-act="obgeo"><span class="stack"><span>'+L('Use my location','使用我的位置')+'</span><small>'+L('Stays on your phone','只留在你的手机上')+'</small></span><span class="v">'+(S.place.key==='here'?'✓':'')+'</span></button><div class="row"><span>'+L('Or pick a city','或选择城市')+'</span><select id="obCity" data-chg="obcity" aria-label="'+L('City','城市')+'">'+Object.keys(C.CITIES).map(function(k){ return '<option value="'+k+'"'+(S.place.key===k?' selected':'')+'>'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</option>'; }).join('')+'</select></div></div>'+(flow.indexOf('custom')<0?'<div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obdone">'+L('Open Lightly','打开 Lightly')+'</button>';
   }
   return '<div class="ob-step" data-i="'+i+'">'+top+body+'<div class="ob-cta">'+cta+'</div></div>';
@@ -515,10 +536,10 @@ function obRender(dir){
   heroStart();
 }
 function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); heroStart(true); }
-function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null}; $('ob').innerHTML=''; obRender(); }
+function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00'}; $('ob').innerHTML=''; obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
-  S.profile={fastedBefore:ob.fasted==='before',safety:!!risky}; S.planId=ob.plan||'16'; S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
+  S.profile={fastedBefore:ob.fasted==='before',safety:!!risky}; S.planId=ob.plan||(ob.fasted==='before'&&!risky?'16':'13'); if(ob.fasted==='before'&&!risky&&ob.start) S.prefs.usualStart=ob.start; S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
   save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today');
 }
 
@@ -586,22 +607,24 @@ var A={
   export:function(){ try{ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-fasts-'+today()+'.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }catch(e){ toast(L('Couldn’t export.','导出失败。')); } },
   erase:function(){ openSheet('<h3>'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede">'+L('This deletes your fasts, streak and settings from this phone. It can’t be undone.','这会删除这台手机上的断食记录、连续天数和设置，无法撤销。')+'</p><div class="btns"><button class="btn red" data-act="eraseok">'+L('Erase everything','清除所有数据')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   eraseok:function(){ try{ localStorage.removeItem(KEY); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
-  obnext:function(){ if(ob.step<4){ ob.step++; obRender(); } },
+  obnext:function(){ if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ if(ob.step>0){ ob.step--; obRender(-1); } },
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
   obsafe:function(b){ var v=b.dataset.v, i=ob.safe.indexOf(v); if(v==='none') ob.safe=i>=0?[]:['none']; else{ ob.safe=ob.safe.filter(function(x){return x!=='none';}); if(i>=0) ob.safe.splice(ob.safe.indexOf(v),1); else ob.safe.push(v); } obRefresh(); },
-  obplan:function(b){ ob.plan=b.dataset.id; obRefresh(); },
+  obplan:function(b){ if(b.disabled) return; ob.plan=b.dataset.id; obRefresh(); },
   obgeo:function(){ geo(function(){ obRefresh(); }); },
   obdone:obFinish
 };
 document.addEventListener('click',function(e){ var b=e.target.closest('[data-act]'); if(!b||!ph.contains(b)) return; var f=A[b.dataset.act]; if(f){ if(b.tagName==='BUTTON'&&b.disabled) return; f(b); } });
 document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!t.dataset.chg) return;
   if(t.dataset.chg==='custom'){ var v=Math.min(23,Math.max(12,Math.round(+t.value)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; } save(); cache={}; ticksKey=''; updateToday(); planSheet(); }
-  if(t.dataset.chg==='obcity'){ setPlace({key:t.value}); } });
+  if(t.dataset.chg==='obcity'){ setPlace({key:t.value}); }
+  if(t.dataset.chg==='obstart'){ ob.start=t.value||'20:00'; }
+  if(t.dataset.chg==='usual'){ S.prefs.usualStart=t.value||''; save(); cache={}; updateToday(); } });
 $('tabs').addEventListener('click',function(e){ var b=e.target.closest('button[data-tab]'); if(b) showTab(b.dataset.tab); });
 $('streakBtn').addEventListener('click',cheatSheet);
 $('planBtn').addEventListener('click',planSheet);
-$('endA').addEventListener('click',function(){ if(!S.cur) return; startEdit(); });
+$('endA').addEventListener('click',function(){ if(S.cur) startEdit(); else if(mode==='eat'&&lastFast()) fastSheet(lastFast()); });
 function startEdit(){
   var cur=S.cur, now=Date.now();
   openSheet('<h3>'+L('When did you start?','你是什么时候开始的？')+'</h3><p class="lede">'+L('Forgot to press start? Set the real time.','忘了按开始？在这里改成真实时间。')+'</p><div class="group"><div class="field"><label for="stS">'+L('Started','开始')+'</label><input id="stS" type="datetime-local" value="'+toInput(cur.start)+'" max="'+toInput(now)+'"></div></div><div class="btns"><button class="btn" data-act="stsave">'+L('Save','保存')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
@@ -610,7 +633,7 @@ A.stsave=function(){ var s=new Date($('stS').value).getTime(), now=Date.now(); i
   var clash=S.fasts.some(function(f){ return s<f.end&&now>f.start; }); if(clash) return toast(L('That overlaps another fast.','和另一次断食时间重叠了。'));
   S.cur.start=s; S.cur.reached=(now-s)/H>=S.cur.goalH; save(); closeSheet(); cache={}; shownP=-1; updateToday(); scheduleGoal(); };
 /* the endA label doubles as a button */
-(function(){ var a=$('endA'); a.setAttribute('role','button'); a.tabIndex=0; a.style.cssText='display:inline-flex;align-items:center;min-height:44px;cursor:pointer'; a.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); if(S.cur) startEdit(); } });
+(function(){ var a=$('endA'); a.setAttribute('role','button'); a.tabIndex=0; a.style.cssText='display:inline-flex;align-items:center;min-height:44px;cursor:pointer'; a.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); if(S.cur) startEdit(); else if(mode==='eat'&&lastFast()) fastSheet(lastFast()); } });
   $('endB').style.cssText='display:inline-flex;align-items:center;min-height:44px'; })();
 
 /* ---------- boot ---------- */
@@ -620,6 +643,7 @@ var dsNow=1;
 function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) return; var free=$('gap').offsetHeight-14, over=t.scrollHeight-t.clientHeight, d=(free>0?free:0)-(over>0?over:0);
   if(Math.abs(d)<2) return; var n=Math.max(.4,Math.min(1,dsNow+d/236)); if(Math.abs(n-dsNow)<.004) return; dsNow=n; $('discWrap').style.setProperty('--ds',n.toFixed(3)); }
 window.addEventListener('resize',fitDisc);
+if(S.onboarded) normalisePlan();
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
 var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash);
 if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }

@@ -150,6 +150,26 @@ function longStatus(kind,profile,state,now){
   return {st:'ok',unlockedAt:u};
 }
 
+/* ---------- unlock ladder for the everyday plans ----------
+   People who have fasted before (and gave no safety flag) can use every everyday plan.
+   Everyone else starts at 13:11 and climbs one rung after 3 completed fasts at the rung below:
+   16:8 after 3 fasts of 13 h or more, 18:6 after 3 of 16 h, 20:4 after 3 of 18 h, 23:1 and custom after 3 of 20 h (custom after 3 of 13 h).
+   One completed fast at a plan's length or longer also opens it, so nobody loses a plan they have already done.
+   returns {st:'ok'|'locked', n, need, from, pct} */
+var LADDER={'13':0,'16':13,'18':16,'20':18,'23':20,'custom':13};
+function planStatus(id,profile,state){
+  if(id==='ramadan'||id==='24'||id==='36'||id==='24L'||id==='36L') return {st:'ok'};
+  var from=LADDER[id]; if(from==null||from===0) return {st:'ok'};
+  if(profile&&profile.fastedBefore&&!profile.safety) return {st:'ok'};
+  var done=(state.fasts||[]).filter(function(f){return f.end&&isDone(f);}), need=3;
+  var n=done.filter(function(f){return f.goalH>=from&&hours(f)>=from-0.02;}).length;
+  var plan=planById(id,16), own=id==='custom'?16:plan.fast;
+  if(id!=='custom'&&done.some(function(f){return hours(f)>=own-0.02&&f.goalH>=own;})) return {st:'ok',n:n,need:need,from:from,pct:1};
+  if(n>=need) return {st:'ok',n:n,need:need,from:from,pct:1};
+  return {st:'locked',n:n,need:need,from:from,pct:n/need};
+}
+function planStatusLabel(st){ return Math.min(st.n,st.need)+' of '+st.need+' fasts of '+st.from+' h or more'; }
+
 /* ---------- days, streaks, cheat days (弹性日) ----------
    One new cheat day each Monday once the first full week is over, bank of 2, at most 2 used in any 7 days.
    A cheat day keeps the streak but does not grow it. */
@@ -188,7 +208,7 @@ function flexBlock(k,state,now){
 }
 
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,planStatusLabel:planStatusLabel,
   fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);

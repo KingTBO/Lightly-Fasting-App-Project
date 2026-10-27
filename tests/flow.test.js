@@ -54,6 +54,35 @@ const H=3600000,D=24*H;
  await p.click('#tabs [data-tab=me]');await p.click('[data-act=lang][data-v=zh]');await p.waitForTimeout(200);assert.match(await p.textContent('#me .h-title'),/我的/);assert.strictEqual(await p.evaluate(()=>document.documentElement.lang),'zh-Hans');ok('language switch');
  // ramadan preview adds the plan
  await p.click('[data-act=sw][data-k=ram]');await p.click('[data-act=plan]');assert(await p.$('.plan[data-id="ramadan"]'));ok('Ramadan row appears only with season/preview');
+ // ---- plan ladder, experienced setup, overtime, editing the end of a finished fast, email-only sign-in
+ const seed=(o)=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{fastedBefore:false,safety:false},planId:'13',customH:16,place:{key:'shanghai'},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},ramadanPreview:false,startedAt:Date.now()-30*D,mod:1,del:[]},o);
+ async function fresh(state){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));if(state)await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(state));await q.goto(url);await q.waitForTimeout(600);return q;}
+ const fz=(n,h)=>Array.from({length:n},(_,i)=>({id:'f'+i+'-'+h,start:Date.now()-(i+2)*D,end:Date.now()-(i+2)*D+h*H,goalH:h,plan:String(h)}));
+ // first timer: 16:8 locked with progress, opens after three completed 13 h fasts
+ let q=await fresh(seed({fasts:fz(1,13)}));await q.click('#planBtn');
+ assert(await q.$('.plan[data-id="16"][disabled]'),'16:8 locked');assert.match(await q.textContent('.plan[data-id="16"]'),/1 of 3 fasts of 13 h/);assert(await q.$('.plan[data-id="13"]:not([disabled])'));ok('first timer: only 13:11 open, 16:8 shows 1 of 3');
+ q=await fresh(seed({fasts:fz(3,13)}));await q.click('#planBtn');assert(await q.$('.plan[data-id="16"]:not([disabled])'),'16:8 open after three');assert(await q.$('.plan[data-id="18"][disabled]'),'18:6 still locked');ok('three completed 13 h fasts open 16:8 only');
+ // someone who has fasted before: everything everyday is open
+ q=await fresh(seed({profile:{fastedBefore:true,safety:false},planId:'16'}));await q.click('#planBtn');assert(await q.$('.plan[data-id="20"]:not([disabled])'));ok('experienced: every everyday plan open');
+ // a locked saved plan falls back on load
+ q=await fresh(seed({planId:'20'}));assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).planId,'13');ok('a locked saved plan falls back to 13:11');
+ // experienced onboarding has the extra step and keeps the start time
+ q=await fresh(null);await q.click('[data-act=obnext]');await q.waitForTimeout(500);await q.click('[data-act=obopt][data-v=before]');await q.click('[data-act=obnext]');await q.waitForTimeout(500);await q.click('[data-act=obsafe][data-v=none]');await q.click('[data-act=obnext]');await q.waitForTimeout(500);
+ assert(await q.$('.ob-step.on .plan[data-id="20"]:not([disabled])'),'all plans open');assert(await q.$('.ob-step.on .plan.sel[data-id="16"]'),'16:8 default');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(500);
+ assert(await q.$('#obStart'),'customise step');await q.fill('#obStart','21:30');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(500);await q.click('[data-act=obdone]');await q.waitForTimeout(600);
+ assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).prefs.usualStart,'21:30');ok('experienced onboarding: customise step saves the usual start');
+ q=await fresh(null);await q.click('[data-act=obnext]');await q.waitForTimeout(500);await q.click('[data-act=obopt][data-v=first]');await q.click('[data-act=obnext]');await q.waitForTimeout(500);await q.click('[data-act=obsafe][data-v=none]');await q.click('[data-act=obnext]');await q.waitForTimeout(500);
+ assert(await q.$('.ob-step.on .plan[data-id="16"][disabled]'),'16:8 locked in onboarding');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(500);assert(!(await q.$('#obStart')),'no customise step for first timers');ok('first-timer onboarding shows locks and skips the customise step');
+ // overtime: the disc stays full, the label says how far past the goal, one calm nudge, the timer keeps counting
+ q=await fresh(seed({cur:{start:Date.now()-(13*H+80*60000),goalH:13,planId:'13',reached:true}}));
+ assert.match(await q.textContent('#readK'),/\+1 h 20 m over your goal/);assert.match(await q.textContent('#readBig'),/14/);ok('overtime label and running timer');
+ q=await fresh(seed({cur:{start:Date.now()-(16*H),goalH:13,planId:'13',reached:true}}));await q.waitForTimeout(400);assert.match(await q.textContent('#toast'),/past your goal/);assert((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).cur.nudged);ok('one calm nudge after two hours over');
+ await q.click('#act',{timeout:500}).catch(()=>{});const bx=await q.locator('#act').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(1500);await q.mouse.up();await q.waitForTimeout(400);
+ const sv=(await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).fasts[0];assert(sv&&(sv.end-sv.start)/H>15.9&&sv.goalH===13,'full duration logged against the plan goal');ok('overtime fast logs its full duration as completed');
+ // the end time of a finished fast can be edited from Today
+ await q.click('#sheet [data-act=close]');await q.waitForTimeout(300);await q.click('#endA');assert.match(await q.textContent('#sheet h3'),/Edit fast/);ok('end time editable from the eating window');
+ // signed out Me offers email only
+ q=await fresh(seed({}));await q.click('#tabs [data-tab=me]');assert(await q.$('[data-act=emailsheet]'));assert(!(await q.$('#me [data-act=soon]')),'no placeholder sign-in buttons');ok('Me offers only email sign-in');
  // export + erase
  await p.click('#sheet [data-act=close]');await p.click('[data-act=erase]');await p.click('[data-act=eraseok]');await p.waitForTimeout(800);assert.strictEqual(await p.evaluate(()=>(JSON.parse(localStorage.getItem('lightly:v1'))||{}).onboarded||false),false);ok('erase resets');
  assert.deepStrictEqual(errs,[]);console.log('all flows ok');await b.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});

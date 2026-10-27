@@ -264,3 +264,6 @@ input,select{caret-color:var(--blue);accent-color:var(--blue)}
 @media (prefers-reduced-motion:no-preference){.ob-hero .tw circle{animation:twinkle 3.2s ease-in-out infinite}.ob-hero .tw circle:nth-child(2){animation-delay:-.7s}.ob-hero .tw circle:nth-child(3){animation-delay:-1.4s;animation-duration:4s}.ob-hero .tw circle:nth-child(4){animation-delay:-2.1s}.ob-hero .tw circle:nth-child(5){animation-delay:-.3s;animation-duration:3.8s}.ob-hero .tw circle:nth-child(6){animation-delay:-1.8s}}
 
 .field input:focus-visible{outline-offset:1px;border-radius:8px}
+/* time fields: system look, same fill as the other inputs */
+input[type="time"].tin{font:inherit;font-size:1rem;font-variant-numeric:tabular-nums;color:var(--label);background:var(--fill);border:0;border-radius:8px;min-height:36px;padding:0 10px;text-align:right}
+input[type="time"].tin:focus-visible{outline:3px solid var(--blue);outline-offset:2px}

@@ -30,4 +30,14 @@ assert.strictEqual(C.flexBlock(C.dayKey(now),state,now),'');
 assert.strictEqual(C.flexBlock(C.dayKey(now-3*D),state,now),'window');
 state.flex.used=[C.dayKey(now-D),C.dayKey(now-2*D)];assert.strictEqual(C.flexBlock(C.dayKey(now),state,now),'week');
 assert.strictEqual(C.guessCity('Asia/Shanghai'),'shanghai');
+// everyday plan ladder
+{const f=(h,g)=>({id:String(Math.random()),start:0,end:h*H,goalH:g==null?h:g}),first={fastedBefore:false,safety:false},exp={fastedBefore:true,safety:false},st=(id,pr,fs)=>C.planStatus(id,pr,{fasts:fs});
+assert.strictEqual(st('13',first,[]).st,'ok');assert.strictEqual(st('16',first,[]).st,'locked');assert.strictEqual(st('16',exp,[]).st,'ok');
+assert.strictEqual(st('16',{fastedBefore:true,safety:true},[]).st,'locked','a safety flag keeps the ladder on');
+assert.strictEqual(st('16',first,[f(13),f(13),f(13)]).st,'ok');assert.strictEqual(st('16',first,[f(13),f(13),f(13,16)]).n,2,'a fast short of its own goal is not counted');
+assert.strictEqual(st('16',first,[f(13),f(13),f(10,13)]).st,'locked','a fast that missed its goal does not count');
+assert.strictEqual(st('18',first,[f(13),f(13),f(13)]).st,'locked','18:6 needs three 16 h fasts');assert.strictEqual(st('18',first,[f(16),f(16),f(16)]).st,'ok');
+assert.strictEqual(st('20',first,[f(18),f(18),f(18)]).st,'ok');assert.strictEqual(st('23',first,[f(20),f(20),f(20)]).st,'ok');
+assert.strictEqual(st('16',first,[f(16)]).st,'ok','one completed 16 h fast opens 16:8');assert.strictEqual(st('ramadan',first,[]).st,'ok');
+assert.strictEqual(C.planStatusLabel(st('16',first,[f(13)])),'1 of 3 fasts of 13 h or more');}
 console.log('core ok',s);

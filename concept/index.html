@@ -241,6 +241,7 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-opt[aria-checked="true"] .ck{background:var(--blue);border-color:var(--blue)}
 .ob-opt[aria-checked="true"] .ck::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .ob-opt[disabled]{opacity:.4;cursor:not-allowed}
+.tin{font:inherit;font-size:16px;font-variant-numeric:tabular-nums;color:var(--label);background:var(--fill);border:0;border-radius:8px;min-height:36px;padding:0 10px;margin-left:auto}
 .ob-opt .tag{font:600 11px var(--font);color:var(--on-tint);background:var(--tint);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;display:inline-flex;align-items:center;height:20px;line-height:1}
 .ob-opt .lk{font:600 11px var(--font);color:var(--label-2);background:var(--fill);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
 .ob-cta{margin-top:auto;width:100%;min-height:54px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out,opacity .2s}
@@ -702,7 +703,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
     <div class="sec-head"><h2 class="h2" id="pl-h" data-zh="你的计划，就是你的终点">Your plan is your finish line</h2>
       <p data-zh="不管选哪种计划，圆都会在你的目标时刻刚好变满，时间轴上的小点也会按你的小时数排列。超出目标不计分，更长也不等于更好。四个计划已经能满足大多数人，所以只把它们放在前面，其他的都收在“更多计划”里。点一张卡片，上面的演示就会换成这个计划。">Whatever plan you pick, the disc is exactly full at your goal, and the dots on the timeline match your hours. Time past the goal isn't scored, and longer isn't treated as better. Four plans cover most people, so only those show up front. Everything else is one tap away under More plans. Tap a card to load it into the demo above.</p></div>
     <div id="planGrid"></div>
-    <p class="note" data-zh="24 小时和 36 小时断食一开始都是锁着的，随着你完成的断食逐步解锁，就像一个可以努力达到的目标，而不是付费墙。如果在安全问题里回答了“是”，就永远不会提供，并建议先咨询医生。轻伴只会在你连续一周轻松完成后，才建议试试下一级（13、16、18），从不催你超过自己选的计划。">The 24 h and 36 h fasts start locked and unlock as you complete fasts, like a goal to work towards, not a paywall. A yes on the safety question means they're never offered, and Lightly suggests seeing a doctor. Lightly suggests the next step up (13, 16, 18) only after a week of comfortable fasts, and never pushes past the plan you chose.</p>
+    <p class="note" data-zh="新手只从 13:11 开始，完成三次后开放 16:8，之后每个计划都在完成三次下一档后开放；以前断食过的人从一开始就能用所有日常计划。24 小时和 36 小时断食一开始都是锁着的，随着你完成的断食逐步解锁，就像一个可以努力达到的目标，而不是付费墙。如果在安全问题里回答了“是”，就永远不会提供，并建议先咨询医生。轻伴只会在你连续一周轻松完成后，才建议试试下一级（13、16、18），从不催你超过自己选的计划。">New fasters start with 13:11 only; 16:8 opens after three completed fasts, then each plan after three at the one below. People who have fasted before get every everyday plan from the start. The 24 h and 36 h fasts start locked and unlock as you complete fasts, like a goal to work towards, not a paywall. A yes on the safety question means they're never offered, and Lightly suggests seeing a doctor. Lightly suggests the next step up (13, 16, 18) only after a week of comfortable fasts, and never pushes past the plan you chose.</p>
   </section>
 
   <section class="sec" id="start" aria-labelledby="o-h">
@@ -1198,7 +1199,7 @@ window.LightlySphere=(function(){
     if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); put(readTip,'t',L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。')); put(actLbl,'a',L('Start Fast','开始断食')); }
     else if(mode==='fast'||mode==='saved'){
       if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmt(GOAL-h),1); var tp=tipFor(h,sk[1]); put(readTip,'t',tp[lang==='zh'?1:0]); }
-      else { put(readK,'k',L('Goal reached','目标达成')); put(readBig,'b',fmt(h),1); put(readTip,'t',L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
+      else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L('+'+(oh?oh+' h ':'')+omm+' m over your goal','超出目标 '+(oh?oh+' 小时 ':'')+omm+' 分')); put(readBig,'b',fmt(h),1); put(readTip,'t',L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
       if(!holding) put(actLbl,'a',L('Hold to End Fast','按住结束断食')); }
     else if(mode==='eat'){ put(readK,'k',L('Eating window left','进食窗口还剩')); put(readBig,'b',fmt(EAT-e),1); put(readTip,'t',L('Your next fast can start at ','下一次断食可以在 ')+clock(s+24)+L(', or whenever you’re ready.',' 开始，也可以随时提前。')); put(actLbl,'a',L('Start Next Fast','开始下一次断食')); }
     var a0=mode==='eat'?s+GOAL:s, a1=mode==='eat'?s+GOAL+EAT:s+GOAL;
@@ -1470,14 +1471,15 @@ window.LightlySphere=(function(){
   function key36(id){ return id==='24'?'24':'36'; } /* 36L uses the '36' rule */
   var st={step:0, exp:null, safety:[], plan:null, city:'shanghai'};
   var stage=document.getElementById('obStage'), dots=document.getElementById('obDots'), back=document.getElementById('obBack');
-  var N=5;
+  /* people who have fasted before get one more step, to make it theirs */
+  function flow(){ return st.exp==='some'&&!risky()?[0,1,2,3,5,4]:[0,1,2,3,4]; }
   function disc(p,col){ var r=60, rx=r*Math.abs(1-2*p), sw=p<.5?0:1; var d=p<=0?'':'M0 -'+r+' A'+r+' '+r+' 0 0 1 0 '+r+' A'+rx.toFixed(1)+' '+r+' 0 0 '+sw+' 0 -'+r+'Z';
     return '<svg viewBox="-70 -70 140 140" aria-hidden="true"><circle r="60" fill="rgba(142,142,147,.16)" stroke="rgba(142,142,147,.5)"/><path d="'+d+'" fill="'+col+'"/></svg>'; }
   function opt(id,label,sub,checked,extra,disabled){ return '<button type="button" class="ob-opt" role="'+(extra==='multi'?'checkbox':'radio')+'" data-v="'+id+'" aria-checked="'+(!!checked)+'"'+(disabled?' disabled':'')+'><span>'+label+(sub?'<small>'+sub+'</small>':'')+'</span><span class="ck"></span></button>'; }
   function risky(){ return st.safety.length&&st.safety.indexOf('none')<0; }
   /* nobody starts with long fasts unlocked: they unlock with progress, and never with a safety flag */
-  function allowed(id){ return RULES.longIds.indexOf(id)<0; }
-  function lockInfo(id){ if(risky()) return [L('Not offered. Please talk to a doctor.','不提供。请先咨询医生。'),'']; var u=RULES.unlock[st.exp||'first'][key36(id)]; return [L(u[0],u[1]),L(u[2],u[3])]; }
+  function allowed(id){ if(RULES.longIds.indexOf(id)>=0) return false; if(['16','18','20'].indexOf(id)>=0) return st.exp==='some'&&!risky(); return true; }
+  function lockInfo(id){ if(['16','18','20'].indexOf(id)>=0) return [L('Opens as you build up.','随进度开放。'),L('0 of 3 fasts','3 次中已完成 0 次')]; if(risky()) return [L('Not offered. Please talk to a doctor.','不提供。请先咨询医生。'),'']; var u=RULES.unlock[st.exp||'first'][key36(id)]; return [L(u[0],u[1]),L(u[2],u[3])]; }
   function planName(id){ var p=api.plans.filter(function(x){return x.id===id;})[0]; return p?(p.grp==='long'?L(p.en,p.zh):p.fast+':'+p.eat+' '+L(p.en,p.zh)):''; }
   /* the welcome moon: waxes in, breathes, follows a sideways drag and springs home; pulses at full. Still under Reduce Motion. */
   function heroPath(p,r){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; var rx=r*Math.abs(1-2*p), s=p<.5?0:1; return 'M0 '+(-r)+' A'+r+' '+r+' 0 0 1 0 '+r+' A'+rx.toFixed(2)+' '+r+' 0 0 '+s+' 0 '+(-r)+'Z'; }
@@ -1498,8 +1500,8 @@ window.LightlySphere=(function(){
   function view(i){
     if(i===0) return '<div class="ob-hero">'+heroSvg()+'</div><h4>'+L('Lightly','轻伴')+'</h4><p class="sub">'+L('Fasting that follows the sky. A moon through the night, a sun through the day, full when you reach your goal. Four quick questions to set it up for you.','跟着天空走的断食。夜里是月亮，白天是太阳，满了就是到了目标。回答四个小问题，帮你设置好。')+'</p><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
     if(i===1) return '<h4>'+L('Have you fasted before?','你以前断食过吗？')+'</h4><p class="sub">'+L('So we can start you at the right pace.','这样我们能按合适的节奏开始。')+'</p><div class="ob-list" data-q="exp">'+
-      opt('first',L('This is my first time','这是第一次'),L('We\u2019ll start gently, with Sunrise 13:11.','我们会从温和的 13:11 日出开始。'),st.exp==='first')+
-      opt('some',L('I\u2019ve fasted before','以前断食过'),L('We\u2019ll start you on Classic 16:8.','我们会从经典的 16:8 开始。'),st.exp==='some')+
+      opt('first',L('This is my first time','这是第一次'),L('Start with 13:11 and build up.','从 13:11 开始，慢慢增加。'),st.exp==='first')+
+      opt('some',L('I\u2019ve fasted before','以前断食过'),L('Every everyday plan is open, and you can tune it next.','所有日常计划都可用，下一步可以细调。'),st.exp==='some')+
       '</div><button type="button" class="ob-cta" data-next'+(st.exp?'':' disabled')+'>'+L('Continue','继续')+'</button>';
     if(i===2) return '<h4>'+L('Does any of this apply to you?','以下情况适用于你吗？')+'</h4><p class="sub">'+L('Only you see this. It keeps your plans safe.','只有你能看到，用来让计划更安全。')+'</p><div class="ob-list" data-q="safety" data-multi="1">'+
       opt('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'),'',st.safety.indexOf('preg')>=0,'multi')+
@@ -1510,15 +1512,16 @@ window.LightlySphere=(function(){
       '<button type="button" class="ob-cta" data-next'+(st.safety.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
     if(i===3){ var rec=risky()?'13':RULES.recommend[st.exp||'first']; if(!st.plan||!allowed(st.plan)) st.plan=rec;
       var ids=['13','16','18','20','24','36L'];
-      return '<h4>'+L('Pick your plan','选一个计划')+'</h4><p class="sub">'+L('You can change it any time.','随时都可以改。')+'</p><div class="ob-list" data-q="plan">'+ids.map(function(id){ var ok=allowed(id);
+      return '<h4>'+L('Pick your plan','选一个计划')+'</h4><p class="sub">'+(risky()||st.exp!=='some'?L('Everyone starts at 13:11. The next plan opens after three completed fasts.','大家都从 13:11 开始，完成三次后开放下一个计划。'):L('Every everyday plan is open. You can change it any time.','所有日常计划都已开放，随时可以更改。'))+'</p><div class="ob-list" data-q="plan">'+ids.map(function(id){ var ok=allowed(id);
         var lab=planName(id)+(id===rec?'<span class="tag">'+L('Suggested','推荐')+'</span>':'')+(!ok?'<span class="lk">'+(risky()?L('Not offered','不提供'):L('Locked','未解锁'))+'</span>':'');
         var pl=api.plans.filter(function(x){return x.id===id;})[0], li=!ok?lockInfo(id):null, sub=li?(li[1]?li[1]+' \u00b7 ':'')+li[0]:(pl&&pl.grp!=='long'?L('Fast '+pl.fast+' hours','断食 '+pl.fast+' 小时'):L('Fast '+pl.fast+' hours','断食 '+pl.fast+' 小时'));
         return opt(id,lab,sub,st.plan===id,null,!ok); }).join('')+'</div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'; }
+    if(i===5) return '<h4>'+L('Make it yours','按你的习惯来')+'</h4><p class="sub">'+L('Since you\u2019ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default"><span>'+L('Usual start time','通常开始时间')+'</span><input class="tin" type="time" value="20:30" aria-label="'+L('Usual start time','通常开始时间')+'"></div><div class="ob-opt" style="cursor:default"><span>'+L('Remind me when I reach my goal','达成目标时提醒我')+'</span><span class="ck"></span></div></div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
     if(i===4) return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('You’re set','准备好了')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(st.plan)+'</b></div><div><span>'+L('Where you are','所在地')+'</span><b>'+L('Shanghai','上海')+'</b></div><div><span>'+L('First fast','第一次断食')+'</span><b>'+L('Tonight, 8:30 PM','今晚 8:30')+'</b></div></div><p class="ob-note">'+L('We use your city for sunrise and sunset only. You can share your precise location later if you like.','我们只用城市来算日出日落。想更准的话，以后可以再授权精确位置。')+'</p><button type="button" class="ob-cta" data-done>'+L('Start Tonight','今晚开始')+'</button>';
   }
   var cur=null;
-  function show(i,dir){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(i); stage.appendChild(el); bind(el); if(i===0) heroInit(el);
-    dots.innerHTML=''; for(var k=0;k<N;k++){ var d=document.createElement('i'); if(k===i) d.className='on'; dots.appendChild(d); }
+  function show(i,dir){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(flow()[i]); stage.appendChild(el); bind(el); if(i===0) heroInit(el);
+    dots.innerHTML=''; for(var k=0;k<flow().length;k++){ var d=document.createElement('i'); if(k===i) d.className='on'; dots.appendChild(d); }
     back.hidden=i===0;
     var old=cur; cur=el; st.step=i;
     if(old&&!reduce&&dir){ /* push / pop like a navigation stack: new screen slides in, old one moves a third and dims */
@@ -1529,9 +1532,10 @@ window.LightlySphere=(function(){
         if(k<1) requestAnimationFrame(f); else old.remove(); })(t0);
     } else if(old){ old.remove(); }
     out(); }
-  function rerender(){ var y=cur.querySelector('.ob-list'); cur.innerHTML=view(st.step); bind(cur); out(); }
+  function rerender(){ var y=cur.querySelector('.ob-list'); cur.innerHTML=view(flow()[st.step]); bind(cur); out(); }
   function bind(el){
     el.querySelectorAll('.ob-opt').forEach(function(b){ b.addEventListener('click',function(){ var q=b.closest('.ob-list').dataset.q, v=b.dataset.v;
+      if(q==='custom') return;
       if(q==='exp') st.exp=v;
       else if(q==='safety'){ if(v==='none') st.safety=['none']; else { st.safety=st.safety.filter(function(x){return x!=='none';}); var ix=st.safety.indexOf(v); if(ix>=0) st.safety.splice(ix,1); else st.safety.push(v); } }
       else if(q==='plan') st.plan=v;
@@ -1827,7 +1831,7 @@ window.LightlySphere=(function(){
     mail:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m4 7.5 8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     phone:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'};
   /* Google sign-in needs Google services, which most phones in mainland China don't have: the Chinese build offers WeChat and phone number instead */
-  function ways(){ return api.lang()==='zh'?[['mail','用邮箱继续'],['wechat','微信登录'],['phone','手机号登录']]:[['mail','Continue with Email'],['apple','Continue with Apple'],['google','Continue with Google']]; }
+  function ways(){ return [['mail',api.lang()==='zh'?'用邮箱继续':'Continue with Email']]; }
   /* ---------- profile pictures: small skies, drawn as lit 3D-ish balls to match the timer. No food, no bodies, no scales. ---------- */
   var uid=0;
   function av(k){ var i='a'+(uid++), g='';
@@ -1871,7 +1875,7 @@ window.LightlySphere=(function(){
     $('meH').textContent=L('Back up your fasts','备份你的断食记录');
     $('meBtns').innerHTML=ways().map(function(w){ return '<button type="button" class="me-btn '+(w[0]==='phone'?'mail':w[0])+'" data-w="'+w[1]+'">'+IC[w[0]]+'<span>'+w[1]+'</span></button>'; }).join('');
     $('meLogin').innerHTML=L('Already have an account? <b>Log In</b>','已经有账号？<b>登录</b>');
-    $('meNote').textContent=L('Creating an account is optional. It backs up your fasts and moves them to a new phone. Lightly never shares your weight or sells your data. Email works first, Apple and Google follow, and WeChat and phone arrive with the China build.','创建账号是可选的，只用来备份断食记录、换手机时同步。轻伴从不分享你的体重，也不出售你的数据。邮箱登录先上线，Apple 和 Google 随后，微信和手机号随中国大陆版本推出。');
+    $('meNote').textContent=L('Creating an account is optional. It backs up your fasts and moves them to a new phone. Lightly never shares your weight or sells your data. Email sign-in is available now.','创建账号是可选的，只用来备份断食记录、换手机时同步。轻伴从不分享你的体重，也不出售你的数据。目前支持邮箱登录。');
     $('mePlan').textContent=$('planChip').textContent;
     [].forEach.call($('meBtns').children,function(b){ b.addEventListener('click',function(){ signed=b.dataset.w.replace(/^(Continue with |通过 |用)| 继续$|继续$|登录$/g,''); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} render(); }); }); }
   $('meLogin').addEventListener('click',function(){ signed=L('Email','邮箱'); render(); });
