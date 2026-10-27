@@ -6,7 +6,7 @@ const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),htt
 const root=path.join(__dirname,'..'),shots=process.argv[2]||'';
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.webmanifest':'application/manifest+json'};
 const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.url.split('?')[0]));if(f.endsWith('/'))f+='index.html';fs.readFile(f,(e,d)=>{if(e){r.writeHead(404);r.end();}else{r.writeHead(200,{'Content-Type':mime[path.extname(f)]||'application/octet-stream'});r.end(d);}});});
-const H=3600000,D=24*H,probe=fs.readFileSync(path.join(__dirname,'probe.js'),'utf8');
+const H=3600000,D=24*H,probe=fs.readFileSync(path.join(__dirname,'probe.js'),'utf8')+fs.readFileSync(path.join(__dirname,'contrast.js'),'utf8');
 const mk=(n,h,goal=16,ago=n)=>{const e=new Date();e.setDate(e.getDate()-ago);e.setHours(12,0,0,0);return {id:'q'+n+'_'+h,start:e.getTime()-h*H,end:e.getTime(),goalH:goal,plan:'16'};};
 function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onboarded:kind!=='ob',profile:{fastedBefore:true,safety:false},planId:'16',customH:16,place:{key:'shanghai'},cur:null,
  fasts:[mk(1,16.5),mk(2,16),mk(3,15,16),mk(5,17),mk(6,18)],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:true,notify:false},ramadanPreview:false,startedAt:now-9*D};
@@ -32,21 +32,7 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
    document.querySelectorAll('#ph .ob-step.on .ob-hero svg').forEach(sv=>{const r=sv.getBoundingClientRect(),d=(r.left+r.right)/2-(ph.left+ph.right)/2;if(Math.abs(d)>1)out.push(['hero-centre','ob-hero',d.toFixed(1)+'px']);});
    document.querySelectorAll('#ph .ob-step.on .ob-dots').forEach(sv=>{const r=sv.getBoundingClientRect(),d=(r.left+r.right)/2-(ph.left+ph.right)/2;if(Math.abs(d)>1)out.push(['dots-centre','ob-dots',d.toFixed(1)+'px']);});
    return out;};
- /* colorize: WCAG AA on computed colours (4.5:1 text, 3:1 large text), composited over whatever sits behind */
- const contrast=()=>{const cv=document.createElement('canvas').getContext('2d',{willReadFrequently:true}),out=[];
-   const rgba=c=>{cv.clearRect(0,0,1,1);cv.fillStyle='#000';cv.fillStyle=c;cv.fillRect(0,0,1,1);const d=cv.getImageData(0,0,1,1).data;return [d[0],d[1],d[2],d[3]/255];};
-   const over=(f,b)=>[0,1,2].map(i=>f[i]*f[3]+b[i]*(1-f[3])).concat([1]);
-   const lum=c=>{const a=c.slice(0,3).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*a[0]+.7152*a[1]+.0722*a[2];};
-   const bgOf=e=>{const stack=[];for(let p=e;p;p=p.parentElement){const c=rgba(getComputedStyle(p).backgroundColor);if(c[3]>0)stack.push(c);if(c[3]>=.999)break;}
-     let b=[22,34,59,1];for(let i=stack.length-1;i>=0;i--)b=over(stack[i],b);return b;};
-   const w=document.createTreeWalker(document.getElementById('ph'),NodeFilter.SHOW_TEXT,null);let n;
-   while(n=w.nextNode()){const e=n.parentElement;if(!n.textContent.trim()||e.closest('svg,.stars,[hidden]'))continue;const r=e.getBoundingClientRect();if(r.width<2)continue;
-     let o=1,vis=true;for(let p=e;p&&p.id!=='ph';p=p.parentElement){const cs=getComputedStyle(p);if(cs.display==='none'||cs.visibility==='hidden'){vis=false;break;}o*=+cs.opacity;}
-     const cs=getComputedStyle(e);if(!vis||o<.6||e.closest('button:disabled'))continue;
-     if(e.closest('.sheet:not(.open)')||e.closest('.ob-step:not(.on)')||e.closest('.scr:not(.on)'))continue;
-     const bg=bgOf(e),fg=over(rgba(cs.color),bg),L1=lum(fg),L2=lum(bg),cr=(Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05),px=parseFloat(cs.fontSize),big=px>=24||(px>=18.66&&+cs.fontWeight>=700);
-     if(cr<(big?3:4.5))out.push(['contrast<'+(big?3:4.5),(e.className||e.tagName)+' "'+n.textContent.trim().slice(0,22)+'"',cr.toFixed(2)]);}
-   return out;};
+ const contrast=()=>window.__contrast('#ph');
  const pages=[];
  for(const w of [390,375,1440])for(const scheme of ['light','dark'])for(const lng of ['en','zh']){
   const h=w===390?844:w===375?667:900;

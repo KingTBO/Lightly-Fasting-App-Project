@@ -9,29 +9,29 @@
    large titles, segmented control, sheet with grabber, floating glass tab bar, springs. */
 :root{
   color-scheme:light;
-  --bg:#F2F2F7; --card:#FFFFFF; --label:#000000; --label-2:rgba(60,60,67,.6); --label-3:rgba(60,60,67,.3);
+  --bg:#F2F2F7; --card:#FFFFFF; --label:#000000; --label-2:rgba(60,60,67,.8); --label-3:rgba(60,60,67,.3);
   --sep:rgba(60,60,67,.29); --fill:rgba(120,120,128,.12); --fill-2:rgba(120,120,128,.2);
-  --tint:#FFCC00; --on-tint:#000000; --indigo:#5856D6;
+  --tint:#FFCC00; --on-tint:#000000; --indigo:#5856D6; --blue:#0062D9; --red:#C70012; --orange:#C93400;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
   --font-d:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
   --font-r:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,'Inter','PingFang SC','Noto Sans SC',sans-serif;
   --gutter:max(16px,4vw);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
-  --bg:#000000; --card:#1C1C1E; --label:#FFFFFF; --label-2:rgba(235,235,245,.6); --label-3:rgba(235,235,245,.3);
-  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --indigo:#5E5CE6}}
+  --bg:#000000; --card:#1C1C1E; --label:#FFFFFF; --label-2:rgba(235,235,245,.68); --label-3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --indigo:#5E5CE6; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A}}
 :root[data-theme="dark"]{color-scheme:dark;
-  --bg:#000000; --card:#1C1C1E; --label:#FFFFFF; --label-2:rgba(235,235,245,.6); --label-3:rgba(235,235,245,.3);
-  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --indigo:#5E5CE6}
+  --bg:#000000; --card:#1C1C1E; --label:#FFFFFF; --label-2:rgba(235,235,245,.68); --label-3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --indigo:#5E5CE6; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A}
 
 /* local-time skies (screen only). Ink pairs follow HIG label / secondary label. */
-[data-sky="night"]  {--stars:1;--sky:#0E1430;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.7);--unlit:rgba(255,255,255,.10);--rim:rgba(255,255,255,.28);--glass:rgba(40,44,70,.55);--moon:#F4EFE2}
-[data-sky="first"]  {--stars:0.45;--sky:#33406E;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.72);--unlit:rgba(255,255,255,.12);--rim:rgba(255,255,255,.3);--glass:rgba(60,68,110,.5);--moon:#F4EFE2}
-[data-sky="dawn"]   {--sky:#F0B48C;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.66);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.45);--moon:#FFFFFF}
-[data-sky="morning"]{--sky:#A8D5F0;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.66);--unlit:rgba(28,28,30,.09);--rim:rgba(28,28,30,.24);--glass:rgba(255,255,255,.5);--moon:#FFFFFF}
-[data-sky="day"]    {--sky:#CDE6F6;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.66);--unlit:rgba(28,28,30,.08);--rim:rgba(28,28,30,.22);--glass:rgba(255,255,255,.55);--moon:#FFFFFF}
-[data-sky="sunset"] {--sky:#F3C58E;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.66);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.45);--moon:#FFFFFF}
-[data-sky="evening"]{--stars:0.7;--sky:#2C3762;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.72);--unlit:rgba(255,255,255,.11);--rim:rgba(255,255,255,.3);--glass:rgba(56,64,104,.5);--moon:#F4EFE2}
+[data-sky="night"]  {--stars:1;--sky:#0E1430;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.78);--unlit:rgba(255,255,255,.10);--rim:rgba(255,255,255,.28);--glass:rgba(40,44,70,.55);--moon:#F4EFE2}
+[data-sky="first"]  {--stars:0.45;--sky:#33406E;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.12);--rim:rgba(255,255,255,.3);--glass:rgba(60,68,110,.5);--moon:#F4EFE2}
+[data-sky="dawn"]   {--sky:#F0B48C;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.7);--moon:#FFFFFF}
+[data-sky="morning"]{--sky:#A8D5F0;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.09);--rim:rgba(28,28,30,.24);--glass:rgba(255,255,255,.72);--moon:#FFFFFF}
+[data-sky="day"]    {--sky:#CDE6F6;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.08);--rim:rgba(28,28,30,.22);--glass:rgba(255,255,255,.74);--moon:#FFFFFF}
+[data-sky="sunset"] {--sky:#F3C58E;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.7);--moon:#FFFFFF}
+[data-sky="evening"]{--stars:0.7;--sky:#2C3762;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.11);--rim:rgba(255,255,255,.3);--glass:rgba(56,64,104,.5);--moon:#F4EFE2}
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -40,7 +40,7 @@ html:lang(zh-Hans) body{letter-spacing:0}
 button{font:inherit;color:inherit;letter-spacing:inherit}
 a{color:inherit}
 .wrap{max-width:1200px;margin:0 auto;padding:0 var(--gutter)}
-:focus-visible{outline:3px solid #007AFF;outline-offset:2px;border-radius:8px}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:8px}
 
 /* top bar */
 .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0}
@@ -49,6 +49,13 @@ a{color:inherit}
 .word small{font:500 15px var(--font);color:var(--label-2)}
 .bar-r{display:flex;align-items:center;gap:16px}
 .bar-r a{font-size:15px;color:var(--label-2);display:inline-flex;align-items:center;min-height:44px;text-decoration:none}
+.bar-r a.cta,.cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 15px var(--font);text-decoration:none;transition:transform .1s ease-out}
+.cta:active{transform:scale(.97)}
+.cta.big{min-height:52px;padding:0 28px;font-size:17px}
+.cta-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;grid-column:1/-1;margin-top:0}
+.intro .meta{grid-column:1/-1}
+.bar-r a.cta{white-space:nowrap}
+.cta-note{font-size:15px;color:var(--label-2);max-width:34ch;line-height:1.4}
 
 /* HIG segmented control */
 .seg{display:inline-flex;background:var(--fill);border-radius:9px;padding:2px;gap:0}
@@ -57,7 +64,7 @@ a{color:inherit}
 .seg.wide{display:flex}.seg.wide button{flex:1;padding:8px 10px;font-size:14px;line-height:1.25}
 .seg.wide button small{display:block;font-weight:400;color:var(--label-2);font-size:12px}
 
-.intro{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(24px,5vw,72px);align-items:end;padding:clamp(28px,6vw,72px) 0 clamp(28px,4vw,48px)}
+.intro{row-gap:24px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(24px,5vw,72px);align-items:end;padding:clamp(28px,6vw,72px) 0 clamp(28px,4vw,48px)}
 .h1{font:700 clamp(40px,6.2vw,80px)/1.02 var(--font-d);letter-spacing:-.035em;margin:0;text-wrap:balance}
 html:lang(zh-Hans) .h1{letter-spacing:0;line-height:1.12}
 .lede{font-size:clamp(17px,1.5vw,21px);line-height:1.45;color:var(--label-2);margin:0;max-width:46ch}
@@ -75,7 +82,7 @@ html:lang(zh-Hans) .group .k{text-transform:none}
 .loc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:.5px solid var(--sep)}
 .loc label{font-size:15px;flex:1 0 auto}
 .loc select{font:500 15px var(--font);color:var(--label);background:var(--fill);border:0;border-radius:8px;padding:6px 10px;min-height:32px}
-.loc button{font:500 15px var(--font);color:#007AFF;background:none;border:0;padding:6px 0;cursor:pointer;min-height:32px}
+.loc button{font:500 15px var(--font);color:var(--blue);background:none;border:0;padding:6px 0;cursor:pointer;min-height:32px}
 :root[data-theme="dark"] .loc button{color:#0A84FF}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .loc button{color:#0A84FF}}
 .play{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);padding:14px 22px;cursor:pointer;min-height:50px;transition:transform .1s ease-out}
@@ -96,7 +103,7 @@ html:lang(zh-Hans) .group .k{text-transform:none}
 .ph .sb{height:50px;display:flex;align-items:center;justify-content:space-between;padding:6px 32px 0;font:600 16px var(--font);letter-spacing:-.02em}
 .ph .sb .ic{display:flex;gap:6px;align-items:center}.ph .sb .ic b{display:block;width:18px;height:11px;border-radius:3px;background:currentColor;opacity:.9}.ph .sb .ic b:first-child{width:16px;height:11px;border-radius:2px;opacity:.6}
 .ph .nav{padding:4px 16px 0;display:flex;align-items:flex-end;justify-content:space-between}
-.ph .lt{font:700 34px/1.2 var(--font-d);letter-spacing:.012em;margin:0}
+.ph .lt{font:700 34px/1.2 var(--font-d);letter-spacing:-.02em;margin:0}
 html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .ph .sub{font:400 15px var(--font);color:var(--ink-2);display:block;margin-top:-2px}
 .ph .chip{font:600 13px var(--font);padding:5px 10px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);margin-bottom:8px}
@@ -201,7 +208,7 @@ td:first-child{color:var(--label);font-weight:600}
 
 /* Reduce Motion: nothing travels or bounces; color, sky and text still cross-fade so state changes stay legible */
 .seg.plans button{padding:8px 4px;font-size:15px;font-variant-numeric:tabular-nums}
-.morelink{display:inline-flex;align-items:center;min-height:44px;margin-top:2px;font-size:15px;color:#007AFF;text-decoration:none}
+.morelink{display:inline-flex;align-items:center;min-height:44px;margin-top:2px;font-size:15px;color:var(--blue);text-decoration:none}
 :root[data-theme="dark"] .morelink{color:#0A84FF}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .morelink{color:#0A84FF}}
 details.more{margin-top:16px;background:var(--card);border-radius:20px;padding:0 18px}
@@ -224,13 +231,13 @@ html:lang(zh-Hans) .grp-h{text-transform:none}
 .obph .sb{height:50px;display:flex;align-items:center;justify-content:space-between;padding:6px 32px 0;font:600 16px var(--font)}
 .obph .sb .ic{display:flex;gap:6px}.obph .sb .ic b{display:block;width:18px;height:11px;border-radius:3px;background:currentColor;opacity:.85}.obph .sb .ic b:first-child{width:16px;opacity:.5}
 .ob-top{display:flex;align-items:center;justify-content:space-between;padding:4px 12px 0;height:44px}
-.ob-back{display:flex;align-items:center;gap:4px;border:0;background:none;color:#007AFF;font:400 17px var(--font);cursor:pointer;padding:0 8px;min-width:64px;min-height:44px;transition:opacity .2s}
+.ob-back{display:flex;align-items:center;gap:4px;border:0;background:none;color:var(--blue);font:400 17px var(--font);cursor:pointer;padding:0 8px;min-width:64px;min-height:44px;transition:opacity .2s}
 .ob-back svg{width:11px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .ob-back[hidden]{display:flex;visibility:hidden}
 .ob-dots{display:flex;gap:6px}.ob-dots i{width:7px;height:7px;border-radius:50%;background:var(--label-3);transition:background .3s,transform .3s cubic-bezier(.16,1,.3,1)}.ob-dots i.on{background:var(--label);transform:scale(1.15)}
 .ob-stage{position:absolute;left:0;right:0;top:94px;bottom:0}
 .ob-step{position:absolute;inset:0;padding:12px 16px 34px;display:flex;flex-direction:column;will-change:transform,opacity}
-.ob-step h4{font:700 30px/1.15 var(--font-d);letter-spacing:.005em;margin:8px 0 8px}
+.ob-step h4{font:700 30px/1.15 var(--font-d);letter-spacing:-.02em;margin:8px 0 8px}
 html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-step .sub{font-size:16px;color:var(--label-2);margin:0 0 20px;line-height:1.4}
 .ob-list{background:var(--card);border-radius:14px;overflow:hidden}
@@ -239,14 +246,16 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-opt:active{background:var(--fill)}
 .ob-opt small{display:block;font-size:13px;color:var(--label-2)}
 .ob-opt .ck{margin-left:auto;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--label-3);flex:none;position:relative;transition:background .2s,border-color .2s}
-.ob-opt[aria-checked="true"] .ck{background:#007AFF;border-color:#007AFF}
+.ob-opt[aria-checked="true"] .ck{background:var(--blue);border-color:var(--blue)}
 .ob-opt[aria-checked="true"] .ck::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .ob-opt[disabled]{opacity:.4;cursor:not-allowed}
 .ob-opt .tag{font:600 11px var(--font);color:var(--on-tint);background:var(--tint);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
 .ob-opt .lk{font:600 11px var(--font);color:var(--label-2);background:var(--fill);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
 .ob-cta{margin-top:auto;width:100%;min-height:54px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out,opacity .2s}
 .ob-cta:active{transform:scale(.97)}.ob-cta[disabled]{opacity:.35;cursor:not-allowed}
-.ob-hero{display:flex;justify-content:center;margin:26px 0 18px}.ob-hero svg{width:150px;height:150px}
+.ob-hero{display:flex;justify-content:center;margin:26px 0 18px}.ob-hero svg{width:132px;height:132px}
+@keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+@media (prefers-reduced-motion:no-preference){.ob-hero .tw circle{animation:twinkle 3.2s ease-in-out infinite}.ob-hero .tw circle:nth-child(2){animation-delay:-.7s}.ob-hero .tw circle:nth-child(3){animation-delay:-1.4s;animation-duration:4s}.ob-hero .tw circle:nth-child(4){animation-delay:-2.1s}.ob-hero .tw circle:nth-child(5){animation-delay:-.3s;animation-duration:3.8s}.ob-hero .tw circle:nth-child(6){animation-delay:-1.8s}}
 .ob-note{font-size:13px;color:var(--label-2);margin:12px 4px 0;line-height:1.4}
 .ob-doc{background:color-mix(in srgb,#FF9500 14%,var(--card));border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.4;margin-top:14px}
 .ob-sum{background:var(--card);border-radius:14px;padding:4px 16px}
@@ -296,7 +305,8 @@ html:lang(zh-Hans) .friends .tag{text-transform:none}
 .mock .r{display:flex;align-items:center;gap:12px}.mock svg{width:44px;height:44px;flex:none}
 .mock .t1{font:600 14px var(--font)}.mock .t2{font:600 26px/1.1 var(--font-r);font-variant-numeric:tabular-nums}.mock .t3{font-size:12px;opacity:.7}
 .mock .pb{height:5px;border-radius:3px;background:rgba(28,28,30,.12);margin-top:10px;overflow:hidden}.mock .pb i{display:block;height:100%;width:91%;background:#FFCC00;border-radius:3px}
-.mock .acts{display:flex;gap:18px;margin-top:10px;font:600 13px var(--font);color:#007AFF}
+.mock .acts{display:flex;gap:18px;margin-top:10px;font:600 13px var(--font);color:#004A9F}
+.mock.dark .acts{color:#7DB8FF}
 .foot{margin:clamp(80px,10vw,140px) 0 64px;padding-top:28px;border-top:.5px solid var(--sep);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;font-size:14px;color:var(--label-2)}
 .foot b{display:block;color:var(--label);font-weight:600;margin-bottom:4px}
 @media (max-width:1080px){.plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kind{grid-template-columns:1fr 1fr}}
@@ -320,7 +330,7 @@ html:lang(zh-Hans) .friends .tag{text-transform:none}
   .demo,.intro,.guide,.take{grid-template-columns:1fr}
   .ph{order:-1}
 }
-@media (max-width:560px){.reads{grid-template-columns:1fr}.bar-r a{display:none}.ph{border-radius:40px}}
+@media (max-width:560px){.reads{grid-template-columns:1fr}.bar-r a{display:none}.bar-r a.cta{display:inline-flex}.word small{display:none}.bar-r{gap:10px}.ph{border-radius:40px}}
 
 /* ---------- Ramadan mode (sacred fasts) ---------- */
 .eyebrow{display:inline-block;font:600 12px var(--font);color:var(--label-2);background:var(--fill);border-radius:999px;padding:4px 10px;margin-bottom:14px;text-transform:uppercase;letter-spacing:.03em}
@@ -411,19 +421,19 @@ html:lang(zh-Hans) .me-h{text-transform:none}
 .me-btn svg{width:19px;height:19px;flex:none}
 .me-btn.apple{background:#000;color:#fff}
 .me-btn.google{background:#fff;color:#1F1F1F;box-shadow:inset 0 0 0 1px #747775}
-.me-btn.wechat{background:#07C160;color:#fff}
+.me-btn.wechat{background:#08783A;color:#fff}
 .me-btn.mail{background:var(--fill);color:var(--label)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .me-btn.apple{background:#fff;color:#000}}
 :root[data-theme="dark"] .me-btn.apple{background:#fff;color:#000}
 .me-login{display:block;margin:4px auto 0;border:0;background:none;font:400 15px var(--font);color:var(--label-2);cursor:pointer;padding:0 8px;min-height:44px}
-.me-login b{color:#007AFF;font-weight:600}
+.me-login b{color:var(--blue);font-weight:600}
 .me-note{font-size:13px;color:var(--label-2);margin:10px 16px 0;line-height:1.4}
 .me-list{background:var(--card);border-radius:14px;overflow:hidden}
 .me-list div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;min-height:48px;font-size:17px}
 .me-list div+div{border-top:.5px solid var(--sep)}
 .me-list small{font-size:17px;color:var(--label-2);display:flex;align-items:center;gap:10px}
 .me-list small::after{content:"";width:7px;height:7px;border-right:2px solid var(--label-3);border-top:2px solid var(--label-3);transform:rotate(45deg)}
-.me-out{display:block;width:100%;margin-top:12px;min-height:48px;border:0;border-radius:14px;background:var(--card);color:#FF3B30;font:400 17px var(--font);cursor:pointer}
+.me-out{display:block;width:100%;margin-top:12px;min-height:48px;border:0;border-radius:14px;background:var(--card);color:var(--red);font:400 17px var(--font);cursor:pointer}
 
 /* ---------- profile pictures ---------- */
 .me-card .me-av{display:grid;place-items:center;margin:0;overflow:hidden;padding:0;border:0;cursor:default;line-height:0}
@@ -434,12 +444,12 @@ html:lang(zh-Hans) .me-h{text-transform:none}
 .me-pick button{position:relative;width:54px;height:54px;border-radius:50%;border:0;padding:0;background:none;cursor:pointer;transition:transform .15s cubic-bezier(.16,1,.3,1)}
 .me-pick button:active{transform:scale(.92)}
 .me-pick button svg,.me-pick button img{width:54px;height:54px;border-radius:50%;display:block;object-fit:cover}
-.me-pick button[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--card),0 0 0 5px #007AFF}
+.me-pick button[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--card),0 0 0 5px var(--blue)}
 .me-pick button[aria-disabled="true"]{cursor:default}
 .me-pick button[aria-disabled="true"]>svg{filter:grayscale(1);opacity:.35}
 .me-pick .lk{position:absolute;inset:0;display:grid;place-items:center}
 .me-pick .lk svg{width:18px;height:18px;opacity:1;filter:none}
-.me-pick .ph-add{background:var(--fill);display:grid;place-items:center;color:#007AFF}
+.me-pick .ph-add{background:var(--fill);display:grid;place-items:center;color:var(--blue)}
 .me-pick .ph-add svg{width:24px;height:24px}
 .me-pick .cap{font-size:13px;color:var(--label-2);margin:12px 4px 0;line-height:1.35;min-height:36px}
 .me-pick .cap b{color:var(--label);font-weight:600}
@@ -474,13 +484,13 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .ps-row .pbar i.e{background:var(--tint)}
 .ps-ram .pl svg{width:26px;height:26px;display:block}
 .ps-row .ck{flex:none;width:22px;height:22px;border-radius:50%;position:relative}
-.ps-row[aria-checked="true"] .ck{background:#007AFF}
+.ps-row[aria-checked="true"] .ck{background:var(--blue)}
 .ps-row[aria-checked="true"] .ck::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .ps-row[aria-disabled="true"]{cursor:default}
 .ps-row[aria-disabled="true"] .pl,.ps-row[aria-disabled="true"] .nm b{color:var(--label-2)}
 .ps-row .lkt{display:flex!important;align-items:center;gap:4px}
 .ps-row .lkt svg{width:11px;height:11px;flex:none}
-.ps-more{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;padding:0 16px;border-left:0;border-right:0;border-bottom:0;background:none;font:400 16px var(--font);color:#007AFF;cursor:pointer}
+.ps-more{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;padding:0 16px;border-left:0;border-right:0;border-bottom:0;background:none;font:400 16px var(--font);color:var(--blue);cursor:pointer}
 .ps-more::after{content:"";width:8px;height:8px;border-right:2px solid var(--label-3);border-bottom:2px solid var(--label-3);transform:rotate(45deg);margin:-4px 4px 0 0;transition:transform .3s cubic-bezier(.16,1,.3,1)}
 .ps-more[aria-expanded="true"]::after{transform:rotate(225deg);margin-top:4px}
 .ps-extra{overflow:hidden;max-height:0;transition:max-height .45s cubic-bezier(.16,1,.3,1)}
@@ -517,7 +527,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .ba .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ba .pair div{position:relative;border-radius:14px;overflow:hidden;line-height:0}
 .ba img{width:100%;height:auto;display:block;aspect-ratio:1}
-.ba span{position:absolute;left:10px;bottom:10px;line-height:1;font:600 12px var(--font);padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.ba span{position:absolute;left:10px;bottom:10px;line-height:1;font:600 12px var(--font);padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.66);color:#fff;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 @media (max-width:560px){.ba{grid-template-columns:1fr}}
 </style>
 
@@ -527,7 +537,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
   <nav class="bar" aria-label="Main" id="top">
     <a class="word" href="#top"><i aria-hidden="true"></i>Lightly <small>轻伴</small></a>
     <div class="bar-r">
-      <a href="../" data-zh="打开应用">Open the app</a><a href="#plans" data-zh="计划">Plans</a><a href="#start" data-zh="首次打开">First open</a><a href="#kind" data-zh="温和">Kind by design</a><a href="#ramadan" data-zh="斋月">Ramadan</a><a href="#friends" data-zh="朋友">Friends</a><a href="#phones" data-zh="手机上">On your phone</a>
+      <a href="#plans" data-zh="计划">Plans</a><a href="#start" data-zh="首次打开">First open</a><a href="#kind" data-zh="温和">Kind by design</a><a href="#ramadan" data-zh="斋月">Ramadan</a><a href="#friends" data-zh="朋友">Friends</a><a href="#phones" data-zh="手机上">On your phone</a><a class="cta" href="../" data-zh="打开应用">Open the app</a>
       <div class="seg" role="group" aria-label="Language"><button type="button" id="l-en" aria-pressed="true">EN</button><button type="button" id="l-zh" aria-pressed="false">中文</button></div>
     </div>
   </nav>
@@ -535,7 +545,8 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
   <header class="intro">
     <h1 class="h1" data-zh="跟着天空走的断食">A fast that follows the sky</h1>
     <p class="lede" data-zh="不再是圆环。断食时，一个圆慢慢被点亮，满了就是到了目标。它跟着你所在地方的真实日出日落：日落到日出之间是月亮，白天是太阳。日出时月亮渐渐变成太阳，日落时太阳再渐渐变回月亮，进度一点不变。">No ring. As you fast, a disc fills with light, and full means you've reached your goal. It follows the real sunrise and sunset where you are: a moon from sunset to sunrise, a sun in between. At sunrise the moon fades into the sun, at sunset the sun fades back into the moon, and your progress carries straight on.</p>
-    <p class="meta" data-zh="轻伴 · 先上安卓，iPhone 随后 · 中文和英文 · 计时器永远免费">Lightly · Android first, iPhone soon after · English and Chinese · The timer is free forever</p>
+    <p class="meta" data-zh="轻伴 · 在浏览器里直接使用，也能安装到手机 · 中文和英文 · 计时器永远免费">Lightly · Works in your browser and installs to your phone · English and Chinese · The timer is free forever</p>
+    <div class="cta-row"><a class="cta big" href="../" data-zh="打开应用">Open the app</a><span class="cta-note" data-zh="不用下载。用手机打开，选“添加到主屏幕”就能安装。">No download. Open it on your phone and choose Add to Home Screen to install.</span></div>
   </header>
 
   <section class="demo" aria-label="Playable demo">
@@ -765,7 +776,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div class="ph" id="rph" data-sky="day" aria-label="Lightly in Ramadan mode, demo">
         <div class="sb"><span id="rClock">9:41</span><span class="ic"><b></b><b></b></span></div>
         <div class="rlayer" id="rOn" aria-hidden="true">
-          <div class="rtoast" id="rToast" aria-live="polite"><span class="av"><i style="background:#FF9500">M</i><i style="background:#5856D6">A</i><i style="background:#34C759">+2</i></span><div><b id="rToastB"></b><span id="rToastS"></span></div></div>
+          <div class="rtoast" id="rToast" aria-live="polite"><span class="av"><i style="background:#B35C00">M</i><i style="background:#5856D6">A</i><i style="background:#1E7A38">+2</i></span><div><b id="rToastB"></b><span id="rToastS"></span></div></div>
           <div class="nav">
             <div><h3 class="lt" data-zh="今天">Today</h3><span class="sub" id="rSub"></span></div>
             <span class="chip rchip" id="rChip"><svg viewBox="-12 -12 24 24" aria-hidden="true" id="rChipMoon"></svg><span data-zh="斋月">Ramadan</span></span>
@@ -1495,8 +1506,24 @@ window.LightlySphere=(function(){
   function allowed(id){ return RULES.longIds.indexOf(id)<0; }
   function lockInfo(id){ if(risky()) return [L('Not offered. Please talk to a doctor.','不提供。请先咨询医生。'),'']; var u=RULES.unlock[st.exp||'first'][key36(id)]; return [L(u[0],u[1]),L(u[2],u[3])]; }
   function planName(id){ var p=api.plans.filter(function(x){return x.id===id;})[0]; return p?(p.grp==='long'?L(p.en,p.zh):p.fast+':'+p.eat+' '+L(p.en,p.zh)):''; }
+  /* the welcome moon: waxes in, breathes, follows a sideways drag and springs home; pulses at full. Still under Reduce Motion. */
+  function heroPath(p,r){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; var rx=r*Math.abs(1-2*p), s=p<.5?0:1; return 'M0 '+(-r)+' A'+r+' '+r+' 0 0 1 0 '+r+' A'+rx.toFixed(2)+' '+r+' 0 0 '+s+' 0 '+(-r)+'Z'; }
+  function heroSvg(){ return '<svg class="hero-moon" viewBox="-80 -80 160 160" role="img" aria-label="'+L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。')+'"><defs><radialGradient id="hmG" cx=".38" cy=".34" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient></defs><rect x="-80" y="-80" width="160" height="160" rx="36" fill="#0E1430"/><g fill="#fff" class="tw"><circle cx="-52" cy="-46" r="1.4" opacity=".7"/><circle cx="-30" cy="-60" r="1" opacity=".5"/><circle cx="46" cy="-52" r="1.5" opacity=".7"/><circle cx="58" cy="-22" r="1" opacity=".5"/><circle cx="-58" cy="30" r="1" opacity=".5"/><circle cx="50" cy="52" r="1.2" opacity=".6"/></g><circle class="hm-halo" r="52" fill="none" stroke="#F4EFE2" stroke-width="1.5" opacity="0"/><circle r="40" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-width="1.2"/><path class="hm-lit" d="" fill="url(#hmG)"/></svg>'; }
+  function heroInit(el){ var sv=el.querySelector('.hero-moon'); if(!sv) return; var lit=sv.querySelector('.hm-lit'), halo=sv.querySelector('.hm-halo');
+    var p=0, drag=false, x0=0, pull=0, full=false, pulse=0, last=performance.now();
+    if(reduce){ lit.setAttribute('d',heroPath(.3,40)); return; }
+    sv.style.touchAction='none'; sv.style.cursor='grab';
+    sv.addEventListener('pointerdown',function(e){ drag=true; x0=e.clientX; try{ sv.setPointerCapture(e.pointerId); }catch(x){} sv.style.cursor='grabbing'; try{ if(navigator.vibrate) navigator.vibrate(6); }catch(x){} });
+    sv.addEventListener('pointermove',function(e){ if(drag) pull=(e.clientX-x0)/sv.getBoundingClientRect().width; });
+    function up(){ drag=false; pull=0; sv.style.cursor='grab'; } sv.addEventListener('pointerup',up); sv.addEventListener('pointercancel',up);
+    (function f(t){ if(!sv.isConnected) return; var dt=Math.min((t-last)/1000,.05); last=t;
+      var target=drag?Math.min(1,Math.max(.04,.3+pull*1.6)):.3+Math.sin(t/1000*.9)*.035;
+      p+=(target-p)*(1-Math.exp(-dt*(drag?18:5))); lit.setAttribute('d',heroPath(p,40));
+      var isFull=p>.93; if(isFull&&!full){ pulse=1; try{ if(navigator.vibrate) navigator.vibrate([14,40,14]); }catch(x){} } full=isFull; pulse=Math.max(0,pulse-dt/1.4);
+      halo.setAttribute('r',(46+14*(1-pulse)).toFixed(1)); halo.setAttribute('opacity',(pulse*.8).toFixed(2)); requestAnimationFrame(f); })(last);
+  }
   function view(i){
-    if(i===0) return '<div class="ob-hero">'+disc(.62,'#FFCC00')+'</div><h4>'+L('Fasting that follows the sky','跟着天空走的断食')+'</h4><p class="sub">'+L('A moon through the night, a sun through the day, full when you reach your goal. Four quick questions to set it up for you.','夜里是月亮，白天是太阳，满了就是到了目标。回答四个小问题，帮你设置好。')+'</p><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
+    if(i===0) return '<div class="ob-hero">'+heroSvg()+'</div><h4>'+L('Lightly','轻伴')+'</h4><p class="sub">'+L('Fasting that follows the sky. A moon through the night, a sun through the day, full when you reach your goal. Four quick questions to set it up for you.','跟着天空走的断食。夜里是月亮，白天是太阳，满了就是到了目标。回答四个小问题，帮你设置好。')+'</p><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
     if(i===1) return '<h4>'+L('Have you fasted before?','你以前断食过吗？')+'</h4><p class="sub">'+L('So we can start you at the right pace.','这样我们能按合适的节奏开始。')+'</p><div class="ob-list" data-q="exp">'+
       opt('first',L('This is my first time','这是第一次'),L('We\u2019ll start gently, with Sunrise 13:11.','我们会从温和的 13:11 日出开始。'),st.exp==='first')+
       opt('some',L('I\u2019ve fasted before','以前断食过'),L('We\u2019ll start you on Classic 16:8.','我们会从经典的 16:8 开始。'),st.exp==='some')+
@@ -1517,7 +1544,7 @@ window.LightlySphere=(function(){
     if(i===4) return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('You’re set','准备好了')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(st.plan)+'</b></div><div><span>'+L('Where you are','所在地')+'</span><b>'+L('Shanghai','上海')+'</b></div><div><span>'+L('First fast','第一次断食')+'</span><b>'+L('Tonight, 8:30 PM','今晚 8:30')+'</b></div></div><p class="ob-note">'+L('We use your city for sunrise and sunset only. You can share your precise location later if you like.','我们只用城市来算日出日落。想更准的话，以后可以再授权精确位置。')+'</p><button type="button" class="ob-cta" data-done>'+L('Start Tonight','今晚开始')+'</button>';
   }
   var cur=null;
-  function show(i,dir){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(i); stage.appendChild(el); bind(el);
+  function show(i,dir){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(i); stage.appendChild(el); bind(el); if(i===0) heroInit(el);
     dots.innerHTML=''; for(var k=0;k<N;k++){ var d=document.createElement('i'); if(k===i) d.className='on'; dots.appendChild(d); }
     back.hidden=i===0;
     var old=cur; cur=el; st.step=i;
@@ -1827,7 +1854,7 @@ window.LightlySphere=(function(){
     mail:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m4 7.5 8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     phone:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'};
   /* Google sign-in needs Google services, which most phones in mainland China don't have: the Chinese build offers WeChat and phone number instead */
-  function ways(){ return api.lang()==='zh'?[['apple','通过 Apple 继续'],['wechat','微信登录'],['phone','手机号登录']]:[['apple','Continue with Apple'],['google','Continue with Google'],['mail','Continue with Email']]; }
+  function ways(){ return api.lang()==='zh'?[['mail','用邮箱继续'],['wechat','微信登录'],['phone','手机号登录']]:[['mail','Continue with Email'],['apple','Continue with Apple'],['google','Continue with Google']]; }
   /* ---------- profile pictures: small skies, drawn as lit 3D-ish balls to match the timer. No food, no bodies, no scales. ---------- */
   var uid=0;
   function av(k){ var i='a'+(uid++), g='';
@@ -1871,9 +1898,9 @@ window.LightlySphere=(function(){
     $('meH').textContent=L('Back up your fasts','备份你的断食记录');
     $('meBtns').innerHTML=ways().map(function(w){ return '<button type="button" class="me-btn '+(w[0]==='phone'?'mail':w[0])+'" data-w="'+w[1]+'">'+IC[w[0]]+'<span>'+w[1]+'</span></button>'; }).join('');
     $('meLogin').innerHTML=L('Already have an account? <b>Log In</b>','已经有账号？<b>登录</b>');
-    $('meNote').textContent=L('Creating an account is optional. It backs up your fasts and moves them to a new phone. Lightly never shares your weight or sells your data.','创建账号是可选的，只用来备份断食记录、换手机时同步。轻伴从不分享你的体重，也不出售你的数据。');
+    $('meNote').textContent=L('Creating an account is optional. It backs up your fasts and moves them to a new phone. Lightly never shares your weight or sells your data. Email works first, Apple and Google follow, and WeChat and phone arrive with the China build.','创建账号是可选的，只用来备份断食记录、换手机时同步。轻伴从不分享你的体重，也不出售你的数据。邮箱登录先上线，Apple 和 Google 随后，微信和手机号随中国大陆版本推出。');
     $('mePlan').textContent=$('planChip').textContent;
-    [].forEach.call($('meBtns').children,function(b){ b.addEventListener('click',function(){ signed=b.dataset.w.replace(/^(Continue with |通过 )| 继续$|登录$/g,''); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} render(); }); }); }
+    [].forEach.call($('meBtns').children,function(b){ b.addEventListener('click',function(){ signed=b.dataset.w.replace(/^(Continue with |通过 |用)| 继续$|继续$|登录$/g,''); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} render(); }); }); }
   $('meLogin').addEventListener('click',function(){ signed=L('Email','邮箱'); render(); });
   $('meSignOut').addEventListener('click',function(){ signed=null; render(); });
   function select(i){ tabs.forEach(function(t,k){ t.classList.toggle('sel',k===i); t.setAttribute('aria-selected',k===i); });

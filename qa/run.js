@@ -1,6 +1,7 @@
+/* Alignment + contrast check for the concept (landing) page.  usage: NODE_PATH=$(npm root -g) node qa/run.js index.html tag */
 const {chromium}=require('playwright');const fs=require('fs');
 const [,,file,tag]=process.argv;
-(async()=>{const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});const dir='/home/claude/lightly/';const probe=fs.readFileSync(__dirname+'/probe.js','utf8');
+(async()=>{const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});const dir=require('path').join(__dirname,'..','concept')+'/';const probe=fs.readFileSync(__dirname+'/probe.js','utf8')+fs.readFileSync(__dirname+'/contrast.js','utf8');
  fs.writeFileSync(dir+'_wrap.html','<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>'+fs.readFileSync(dir+file,'utf8')+'</body></html>');
  const all={};
  const add=(st,arr)=>arr.forEach(x=>{const k=x[0]+' | '+x[1]; (all[k]=all[k]||{v:x[2],st:new Set()}).st.add(st);});
@@ -8,7 +9,7 @@ const [,,file,tag]=process.argv;
   const ctx=await b.newContext({viewport:{width:w,height:900},colorScheme:scheme});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   await p.addInitScript(l=>{try{localStorage.setItem('lightly-lang',l)}catch(e){}},lng);
   await p.goto('file://'+dir+'_wrap.html');await p.addScriptTag({content:probe});await p.waitForTimeout(900);
-  const st=`${w}/${scheme}/${lng}`; const A=async n=>add(st+'/'+n,await p.evaluate(()=>__audit()));
+  const st=`${w}/${scheme}/${lng}`; const A=async n=>add(st+'/'+n,await p.evaluate(()=>__audit().concat(__contrast('body'))));
   await A('load');
   const steps=[['goal','#moments [data-go="goal"]',2300],['eat','#moments [data-go="eat"]',800],['eat2',null,3500]];
   for(const [n,sel,ms] of steps){ if(sel&&await p.$(sel)) await p.click(sel); await p.waitForTimeout(ms); await A(n); }
