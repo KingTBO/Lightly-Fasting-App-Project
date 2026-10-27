@@ -494,7 +494,7 @@ function obHtml(i){
     cta='<button class="btn" data-act="obnext"'+(ob.safe.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(i===3){
     var risky=ob.safe.length&&ob.safe.indexOf('none')<0, sug=risky||ob.fasted==='first'?'13':'16'; if(!ob.plan) ob.plan=sug;
-    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1><p class="lede">'+L('You can change it any time.','随时可以更改。')+'</p><div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"><span class="pn"><b>'+pName(p)+'</b><small>'+L(p.eat+' hours to eat',p.eat+' 小时进食')+'</small></span>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
+    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1><p class="lede">'+L('You can change it any time.','随时可以更改。')+'</p><div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"><span class="pn"><span class="pt"><b>'+pName(p)+'</b>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+'</span><small>'+L(p.eat+' hours to eat',p.eat+' 小时进食')+'</small></span>'+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
       '<p class="gf" style="padding:0 4px">'+(risky?L('Longer fasts stay off for you.','长时间断食对你保持关闭。'):L('A 24-hour fast unlocks later, as you build up.','24 小时断食会在你逐步适应后解锁。'))+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else{

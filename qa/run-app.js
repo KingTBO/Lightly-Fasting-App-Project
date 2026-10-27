@@ -31,6 +31,8 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
        if(q.left<r.left-1.5||q.right>r.right+1.5||q.top<r.top-1.5||q.bottom>r.bottom+1.5)out.push(['svg-clipped',(sv.parentElement.className||sv.parentElement.id||'svg')+' > '+e.tagName,Math.max(r.left-q.left,q.right-r.right,r.top-q.top,q.bottom-r.bottom).toFixed(1)+'px']);});});
    document.querySelectorAll('#ph .ob-step.on .ob-hero svg').forEach(sv=>{const r=sv.getBoundingClientRect(),d=(r.left+r.right)/2-(ph.left+ph.right)/2;if(Math.abs(d)>1)out.push(['hero-centre','ob-hero',d.toFixed(1)+'px']);});
    document.querySelectorAll('#ph .ob-step.on .ob-dots').forEach(sv=>{const r=sv.getBoundingClientRect(),d=(r.left+r.right)/2-(ph.left+ph.right)/2;if(Math.abs(d)>1)out.push(['dots-centre','ob-dots',d.toFixed(1)+'px']);});
+   /* badges beside a plan name (Suggested): same vertical centre as the name, inside the row, not touching the price */
+   document.querySelectorAll('#ph .plan .pill').forEach(pl=>{const r=pl.getBoundingClientRect(),b=pl.parentElement.querySelector('b').getBoundingClientRect(),row=pl.closest('.plan').getBoundingClientRect(),pr=pl.closest('.plan').querySelector('.pr'),d=(r.top+r.bottom)/2-(b.top+b.bottom)/2;if(Math.abs(d)>1)out.push(['badge-centre','pill',d.toFixed(1)]);if(r.right>row.right-16||r.top<row.top||r.bottom>row.bottom)out.push(['badge-clipped','pill',0]);if(pr&&r.right>pr.getBoundingClientRect().left-8)out.push(['badge-collides','pill',0]);});
    return out;};
  const contrast=()=>window.__contrast('#ph');
  const pages=[];
