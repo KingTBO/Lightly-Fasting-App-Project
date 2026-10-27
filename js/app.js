@@ -625,7 +625,7 @@ if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }
 if(!S.onboarded&&!(returning&&CL&&CL.ready())){ updateToday(); obStart(); } else if(S.onboarded){ showTab('today'); }
 scheduleGoal();
 if(CL&&CL.ready()){ window.addEventListener('storage',function(ev){ if(ev.key===CL.AK&&ev.newValue){ closeSheet(); renderMe(); toast(L('Signed in.','已登录。')); syncNow(true); } });
-  CL.fromHash().then(function(a){ if(a){ closeSheet(); toast(L('Signed in.','已登录。')); if(S.onboarded) showTab('today'); } }).catch(function(x){ if(x&&x.linkError){ showTab('me'); toast(/expired|otp/i.test(x.linkError+x.message)?L('That link expired or was already used. Send a new one.','链接已过期或已用过，请重新发送。'):L('Couldn’t sign in with that link. Send a new one.','这个链接登录失败，请重新发送。')); } }).then(function(){ return cloudOn()?syncNow(true):null; }).then(function(){ if(!S.onboarded&&$('ob').hidden){ updateToday(); obStart(); } }); }
+  CL.fromHash().then(function(a){ if(a){ closeSheet(); toast(L('Signed in.','已登录。')); if(S.onboarded) showTab('me'); } }).catch(function(x){ if(x&&x.linkError){ showTab('me'); toast(/expired|otp/i.test(x.linkError+x.message)?L('That link expired or was already used. Send a new one.','链接已过期或已用过，请重新发送。'):L('Couldn’t sign in with that link. Send a new one.','这个链接登录失败，请重新发送。')); } }).then(function(){ return cloudOn()?syncNow(true):null; }).then(function(){ if(!S.onboarded&&$('ob').hidden){ updateToday(); obStart(); } }); }
 var lastT=performance.now(), lastSec=0, frame=0;
 function loop(t){
   var dt=Math.min((t-lastT)/1000,.1); lastT=t; frame++;
