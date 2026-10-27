@@ -24,6 +24,14 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
      const cs=getComputedStyle(e),L=r.left-ph.left+(e.matches('.h-title,.nav,.sheet h3,.ob-step h1,.ob-top')?parseFloat(cs.paddingLeft)||0:0),R=ph.right-r.right+(e.matches('.h-title,.nav,.sheet h3,.ob-top')?parseFloat(cs.paddingRight)||0:0);
      if(e.matches('.ob-step h1')&&cs.textAlign==='center')return;
      if(Math.abs(L-16)>.6||Math.abs(R-16)>.6)out.push(['margin-16',(e.className||e.tagName)+' "'+(e.textContent||'').trim().slice(0,18)+'"',L.toFixed(1)+'/'+R.toFixed(1)]);});return out;};
+ /* icons: drawing must stay inside its svg box, and heroes must be centred on the screen */
+ const icons=()=>{const out=[],ph=document.getElementById('ph').getBoundingClientRect();
+   document.querySelectorAll('#ph svg').forEach(sv=>{const r=sv.getBoundingClientRect();if(r.width<2||sv.closest('.stars')||getComputedStyle(sv).overflow==='visible')return;
+     const vb=sv.viewBox&&sv.viewBox.baseVal;sv.querySelectorAll('circle,path,rect,ellipse,line,g').forEach(e=>{if(e.closest('defs')||e.closest('mask'))return;const q=e.getBoundingClientRect();if(q.width<1)return;
+       if(q.left<r.left-1.5||q.right>r.right+1.5||q.top<r.top-1.5||q.bottom>r.bottom+1.5)out.push(['svg-clipped',(sv.parentElement.className||sv.parentElement.id||'svg')+' > '+e.tagName,Math.max(r.left-q.left,q.right-r.right,r.top-q.top,q.bottom-r.bottom).toFixed(1)+'px']);});});
+   document.querySelectorAll('#ph .ob-step.on .ob-hero svg').forEach(sv=>{const r=sv.getBoundingClientRect(),d=(r.left+r.right)/2-(ph.left+ph.right)/2;if(Math.abs(d)>1)out.push(['hero-centre','ob-hero',d.toFixed(1)+'px']);});
+   document.querySelectorAll('#ph .ob-step.on .ob-dots').forEach(sv=>{const r=sv.getBoundingClientRect(),d=(r.left+r.right)/2-(ph.left+ph.right)/2;if(Math.abs(d)>1)out.push(['dots-centre','ob-dots',d.toFixed(1)+'px']);});
+   return out;};
  const pages=[];
  for(const w of [390,1440])for(const scheme of ['light','dark'])for(const lng of ['en','zh']){
   const h=w===390?844:900;
@@ -32,7 +40,7 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
    await p.addInitScript(([k,v])=>{ if(!sessionStorage.getItem('seeded')){localStorage.setItem(k,v);sessionStorage.setItem('seeded','1');} },['lightly:v1',JSON.stringify(seed(kind,lng))]);
    await p.goto('http://localhost:'+port+'/');await p.addScriptTag({content:probe});await p.waitForTimeout(900);
    const st=`${w}/${scheme}/${lng}`;
-   const A=async n=>{await p.waitForTimeout(650);add(st+'/'+n,await p.evaluate(()=>__audit('#ph')));add(st+'/'+n,await p.evaluate(margin));
+   const A=async n=>{await p.waitForTimeout(650);add(st+'/'+n,await p.evaluate(()=>__audit('#ph')));add(st+'/'+n,await p.evaluate(margin));add(st+'/'+n,await p.evaluate(icons));
      if(shots&&w===390&&scheme==='light'&&lng==='en') await p.screenshot({path:path.join(shots,n+'.png')});};
    await steps(p,A,st);if(errs.length)console.log('ERR',st,errs);await ctx.close();};
   await run('idle',async(p,A)=>{await A('today-idle');
