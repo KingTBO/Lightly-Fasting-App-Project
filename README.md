@@ -1,14 +1,26 @@
 # Lightly 轻伴
 
-A fasting app that follows the sky. Solo-first, with a calm optional friends section, in English and Chinese.
+A fasting timer that follows the sky. Moon at night, sun by day, set by your real sunrise and sunset. Solo-first, English and 中文.
 
-## What's here
+**Live:** https://kingtbo.github.io/Lightly-Fasting-App-Project/ (open on a phone, then Add to Home Screen)
 
-- `index.html` is the Lightly concept page and app screens (self-contained, open it in a browser).
-- `app/` is the installable home-screen app (timer). Open `/app/` on a phone and choose Add to Home Screen.
-- `fast-demo.html` is the moon and sun fasting timer demo.
-- `qa/` holds the automatic UI alignment check (`run.js`, `probe.js`, run with Playwright).
+## Layout
 
-## Host it with GitHub Pages
+- `index.html` + `css/` + `js/` is the app. No build step, no dependencies.
+  - `js/core.js` sun maths, plans, long-fast unlock rules, streaks and cheat days (pure logic, tested in Node).
+  - `js/app.js` the UI and the localStorage state.
+  - `js/sphere.js` the 3D moon and sun (one WebGL shader, flat SVG fallback).
+- `sw.js` + `manifest.webmanifest` make it installable and offline.
+- `concept/` the design concept page and the moon/sun timer demo.
+- `qa/run-app.js` the alignment check for the app (16 px margin, 44 pt targets, centring). `qa/run.js` is the older one for the concept page.
+- `tests/core.test.js` unit tests for the rules.
 
-Settings > Pages > Deploy from a branch > `main` / root. The app will then be at `https://<owner>.github.io/<repo>/`.
+## Run and check
+
+```
+python3 -m http.server 8000          # then open http://localhost:8000
+node tests/core.test.js
+NODE_PATH=$(npm root -g) node qa/run-app.js [shots-dir]   # needs Playwright; exits 1 on any alignment issue
+```
+
+Deploys with GitHub Pages from `main` / root.

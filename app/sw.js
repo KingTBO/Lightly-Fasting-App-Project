@@ -1,3 +1,3 @@
-const C='lightly-v1',F=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(F))));
-self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));
+/* The app moved to the site root. This old worker removes itself. */
+self.addEventListener('install',function(){ self.skipWaiting(); });
+self.addEventListener('activate',function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){return caches.delete(k);})); }).then(function(){ return self.registration.unregister(); })); });

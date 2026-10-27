@@ -24,7 +24,7 @@ window.__audit=function(scope){
     if(b.classList.contains('sw')||b.getAttribute('role')==='switch') return;
     const r=b.getBoundingClientRect(), tb=textBox(b); if(!tb) return; const kids=[...b.querySelectorAll('svg')].filter(vis);
     let L=tb.l,R=tb.r,T=tb.t,B=tb.b; kids.forEach(s=>{const q=s.getBoundingClientRect(); if(q.width<40){L=Math.min(L,q.left);R=Math.max(R,q.right);}});
-    const pl=parseFloat(cs.paddingLeft),pr=parseFloat(cs.paddingRight); const dx=((L+R)/2-(r.left+pl+r.right-pr)/2), dy=((T+B)/2-(r.top+r.bottom)/2);
+    const pl=parseFloat(cs.paddingLeft),pr=parseFloat(cs.paddingRight); const dx=((L+R)/2-(r.left+pl+r.right-pr)/2); let dy=((T+B)/2-(r.top+r.bottom)/2); if(cs.flexDirection==='column') dy=0; /* icon over label: only the horizontal centre matters */
     if(b.closest('.seg')||b.classList.contains('ob-back')||b.closest('.loc')||b.classList.contains('morelink')) { if(Math.abs(dy)>1.5) out.push(['label-vcentre',name(b),dy.toFixed(1)]); return; }
     if(Math.abs(dx)>1.5||Math.abs(dy)>1.5) out.push(['label-centre',name(b),dx.toFixed(1)+','+dy.toFixed(1)]); });
   // 4. clipped text
