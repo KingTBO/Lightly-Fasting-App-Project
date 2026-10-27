@@ -260,3 +260,5 @@ input,select{caret-color:var(--blue);accent-color:var(--blue)}
 /* welcome moon: stars twinkle out of phase (off under Reduce Motion) */
 @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
 @media (prefers-reduced-motion:no-preference){.ob-hero .tw circle{animation:twinkle 3.2s ease-in-out infinite}.ob-hero .tw circle:nth-child(2){animation-delay:-.7s}.ob-hero .tw circle:nth-child(3){animation-delay:-1.4s;animation-duration:4s}.ob-hero .tw circle:nth-child(4){animation-delay:-2.1s}.ob-hero .tw circle:nth-child(5){animation-delay:-.3s;animation-duration:3.8s}.ob-hero .tw circle:nth-child(6){animation-delay:-1.8s}}
+
+.field input:focus-visible{outline-offset:1px;border-radius:8px}

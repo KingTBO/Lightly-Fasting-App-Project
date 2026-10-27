@@ -9,7 +9,7 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
 function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false},
   planId:'16',customH:16,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},
-  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,startedAt:null}; }
+  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
   try{ var raw=localStorage.getItem(KEY); if(raw){ var o=JSON.parse(raw), f=fresh(); for(var k in f) if(o[k]!==undefined) S[k]=o[k];
@@ -18,7 +18,8 @@ function load(){
   catch(e){ storageOk=false; }
 }
 var saveT=0;
-function save(){ clearTimeout(saveT); saveT=setTimeout(saveNow,60); }
+var quiet=false;
+function save(){ if(!quiet) S.mod=Date.now(); clearTimeout(saveT); saveT=setTimeout(saveNow,60); if(!quiet) cloudSoon(); }
 function saveNow(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ storageOk=false; } }
 window.addEventListener('pagehide',saveNow);
 load();
@@ -393,12 +394,53 @@ function geo(then){
     function(){ toast(L('Couldn’t get your location, so Lightly is using '+placeName()+'.','没能获取你的位置，先使用'+placeName()+'。')); then&&then(false); },{timeout:10000,maximumAge:3600000});
 }
 
+/* ---------- account: email sign-in and backup (Supabase). Everything works signed out; an account only backs up. ---------- */
+var CL=window.LightlyCloud, sync={busy:false,msg:'',at:0,err:'',t:0};
+function cloudOn(){ return CL&&CL.ready()&&CL.getAuth(); }
+function cloudSoon(){ if(!cloudOn()) return; clearTimeout(sync.t); sync.t=setTimeout(function(){ syncNow(true); },4000); }
+function applyRemote(m){ quiet=true; Object.keys(m).forEach(function(k){ S[k]=m[k]; }); quiet=false; saveNow(); }
+function syncNow(silent){
+  if(!cloudOn()||sync.busy) return Promise.resolve(); sync.busy=true; sync.err=''; if(curTab==='me') renderMe();
+  return CL.pull().then(function(row){
+    var au=CL.getAuth(), first=S.cloudUid!==au.uid, local=JSON.parse(JSON.stringify(S));
+    if(first&&row&&row.data) local.mod=0;            /* first time on this device: the account's settings win, fasts are combined */
+    var merged=row&&row.data?CL.merge(local,row.data):S; merged.cloudUid=au.uid;
+    if(row&&row.data){ var before=JSON.stringify(S); applyRemote(merged); if(JSON.stringify(S)!==before){ cache={}; ticksKey=''; applyTheme(); applyLang(); } } else { quiet=true; S.cloudUid=au.uid; quiet=false; }
+    if(S.onboarded&&!$('ob').hidden){ ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; showTab('today'); }
+    return CL.push(S);
+  }).then(function(){ sync.at=Date.now(); if(!silent) toast(L('Backed up.','已备份。')); }).catch(function(e){ sync.err=e&&e.message||'error'; if(!silent) toast(L('Couldn’t back up: ','备份失败：')+sync.err); })
+    .then(function(){ sync.busy=false; if(curTab==='me') renderMe(); if(curTab==='today') updateToday(); });
+}
+function accountHtml(){
+  var zh=S.lang==='zh', au=CL&&CL.getAuth(), h='';
+  if(au){
+    h+='<div class="group"><div class="me-card"><span class="av"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><div><b>'+esc(au.email||L('Signed in','已登录'))+'</b><span>'+(sync.busy?L('Backing up…','正在备份…'):sync.err?L('Couldn’t back up. Tap Back up now to retry.','备份失败，点“立即备份”重试。'):sync.at?L('Backed up just now','刚刚已备份'):L('Your fasts are backed up to your account.','你的记录会备份到账号。'))+'</span></div></div>'+
+      '<div class="signin"><button class="btn sec" data-act="syncnow"'+(sync.busy?' disabled':'')+'>'+L('Back up now','立即备份')+'</button><button class="btn sec" data-act="signout">'+L('Sign out','退出登录')+'</button></div></div>';
+    return h;
+  }
+  h+='<div class="group"><div class="me-card"><span class="av"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><div><b>'+L('Not signed in','未登录')+'</b><span>'+L('Everything works. Fasts stay on this phone.','所有功能都能用，断食记录保存在这台手机上。')+'</span></div></div>'+
+   '<div class="signin"><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button>'+
+   '<button class="btn sec" data-act="soon" data-k="'+(zh?'wechat':'apple')+'">'+(zh?'微信登录':'Continue with Apple')+'</button><button class="btn sec" data-act="soon" data-k="'+(zh?'phone':'google')+'">'+(zh?'手机号登录':'Continue with Google')+'</button></div></div>'+
+   '<div class="gf" style="margin-top:-8px">'+L('Signing in is optional and only backs up your fasts, so you can change phones.','登录是可选的，只用来备份记录，换手机时不会丢。')+'</div>';
+  return h;
+}
+function emailSheet(step,email,err){
+  if(!CL||!CL.ready()){ return toast(L('Cloud backup isn’t set up yet.','云备份还没有设置好。')); }
+  var h='<h3>'+L('Sign in with email','邮箱登录')+'</h3>';
+  if(step!=='code'){
+    h+='<p class="lede">'+L('We’ll email you a 6-digit code. No password to remember.','我们会给你发一个 6 位验证码，不用记密码。')+'</p><div class="group"><div class="field"><label for="emIn">'+L('Email','邮箱')+'</label><input id="emIn" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com" value="'+esc(email||'')+'" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div>'+(err?'<p class="note" style="color:var(--red)">'+esc(err)+'</p>':'')+
+      '<div class="btns"><button class="btn" data-act="emsend">'+L('Send code','发送验证码')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>';
+  }else{
+    h+='<p class="lede">'+L('Enter the code we sent to ','输入我们发到这里的验证码：')+esc(email)+L('. You can also tap the link in that email.','。也可以直接点邮件里的链接。')+'</p><div class="group"><div class="field"><label for="emCode">'+L('Code','验证码')+'</label><input id="emCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456" style="width:9ch;text-align:center;letter-spacing:.2em;border:0;background:var(--fill);border-radius:8px;min-height:36px;color:var(--label);font:inherit;font-size:1.0625rem"></div></div>'+(err?'<p class="note" style="color:var(--red)">'+esc(err)+'</p>':'')+
+      '<div class="btns"><button class="btn" data-act="emverify" data-e="'+esc(email)+'">'+L('Sign in','登录')+'</button><button class="btn sec" data-act="emback" data-e="'+esc(email)+'">'+L('Use a different email','换一个邮箱')+'</button></div>';
+  }
+  openSheet(h); var i=$('emIn')||$('emCode'); if(i) setTimeout(function(){ try{ i.focus(); }catch(e){} },350);
+}
+
 /* ---------- Me ---------- */
 function renderMe(){
   var zh=S.lang==='zh', h='<h1 class="h-title">'+L('Me','我的')+'</h1>';
-  h+='<div class="group"><div class="me-card"><span class="av"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><div><b>'+L('Not signed in','未登录')+'</b><span>'+L('Everything works. Fasts stay on this phone.','所有功能都能用，断食记录保存在这台手机上。')+'</span></div></div>'+
-   '<div class="signin"><button class="btn sec" data-act="signin">'+L('Continue with Apple','通过 Apple 继续')+'</button><button class="btn sec" data-act="signin">'+(zh?'微信登录':'Continue with Google')+'</button><button class="btn sec" data-act="signin">'+(zh?'手机号登录':'Continue with email')+'</button></div></div>';
-  h+='<div class="gf" style="margin-top:-8px">'+L('Signing in is optional and only backs up your fasts. It is not ready yet.','登录是可选的，只用来备份记录，目前还没开放。')+'</div>';
+  h+=accountHtml();
   var p=plan(), ls=S.cur?null:null;
   h+='<div class="gh">'+L('Fasting','断食')+'</div><div class="group">'+
    '<button class="row" data-act="plan"><span>'+L('Plan','计划')+'</span><span class="v">'+(S.cur&&S.cur.planId==='ramadan'?L('Ramadan','斋月'):C.planLabel(p))+'</span>'+CHEV+'</button>'+
@@ -504,7 +546,7 @@ var A={
   edit:function(b){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(f) fastSheet(f); },
   add:function(b){ fastSheet(null,b.dataset.k); },
   fssave:function(b){ fastSave(b.dataset.id); },
-  fsdel:function(b){ S.fasts=S.fasts.filter(function(x){return x.id!==b.dataset.id;}); save(); closeSheet(); renderDays(); cache={}; toast(L('Deleted.','已删除。')); },
+  fsdel:function(b){ S.fasts=S.fasts.filter(function(x){return x.id!==b.dataset.id;}); (S.del=S.del||[]).push(b.dataset.id); save(); closeSheet(); renderDays(); cache={}; toast(L('Deleted.','已删除。')); },
   usecheat:function(b){ useCheat(b.dataset.k||today()); },
   undocheat:function(){ var k=today(), i=S.flex.used.indexOf(k); if(i>=0){ S.flex.used.splice(i,1); S.flex.bank=Math.min(2,S.flex.bank+1); save(); closeSheet(); cache={}; updateToday(); if(curTab==='me') renderMe(); } },
   more:function(){ moreOpen=!moreOpen; planSheet(); },
@@ -512,7 +554,16 @@ var A={
   geo:function(){ geo(function(){ placeSheet(); }); },
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
   plan:planSheet, place:placeSheet, cheat:cheatSheet,
-  signin:function(){ toast(L('Sign-in isn’t ready yet. Everything works without it.','登录还没开放，不登录也能使用全部功能。')); },
+  emailsheet:function(){ emailSheet('email'); },
+  emback:function(b){ emailSheet('email',b.dataset.e); },
+  soon:function(b){ toast(({apple:L('Apple sign-in is coming. Email works now.','Apple 登录即将推出，现在可用邮箱。'),google:L('Google sign-in is coming. Email works now.','Google 登录即将推出，现在可用邮箱。'),wechat:'微信登录会随中国大陆版本推出，现在可用邮箱。',phone:'手机号登录会随中国大陆版本推出，现在可用邮箱。'})[b.dataset.k]); },
+  emsend:function(b){ var e=($('emIn').value||'').trim(); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return emailSheet('email',e,L('That doesn’t look like an email address.','这个邮箱地址看起来不对。')); b.disabled=true; b.textContent=L('Sending…','发送中…');
+    CL.sendCode(e).then(function(){ emailSheet('code',e); }).catch(function(x){ emailSheet('email',e,L('Couldn’t send the email: ','邮件没发出去：')+x.message); }); },
+  emverify:function(b){ var e=b.dataset.e, c=($('emCode').value||'').trim(); if(c.length<6) return emailSheet('code',e,L('Enter the 6-digit code.','请输入 6 位验证码。')); b.disabled=true; b.textContent=L('Checking…','验证中…');
+    CL.verify(e,c).then(function(){ closeSheet(); toast(L('Signed in.','已登录。')); renderMe(); syncNow(true); }).catch(function(x){ emailSheet('code',e,L('That code didn’t work. ','验证码不对：')+x.message); }); },
+  signout:function(){ openSheet('<h3>'+L('Sign out?','退出登录？')+'</h3><p class="lede">'+L('Your fasts stay on this phone and in your account. You can sign back in any time.','记录会保留在这台手机和你的账号里，随时可以重新登录。')+'</p><div class="btns"><button class="btn dark" data-act="signoutok">'+L('Sign out','退出登录')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
+  signoutok:function(){ CL.signOut(); sync.at=0; sync.err=''; closeSheet(); renderMe(); },
+  syncnow:function(){ syncNow(false); },
   lang:function(b){ S.lang=b.dataset.v; save(); applyLang(); cache={}; if(!$('ob').hidden){ obRefresh(); } else renderMe(); updateToday(); },
   theme:function(b){ S.theme=b.dataset.v; save(); applyTheme(); renderMe(); },
   sw:function(b){ var k=b.dataset.k, on=b.getAttribute('aria-checked')!=='true';
@@ -562,6 +613,7 @@ window.addEventListener('resize',fitDisc);
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
 if(!S.onboarded){ updateToday(); obStart(); } else { showTab('today'); }
 scheduleGoal();
+if(CL&&CL.ready()){ CL.fromHash().then(function(a){ if(a){ toast(L('Signed in.','已登录。')); showTab('me'); } }).catch(function(){ }).then(function(){ if(cloudOn()) syncNow(true); }); }
 var lastT=performance.now(), lastSec=0, frame=0;
 function loop(t){
   var dt=Math.min((t-lastT)/1000,.1); lastT=t; frame++;
@@ -569,7 +621,7 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-document.addEventListener('visibilitychange',function(){ if(!document.hidden){ var dk=today(); flexTick(); if(curTab==='today'){ cache={}; updateToday(); } scheduleGoal(); } });
+document.addEventListener('visibilitychange',function(){ if(!document.hidden){ var dk=today(); if(cloudOn()&&Date.now()-sync.at>60000) syncNow(true); flexTick(); if(curTab==='today'){ cache={}; updateToday(); } scheduleGoal(); } });
 if('serviceWorker' in navigator&&location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(function(){});
 window.__lightly={get state(){return S;},tick:updateToday,core:C};
 })();
