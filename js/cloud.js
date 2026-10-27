@@ -26,7 +26,7 @@ function merge(a,b){
 function getAuth(){ try{ return JSON.parse(localStorage.getItem(AK)); }catch(e){ return null; } }
 function setAuth(a){ try{ if(a) localStorage.setItem(AK,JSON.stringify(a)); else localStorage.removeItem(AK); }catch(e){} }
 function toAuth(r){ return {access:r.access_token,refresh:r.refresh_token,exp:Math.floor(Date.now()/1000)+(r.expires_in||3600),email:(r.user&&r.user.email)||'',uid:(r.user&&r.user.id)||''}; }
-function call(path,o){ o=o||{}; var c=cfg(), h={apikey:c.key,'Content-Type':'application/json'}; if(o.token) h.Authorization='Bearer '+o.token; else h.Authorization='Bearer '+c.key; for(var k in (o.headers||{})) h[k]=o.headers[k];
+function call(path,o){ o=o||{}; var c=cfg(), h={apikey:c.key,'Content-Type':'application/json'}; if(o.token) h.Authorization='Bearer '+o.token; else if(/^eyJ/.test(c.key)) h.Authorization='Bearer '+c.key; /* new sb_publishable_ keys are not JWTs: apikey alone */ for(var k in (o.headers||{})) h[k]=o.headers[k];
   return fetch(c.url.replace(/\/$/,'')+path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){ return r.text().then(function(t){ var j=null; try{ j=t?JSON.parse(t):null; }catch(e){} if(!r.ok){ var m=(j&&(j.msg||j.error_description||j.message||j.error))||('HTTP '+r.status); var e=new Error(m); e.status=r.status; throw e; } return j; }); }); }
 function codeOn(){ return !!cfg().code; }
 function sendCode(email){ return call('/auth/v1/otp?redirect_to='+encodeURIComponent(location.origin+location.pathname),{method:'POST',body:{email:email,create_user:true}}); }
