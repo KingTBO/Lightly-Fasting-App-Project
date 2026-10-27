@@ -34,6 +34,19 @@ function clockH(h){ h=((h%24)+24)%24; var hh=Math.floor(h), mm=Math.round((h-hh)
   if(S.lang==='zh'){ var p=hh<5?'凌晨':hh<11?'上午':hh<13?'中午':hh<18?'下午':'晚上', h12=hh%12===0?12:hh%12; return p+' '+h12+':'+m; }
   return (hh%12===0?12:hh%12)+':'+m+' '+(hh<12?'AM':'PM'); }
 function dateLbl(ms,o){ return new Intl.DateTimeFormat(loc(),o||{weekday:'short',month:'short',day:'numeric'}).format(new Date(ms)); }
+/* the big numerals: h:mm:ss, tabular digits that never shift the layout; only digits that changed roll in from below */
+var bigEl=$('readBig'), bigStr='', bigTime=false, altEl=$('readAlt');
+function hms(sec){ sec=Math.max(0,Math.floor(sec)); var h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), x=sec%60; return h+':'+(m<10?'0':'')+m+':'+(x<10?'0':'')+x; }
+function spoken(sec){ sec=Math.max(0,Math.floor(sec)); var h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return S.lang==='zh'?h+' 小时 '+m+' 分':h+(h===1?' hour ':' hours ')+m+(m===1?' minute':' minutes'); }
+function setBigTime(sec){
+  var str=hms(sec); if(bigTime&&str===bigStr) return;
+  if(!bigTime||str.length!==bigStr.length){ bigEl.innerHTML=str.split('').map(function(c){ return c===':'?'<i class="co">:</i>':'<b class="dg">'+c+'</b>'; }).join(''); }
+  else{ var kids=bigEl.children; for(var i=0;i<str.length;i++){ if(str[i]!==bigStr[i]){ var k=kids[i]; k.textContent=str[i]; if(!reduce&&k.animate) k.animate([{transform:'translateY(.32em)',opacity:0},{transform:'none',opacity:1}],{duration:260,easing:'cubic-bezier(.16,1,.3,1)'}); } } }
+  if(!bigTime||Math.floor(sec/60)!==Math.floor((bigSec||0)/60)) bigEl.setAttribute('aria-label',spoken(sec));
+  bigSec=sec; bigStr=str; bigTime=true; cache.b=null;
+}
+var bigSec=0;
+function setBigText(t){ if(bigTime){ bigTime=false; bigStr=''; bigEl.removeAttribute('aria-label'); } put(bigEl,'b',t); }
 function fmtH(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60; return a+'<small>'+L('h','小时')+'</small>'+(b<10?'0':'')+b+'<small>'+L('m','分')+'</small>'; }
 function durTxt(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60; return S.lang==='zh'?a+' 小时 '+b+' 分':a+' h '+b+' m'; }
 function pName(p){ return S.lang==='zh'?p.zh:p.name; }
@@ -145,15 +158,15 @@ function updateToday(){
   put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):C.planLabel(cur?C.planById(cur.planId,cur.goalH):p));
   var ramadan=cur&&cur.planId==='ramadan';
   if(mode==='idle'){
-    put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); put($('readBig'),'b',L('Ready','准备好了'));
+    put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); setBigText(L('Ready','准备好了')); put(altEl,'alt','');
     put($('readTip'),'t',ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。')); put($('actLbl'),'a',L('Start Fast','开始断食'));
   }else if(mode==='fast'){
-    if(el<goal){ put($('readK'),'k',L('Time left','剩余时间')); put($('readBig'),'b',fmtH(goal-el),1); var tp=tipFor(el,goal,sk[1],moonV,ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); put($('readTip'),'t',tp[S.lang==='zh'?1:0]); }
-    else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); put($('readBig'),'b',fmtH(el),1); put($('readTip'),'t',ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
+    if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(el,goal,sk[1],moonV,ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); put($('readTip'),'t',tp[S.lang==='zh'?1:0]); }
+    else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); setBigTime(Math.floor(el*3600)); put(altEl,'alt',L('Goal ','目标 ')+Math.round(goal)+L(' h',' 小时')); put($('readTip'),'t',ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
       if(!ramadan&&over>=2&&!cur.nudged){ cur.nudged=true; save(); toast(L('You’re well past your goal. Eat when you’re ready; extra time isn’t scored.','已经超过目标很久了。准备好就可以吃东西，超出的时间不计分。')); } }
     if(!holdOn) put($('actLbl'),'a',L('Hold to End Fast','按住结束断食'));
   }else{
-    put($('readK'),'k',L('Eating window left','进食窗口还剩')); put($('readBig'),'b',fmtH(eatLen-eatEl),1);
+    put($('readK'),'k',L('Eating window left','进食窗口还剩')); setBigTime(Math.max(0,Math.ceil((eatLen-eatEl)*3600))); put(altEl,'alt','');
     put($('readTip'),'t',L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start Fast','开始断食'));
   }
   /* timeline */
@@ -471,6 +484,7 @@ function renderMe(){
    '<button class="row" data-act="cheat"><span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button></div>';
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
    '<div class="row"><span>'+L('Language','语言')+'</span><div class="seg" role="group" aria-label="Language"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div></div>'+
+   '<div class="row"><span>'+L('Timer style','计时样式')+'</span><div class="seg" role="group" aria-label="Timer style"><button data-act="tstyle" data-v="a" aria-pressed="'+((S.prefs.timerStyle||'b')==='a')+'">'+L('Classic','经典')+'</button><button data-act="tstyle" data-v="b" aria-pressed="'+((S.prefs.timerStyle||'b')==='b')+'">'+L('Hero','大字')+'</button><button data-act="tstyle" data-v="c" aria-pressed="'+((S.prefs.timerStyle||'b')==='c')+'">'+L('Card','卡片')+'</button></div></div>'+
    '<div class="row"><span>'+L('Appearance','外观')+'</span><div class="seg" role="group" aria-label="Appearance"><button data-act="theme" data-v="auto" aria-pressed="'+(S.theme==='auto')+'">'+L('Auto','自动')+'</button><button data-act="theme" data-v="light" aria-pressed="'+(S.theme==='light')+'">'+L('Light','浅色')+'</button><button data-act="theme" data-v="dark" aria-pressed="'+(S.theme==='dark')+'">'+L('Dark','深色')+'</button></div></div>'+
    sw('sound',L('Sound','声音'),S.prefs.sound)+(navigator.vibrate?sw('haptics',L('Vibration','振动'),S.prefs.haptics):'')+sw('d3',L('3D moon and sun','3D 月亮和太阳'),S.prefs.d3&&!!orb,!orb)+
    sw('notify',L('Reminders','提醒'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>';
@@ -607,6 +621,7 @@ var A={
   export:function(){ try{ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-fasts-'+today()+'.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }catch(e){ toast(L('Couldn’t export.','导出失败。')); } },
   erase:function(){ openSheet('<h3>'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede">'+L('This deletes your fasts, streak and settings from this phone. It can’t be undone.','这会删除这台手机上的断食记录、连续天数和设置，无法撤销。')+'</p><div class="btns"><button class="btn red" data-act="eraseok">'+L('Erase everything','清除所有数据')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   eraseok:function(){ try{ localStorage.removeItem(KEY); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
+  tstyle:function(b){ S.prefs.timerStyle=b.dataset.v; ph.dataset.ts=b.dataset.v; save(); renderMe(); cache={}; fitDisc(); },
   obnext:function(){ if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ if(ob.step>0){ ob.step--; obRender(-1); } },
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
@@ -624,6 +639,7 @@ document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!
 $('tabs').addEventListener('click',function(e){ var b=e.target.closest('button[data-tab]'); if(b) showTab(b.dataset.tab); });
 $('streakBtn').addEventListener('click',cheatSheet);
 $('planBtn').addEventListener('click',planSheet);
+(function(){ var b=$('readBig'); b.addEventListener('click',function(){ if(!S.cur||(Date.now()-S.cur.start)/H>=S.cur.goalH) return; S.prefs.showElapsed=!S.prefs.showElapsed; save(); cache={}; bigStr=''; updateToday(); buzz(6); }); })();
 $('endA').addEventListener('click',function(){ if(S.cur) startEdit(); else if(mode==='eat'&&lastFast()) fastSheet(lastFast()); });
 function startEdit(){
   var cur=S.cur, now=Date.now();
@@ -644,6 +660,7 @@ function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) retu
   if(Math.abs(d)<2) return; var n=Math.max(.4,Math.min(1,dsNow+d/236)); if(Math.abs(n-dsNow)<.004) return; dsNow=n; $('discWrap').style.setProperty('--ds',n.toFixed(3)); }
 window.addEventListener('resize',fitDisc);
 if(S.onboarded) normalisePlan();
+ph.dataset.ts=S.prefs.timerStyle||'b';
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
 var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash);
 if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }
@@ -655,7 +672,7 @@ if(CL&&CL.ready()){ window.addEventListener('storage',function(ev){ if(ev.key===
 var lastT=performance.now(), lastSec=0, frame=0;
 function loop(t){
   var dt=Math.min((t-lastT)/1000,.1); lastT=t; frame++;
-  if(!document.hidden&&curTab==='today'&&$('ob').hidden){ if(t-lastSec>1000||holdOn&&false){ lastSec=t; updateToday(); } if(reduce?frame%6===0:(frame%2===0||boost>0||Math.abs(shownP-tgtP)>.001||Math.abs(tiltX)>.01||Math.abs(tiltY)>.01||tgtX||tgtY)) drawDisc(dt*(reduce?6:2)); }
+  if(!document.hidden&&curTab==='today'&&$('ob').hidden){ var sn=Math.floor(Date.now()/1000); if(sn!==lastSec){ lastSec=sn; updateToday(); } if(reduce?frame%6===0:(frame%2===0||boost>0||Math.abs(shownP-tgtP)>.001||Math.abs(tiltX)>.01||Math.abs(tiltY)>.01||tgtX||tgtY)) drawDisc(dt*(reduce?6:2)); }
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
