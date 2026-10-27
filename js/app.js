@@ -78,8 +78,20 @@ function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) naviga
 var toastT=0;
 function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); },3400); }
 var sheetEl=$('sheet'), scrim=$('scrim'), sheetOpen=false, sheetBack=null;
-function openSheet(html,back){ sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); }
-function closeSheet(){ sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; }
+var sheetFrom=null, BEHIND=['today','days','me','tabs'];
+function setInert(v){ BEHIND.forEach(function(id){ var e=$(id); if(v) e.setAttribute('inert',''); else e.removeAttribute('inert'); }); }
+function openSheet(html,back){ if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
+  sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
+function closeSheet(){ if(!sheetOpen) return; sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
+/* drag the grabber: 1:1 with the finger, then project where the flick was going and dismiss or spring back */
+(function(){ var y0=0,dy=0,vy=0,lt=0,ly=0,drag=false;
+  sheetEl.addEventListener('pointerdown',function(e){ if(reduce||!e.target.closest('.grab')) return; drag=true; y0=e.clientY; ly=e.clientY; lt=performance.now(); vy=0; dy=0; sheetEl.style.transition='none'; try{ sheetEl.setPointerCapture(e.pointerId); }catch(x){} });
+  sheetEl.addEventListener('pointermove',function(e){ if(!drag) return; var raw=e.clientY-y0, now=performance.now(); vy=.6*vy+.4*((e.clientY-ly)/Math.max(now-lt,1)*1000); ly=e.clientY; lt=now;
+    dy=raw>=0?raw:-(Math.abs(raw)*30*.55)/(30+.55*Math.abs(raw)); /* rubber-band when pulled up */
+    sheetEl.style.transform='translateY('+dy+'px)'; scrim.style.opacity=Math.max(0,.4*(1-Math.max(dy,0)/sheetEl.offsetHeight)); });
+  function end(){ if(!drag) return; drag=false; var h=sheetEl.offsetHeight, proj=dy+(vy/1000)*.998/(1-.998); sheetEl.style.transition=''; sheetEl.style.transform=''; scrim.style.opacity='';
+    if(proj>h*.45||vy>900) closeSheet(); }
+  sheetEl.addEventListener('pointerup',end); sheetEl.addEventListener('pointercancel',end); })();
 scrim.addEventListener('click',closeSheet);
 document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&sheetOpen) closeSheet(); });
 var CHECK='<svg class="ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -278,7 +290,7 @@ function renderDays(){
   var lead=(new Date(calY,calM,1).getDay()+6)%7, dim=new Date(calY,calM+1,0).getDate(); for(var i=0;i<lead;i++) h+='<button class="out" tabindex="-1" aria-hidden="true"></button>';
   for(var d=1;d<=dim;d++){ var k=calY+'-'+('0'+(calM+1)).slice(-2)+'-'+('0'+d).slice(-2), s=C.dayStatus(k,all,S.flex.used), fut=k>t;
     h+='<button class="'+s+(k===t?' today':'')+(k===selDay?' sel':'')+(fut?' fut':'')+'" data-act="day" data-k="'+k+'" aria-label="'+dateLbl(C.keyToDate(k).getTime())+(s==='done'?', '+L('fast done','已完成'):s==='flex'?', '+L('cheat day','弹性日'):s==='early'?', '+L('ended early','提前结束'):'')+'"><span class="d">'+d+'</span></button>'; }
-  h+='</div></div><div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i style="border-color:#FF9500"></i>'+L('Ended early','提前结束')+'</span><span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span></div></div>';
+  h+='</div></div><div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i style="border-color:var(--orange)"></i>'+L('Ended early','提前结束')+'</span><span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span></div></div>';
   /* the chosen day */
   var list=C.fastDays(all)[selDay]||[], fl=S.flex.used.indexOf(selDay)>=0, blk=C.flexBlock(selDay,{fasts:all,flex:S.flex});
   h+='<div class="gh">'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</div><div class="group">';
@@ -319,7 +331,7 @@ function fastSave(id){
 function flexTick(){ C.flexRefill(S.flex,S.startedAt||Date.now()); }
 function cheatSheet(){
   flexTick(); var k=today(), used=S.flex.used.indexOf(k)>=0, blk=C.flexBlock(k,{fasts:S.fasts,flex:S.flex}), b=S.flex.bank;
-  var moons=''; for(var i=0;i<2;i++) moons+='<svg width="30" height="30" viewBox="-15 -15 30 30" style="margin-right:6px" aria-hidden="true"><circle r="12" fill="'+(i<b?'#F4EFE2':'none')+'" stroke="'+(i<b?'#B9AF96':'var(--label-3)')+'" stroke-width="1.5"/></svg>';
+  var moons=''; for(var i=0;i<2;i++) moons+='<svg width="30" height="30" viewBox="-15 -15 30 30" style="margin-right:6px" aria-hidden="true"><circle r="12" style="fill:'+(i<b?'var(--moon)':'none')+';stroke:'+(i<b?'var(--moon-edge)':'var(--label-2)')+'" stroke-width="1.5"/></svg>';
   var why={used:'',fasted:L('You fasted today, so you don’t need one.','今天你已经断食了，不需要使用。'),bank:L('None left. A new one arrives every Monday.','已经用完。每周一会补一个。'),week:L('Two in a week is the limit, so you still fast at least five days.','一周最多两个，这样每周至少断食五天。'),window:''}[blk]||'';
   openSheet('<h3>'+L('Cheat days','弹性日')+'</h3><p class="lede">'+L('A day off that keeps your streak going. Never a failure.','休息一天，连续记录不会断。这不是失败。')+'</p>'+
     '<div class="group"><div class="row" style="min-height:60px"><span style="display:flex">'+moons+'</span><span class="v">'+L(b+' left',b+' 个可用')+'</span></div></div>'+
@@ -416,12 +428,10 @@ function obHtml(i){
   var top='<div class="ob-top"><span class="ob-l">'+back+'</span>'+dots+'<span></span></div>', body='', cta='';
   function opt(v,label,sub,on){ return '<button class="plan'+(on?' sel':'')+'" data-act="obopt" data-v="'+v+'"><span class="pn"><b>'+label+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+CHECK+'</button>'; }
   if(i===0){
-    var tile='<svg viewBox="-80 -80 160 160" aria-hidden="true"><defs><linearGradient id="obSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B2750"/><stop offset="1" stop-color="#0E1430"/></linearGradient>'+
-      '<radialGradient id="obM" cx=".38" cy=".34" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient>'+
-      '<radialGradient id="obG"><stop offset=".55" stop-color="#F4EFE2" stop-opacity=".22"/><stop offset="1" stop-color="#F4EFE2" stop-opacity="0"/></radialGradient></defs>'+
-      '<rect x="-80" y="-80" width="160" height="160" rx="36" fill="url(#obSky)"/>'+
+    var tile='<svg viewBox="-80 -80 160 160" aria-hidden="true"><defs><radialGradient id="obM" cx=".38" cy=".34" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient></defs>'+
+      '<rect x="-80" y="-80" width="160" height="160" rx="36" style="fill:var(--night)"/>'+
       '<g fill="#fff"><circle cx="-52" cy="-46" r="1.4" opacity=".7"/><circle cx="-30" cy="-60" r="1" opacity=".5"/><circle cx="46" cy="-52" r="1.5" opacity=".7"/><circle cx="58" cy="-22" r="1" opacity=".5"/><circle cx="-58" cy="30" r="1" opacity=".5"/><circle cx="50" cy="52" r="1.2" opacity=".6"/></g>'+
-      '<circle r="62" fill="url(#obG)"/><circle r="40" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-width="1.2"/><path d="'+phasePath(.3,40)+'" fill="url(#obM)"/></svg>';
+      '<circle r="40" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-width="1.2"/><path d="'+phasePath(.3,40)+'" fill="url(#obM)"/></svg>';
     body='<div class="grow"></div><div class="ob-hero">'+tile+'</div><h1 style="text-align:center">Lightly <span style="font-weight:600">轻伴</span></h1><p class="lede" style="text-align:center">'+L('A fast that follows the sky. A moon at night and a sun by day, set by your real sunrise and sunset.','跟着天空走的断食。夜里是月亮，白天是太阳，由你所在地的真实日出日落决定。')+'</p><div class="seg" style="margin:8px auto 0;width:min(260px,100%)"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Get started','开始')+'</button>';
   }else if(i===1){
@@ -443,11 +453,12 @@ function obHtml(i){
   }
   return '<div class="ob-step" data-i="'+i+'">'+top+body+'<div class="ob-cta">'+cta+'</div></div>';
 }
-function obRender(){
-  var box=$('ob'); box.hidden=false; var cur=box.querySelector('.ob-step.on');
-  var html=obHtml(ob.step), tmp=document.createElement('div'); tmp.innerHTML=html; var n=tmp.firstChild; box.appendChild(n);
+function obRender(dir){
+  /* forward pushes from the right; back reverses the same path (spatial symmetry) */
+  var box=$('ob'); box.hidden=false; dir=dir||1;
+  var html=obHtml(ob.step), tmp=document.createElement('div'); tmp.innerHTML=html; var n=tmp.firstChild; if(dir<0&&box.children.length) n.classList.add('back'); box.appendChild(n);
   var old=[].slice.call(box.children).filter(function(c){return c!==n;});
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.classList.add('on'); old.forEach(function(o){ o.classList.remove('on'); o.classList.add('past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); }); });
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transition=''; n.classList.remove('back'); n.classList.add('on'); old.forEach(function(o){ o.classList.remove('on'); o.classList.add(dir<0?'out':'past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); }); });
   var f=n.querySelector('h1'); if(f){ f.setAttribute('tabindex','-1'); }
 }
 function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); }
@@ -491,7 +502,7 @@ var A={
   erase:function(){ openSheet('<h3>'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede">'+L('This deletes your fasts, streak and settings from this phone. It can’t be undone.','这会删除这台手机上的断食记录、连续天数和设置，无法撤销。')+'</p><div class="btns"><button class="btn red" data-act="eraseok">'+L('Erase everything','清除所有数据')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   eraseok:function(){ try{ localStorage.removeItem(KEY); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
   obnext:function(){ if(ob.step<4){ ob.step++; obRender(); } },
-  obback:function(){ if(ob.step>0){ ob.step--; var box=$('ob'); box.innerHTML=''; obRender(); } },
+  obback:function(){ if(ob.step>0){ ob.step--; obRender(-1); } },
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
   obsafe:function(b){ var v=b.dataset.v, i=ob.safe.indexOf(v); if(v==='none') ob.safe=i>=0?[]:['none']; else{ ob.safe=ob.safe.filter(function(x){return x!=='none';}); if(i>=0) ob.safe.splice(ob.safe.indexOf(v),1); else ob.safe.push(v); } obRefresh(); },
   obplan:function(b){ ob.plan=b.dataset.id; obRefresh(); },
