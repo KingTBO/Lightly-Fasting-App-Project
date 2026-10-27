@@ -1078,7 +1078,7 @@ window.LightlySphere=(function(){
     {id:'13', feat:1, fast:13, eat:11, en:'Sunrise', zh:'日出', den:'Eat in daylight, fast through the night. Made for this sky.', dzh:'白天吃，夜里断食，和这片天空最合拍。', grp:'daily'},
     {id:'16', feat:1, fast:16, eat:8, en:'Classic', zh:'经典', den:'The most popular plan, and Lightly\u2019s default.', dzh:'最常见的计划，也是轻伴的默认。', grp:'daily', top:1},
     {id:'18', feat:1, fast:18, eat:6, en:'Steady', zh:'稳定', den:'Two more hours, for when 16:8 feels easy.', dzh:'多两个小时，适合 16:8 已经轻松的时候。', grp:'daily'},
-    {id:'20', feat:1, fast:20, eat:4, en:'Warrior', zh:'战士', den:'A four-hour eating window.', dzh:'四小时的进食窗口。', grp:'daily'},
+    {id:'20', feat:1, fast:20, eat:4, en:'Warrior', zh:'战士', den:'Twenty hours fasting, a four-hour eating window.', dzh:'断食二十小时，四小时进食窗口。', grp:'daily'},
     {id:'23', fast:23, eat:1, en:'One meal', zh:'一天一餐', den:'Also called OMAD. One meal, one hour.', dzh:'也叫 OMAD。一小时，一餐。', grp:'daily'},
     {id:'24', fast:24, eat:8, en:'24 hours', zh:'24 小时', den:'Unlocks as you go. A one-time safety screen, plus water and electrolyte reminders.', dzh:'随进度解锁。会先看一次安全提示，并提醒你补水和电解质。', grp:'long'},
     {id:'36L', fast:36, eat:8, en:'36 hours', zh:'36 小时', den:'Unlocks after a 24-hour fast. Spans more than one night.', dzh:'完成 24 小时断食后解锁，会跨过不止一个夜晚。', grp:'long'}];
@@ -1512,7 +1512,7 @@ window.LightlySphere=(function(){
       var ids=['13','16','18','20','24','36L'];
       return '<h4>'+L('Pick your plan','选一个计划')+'</h4><p class="sub">'+L('You can change it any time.','随时都可以改。')+'</p><div class="ob-list" data-q="plan">'+ids.map(function(id){ var ok=allowed(id);
         var lab=planName(id)+(id===rec?'<span class="tag">'+L('Suggested','推荐')+'</span>':'')+(!ok?'<span class="lk">'+(risky()?L('Not offered','不提供'):L('Locked','未解锁'))+'</span>':'');
-        var li=!ok?lockInfo(id):null, sub=li?(li[1]?li[1]+' \u00b7 ':'')+li[0]:'';
+        var pl=api.plans.filter(function(x){return x.id===id;})[0], li=!ok?lockInfo(id):null, sub=li?(li[1]?li[1]+' \u00b7 ':'')+li[0]:(pl&&pl.grp!=='long'?L('Fast '+pl.fast+' hours, eat '+pl.eat,'断食 '+pl.fast+' 小时，进食 '+pl.eat+' 小时'):L('Fast '+pl.fast+' hours','断食 '+pl.fast+' 小时'));
         return opt(id,lab,sub,st.plan===id,null,!ok); }).join('')+'</div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'; }
     if(i===4) return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('You’re set','准备好了')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(st.plan)+'</b></div><div><span>'+L('Where you are','所在地')+'</span><b>'+L('Shanghai','上海')+'</b></div><div><span>'+L('First fast','第一次断食')+'</span><b>'+L('Tonight, 8:30 PM','今晚 8:30')+'</b></div></div><p class="ob-note">'+L('We use your city for sunrise and sunset only. You can share your precise location later if you like.','我们只用城市来算日出日落。想更准的话，以后可以再授权精确位置。')+'</p><button type="button" class="ob-cta" data-done>'+L('Start Tonight','今晚开始')+'</button>';
   }

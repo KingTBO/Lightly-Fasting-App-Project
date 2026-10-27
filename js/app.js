@@ -365,7 +365,7 @@ function planRow(p,selId){
     else if(st.st==='wait'){ dis=true; pill='<span class="pill">'+L('Rest first','先休息')+'</span>'; sub=L('Available again ','可用时间：')+dateLbl(st.until); }
     else sub=L('Unlocked. Water and electrolytes recommended.','已解锁。建议补充水分和电解质。');
   }else if(p.custom) sub=L('Choose 12 to 23 hours','12 到 23 小时之间');
-  else sub=L(p.eat+(p.eat===1?' hour to eat':' hours to eat'),p.eat+' 小时进食');
+  else sub=fastSub(p);
   var extra=p.custom&&!dis?'<span class="pr" style="min-width:0"></span>':'';
   var row='<button class="plan'+(selId===p.id?' sel':'')+'" data-act="pickplan" data-id="'+p.id+'"'+(dis?' disabled':'')+'><span class="pn"><b>'+esc(pName(p))+'</b><small>'+sub+'</small>'+bar+'</span>'+pill+'<span class="pr">'+lab+'</span>'+CHECK+'</button>';
   if(p.custom&&selId==='custom') row+='<div class="field"><label for="cH">'+L('Fasting hours','断食小时数')+'</label><input id="cH" type="number" min="12" max="23" step="1" inputmode="numeric" value="'+S.customH+'" data-chg="custom"></div>';
@@ -444,6 +444,8 @@ var emCool=0;
 function resendCool(){ var b=$('emResend'); if(!b) return; var left=Math.ceil((emCool-Date.now())/1000); if(left>0){ b.disabled=true; b.textContent=L('Send again in ','可再发送：')+left+L(' s',' 秒'); setTimeout(resendCool,1000); } else { b.disabled=false; b.textContent=L('Send again','再发一次'); } }
 function emailErr(x){ return x&&(x.status===429||/rate|seconds|too many/i.test(x.message||''))?L('Too many emails just now. Wait a minute and try again.','邮件发得太频繁了，请等一分钟再试。'):L('Couldn’t send the email: ','邮件没发出去：')+x.message; }
 
+function fastSub(p){ return L('Fast '+p.fast+' hours, eat '+p.eat,'断食 '+p.fast+' 小时，进食 '+p.eat+' 小时'); }
+
 /* ---------- Me ---------- */
 function renderMe(){
   var zh=S.lang==='zh', h='<h1 class="h-title">'+L('Me','我的')+'</h1>';
@@ -494,7 +496,7 @@ function obHtml(i){
     cta='<button class="btn" data-act="obnext"'+(ob.safe.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(i===3){
     var risky=ob.safe.length&&ob.safe.indexOf('none')<0, sug=risky||ob.fasted==='first'?'13':'16'; if(!ob.plan) ob.plan=sug;
-    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1><p class="lede">'+L('You can change it any time.','随时可以更改。')+'</p><div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"><span class="pn"><span class="pt"><b>'+pName(p)+'</b>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+'</span><small>'+L(p.eat+' hours to eat',p.eat+' 小时进食')+'</small></span>'+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
+    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1><p class="lede">'+L('You can change it any time.','随时可以更改。')+'</p><div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"><span class="pn"><span class="pt"><b>'+pName(p)+'</b>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+'</span><small>'+fastSub(p)+'</small></span>'+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
       '<p class="gf" style="padding:0 4px">'+(risky?L('Longer fasts stay off for you.','长时间断食对你保持关闭。'):L('A 24-hour fast unlocks later, as you build up.','24 小时断食会在你逐步适应后解锁。'))+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else{
