@@ -83,6 +83,8 @@ const H=3600000,D=24*H;
  await q.click('#sheet [data-act=close]');await q.waitForTimeout(300);await q.click('#endA');assert.match(await q.textContent('#sheet h3'),/Edit fast/);ok('end time editable from the eating window');
  // signed out Me offers email only
  q=await fresh(seed({}));await q.click('#tabs [data-tab=me]');assert(await q.$('[data-act=emailsheet]'));assert(!(await q.$('#me [data-act=soon]')),'no placeholder sign-in buttons');ok('Me offers only email sign-in');
+ // a shooting star crosses the night sky, then removes itself
+ q=await fresh(seed({}));assert(await q.evaluate(()=>window.lightlyShoot(true)),'shooting star starts');await q.waitForTimeout(100);assert(await q.$('#stars line.shoot'),'streak drawn');await q.waitForTimeout(1900);assert(!(await q.$('#stars line.shoot')),'streak removed when done');ok('shooting star appears and cleans up');
  // export + erase
  await p.click('#sheet [data-act=close]');await p.click('[data-act=erase]');await p.click('[data-act=eraseok]');await p.waitForTimeout(800);assert.strictEqual(await p.evaluate(()=>(JSON.parse(localStorage.getItem('lightly:v1'))||{}).onboarded||false),false);ok('erase resets');
  assert.deepStrictEqual(errs,[]);console.log('all flows ok');await b.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});

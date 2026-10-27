@@ -1916,4 +1916,25 @@ window.LightlySphere=(function(){
 })();
 </script>
 
+<script>
+/* a shooting star now and then under the night sky of the demo phone, only while it is on screen */
+(function(){ var NS='http://www.w3.org/2000/svg', ph=document.getElementById('ph'), svg=ph&&ph.querySelector('.stars'); if(!svg||!svg.animate) return;
+  var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)');
+  var defs=document.createElementNS(NS,'defs'); defs.innerHTML='<linearGradient id="shootG" gradientUnits="userSpaceOnUse" x1="-52" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".95"/></linearGradient>'; svg.insertBefore(defs,svg.firstChild);
+  function onScreen(){ var r=ph.getBoundingClientRect(); return r.bottom>0&&r.top<innerHeight; }
+  function shoot(force){
+    if(rm&&rm.matches) return false;
+    if(!force&&(document.hidden||!onScreen()||ph.hasAttribute('data-me')||!/night|first|evening/.test(ph.getAttribute('data-sky')||''))) return false;
+    var dir=Math.random()<.5?-1:1, x=dir<0?150+Math.random()*200:40+Math.random()*200, y=24+Math.random()*120, ang=(16+Math.random()*16)*Math.PI/180, dist=170+Math.random()*110;
+    var g=document.createElementNS(NS,'g'), l=document.createElementNS(NS,'line');
+    g.setAttribute('transform','translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+(dir<0?180-(ang*180/Math.PI):ang*180/Math.PI).toFixed(1)+')');
+    l.setAttribute('x1','-52'); l.setAttribute('x2','0'); l.setAttribute('stroke','url(#shootG)'); l.setAttribute('stroke-width','1.6'); l.setAttribute('stroke-linecap','round'); l.setAttribute('class','shoot');
+    g.appendChild(l); svg.appendChild(g);
+    var an=l.animate([{transform:'translateX(0)',opacity:0},{opacity:1,offset:.15},{opacity:.9,offset:.6},{transform:'translateX('+dist.toFixed(0)+'px)',opacity:0}],{duration:800+Math.random()*450,easing:'cubic-bezier(.4,0,.7,1)'});
+    an.onfinish=function(){ if(g.parentNode) g.parentNode.removeChild(g); }; return true;
+  }
+  function plan(first){ setTimeout(function(){ shoot(); plan(); },(first?7000+Math.random()*8000:22000+Math.random()*38000)); }
+  window.lightlyShoot=shoot; plan(true);
+})();
+</script>
 </body></html>

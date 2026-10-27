@@ -700,6 +700,25 @@ if(!S.onboarded&&!(returning&&CL&&CL.ready())){ updateToday(); obStart(); } else
 scheduleGoal();
 if(CL&&CL.ready()){ window.addEventListener('storage',function(ev){ if(ev.key===CL.AK&&ev.newValue){ closeSheet(); renderMe(); toast(L('Signed in.','已登录。')); syncNow(true); } });
   CL.fromHash().then(function(a){ if(a){ closeSheet(); toast(L('Signed in.','已登录。')); if(S.onboarded) showTab('me'); } }).catch(function(x){ if(x&&x.linkError){ showTab('me'); toast(/expired|otp/i.test(x.linkError+x.message)?L('That link expired or was already used. Send a new one.','链接已过期或已用过，请重新发送。'):L('Couldn’t sign in with that link. Send a new one.','这个链接登录失败，请重新发送。')); } }).then(function(){ return cloudOn()?syncNow(true):null; }).then(function(){ if(!S.onboarded&&$('ob').hidden){ updateToday(); obStart(); } }); }
+
+/* a shooting star now and then, only under a night sky; one at a time, never with Reduce Motion, never over a sheet or onboarding */
+(function(){ var NS='http://www.w3.org/2000/svg', svg=$('stars'); if(!svg) return;
+  var defs=document.createElementNS(NS,'defs'); defs.innerHTML='<linearGradient id="shootG" gradientUnits="userSpaceOnUse" x1="-52" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".95"/></linearGradient>'; svg.insertBefore(defs,svg.firstChild);
+  function dark(){ return /night|first|evening/.test(ph.getAttribute('data-sky')); }
+  function shoot(force){
+    if(reduce||!svg.animate) return false;
+    if(!force&&(document.hidden||curTab!=='today'||!dark()||sheetOpen||!$('ob').hidden)) return false;
+    var dir=Math.random()<.5?-1:1, x=dir<0?150+Math.random()*200:40+Math.random()*200, y=24+Math.random()*120, ang=(16+Math.random()*16)*Math.PI/180, dist=170+Math.random()*110;
+    var g=document.createElementNS(NS,'g'), l=document.createElementNS(NS,'line');
+    g.setAttribute('transform','translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+(dir<0?180-(ang*180/Math.PI):ang*180/Math.PI).toFixed(1)+')');
+    l.setAttribute('x1','-52'); l.setAttribute('x2','0'); l.setAttribute('stroke','url(#shootG)'); l.setAttribute('stroke-width','1.6'); l.setAttribute('stroke-linecap','round'); l.setAttribute('class','shoot');
+    g.appendChild(l); svg.appendChild(g);
+    var an=l.animate([{transform:'translateX(0)',opacity:0},{opacity:1,offset:.15},{opacity:.9,offset:.6},{transform:'translateX('+dist.toFixed(0)+'px)',opacity:0}],{duration:800+Math.random()*450,easing:'cubic-bezier(.4,0,.7,1)'});
+    an.onfinish=function(){ if(g.parentNode) g.parentNode.removeChild(g); }; return true;
+  }
+  function plan(first){ setTimeout(function(){ shoot(); plan(); },(first?7000+Math.random()*8000:22000+Math.random()*38000)); }
+  window.lightlyShoot=shoot; plan(true);
+})();
 var lastT=performance.now(), lastSec=0, frame=0;
 function loop(t){
   var dt=Math.min((t-lastT)/1000,.1); lastT=t; frame++;
