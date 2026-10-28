@@ -138,7 +138,7 @@ var orb=null, flat=true;
 function initOrb(){ try{ orb=window.LightlySphere?window.LightlySphere($('disc')):null; }catch(e){ orb=null; } if(orb) orb.set(!!S.prefs.d3); }
 function phasePath(p,r){ p=Math.min(Math.max(p,0),1); if(p<=0.001) return ''; var rx=r*Math.abs(1-2*p), s=p<0.5?0:1; return 'M0 '+(-r)+' A'+r+' '+r+' 0 0 1 0 '+r+' A'+rx.toFixed(2)+' '+r+' 0 0 '+s+' 0 '+(-r)+'Z'; }
 
-function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-sky',k); var m=document.querySelector('meta[name=theme-color]'); if(m&&curTab==='today') m.setAttribute('content',getComputedStyle(ph).getPropertyValue('--sky').trim()||'#0E1430'); } }
+function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-sky',k); if(curTab==='today') document.documentElement.style.background=getComputedStyle(ph).getPropertyValue('--sky').trim(); var m=document.querySelector('meta[name=theme-color]'); if(m&&curTab==='today') m.setAttribute('content',getComputedStyle(ph).getPropertyValue('--sky').trim()||'#0E1430'); } }
 
 function updateToday(){
   nowMs=Date.now(); var now=nowMs; refreshSun(now);
@@ -714,7 +714,11 @@ document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!
   if(t.dataset.chg==='obstart'){ ob.start=t.value||'20:00'; }
   if(t.dataset.chg==='usual'){ S.prefs.usualStart=t.value||''; save(); cache={}; updateToday(); } });
 /* the real viewport height, so a Home Screen launch fills the glass edge to edge on every phone (ignored while the keyboard is up) */
-(function(){ var sa=document.createElement('div'); sa.setAttribute('aria-hidden','true'); sa.style.cssText='position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding:var(--sat) 0 var(--sab)'; ph.appendChild(sa); function fit(){ var a=document.activeElement; if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return; ph.style.setProperty('--app-h',Math.round(window.innerHeight)+'px'); ph.classList.toggle('tight',window.innerHeight-sa.offsetHeight<=600); }
+(function(){ var sa=document.createElement('div'); sa.setAttribute('aria-hidden','true'); sa.style.cssText='position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding:var(--sat) 0 var(--sab)'; ph.appendChild(sa); function fit(){ var a=document.activeElement; if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
+    ph.style.setProperty('--app-h',Math.round(window.innerHeight)+'px'); ph.classList.toggle('tight',window.innerHeight-sa.offsetHeight<=600);
+    /* iPhone Home Screen apps can report a page that stops short of the screen bottom; stretch the app to the real screen height so no strip shows */
+    var st=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches), sh=Math.max(screen.height,screen.width), gap=sh-window.innerHeight;
+    if(st&&window.innerWidth<600&&window.innerHeight>window.innerWidth&&gap>8&&gap<160){ ph.style.bottom='auto'; ph.style.height=sh+'px'; } else{ ph.style.bottom=''; ph.style.height=''; } }
   fit(); window.addEventListener('resize',fit); window.addEventListener('orientationchange',function(){ setTimeout(fit,200); }); window.addEventListener('pageshow',fit); })();
 /* scrolling down gives the screen to the content; scrolling up (or reaching the top) brings the tab bar back */
 (function(){ var last={}, acc={};
