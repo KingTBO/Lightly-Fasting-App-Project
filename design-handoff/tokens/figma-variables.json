@@ -1,0 +1,975 @@
+{
+  "note": "Collections and modes as Figma variables. Import with a variables-import plugin, or recreate from the table in README. Text styles are in tokens.json, Figma variables cannot hold full text styles.",
+  "collections": [
+    {
+      "name": "Color (appearance)",
+      "modes": [
+        "Light",
+        "Dark"
+      ],
+      "variables": [
+        {
+          "name": "color/bg",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.9490196078431372,
+              "g": 0.9490196078431372,
+              "b": 0.9686274509803922,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0,
+              "g": 0,
+              "b": 0,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "color/card",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "color/label",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0,
+              "g": 0,
+              "b": 0,
+              "a": 1
+            },
+            "Dark": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "color/label-2",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.23529411764705882,
+              "g": 0.23529411764705882,
+              "b": 0.2627450980392157,
+              "a": 0.75
+            },
+            "Dark": {
+              "r": 0.9215686274509803,
+              "g": 0.9215686274509803,
+              "b": 0.9607843137254902,
+              "a": 0.6
+            }
+          }
+        },
+        {
+          "name": "color/label-3",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.23529411764705882,
+              "g": 0.23529411764705882,
+              "b": 0.2627450980392157,
+              "a": 0.3
+            },
+            "Dark": {
+              "r": 0.9215686274509803,
+              "g": 0.9215686274509803,
+              "b": 0.9607843137254902,
+              "a": 0.3
+            }
+          }
+        },
+        {
+          "name": "color/separator",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.23529411764705882,
+              "g": 0.23529411764705882,
+              "b": 0.2627450980392157,
+              "a": 0.29
+            },
+            "Dark": {
+              "r": 0.32941176470588235,
+              "g": 0.32941176470588235,
+              "b": 0.34509803921568627,
+              "a": 0.6
+            }
+          }
+        },
+        {
+          "name": "color/fill",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.47058823529411764,
+              "g": 0.47058823529411764,
+              "b": 0.5019607843137255,
+              "a": 0.12
+            },
+            "Dark": {
+              "r": 0.4627450980392157,
+              "g": 0.4627450980392157,
+              "b": 0.5019607843137255,
+              "a": 0.24
+            }
+          }
+        },
+        {
+          "name": "color/fill-2",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.47058823529411764,
+              "g": 0.47058823529411764,
+              "b": 0.5019607843137255,
+              "a": 0.2
+            },
+            "Dark": {
+              "r": 0.4627450980392157,
+              "g": 0.4627450980392157,
+              "b": 0.5019607843137255,
+              "a": 0.32
+            }
+          }
+        },
+        {
+          "name": "color/tint",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 1,
+              "g": 0.8,
+              "b": 0,
+              "a": 1
+            },
+            "Dark": {
+              "r": 1,
+              "g": 0.8392156862745098,
+              "b": 0.0392156862745098,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "color/on-tint",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0,
+              "g": 0,
+              "b": 0,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0,
+              "g": 0,
+              "b": 0,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "color/green",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.20392156862745098,
+              "g": 0.7803921568627451,
+              "b": 0.34901960784313724,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0.20392156862745098,
+              "g": 0.7803921568627451,
+              "b": 0.34901960784313724,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "color/red",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.7803921568627451,
+              "g": 0,
+              "b": 0.07058823529411765,
+              "a": 1
+            },
+            "Dark": {
+              "r": 1,
+              "g": 0.27058823529411763,
+              "b": 0.22745098039215686,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "color/blue",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0,
+              "g": 0.3843137254901961,
+              "b": 0.8509803921568627,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0.0392156862745098,
+              "g": 0.5176470588235295,
+              "b": 1,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "color/orange",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.788235294117647,
+              "g": 0.20392156862745098,
+              "b": 0,
+              "a": 1
+            },
+            "Dark": {
+              "r": 1,
+              "g": 0.6235294117647059,
+              "b": 0.0392156862745098,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "celestial/moon",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.9568627450980393,
+              "g": 0.9372549019607843,
+              "b": 0.8862745098039215,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0.9568627450980393,
+              "g": 0.9372549019607843,
+              "b": 0.8862745098039215,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "celestial/moon-edge",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.7254901960784313,
+              "g": 0.6862745098039216,
+              "b": 0.5882352941176471,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0.7254901960784313,
+              "g": 0.6862745098039216,
+              "b": 0.5882352941176471,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "celestial/night",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.054901960784313725,
+              "g": 0.0784313725490196,
+              "b": 0.18823529411764706,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0.054901960784313725,
+              "g": 0.0784313725490196,
+              "b": 0.18823529411764706,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "celestial/moon-gradient-0",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            },
+            "Dark": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "celestial/moon-gradient-55",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.9333333333333333,
+              "g": 0.9098039215686274,
+              "b": 0.8509803921568627,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0.9333333333333333,
+              "g": 0.9098039215686274,
+              "b": 0.8509803921568627,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "celestial/moon-gradient-100",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.8117647058823529,
+              "g": 0.7803921568627451,
+              "b": 0.6980392156862745,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0.8117647058823529,
+              "g": 0.7803921568627451,
+              "b": 0.6980392156862745,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "celestial/sun-gradient-0",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 1,
+              "g": 0.9647058823529412,
+              "b": 0.7607843137254902,
+              "a": 1
+            },
+            "Dark": {
+              "r": 1,
+              "g": 0.9647058823529412,
+              "b": 0.7607843137254902,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "celestial/sun-gradient-50",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 1,
+              "g": 0.8235294117647058,
+              "b": 0.12156862745098039,
+              "a": 1
+            },
+            "Dark": {
+              "r": 1,
+              "g": 0.8235294117647058,
+              "b": 0.12156862745098039,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "celestial/sun-gradient-100",
+          "type": "COLOR",
+          "valuesByMode": {
+            "Light": {
+              "r": 0.9607843137254902,
+              "g": 0.6588235294117647,
+              "b": 0,
+              "a": 1
+            },
+            "Dark": {
+              "r": 0.9607843137254902,
+              "g": 0.6588235294117647,
+              "b": 0,
+              "a": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sky (Today background)",
+      "modes": [
+        "night",
+        "first-light",
+        "dawn",
+        "morning",
+        "day",
+        "sunset",
+        "evening"
+      ],
+      "variables": [
+        {
+          "name": "sky/sky",
+          "type": "COLOR",
+          "valuesByMode": {
+            "night": {
+              "r": 0.054901960784313725,
+              "g": 0.0784313725490196,
+              "b": 0.18823529411764706,
+              "a": 1
+            },
+            "first-light": {
+              "r": 0.2,
+              "g": 0.25098039215686274,
+              "b": 0.43137254901960786,
+              "a": 1
+            },
+            "dawn": {
+              "r": 0.9411764705882353,
+              "g": 0.7058823529411765,
+              "b": 0.5490196078431373,
+              "a": 1
+            },
+            "morning": {
+              "r": 0.6588235294117647,
+              "g": 0.8352941176470589,
+              "b": 0.9411764705882353,
+              "a": 1
+            },
+            "day": {
+              "r": 0.803921568627451,
+              "g": 0.9019607843137255,
+              "b": 0.9647058823529412,
+              "a": 1
+            },
+            "sunset": {
+              "r": 0.9529411764705882,
+              "g": 0.7725490196078432,
+              "b": 0.5568627450980392,
+              "a": 1
+            },
+            "evening": {
+              "r": 0.17254901960784313,
+              "g": 0.21568627450980393,
+              "b": 0.3843137254901961,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "sky/ink",
+          "type": "COLOR",
+          "valuesByMode": {
+            "night": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            },
+            "first-light": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            },
+            "dawn": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 1
+            },
+            "morning": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 1
+            },
+            "day": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 1
+            },
+            "sunset": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 1
+            },
+            "evening": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            }
+          }
+        },
+        {
+          "name": "sky/ink-2",
+          "type": "COLOR",
+          "valuesByMode": {
+            "night": {
+              "r": 0.9215686274509803,
+              "g": 0.9215686274509803,
+              "b": 0.9607843137254902,
+              "a": 0.7
+            },
+            "first-light": {
+              "r": 0.9215686274509803,
+              "g": 0.9215686274509803,
+              "b": 0.9607843137254902,
+              "a": 0.72
+            },
+            "dawn": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.74
+            },
+            "morning": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.66
+            },
+            "day": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.66
+            },
+            "sunset": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.74
+            },
+            "evening": {
+              "r": 0.9215686274509803,
+              "g": 0.9215686274509803,
+              "b": 0.9607843137254902,
+              "a": 0.72
+            }
+          }
+        },
+        {
+          "name": "sky/unlit",
+          "type": "COLOR",
+          "valuesByMode": {
+            "night": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.1
+            },
+            "first-light": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.12
+            },
+            "dawn": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.1
+            },
+            "morning": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.09
+            },
+            "day": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.08
+            },
+            "sunset": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.1
+            },
+            "evening": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.11
+            }
+          }
+        },
+        {
+          "name": "sky/rim",
+          "type": "COLOR",
+          "valuesByMode": {
+            "night": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.28
+            },
+            "first-light": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.3
+            },
+            "dawn": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.26
+            },
+            "morning": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.24
+            },
+            "day": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.22
+            },
+            "sunset": {
+              "r": 0.10980392156862745,
+              "g": 0.10980392156862745,
+              "b": 0.11764705882352941,
+              "a": 0.26
+            },
+            "evening": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.3
+            }
+          }
+        },
+        {
+          "name": "sky/glass",
+          "type": "COLOR",
+          "valuesByMode": {
+            "night": {
+              "r": 0.1568627450980392,
+              "g": 0.17254901960784313,
+              "b": 0.27450980392156865,
+              "a": 0.55
+            },
+            "first-light": {
+              "r": 0.23529411764705882,
+              "g": 0.26666666666666666,
+              "b": 0.43137254901960786,
+              "a": 0.5
+            },
+            "dawn": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.45
+            },
+            "morning": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.5
+            },
+            "day": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.55
+            },
+            "sunset": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 0.45
+            },
+            "evening": {
+              "r": 0.2196078431372549,
+              "g": 0.25098039215686274,
+              "b": 0.40784313725490196,
+              "a": 0.5
+            }
+          }
+        },
+        {
+          "name": "sky/stars-opacity",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "night": 1,
+            "first-light": 0.45,
+            "dawn": 0,
+            "morning": 0,
+            "day": 0,
+            "sunset": 0,
+            "evening": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "name": "Layout",
+      "modes": [
+        "Value"
+      ],
+      "variables": [
+        {
+          "name": "space/margin",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 16
+          }
+        },
+        {
+          "name": "space/group-gap",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 16
+          }
+        },
+        {
+          "name": "space/row-min-height",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 48
+          }
+        },
+        {
+          "name": "space/tap-min",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 44
+          }
+        },
+        {
+          "name": "space/button-height",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 52
+          }
+        },
+        {
+          "name": "space/primary-button-height",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 54
+          }
+        },
+        {
+          "name": "space/tab-bar-height",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 64
+          }
+        },
+        {
+          "name": "space/tab-bar-bottom",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 12
+          }
+        },
+        {
+          "name": "space/row-padding-x",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 16
+          }
+        },
+        {
+          "name": "space/list-inset",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 16
+          }
+        },
+        {
+          "name": "space/disc-size",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 236
+          }
+        },
+        {
+          "name": "space/screen-width",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 390
+          }
+        },
+        {
+          "name": "space/screen-height",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 844
+          }
+        },
+        {
+          "name": "radius/card",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 14
+          }
+        },
+        {
+          "name": "radius/button",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 999
+          }
+        },
+        {
+          "name": "radius/chip",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 999
+          }
+        },
+        {
+          "name": "radius/tab-bar",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 999
+          }
+        },
+        {
+          "name": "radius/segmented",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 9
+          }
+        },
+        {
+          "name": "radius/segmented-item",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 7
+          }
+        },
+        {
+          "name": "radius/sheet",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 34
+          }
+        },
+        {
+          "name": "radius/phone-frame",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 44
+          }
+        },
+        {
+          "name": "radius/switch",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 999
+          }
+        },
+        {
+          "name": "radius/badge",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 999
+          }
+        },
+        {
+          "name": "radius/icon-tile",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 17
+          }
+        },
+        {
+          "name": "motion/press-ms",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 100
+          }
+        },
+        {
+          "name": "motion/sheet-open-ms",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 500
+          }
+        },
+        {
+          "name": "motion/sheet-close-ms",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 320
+          }
+        },
+        {
+          "name": "motion/sky-change-ms",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 1200
+          }
+        },
+        {
+          "name": "motion/colour-ms",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 300
+          }
+        },
+        {
+          "name": "motion/hold-to-end-ms",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 1200
+          }
+        },
+        {
+          "name": "motion/celebration-ms",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 1900
+          }
+        },
+        {
+          "name": "motion/press-scale",
+          "type": "FLOAT",
+          "valuesByMode": {
+            "Value": 0.97
+          }
+        }
+      ]
+    }
+  ]
+}

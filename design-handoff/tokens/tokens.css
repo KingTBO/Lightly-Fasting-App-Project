@@ -1,0 +1,98 @@
+:root {
+  --bg: #F2F2F7;
+  --card: #FFFFFF;
+  --label: #000000;
+  --label-2: rgba(60,60,67,0.75);
+  --label-3: rgba(60,60,67,0.30);
+  --separator: rgba(60,60,67,0.29);
+  --fill: rgba(120,120,128,0.12);
+  --fill-2: rgba(120,120,128,0.20);
+  --tint: #FFCC00;
+  --on-tint: #000000;
+  --green: #34C759;
+  --red: #C70012;
+  --blue: #0062D9;
+  --orange: #C93400;
+}
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --card: #1C1C1E;
+  --label: #FFFFFF;
+  --label-2: rgba(235,235,245,0.60);
+  --label-3: rgba(235,235,245,0.30);
+  --separator: rgba(84,84,88,0.60);
+  --fill: rgba(118,118,128,0.24);
+  --fill-2: rgba(118,118,128,0.32);
+  --tint: #FFD60A;
+  --on-tint: #000000;
+  --green: #34C759;
+  --red: #FF453A;
+  --blue: #0A84FF;
+  --orange: #FF9F0A;
+}
+[data-sky="night"] {
+  --sky: #0E1430;
+  --ink: #FFFFFF;
+  --ink-2: rgba(235,235,245,0.70);
+  --unlit: rgba(255,255,255,0.10);
+  --rim: rgba(255,255,255,0.28);
+  --glass: rgba(40,44,70,0.55);
+  --stars: 1;
+  --tab-selected: #5AAEFF;
+}
+[data-sky="first-light"] {
+  --sky: #33406E;
+  --ink: #FFFFFF;
+  --ink-2: rgba(235,235,245,0.72);
+  --unlit: rgba(255,255,255,0.12);
+  --rim: rgba(255,255,255,0.30);
+  --glass: rgba(60,68,110,0.50);
+  --stars: 0.45;
+  --tab-selected: #5AAEFF;
+}
+[data-sky="dawn"] {
+  --sky: #F0B48C;
+  --ink: #1C1C1E;
+  --ink-2: rgba(28,28,30,0.74);
+  --unlit: rgba(28,28,30,0.10);
+  --rim: rgba(28,28,30,0.26);
+  --glass: rgba(255,255,255,0.45);
+  --stars: 0;
+}
+[data-sky="morning"] {
+  --sky: #A8D5F0;
+  --ink: #1C1C1E;
+  --ink-2: rgba(28,28,30,0.66);
+  --unlit: rgba(28,28,30,0.09);
+  --rim: rgba(28,28,30,0.24);
+  --glass: rgba(255,255,255,0.50);
+  --stars: 0;
+}
+[data-sky="day"] {
+  --sky: #CDE6F6;
+  --ink: #1C1C1E;
+  --ink-2: rgba(28,28,30,0.66);
+  --unlit: rgba(28,28,30,0.08);
+  --rim: rgba(28,28,30,0.22);
+  --glass: rgba(255,255,255,0.55);
+  --stars: 0;
+}
+[data-sky="sunset"] {
+  --sky: #F3C58E;
+  --ink: #1C1C1E;
+  --ink-2: rgba(28,28,30,0.74);
+  --unlit: rgba(28,28,30,0.10);
+  --rim: rgba(28,28,30,0.26);
+  --glass: rgba(255,255,255,0.45);
+  --stars: 0;
+}
+[data-sky="evening"] {
+  --sky: #2C3762;
+  --ink: #FFFFFF;
+  --ink-2: rgba(235,235,245,0.72);
+  --unlit: rgba(255,255,255,0.11);
+  --rim: rgba(255,255,255,0.30);
+  --glass: rgba(56,64,104,0.50);
+  --stars: 0.7;
+  --tab-selected: #5AAEFF;
+}
