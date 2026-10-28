@@ -262,12 +262,41 @@ function endFast(){
   S.fasts.push(f); save(); cancelGoal(); sSave(); buzz([20,40,20]); cache={}; updateToday(); checkUnlocks();
   var done=C.isDone(f), st=curStreak(), news=['16','18','20','23'].filter(function(i){ return planOk(i)&&openBefore.indexOf(i)<0; }).map(function(i){ return C.planLabel(C.planById(i)); });
   var ask=!S.prefs.backupAsked&&S.fasts.filter(C.isDone).length===1&&CL&&CL.ready()&&!CL.getAuth(); if(ask){ S.prefs.backupAsked=true; save(); }
-  openSheet('<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span>'+
+  if(done) celebrate();
+  setTimeout(function(){ openSheet('<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span>'+
     '<div class="facts"><div><b>'+(f.plan==='ramadan'?'–':st)+'</b><span>'+L('day streak','天连续')+'</span></div><div><b>'+clockMs(now)+'</b><span>'+L('ended','结束时间')+'</span></div></div>'+
     '<p class="note">'+(done?L('You reached your goal. Eat gently and drink some water.','你达成了目标。慢慢吃，先喝点水。'):L('That still counts as a fast. Listening to your body is the point, and your streak is yours to keep going.','这也算一次断食。倾听身体才是重点，你的连续记录还可以继续。'))+'</p>'+
     (news.length?'<p class="note" style="color:var(--label)"><b>'+L(news.join(' and ')+' is now open.',news.join('、')+' 现已开放。')+'</b> '+L('Choose it from the plan button on Today.','在今天页面的计划按钮里选择。')+'</p>':'')+
     (ask?'<p class="note">'+L('Want to keep these fasts if you change phones? Back them up with your email. It’s optional, and everything works without it.','想在换手机时保留这些记录吗？可以用邮箱备份。这是可选的，不备份也能正常使用。')+'</p>':'')+
-    '<div class="btns"><button class="btn dark" data-act="close">'+L('Start Eating Window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>');
+    '<div class="btns"><button class="btn dark" data-act="close">'+L('Start Eating Window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); },done?(reduce?300:850):0);
+}
+
+/* ---------- finish celebration: the disc blooms into light, a check draws in, soft sparks drift out. Same for every fast that reaches its goal, however long. ---------- */
+function celebrate(){
+  var old=$('cele'); if(old) old.remove();
+  var d=$('disc').getBoundingClientRect(), p=ph.getBoundingClientRect(), cx=d.left-p.left+d.width/2, cy=d.top-p.top+d.height/2, r=d.width/2||60, NS='http://www.w3.org/2000/svg';
+  var el=document.createElement('div'); el.id='cele'; el.setAttribute('aria-hidden','true');
+  el.style.cssText='position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden';
+  var glow=document.createElement('div'); glow.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+r*2+'px;height:'+r*2+'px;margin:'+(-r)+'px 0 0 '+(-r)+'px;border-radius:50%;background:radial-gradient(circle,rgba(255,236,160,.95) 0%,rgba(255,200,70,.55) 38%,rgba(255,170,40,0) 70%);opacity:0';
+  el.appendChild(glow);
+  var svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox','-30 -30 60 60'); svg.style.cssText='position:absolute;left:'+(cx-r*.42)+'px;top:'+(cy-r*.42)+'px;width:'+r*.84+'px;height:'+r*.84+'px;overflow:visible;opacity:0';
+  var ck=document.createElementNS(NS,'path'); ck.setAttribute('d','M-14 1 L-4 11 L15 -11'); ck.setAttribute('fill','none'); ck.setAttribute('stroke','#1C1C1E'); ck.setAttribute('stroke-width','6'); ck.setAttribute('stroke-linecap','round'); ck.setAttribute('stroke-linejoin','round'); ck.setAttribute('pathLength','1'); ck.style.strokeDasharray='1'; ck.style.strokeDashoffset='1';
+  svg.appendChild(ck); el.appendChild(svg); ph.appendChild(el);
+  var spr='cubic-bezier(.2,1,.3,1)';
+  if(reduce){ glow.animate([{opacity:0,transform:'scale(1)'},{opacity:.7,transform:'scale(1.3)',offset:.4},{opacity:0,transform:'scale(1.3)'}],{duration:1400,easing:'ease-in-out',fill:'forwards'});
+    svg.animate([{opacity:0},{opacity:1,offset:.25},{opacity:1,offset:.75},{opacity:0}],{duration:1400,fill:'forwards'}); ck.style.strokeDashoffset='0'; setTimeout(function(){ el.remove(); },1500); return; }
+  glow.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1.5)',offset:.3},{opacity:0,transform:'scale(3.4)'}],{duration:1700,easing:'cubic-bezier(.22,.8,.3,1)',fill:'forwards'});
+  svg.animate([{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1)',offset:.22},{opacity:1,transform:'scale(1)',offset:.7},{opacity:0,transform:'scale(1.08)'}],{duration:1900,easing:spr,fill:'forwards'});
+  ck.animate([{strokeDashoffset:1},{strokeDashoffset:1,offset:.1},{strokeDashoffset:0,offset:.4},{strokeDashoffset:0}],{duration:1900,easing:'ease-out',fill:'forwards'});
+  /* sparks: small lights leaving the disc in a ring, each a little different, never more than a gentle shimmer */
+  var n=22, cols=['#FFF2B8','#FFD45C','#FFFFFF','#FFC24A'];
+  for(var i=0;i<n;i++){
+    var a=(i/n)*Math.PI*2+Math.random()*.25, dist=r*(1.5+Math.random()*1.5), s=3+Math.random()*4, dot=document.createElement('i'), dl=60+Math.random()*180;
+    dot.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+s+'px;height:'+s+'px;margin:'+(-s/2)+'px 0 0 '+(-s/2)+'px;border-radius:50%;background:'+cols[i%cols.length]+';box-shadow:0 0 '+s*2+'px '+cols[i%cols.length]+';opacity:0';
+    el.appendChild(dot);
+    dot.animate([{opacity:0,transform:'translate(0,0) scale(.4)'},{opacity:1,offset:.2},{opacity:0,transform:'translate('+(Math.cos(a)*dist).toFixed(0)+'px,'+(Math.sin(a)*dist-r*.3).toFixed(0)+'px) scale(1)'}],{duration:1500+Math.random()*600,delay:dl,easing:'cubic-bezier(.15,.7,.2,1)',fill:'forwards'});
+  }
+  setTimeout(function(){ el.remove(); },2700);
 }
 
 /* ---------- reminders (the browser can only notify while the app is alive) ---------- */

@@ -90,6 +90,9 @@ const H=3600000,D=24*H;
  await q.evaluate(()=>{const e=document.getElementById('me');e.scrollTop=120;});await q.waitForTimeout(100);await q.evaluate(()=>{const e=document.getElementById('me');e.scrollTop=260;});await q.waitForTimeout(700);
  assert(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off')),'tabs hidden on scroll down');assert.strictEqual(await q.evaluate(()=>getComputedStyle(document.getElementById('tabs')).visibility),'hidden');
  await q.evaluate(()=>{document.getElementById('me').scrollTop=200;});await q.waitForTimeout(700);assert(!(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off'))),'tabs return on scroll up');ok('tab bar hides on scroll down and returns on scroll up');
+ // finishing a fast that reached its goal plays the celebration; ending early does not
+ {const q=await fresh(seed({cur:{start:Date.now()-14*H,goalH:13,planId:'13',reached:true}}));const bx=await q.locator('#act').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(1700);await q.mouse.up();await q.waitForTimeout(300);
+  assert(await q.$('#cele'),'celebration plays');await q.waitForTimeout(3000);assert(!(await q.$('#cele')),'celebration cleans up');ok('goal reached plays the celebration and cleans up');}
  // export + erase
  await p.click('#sheet [data-act=close]');
  // import from another app: preview first, nothing added until confirmed, a second import adds nothing

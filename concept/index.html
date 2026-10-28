@@ -1324,7 +1324,34 @@ window.LightlySphere=(function(){
   var holdRaf=null, h0=0, HOLD=1200, auto=null;
   function freshTrack(){ sT.x=0; sT.v=0; if(!reduce){ sTrack.x=0; sTrack.v=0; } }
   function startFast(){ var was=mode; sStart(); h=0; lastHour=0; setMode('fast'); sScale.x=.86; sScale.v=0; sScale.t=1; if(was==='eat'||was==='saved'){ freshTrack(); sP.x=0; sP.v=0; } buzz(10); }
-  function endFast(){ var early=h<GOAL; setMode('saved'); var s=START[startKey];
+  function celebrate(){
+    var old=$('cele'); if(old) old.remove();
+    var d=$('disc').getBoundingClientRect(), p=ph.getBoundingClientRect(), cx=d.left-p.left+d.width/2, cy=d.top-p.top+d.height/2, r=d.width/2||60, NS='http://www.w3.org/2000/svg';
+    var el=document.createElement('div'); el.id='cele'; el.setAttribute('aria-hidden','true');
+    el.style.cssText='position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden';
+    var glow=document.createElement('div'); glow.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+r*2+'px;height:'+r*2+'px;margin:'+(-r)+'px 0 0 '+(-r)+'px;border-radius:50%;background:radial-gradient(circle,rgba(255,236,160,.95) 0%,rgba(255,200,70,.55) 38%,rgba(255,170,40,0) 70%);opacity:0';
+    el.appendChild(glow);
+    var svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox','-30 -30 60 60'); svg.style.cssText='position:absolute;left:'+(cx-r*.42)+'px;top:'+(cy-r*.42)+'px;width:'+r*.84+'px;height:'+r*.84+'px;overflow:visible;opacity:0';
+    var ck=document.createElementNS(NS,'path'); ck.setAttribute('d','M-14 1 L-4 11 L15 -11'); ck.setAttribute('fill','none'); ck.setAttribute('stroke','#1C1C1E'); ck.setAttribute('stroke-width','6'); ck.setAttribute('stroke-linecap','round'); ck.setAttribute('stroke-linejoin','round'); ck.setAttribute('pathLength','1'); ck.style.strokeDasharray='1'; ck.style.strokeDashoffset='1';
+    svg.appendChild(ck); el.appendChild(svg); ph.appendChild(el);
+    var spr='cubic-bezier(.2,1,.3,1)';
+    if(reduce){ glow.animate([{opacity:0,transform:'scale(1)'},{opacity:.7,transform:'scale(1.3)',offset:.4},{opacity:0,transform:'scale(1.3)'}],{duration:1400,easing:'ease-in-out',fill:'forwards'});
+      svg.animate([{opacity:0},{opacity:1,offset:.25},{opacity:1,offset:.75},{opacity:0}],{duration:1400,fill:'forwards'}); ck.style.strokeDashoffset='0'; setTimeout(function(){ el.remove(); },1500); return; }
+    glow.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1.5)',offset:.3},{opacity:0,transform:'scale(3.4)'}],{duration:1700,easing:'cubic-bezier(.22,.8,.3,1)',fill:'forwards'});
+    svg.animate([{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1)',offset:.22},{opacity:1,transform:'scale(1)',offset:.7},{opacity:0,transform:'scale(1.08)'}],{duration:1900,easing:spr,fill:'forwards'});
+    ck.animate([{strokeDashoffset:1},{strokeDashoffset:1,offset:.1},{strokeDashoffset:0,offset:.4},{strokeDashoffset:0}],{duration:1900,easing:'ease-out',fill:'forwards'});
+    /* sparks: small lights leaving the disc in a ring, each a little different, never more than a gentle shimmer */
+    var n=22, cols=['#FFF2B8','#FFD45C','#FFFFFF','#FFC24A'];
+    for(var i=0;i<n;i++){
+      var a=(i/n)*Math.PI*2+Math.random()*.25, dist=r*(1.5+Math.random()*1.5), s=3+Math.random()*4, dot=document.createElement('i'), dl=60+Math.random()*180;
+      dot.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+s+'px;height:'+s+'px;margin:'+(-s/2)+'px 0 0 '+(-s/2)+'px;border-radius:50%;background:'+cols[i%cols.length]+';box-shadow:0 0 '+s*2+'px '+cols[i%cols.length]+';opacity:0';
+      el.appendChild(dot);
+      dot.animate([{opacity:0,transform:'translate(0,0) scale(.4)'},{opacity:1,offset:.2},{opacity:0,transform:'translate('+(Math.cos(a)*dist).toFixed(0)+'px,'+(Math.sin(a)*dist-r*.3).toFixed(0)+'px) scale(1)'}],{duration:1500+Math.random()*600,delay:dl,easing:'cubic-bezier(.15,.7,.2,1)',fill:'forwards'});
+    }
+    setTimeout(function(){ el.remove(); },2700);
+  }
+  
+  function endFast(){ var early=h<GOAL; setMode('saved'); if(!early) celebrate(); var s=START[startKey];
     $('shK').textContent=early?L('Fast Saved, Ended Early','已保存，提前结束'):L('Fast Saved','已保存');
     var fin=h, c0=performance.now(); (function cu(){ var k=reduce?1:Math.min((performance.now()-c0)/700,1); $('shBig').innerHTML=fmt(fin*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(cu); })(); $('shEnd').textContent=clock(s+h);
     $('shNote').textContent=early?L('Ending early still counts toward your streak. Nothing is lost.','提前结束也算进连续天数，什么都不会失去。'):L('Goal reached. Your next fast can start at ','目标达成。下一次断食可以在 ')+clock(s+24)+L('.',' 开始。');
