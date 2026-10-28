@@ -281,14 +281,8 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--blue);outline-offse
 .ph[data-ts="b"] .read .big{font:300 min(5rem,16.5vw)/1 var(--font-d);letter-spacing:-.045em;margin:2px 0 4px}
 .ph[data-ts="b"] .read .big .co{opacity:.4;width:.26em}
 .ph[data-ts="b"] .read .k{letter-spacing:.01em}
-/* C, card: frosted glass card under the moon, elapsed and left together */
-.ph[data-ts="c"] .read{margin:-26px var(--m) 0;padding:14px 16px 12px;border-radius:26px;background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.35),0 10px 30px rgba(0,0,0,.12);position:relative;z-index:1}
-.ph[data-ts="c"] .read .big{font:500 min(3.5rem,13vw)/1.05 var(--font-r);letter-spacing:-.03em}
-.ph[data-ts="c"] .read .tip{margin-top:4px;min-height:0}
-@media (prefers-reduced-transparency:reduce){.ph[data-ts="c"] .read{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--sky) 88%,var(--ink) 12%)}}
-@media (prefers-contrast:more){.ph[data-ts="c"] .read{box-shadow:inset 0 0 0 1.5px var(--ink)}.ph[data-ts="b"] .read .big{font-weight:400}}
-@media (max-height:700px){.ph[data-ts="b"] .read .big{font-size:min(4rem,15vw)}.ph[data-ts="c"] .read .big{font-size:2.75rem}}
-
+@media (prefers-contrast:more){.ph[data-ts="b"] .read .big{font-weight:400}}
+@media (max-height:700px){.ph[data-ts="b"] .read .big{font-size:min(4rem,15vw)}}
 /* ---------- tab bar: a selection pill that glides between tabs, accent-coloured selection ---------- */
 .ph{--tabsel:var(--blue);--spr:cubic-bezier(.2,1,.3,1)}
 .ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:#5AAEFF}
@@ -332,3 +326,17 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--blue);outline-offse
 .ph.tight .track svg{display:none}.ph.tight .read .tip{min-height:0}.ph.tight .track{margin-top:10px}
 /* narrow phones: sheets never wider than the screen */
 @media (max-width:359px){.field input[type=datetime-local]{min-width:0;max-width:62vw;font-size:.9375rem;padding:0 6px}.field{gap:8px}}
+
+/* import step: five tiles fanned in 3D, the middle one popping out furthest */
+.ph.onb .sheet{z-index:10}.ph.onb .scrim{z-index:9}
+.imp3d{position:relative;height:150px;perspective:640px;perspective-origin:50% 40%;margin:0 0 6px;transform-style:preserve-3d}
+.imp3d .t3{position:absolute;left:50%;top:50%;width:66px;height:66px;margin:-33px 0 0 -33px;border-radius:17px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,var(--c1),var(--c2));
+ transform:translateX(calc(var(--x)*56px)) translateZ(calc(40px - (var(--x)*var(--x))*14px)) rotateY(calc(var(--x)*-16deg)) rotateX(8deg);
+ box-shadow:inset 0 1.5px 0 rgba(255,255,255,.55),inset 0 -4px 0 rgba(0,0,0,.16),0 2px 0 rgba(0,0,0,.12),0 18px 24px -10px rgba(20,20,60,.5)}
+.imp3d .t3::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(160deg,rgba(255,255,255,.4),rgba(255,255,255,0) 46%);pointer-events:none}
+.imp3d .t3 b{font:700 30px/1 var(--font-r);text-shadow:0 2px 3px rgba(0,0,0,.28)}
+.imp3d .t3[style*="--x:0"]{width:80px;height:80px;margin:-40px 0 0 -40px;border-radius:21px;z-index:2}
+.imp3d .t3[style*="--x:0"] b{font-size:36px}
+.imp-names{text-align:center;font:600 0.8125rem var(--font);color:var(--label-2);margin:0 0 16px}
+@media (prefers-reduced-motion:no-preference){.imp3d .t3{animation:t3float 3.6s ease-in-out infinite;animation-delay:var(--d)}}
+@keyframes t3float{50%{translate:0 -7px}}

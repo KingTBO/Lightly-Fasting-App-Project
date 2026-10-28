@@ -414,11 +414,11 @@ function importDo(){
   /* check again against the latest state, so a double tap can never create duplicates */
   var q=LightlyImport.plan({source:p.source,items:p.add,open:0},S.fasts,S.cur,S.del,Date.now());
   q.add.forEach(function(f){ S.fasts.push(f); });
-  impPlan=null; save(); cache={}; closeSheet(); renderMe(); updateToday(); checkUnlocks();
+  impPlan=null; save(); cache={}; closeSheet(); renderMe(); updateToday(); checkUnlocks(); if(!$('ob').hidden&&ob&&obFlow()[ob.step]==='import') setTimeout(function(){ A.obnext(); },260);
   toast(L('Added '+q.add.length+' fasts.','已添加 '+q.add.length+' 次断食。'));
 }
 document.addEventListener('change',function(e){
-  var t=e.target; if(!t||t.id!=='impFile'||!t.files||!t.files[0]) return; var f=t.files[0];
+  var t=e.target; if(!t||(t.id!=='impFile'&&t.id!=='obImpFile')||!t.files||!t.files[0]) return; var f=t.files[0];
   if(f.size>20*1048576) return importSheet(L('That file is too large.','文件太大了。'));
   if(/\.zip$/i.test(f.name)) return importSheet(L('Unzip it first, then choose the file inside.','请先解压，再选择里面的文件。'));
   var r=new FileReader();
@@ -554,7 +554,7 @@ function fastSub(p){ return L('Fast '+p.fast+' hours','断食 '+p.fast+' 小时'
 var CHOICES={
   lang:{title:['Language','语言'],opts:[['en','English',''],['zh','中文','']],cur:function(){ return S.lang; }},
   theme:{title:['Appearance','外观'],opts:[['auto',['Auto','自动'],['Follows your phone','跟随手机']],['light',['Light','浅色'],''],['dark',['Dark','深色'],'']],cur:function(){ return S.theme; }},
-  tstyle:{title:['Timer style','计时样式'],opts:[['a',['Classic','经典'],['Bold rounded numerals','圆润粗体数字']],['b',['Hero','大字'],['Very large, light numerals','超大轻体数字']],['c',['Card','卡片'],['Frosted card with time left and elapsed','毛玻璃卡片，同时显示剩余和已过']]],cur:function(){ return S.prefs.timerStyle||'b'; }}
+  tstyle:{title:['Timer style','计时样式'],opts:[['a',['Classic','经典'],['Bold rounded numerals','圆润粗体数字']],['b',['Hero','大字'],['Very large, light numerals','超大轻体数字']]],cur:function(){ return S.prefs.timerStyle||'b'; }}
 };
 function cl(x){ return typeof x==='string'?x:L(x[0],x[1]); }
 function choiceLabel(k,v){ var o=CHOICES[k].opts.filter(function(x){return x[0]===v;})[0]; return o?cl(o[1]):''; }
@@ -594,7 +594,10 @@ function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'
 var ob={step:0,fasted:null,safe:[],plan:null,start:'20:00'};
 function obRisky(){ return !!(ob.safe.length&&ob.safe.indexOf('none')<0); }
 /* everyone: welcome, fasted before, safety, plan, where you are. People who have fasted before also get a step to make it theirs. */
-function obFlow(){ var f=['welcome','fasted','safety','plan']; if(ob.fasted==='before'&&!obRisky()) f.push('custom'); f.push('set'); return f; }
+function obFlow(){ var f=['welcome','fasted','safety','plan']; if(ob.fasted==='before'&&!obRisky()) f.push('custom'); if(ob.fasted==='before') f.push('import'); f.push('set'); return f; }
+/* neutral stylised tiles with plain name labels (not the real logos), shown as a 3D fan that pops out of the screen */
+var IMP_APPS=[['Zero','Z','#6C9BFF','#3562D6'],['Fastic','F','#FF9A6B','#E65A2E'],['Simple','S','#3FD1A5','#1F9F78'],['Life','L','#B98AFF','#7F4AE3'],['BodyFast','B','#FF7FAE','#DE3F7C']];
+function impTiles(){ return '<div class="imp3d" aria-hidden="true">'+IMP_APPS.map(function(t,i){ return '<span class="t3" style="--x:'+(i-2)+';--c1:'+t[2]+';--c2:'+t[3]+';--d:'+(i*-.45).toFixed(2)+'s"><b>'+t[1]+'</b></span>'; }).join('')+'</div><p class="imp-names" aria-hidden="true">'+IMP_APPS.map(function(t){ return t[0]; }).join(' · ')+'</p>'; }
 function obHtml(i){
   var back=i>0?'<button class="ob-back" data-act="obback"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg>'+L('Back','返回')+'</button>':'<span></span>';
   var flow=obFlow(), key=flow[i]; var dots='<span class="ob-dots" aria-hidden="true">'+flow.map(function(j){return '<i'+(j===i?' class="on"':'')+'></i>';}).join('')+'</span>';
@@ -621,6 +624,9 @@ function obHtml(i){
         return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"'+(lk?' disabled':'')+'><span class="pn"><span class="pt"><b>'+pName(p)+'</b>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+(lk?'<span class="pill">'+L('Locked','未解锁')+'</span>':'')+'</span><small>'+(lk?L('Opens as you go','随进度开放'):fastSub(p))+'</small></span>'+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
       '<p class="gf" style="padding:0 4px">'+(risky?L('Longer fasts stay off for you.','长时间断食对你保持关闭。'):L('A 24-hour fast unlocks later, as you build up.','24 小时断食会在你逐步适应后解锁。'))+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
+  }else if(key==='import'){
+    body='<div class="grow"></div>'+impTiles()+'<h1 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h1><p class="lede" style="text-align:center">'+L('Using another fasting app? Import your history now so you never lose it. It’s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我”里导入。')+'</p><p class="gf" style="text-align:center">'+L('Zero: unzip your download and choose firestore.json. Other apps: a CSV or JSON file with start and end times. The file stays on this phone.','Zero：解压下载的文件，选择 firestore.json。其他应用：包含开始和结束时间的 CSV 或 JSON 文件。文件只留在这台手机上。')+'</p><div class="grow"></div><input id="obImpFile" type="file" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden>';
+    cta='<label class="btn" for="obImpFile">'+L('Choose a file','选择文件')+'</label><button class="btn sec" data-act="obnext">'+L('Skip for now','暂时跳过')+'</button>';
   }else if(key==='custom'){
     body='<h1>'+L('Make it yours','按你的习惯来')+'</h1><p class="lede">'+L('Since you’ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="group"><div class="field"><label for="obStart">'+L('Usual start time','通常开始时间')+'</label><input id="obStart" class="tin" type="time" value="'+esc(ob.start||'20:00')+'" data-chg="obstart"></div></div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
@@ -779,6 +785,7 @@ function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) retu
 window.addEventListener('resize',fitDisc);
 if(S.onboarded) normalisePlan();
 (function(){ var ti=['today','days','me'].indexOf(curTab||'today'); ph.style.setProperty('--ti',ti<0?0:ti); })();
+if(S.prefs.timerStyle==='c') S.prefs.timerStyle='b';
 ph.dataset.ts=S.prefs.timerStyle||'b';
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
 var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash);
