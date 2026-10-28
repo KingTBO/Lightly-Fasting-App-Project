@@ -435,6 +435,11 @@ html:lang(zh-Hans) .me-h{text-transform:none}
 .me-note{font-size:13px;color:var(--label-2);margin:10px 16px 0;line-height:1.4}
 .me-list{background:var(--card);border-radius:14px;overflow:hidden}
 .me-list div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;min-height:48px;font-size:17px}
+.ph.tabs-off .tabs{transform:translateY(calc(100% + 28px));opacity:0;visibility:hidden;pointer-events:none;transition:transform .5s cubic-bezier(.2,1,.3,1),opacity .25s ease,visibility 0s .5s}
+#iScrim{transition:opacity .3s ease}#iScrim.on{opacity:.3;pointer-events:auto}
+.imp-sum{background:var(--card);border-radius:14px;overflow:hidden;margin:0 0 14px}.imp-sum div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;min-height:48px;font-size:17px}.imp-sum div+div{border-top:.5px solid var(--sep)}.imp-sum small{font-size:15px;color:var(--label-2);text-align:right}
+.imp-go{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint,#fff);font:600 17px var(--font);cursor:pointer}.imp-go+.imp-go{margin-top:10px;background:var(--fill);color:var(--label)}.imp-go:disabled{opacity:.4}
+.me-list div[role=button]{cursor:pointer}
 .me-list div+div{border-top:.5px solid var(--sep)}
 .me-list small{font-size:17px;color:var(--label-2);display:flex;align-items:center;gap:10px}
 .me-list small::after{content:"";width:7px;height:7px;border-right:2px solid var(--label-3);border-top:2px solid var(--label-3);transform:rotate(45deg)}
@@ -644,6 +649,13 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <p class="ps-note" id="psNote"></p>
         <div class="ps-scroll"><div class="ps-list" id="psList"></div><p class="ps-foot" id="psFoot"></p></div>
       </div>
+      <div class="scrim" id="iScrim"></div>
+      <div class="sheet psheet" id="impSheet" role="dialog" aria-modal="true" aria-labelledby="impTitle" aria-hidden="true">
+        <div class="grab"></div>
+        <div class="ps-h"><h4 id="impTitle"></h4><button type="button" class="x" id="impClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>
+        <p class="ps-note" id="impNote"></p>
+        <div class="ps-scroll"><div id="impBody"></div></div>
+      </div>
       <div class="me" id="meScr" aria-hidden="true" aria-label="Me">
         <h3 class="lt" data-zh="我">Me</h3>
         <div class="me-card">
@@ -668,6 +680,8 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
           <div><span data-zh="健康与安全">Health and safety</span><small></small></div>
           <div><span data-zh="隐私">Privacy</span><small></small></div>
         </div>
+        <p class="me-h" data-zh="你的数据">Your data</p>
+        <div class="me-list"><div role="button" tabindex="0" id="meImp"><span data-zh="从其他应用导入">Import from another app</span><small></small></div></div>
         <button type="button" class="me-out" id="meSignOut" hidden></button>
       </div>
       <nav class="tabs" aria-label="App tabs">
@@ -1905,8 +1919,31 @@ window.LightlySphere=(function(){
     [].forEach.call($('meBtns').children,function(b){ b.addEventListener('click',function(){ signed=b.dataset.w.replace(/^(Continue with |通过 |用)| 继续$|继续$|登录$/g,''); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} render(); }); }); }
   $('meLogin').addEventListener('click',function(){ signed=L('Email','邮箱'); render(); });
   $('meSignOut').addEventListener('click',function(){ signed=null; render(); });
+  /* ---------- import from another app: the real app reads the file on the phone; here the preview is a sample ---------- */
+  var imp=$('impSheet'), isc=$('iScrim'), impStep=0;
+  function impRender(){
+    $('impTitle').textContent=impStep===0?L('Import from another app','从其他应用导入'):impStep===1?L('Ready to import','准备导入'):L('Added','已添加');
+    $('impNote').textContent=impStep===0?L('Bring your past fasts with you. The file is read on this phone and never uploaded.','把过去的断食记录带过来。文件只在这台手机上读取，不会上传。')
+      :impStep===1?L('From Zero. Nothing is added until you confirm.','来自 Zero。确认之前不会添加任何内容。'):L('Your history is here, and nothing was added twice.','你的历史记录已经在这里，没有任何重复。');
+    var h='';
+    if(impStep===0) h='<div class="imp-sum"><div><span>Zero<br><small>'+L('Download your data from Zero, unzip it, then choose firestore.json.','在 Zero 里下载你的数据并解压，然后选择 firestore.json。')+'</small></span></div><div><span>'+L('Other apps','其他应用')+'<br><small>'+L('A CSV or JSON file with a start and an end time for each fast.','包含每次断食开始和结束时间的 CSV 或 JSON 文件。')+'</small></span></div></div><button type="button" class="imp-go" id="impPick">'+L('Choose a file (sample)','选择文件（示例）')+'</button>';
+    else if(impStep===1) h='<div class="imp-sum"><div><span>'+L('New fasts','新增断食')+'</span><small>128</small></div><div><span>'+L('Dates','日期范围')+'</span><small>'+L('Mar 2025 – Oct 2026','2025年3月 – 2026年10月')+'</small></div><div><span>'+L('Reached the goal','达成目标')+'</span><small>119</small></div><div><span>'+L('Skipped','已跳过')+'</span><small>'+L('1 overlaps a fast you have · 1 still running','1 次与已有记录重叠 · 1 次仍在进行')+'</small></div></div><button type="button" class="imp-go" id="impGo">'+L('Add 128 fasts','添加 128 次断食')+'</button><button type="button" class="imp-go" id="impBack">'+L('Choose another file','换一个文件')+'</button>';
+    else h='<button type="button" class="imp-go" id="impDone">'+L('Done','完成')+'</button>';
+    $('impBody').innerHTML=h;
+    var b; if((b=$('impPick'))) b.onclick=function(){ impStep=1; impRender(); };
+    if((b=$('impGo'))) b.onclick=function(){ impStep=2; impRender(); };
+    if((b=$('impBack'))) b.onclick=function(){ impStep=0; impRender(); };
+    if((b=$('impDone'))) b.onclick=function(){ impOpen(false); }; }
+  function impOpen(v){ if(v){ impStep=0; impRender(); } imp.classList.toggle('open',v); imp.setAttribute('aria-hidden',!v); isc.classList.toggle('on',v); if(v) $('impClose').focus({preventScroll:true}); else $('meImp').focus({preventScroll:true}); }
+  $('meImp').addEventListener('click',function(){ impOpen(true); });
+  $('meImp').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); impOpen(true); } });
+  $('impClose').addEventListener('click',function(){ impOpen(false); }); isc.addEventListener('click',function(){ impOpen(false); });
+  imp.addEventListener('keydown',function(e){ if(e.key==='Escape') impOpen(false); });
+  ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ if(imp.classList.contains('open')) impRender(); },0); }); });
+  /* scrolling down on Me hides the tab bar for a full page; scrolling up brings it back */
+  (function(){ var last=0, acc=0; me.addEventListener('scroll',function(){ var y=me.scrollTop, d=y-last; last=y; if(y<0||y>me.scrollHeight-me.clientHeight+1) return; if(y<24){ ph.classList.remove('tabs-off'); acc=0; return; } if((d>0)!==(acc>0)) acc=0; acc+=d; if(acc>28) ph.classList.add('tabs-off'); else if(acc<-12) ph.classList.remove('tabs-off'); },{passive:true}); })();
   function select(i){ ph.style.setProperty('--ti',i); tabs.forEach(function(t,k){ t.classList.toggle('sel',k===i); t.setAttribute('aria-selected',k===i); });
-    var open=i===3; me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ ph.setAttribute('data-me','1'); render(); me.scrollTop=0; } else ph.removeAttribute('data-me'); }
+    ph.classList.remove('tabs-off'); var open=i===3; me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ ph.setAttribute('data-me','1'); render(); me.scrollTop=0; } else ph.removeAttribute('data-me'); }
   tabs.forEach(function(t,i){ t.setAttribute('role','tab'); t.tabIndex=0; if(i===1||i===2) t.title=L('Not in this demo','这个演示里没有');
     t.addEventListener('click',function(){ if(i===0||i===3) select(i); });
     t.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); t.click(); } }); });

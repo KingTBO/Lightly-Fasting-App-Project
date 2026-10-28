@@ -85,6 +85,23 @@ const H=3600000,D=24*H;
  q=await fresh(seed({}));await q.click('#tabs [data-tab=me]');assert(await q.$('[data-act=emailsheet]'));assert(!(await q.$('#me [data-act=soon]')),'no placeholder sign-in buttons');ok('Me offers only email sign-in');
  // a shooting star crosses the night sky, then removes itself
  q=await fresh(seed({}));assert(await q.evaluate(()=>window.lightlyShoot(true)),'shooting star starts');await q.waitForTimeout(100);assert(await q.$('#stars line.shoot'),'streak drawn');await q.waitForTimeout(1900);assert(!(await q.$('#stars line.shoot')),'streak removed when done');ok('shooting star appears and cleans up');
+ // the tab bar steps aside when scrolling down and returns when scrolling up
+ q=await fresh(seed({}));await q.click('#tabs [data-tab=me]');await q.waitForTimeout(500);
+ await q.evaluate(()=>{const e=document.getElementById('me');e.scrollTop=120;});await q.waitForTimeout(100);await q.evaluate(()=>{const e=document.getElementById('me');e.scrollTop=260;});await q.waitForTimeout(700);
+ assert(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off')),'tabs hidden on scroll down');assert.strictEqual(await q.evaluate(()=>getComputedStyle(document.getElementById('tabs')).visibility),'hidden');
+ await q.evaluate(()=>{document.getElementById('me').scrollTop=200;});await q.waitForTimeout(700);assert(!(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off'))),'tabs return on scroll up');ok('tab bar hides on scroll down and returns on scroll up');
  // export + erase
- await p.click('#sheet [data-act=close]');await p.click('[data-act=erase]');await p.click('[data-act=eraseok]');await p.waitForTimeout(800);assert.strictEqual(await p.evaluate(()=>(JSON.parse(localStorage.getItem('lightly:v1'))||{}).onboarded||false),false);ok('erase resets');
+ await p.click('#sheet [data-act=close]');
+ // import from another app: preview first, nothing added until confirmed, a second import adds nothing
+ {const before=(await S()).fasts.length, t=Date.now()-40*D, row=(i)=>({FastID:'T'+i,StartDTM:new Date(t+i*D).toISOString(),EndDTM:new Date(t+i*D+16*H).toISOString(),GoalHours:16,IsEnded:true});
+  const file={name:'biodata.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({fast_data:[1,2,3,4,5].map(row)}))};
+  await p.click('[data-act=import]');await p.setInputFiles('#impFile',file);await p.waitForSelector('[data-act=impdo]');
+  assert.strictEqual((await S()).fasts.length,before,'preview adds nothing');assert.match(await p.textContent('#sheet'),/Add 5 fasts|添加 5 次断食/);
+  await p.click('[data-act=impdo]');await p.waitForTimeout(500);assert.strictEqual((await S()).fasts.length,before+5);
+  await p.click('[data-act=import]');await p.setInputFiles('#impFile',file);await p.waitForSelector('[data-act=impdo]');
+  assert(await p.$('[data-act=impdo][disabled]'),'second import has nothing to add');assert.strictEqual((await S()).fasts.length,before+5);
+  await p.click('#sheet [data-act=close]');
+  await p.click('[data-act=import]');await p.setInputFiles('#impFile',{name:'x.json',mimeType:'application/json',buffer:Buffer.from('{"a":1}')});await p.waitForSelector('.note.err');ok('import previews, skips duplicates and rejects unknown files');
+  await p.click('#sheet [data-act=close]');}
+ await p.evaluate(()=>{document.getElementById('me').scrollTop=0;});await p.click('[data-act=erase]');await p.click('[data-act=eraseok]');await p.waitForTimeout(800);assert.strictEqual(await p.evaluate(()=>(JSON.parse(localStorage.getItem('lightly:v1'))||{}).onboarded||false),false);ok('erase resets');
  assert.deepStrictEqual(errs,[]);console.log('all flows ok');await b.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});

@@ -36,28 +36,33 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
    return out;};
  const contrast=()=>window.__contrast('#ph');
  const pages=[];
- for(const w of [390,375,1440])for(const scheme of ['light','dark'])for(const lng of ['en','zh']){
-  const h=w===390?844:w===375?667:900;
+ const configs=[]; [[390,844],[375,667],[1440,900]].forEach(([w,h])=>['light','dark'].forEach(scheme=>['en','zh'].forEach(lng=>configs.push({w,h,scheme,lng}))));
+ /* the rest of the market: small and large Androids and iPhones, plus a notched phone with real safe-area insets */
+ [[360,780],[430,932],[412,915],[320,568]].forEach(([w,h])=>['en','zh'].forEach(lng=>configs.push({w,h,scheme:'light',lng})));
+ configs.push({w:390,h:844,scheme:'light',lng:'en',notch:true},{w:375,h:667,scheme:'dark',lng:'zh',notch:true});
+ const T=async(p,t)=>{await p.evaluate(()=>{['today','days','me'].forEach(i=>{document.getElementById(i).scrollTop=0})});await p.waitForTimeout(80);await p.click('#tabs [data-tab='+t+']');};
+ for(const {w,h,scheme,lng,notch} of configs){
   const run=async(kind,steps)=>{const ctx=await b.newContext({viewport:{width:w,height:h},colorScheme:scheme,timezoneId:'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});
    const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+   if(notch) await p.addInitScript(()=>{ document.addEventListener('DOMContentLoaded',()=>{ const t=document.createElement('style'); t.textContent=':root{--sat:47px!important;--sab:34px!important}'; document.head.appendChild(t); }); });
    await p.addInitScript(([k,v])=>{ if(!sessionStorage.getItem('seeded')){localStorage.setItem(k,v);sessionStorage.setItem('seeded','1');} },['lightly:v1',JSON.stringify(seed(kind,lng))]);
    await p.goto('http://localhost:'+port+'/');await p.addScriptTag({content:probe});await p.waitForTimeout(900);
-   const st=`${w}/${scheme}/${lng}`;
+   const st=`${w}${notch?'n':''}/${scheme}/${lng}`;
    const A=async n=>{await p.waitForTimeout(1300);add(st+'/'+n,await p.evaluate(()=>__audit('#ph')));add(st+'/'+n,await p.evaluate(margin));add(st+'/'+n,await p.evaluate(icons));add(st+'/'+n,await p.evaluate(contrast));
-     if(shots&&w===390&&scheme==='light'&&lng==='en') await p.screenshot({path:path.join(shots,n+'.png')});};
+     if(shots&&w===390&&!notch&&scheme==='light'&&lng==='en') await p.screenshot({path:path.join(shots,n+'.png')});};
    await steps(p,A,st);if(errs.length)console.log('ERR',st,errs);await ctx.close();};
   await run('idle',async(p,A)=>{await A('today-idle');
     await p.click('#planBtn');await A('plan-sheet');await p.click('[data-act=more]');await A('plan-more');await p.click('[data-act=close]');
     await p.click('#streakBtn');await A('cheat-sheet');await p.click('#sheet [data-act=close]');
-    await p.click('#tabs [data-tab=days]');await A('days');await p.click('.cal-g button.done');await p.waitForTimeout(100);await p.click('[data-act=edit]');await A('edit-fast');await p.click('#sheet [data-act=close]');
+    await T(p,'days');await A('days');await p.click('.cal-g button.done');await p.waitForTimeout(100);await p.click('[data-act=edit]');await A('edit-fast');await p.click('#sheet [data-act=close]');
     await p.click('[data-act=add]');await A('add-fast');await p.click('#sheet [data-act=close]');
-    await p.click('#tabs [data-tab=me]');await A('me');await p.click('[data-act=place]');await A('place-sheet');await p.click('#sheet [data-act=close]');
+    await T(p,'me');await A('me');await p.click('[data-act=place]');await A('place-sheet');await p.click('#sheet [data-act=close]');
     await p.click('[data-act=unwell]');await A('unwell-sheet');await p.click('#sheet [data-act=close]');await p.click('[data-act=erase]');await A('erase-sheet');await p.click('#sheet [data-act=close]');
-    await p.click('#tabs [data-tab=today]');await p.click('#act');await p.waitForTimeout(500);await A('today-started');});
+    await T(p,'today');await p.click('#act');await p.waitForTimeout(500);await A('today-started');});
   await run('mid',async(p,A)=>{await A('today-mid');await p.click('#endA');await A('start-edit');});
   await run('goal',async(p,A)=>{await A('today-goal');});
   await run('eat',async(p,A)=>{await A('today-eat');});
-  await run('empty',async(p,A)=>{await A('days-empty');await p.click('#tabs [data-tab=days]');await A('days-empty2');});
+  await run('empty',async(p,A)=>{await A('days-empty');await T(p,'days');await A('days-empty2');});
   await run('ob',async(p,A)=>{await A('ob0');for(let i=1;i<=4;i++){const o=await p.$('#ob .ob-step.on [data-act=obopt],#ob .ob-step.on [data-act=obsafe]:last-child');if(o){await o.click();await p.waitForTimeout(150);}
      const nx=await p.$('#ob .ob-step.on [data-act=obnext]:not([disabled])');if(nx){await nx.click();await p.waitForTimeout(100);await A('ob'+i);}}});
  }

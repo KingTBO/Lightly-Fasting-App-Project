@@ -290,7 +290,7 @@ function setNotify(on,done){
 /* ---------- tabs ---------- */
 var curTab='today';
 function showTab(t){
-  var prev=curTab, order=['today','days','me']; curTab=t; closeSheet();
+  var prev=curTab, order=['today','days','me']; curTab=t; closeSheet(); ph.classList.remove('tabs-off');
   order.forEach(function(k){ $(k).classList.remove('leaving'); });
   order.forEach(function(k){ var e=$(k), was=e.classList.contains('on'); e.classList.toggle('on',k===t); if(!reduce&&prev!==t&&e.animate){ if(k===t){ e.getAnimations().forEach(function(a){ a.cancel(); }); e.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.16,1,.3,1)'}); } else if(was){ e.classList.add('leaving'); var an=e.animate([{opacity:1},{opacity:0}],{duration:160,easing:'ease-out'}); an.onfinish=function(){ e.classList.remove('leaving'); }; } } });
   ph.style.setProperty('--ti',order.indexOf(t));
@@ -354,6 +354,51 @@ function fastSave(id){
   selDay=C.dayKey(e); var d=new Date(e); calY=d.getFullYear(); calM=d.getMonth();
   save(); closeSheet(); renderDays(); cache={}; toast(L('Saved.','已保存。'));
 }
+
+/* ---------- import from other apps ---------- */
+var impPlan=null;
+function importSheet(err){
+  impPlan=null;
+  openSheet('<h3>'+L('Import from another app','从其他应用导入')+'</h3><p class="lede">'+L('Bring your past fasts with you. The file is read on this phone and never uploaded.','把过去的断食记录带过来。文件只在这台手机上读取，不会上传。')+'</p>'+
+   '<div class="group"><div class="row"><span class="stack"><span>Zero</span><small>'+L('Download your data from Zero, unzip it, then choose firestore.json.','在 Zero 里下载你的数据并解压，然后选择 firestore.json。')+'</small></span></div>'+
+   '<div class="row"><span class="stack"><span>'+L('Other apps','其他应用')+'</span><small>'+L('A CSV or JSON file with a start and an end time for each fast.','包含每次断食开始和结束时间的 CSV 或 JSON 文件。')+'</small></span></div></div>'+
+   (err?'<p class="note err" role="alert">'+err+'</p>':'')+
+   '<div class="btns"><label class="btn" for="impFile">'+L('Choose a file','选择文件')+'</label><input id="impFile" type="file" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
+}
+function importPreview(p){
+  impPlan=p; var skip=[];
+  if(p.dup) skip.push(L(p.dup+' already in Lightly',p.dup+' 次已在轻伴里'));
+  if(p.overlap) skip.push(L(p.overlap+' overlap'+(p.overlap>1?'':'s')+' a fast you have',p.overlap+' 次与已有记录重叠'));
+  if(p.open) skip.push(L(p.open+' still running',p.open+' 次仍在进行'));
+  if(p.bad||p.future) skip.push(L((p.bad+p.future)+' with unusable times',(p.bad+p.future)+' 次时间无效'));
+  var n=p.add.length, o={year:'numeric',month:'short',day:'numeric'}, rng=n?dateLbl(p.first,o)+' – '+dateLbl(p.last,o):'';
+  var ok=p.add.filter(function(f){ return C.isDone(f); }).length;
+  openSheet('<h3>'+L('Ready to import','准备导入')+'</h3><p class="lede">'+L('From '+p.source+'. Nothing is added until you confirm.','来自 '+p.source+'。确认之前不会添加任何内容。')+'</p>'+
+   '<div class="group"><div class="row"><span>'+L('New fasts','新增断食')+'</span><span class="v">'+n+'</span></div>'+
+   (n?'<div class="row"><span>'+L('Dates','日期范围')+'</span><span class="v">'+rng+'</span></div><div class="row"><span>'+L('Reached the goal','达成目标')+'</span><span class="v">'+ok+'</span></div>':'')+
+   (skip.length?'<div class="row"><span class="stack"><span>'+L('Skipped','已跳过')+'</span><small>'+skip.join(' · ')+'</small></span></div>':'')+'</div>'+
+   (n?'':'<p class="note">'+L('There is nothing new in this file.','这个文件里没有新的记录。')+'</p>')+
+   '<div class="btns"><button class="btn" data-act="impdo"'+(n?'':' disabled')+'>'+(n?L('Add '+n+' fasts','添加 '+n+' 次断食'):L('Nothing to add','没有可添加的内容'))+'</button><button class="btn sec" data-act="import">'+L('Choose another file','换一个文件')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
+}
+function importDo(){
+  var p=impPlan; if(!p||!p.add.length) return;
+  /* check again against the latest state, so a double tap can never create duplicates */
+  var q=LightlyImport.plan({source:p.source,items:p.add,open:0},S.fasts,S.cur,S.del,Date.now());
+  q.add.forEach(function(f){ S.fasts.push(f); });
+  impPlan=null; save(); cache={}; closeSheet(); renderMe(); updateToday(); checkUnlocks();
+  toast(L('Added '+q.add.length+' fasts.','已添加 '+q.add.length+' 次断食。'));
+}
+document.addEventListener('change',function(e){
+  var t=e.target; if(!t||t.id!=='impFile'||!t.files||!t.files[0]) return; var f=t.files[0];
+  if(f.size>20*1048576) return importSheet(L('That file is too large.','文件太大了。'));
+  if(/\.zip$/i.test(f.name)) return importSheet(L('Unzip it first, then choose the file inside.','请先解压，再选择里面的文件。'));
+  var r=new FileReader();
+  r.onerror=function(){ importSheet(L('Couldn’t read that file.','无法读取这个文件。')); };
+  r.onload=function(){ var res=LightlyImport.parse(String(r.result||''));
+    if(res.error) return importSheet(res.error==='format'?L('I couldn’t find fasts with a start and an end time in that file.','在这个文件里没有找到带开始和结束时间的断食记录。'):L('That file isn’t readable.','这个文件无法读取。'));
+    importPreview(LightlyImport.plan(res,S.fasts,S.cur,S.del,Date.now())); };
+  r.readAsText(f);
+});
 
 /* ---------- cheat days (弹性日) ---------- */
 function flexTick(){ C.flexRefill(S.flex,S.startedAt||Date.now()); }
@@ -507,7 +552,7 @@ function renderMe(){
   h+='<div class="gf">'+L('Reminders tell you when your goal is reached. A web app can only do this while it is open or recently open; the phone app will do it properly.','提醒会在达成目标时通知你。网页应用只有在打开或刚刚打开时才能做到，手机应用会做得更好。')+'</div>';
   h+='<div class="gh">'+L('Care','关怀')+'</div><div class="group"><button class="row" data-act="unwell"><span class="stack"><span>'+L('I feel unwell','我感觉不舒服')+'</span><small>'+L('Pauses long fasts for two weeks.','暂停长时间断食两周。')+'</small></span></button>'+
    '<button class="row" data-act="redo"><span>'+L('Redo setup','重新设置')+'</span>'+CHEV+'</button></div>';
-  h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group"><button class="row" data-act="export"><span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase"><span>'+L('Erase everything','清除所有数据')+'</span></button></div>';
+  h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group"><button class="row" data-act="import"><span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export"><span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase"><span>'+L('Erase everything','清除所有数据')+'</span></button></div>';
   if(C.ramadanDay()===0) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
   h+='<p class="gf" style="text-align:center">'+L('Lightly · web app · saved on this device','轻伴 · 网页版 · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
   $('me').innerHTML=h;
@@ -648,6 +693,8 @@ var A={
   unwell:function(){ openSheet('<h3>'+L('I feel unwell','我感觉不舒服')+'</h3><p class="lede">'+L('Thank you for listening to your body. Long fasts pause for two weeks. If you’re fasting now, it’s fine to stop and eat. If this feels serious, please see a doctor.','谢谢你倾听身体的声音。长时间断食会暂停两周。如果你正在断食，停下来吃点东西没有问题。如果情况严重，请就医。')+'</p><div class="btns"><button class="btn" data-act="unwellok">'+L('Pause long fasts','暂停长时间断食')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   unwellok:function(){ S.unwell=Date.now(); if(S.planId==='24'||S.planId==='36') S.planId=S.profile.safety||!S.profile.fastedBefore?'13':'16'; save(); closeSheet(); toast(L('Take care. Long fasts are paused for two weeks.','多保重。长时间断食已暂停两周。')); },
   redo:function(){ closeSheet(); obStart(); },
+  import:function(){ importSheet(); },
+  impdo:function(){ importDo(); },
   export:function(){ try{ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-fasts-'+today()+'.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }catch(e){ toast(L('Couldn’t export.','导出失败。')); } },
   erase:function(){ openSheet('<h3>'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede">'+L('This deletes your fasts, streak and settings from this phone. It can’t be undone.','这会删除这台手机上的断食记录、连续天数和设置，无法撤销。')+'</p><div class="btns"><button class="btn red" data-act="eraseok">'+L('Erase everything','清除所有数据')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   eraseok:function(){ try{ localStorage.removeItem(KEY); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
@@ -666,6 +713,16 @@ document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!
   if(t.dataset.chg==='obcity'){ setPlace({key:t.value}); }
   if(t.dataset.chg==='obstart'){ ob.start=t.value||'20:00'; }
   if(t.dataset.chg==='usual'){ S.prefs.usualStart=t.value||''; save(); cache={}; updateToday(); } });
+/* the real viewport height, so a Home Screen launch fills the glass edge to edge on every phone (ignored while the keyboard is up) */
+(function(){ var sa=document.createElement('div'); sa.setAttribute('aria-hidden','true'); sa.style.cssText='position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding:var(--sat) 0 var(--sab)'; ph.appendChild(sa); function fit(){ var a=document.activeElement; if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return; ph.style.setProperty('--app-h',Math.round(window.innerHeight)+'px'); ph.classList.toggle('tight',window.innerHeight-sa.offsetHeight<=600); }
+  fit(); window.addEventListener('resize',fit); window.addEventListener('orientationchange',function(){ setTimeout(fit,200); }); window.addEventListener('pageshow',fit); })();
+/* scrolling down gives the screen to the content; scrolling up (or reaching the top) brings the tab bar back */
+(function(){ var last={}, acc={};
+  ['today','days','me'].forEach(function(id){ var e=$(id); last[id]=0; acc[id]=0;
+    e.addEventListener('scroll',function(){ var y=e.scrollTop, d=y-last[id]; last[id]=y; if(y<0||y>e.scrollHeight-e.clientHeight+1) return;
+      if(y<24){ ph.classList.remove('tabs-off'); acc[id]=0; return; }
+      if((d>0)!==(acc[id]>0)) acc[id]=0; acc[id]+=d;
+      if(acc[id]>28) ph.classList.add('tabs-off'); else if(acc[id]<-12) ph.classList.remove('tabs-off'); },{passive:true}); }); })();
 $('tabs').addEventListener('click',function(e){ var b=e.target.closest('button[data-tab]'); if(b) showTab(b.dataset.tab); });
 $('streakBtn').addEventListener('click',cheatSheet);
 $('planBtn').addEventListener('click',planSheet);
@@ -687,7 +744,7 @@ A.stsave=function(){ var s=new Date($('stS').value).getTime(), now=Date.now(); i
 var dsNow=1;
 /* the disc gives way first: it shrinks until the streak card and the button both fit above the tab bar */
 function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) return; var free=$('gap').offsetHeight-14, over=t.scrollHeight-t.clientHeight, d=(free>0?free:0)-(over>0?over:0);
-  if(Math.abs(d)<2) return; var n=Math.max(.4,Math.min(1,dsNow+d/236)); if(Math.abs(n-dsNow)<.004) return; dsNow=n; $('discWrap').style.setProperty('--ds',n.toFixed(3)); }
+  if(Math.abs(d)<2) return; var n=Math.max(ph.classList.contains('tight')?.3:.4,Math.min(1,dsNow+d/236)); if(Math.abs(n-dsNow)<.004) return; dsNow=n; $('discWrap').style.setProperty('--ds',n.toFixed(3)); }
 window.addEventListener('resize',fitDisc);
 if(S.onboarded) normalisePlan();
 (function(){ var ti=['today','days','me'].indexOf(curTab||'today'); ph.style.setProperty('--ti',ti<0?0:ti); })();
