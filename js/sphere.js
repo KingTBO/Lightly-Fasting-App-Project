@@ -45,7 +45,7 @@ window.LightlySphere=(function(){
   ' alb+=.14*smoothstep(55.,4.,ta)*pow(abs(sin(ang*7.+fbm(d*6.)*4.)),6.)*(1.-m);',
   ' gl_FragColor=vec4(clamp(alb,0.,1.),clamp(.5+ht*3.2,0.,1.));}'].join('\n');
   var FS=HEAD+'\n'+NOISE+'\n'+[
-  'uniform sampler2D uTex;uniform vec2 uRes,uTilt,uLib;uniform float uP,uW,uMoon,uTime,uNight,uAlpha,uGlow,uHalo;',
+  'uniform sampler2D uTex;uniform vec2 uRes,uTilt,uLib;uniform float uP,uW,uMoon,uTime,uNight,uAlpha,uGlow,uHalo,uSw;',
   'mat3 rY(float a){float c=cos(a),s=sin(a);return mat3(c,0.,-s,0.,1.,0.,s,0.,c);}',
   'mat3 rX(float a){float c=cos(a),s=sin(a);return mat3(1.,0.,0.,0.,c,s,0.,-s,c);}',
   'void main(){vec2 uv=gl_FragCoord.xy/uRes*2.-1.;float R=84./118.;vec2 q=uv/R;float r=length(q);float px=2./(uRes.x*R);',
@@ -55,6 +55,8 @@ window.LightlySphere=(function(){
   ' vec3 gc=mix(vec3(1.,.74,.30),vec3(.86,.90,1.),uMoon);float ga=mix(uGlow*.5,uHalo*.42,uMoon)*fall*(1.-edge);',
   ' if(edge<=0.){gl_FragColor=vec4(gc*ga,ga);return;}',
   ' float z=sqrt(max(1.-r*r,0.));vec3 n=vec3(q,z);',
+  /* moon to sun as a clockwise sweep from 12 o'clock with a soft feathered edge; uSw 0 keeps a plain cross-fade, -1 sweeps the other way */
+  ' float aa=fract(atan(q.x,q.y)/6.2831853+1.);if(uSw<0.)aa=1.-aa;float ws=clamp(((1.-uMoon)*1.22-aa)/.22,0.,1.);ws=ws*ws*(3.-2.*ws);float mm=uSw==0.?uMoon:1.-ws;',
   ' float ph=acos(clamp(2.*uP-1.,-1.,1.));vec3 L=vec3(sin(ph)*uW,0.,cos(ph));float lam=dot(n,L);',
   ' float lit=uP<.002?0.:smoothstep(-.012,.075,lam);',
   ' mat3 M=rX(uTilt.y)*rY(uTilt.x);vec3 o=M*n,Lo=M*L;',
@@ -73,10 +75,10 @@ window.LightlySphere=(function(){
   /* sun: luminous, limb-darkened, almost smooth */
   ' float gr=fbm(o*4.+vec3(0.,0.,uTime*.04));',
   ' vec3 sun=mix(vec3(1.,.46,.05),vec3(1.,.95,.76),pow(z,.5));sun*=.975+.05*gr;sun=mix(sun,vec3(1.,.99,.9),.16*smoothstep(.55,1.,z));',
-  ' vec3 ball=mix(sun,moon,uMoon);',
+  ' vec3 ball=mix(sun,moon,mm);',
   /* the part not yet lit: a faint ghost of the same body, like earthshine */
-  ' vec3 un=mix(mix(vec3(.30,.31,.33),c.rgb*vec3(.42,.5,.7),uMoon),mix(vec3(.9),c.rgb*vec3(.62,.72,1.),uMoon),uNight);',
-  ' float ua=mix(.07,.11,uNight)*(.6+.4*uMoon)+pow(1.-z,3.)*mix(.2,.3,uNight);',
+  ' vec3 un=mix(mix(vec3(.30,.31,.33),c.rgb*vec3(.42,.5,.7),mm),mix(vec3(.9),c.rgb*vec3(.62,.72,1.),mm),uNight);',
+  ' float ua=mix(.07,.11,uNight)*(.6+.4*mm)+pow(1.-z,3.)*mix(.2,.3,uNight);',
   ' vec3 col=mix(un,ball,lit);float a=mix(ua,1.,lit)*edge*uAlpha;',
   ' gl_FragColor=vec4(clamp(col,0.,1.)*a+gc*ga*(1.-a),a+ga*(1.-a));}'].join('\n');
   var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -99,7 +101,7 @@ window.LightlySphere=(function(){
     gl.useProgram(pb); attr(pb); gl.viewport(0,0,TW,TH); gl.uniform2f(gl.getUniformLocation(pb,'uSize'),TW,TH); gl.disable(gl.BLEND); gl.drawArrays(gl.TRIANGLES,0,3);
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);
     gl.useProgram(pd); attr(pd);
-    var U={}; ['uRes','uP','uW','uMoon','uTime','uNight','uAlpha','uTilt','uLib','uGlow','uHalo','uTex'].forEach(function(k){ U[k]=gl.getUniformLocation(pd,k); });
+    var U={}; ['uRes','uP','uW','uMoon','uTime','uNight','uAlpha','uTilt','uLib','uGlow','uHalo','uSw','uTex'].forEach(function(k){ U[k]=gl.getUniformLocation(pd,k); });
     var wrap=svg.parentNode, dpr=Math.min(window.devicePixelRatio||1,2);
     cv.className='orb'; cv.setAttribute('aria-hidden','true'); cv.width=cv.height=Math.round(236*dpr); wrap.appendChild(cv);
     var seen=true, lost=false, on=true, night=0, last=performance.now(), t0=last, key='';
@@ -110,14 +112,14 @@ window.LightlySphere=(function(){
       draw:function(o){ var now=performance.now(), dt=Math.min((now-last)/1000,.05); last=now; if(!api.ok()||!seen) return;
         night+=((o.night?1:0)-night)*Math.min(dt*3,1);
         var T=(now-t0)/1000, lx=reduce?0:Math.sin(T*.07)*.05, ly=reduce?0:Math.sin(T*.05+1)*.035; /* the real moon never spins; it only rocks a little (libration) */
-        var k=[o.p.toFixed(4),o.wane,o.moon.toFixed(3),o.tx.toFixed(3),o.ty.toFixed(3),night.toFixed(3),(o.alpha==null?1:o.alpha).toFixed(3),(o.glow||0).toFixed(3),(o.halo||0).toFixed(3),lx.toFixed(3),ly.toFixed(3),reduce?0:(o.moon<.99?Math.floor(T*10):0)].join();
+        var k=[o.p.toFixed(4),o.wane,o.moon.toFixed(3),o.tx.toFixed(3),o.ty.toFixed(3),night.toFixed(3),(o.alpha==null?1:o.alpha).toFixed(3),(o.glow||0).toFixed(3),(o.halo||0).toFixed(3),(o.sw||0),lx.toFixed(3),ly.toFixed(3),reduce?0:(o.moon<.99?Math.floor(T*10):0)].join();
         cv.style.transform='translate('+(o.ox||0).toFixed(2)+'px,'+(o.oy||0).toFixed(2)+'px) scale('+(o.scale||1).toFixed(4)+')';
         if(k===key) return; key=k;
         gl.viewport(0,0,cv.width,cv.height); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,tex); gl.uniform1i(U.uTex,0);
         gl.uniform2f(U.uRes,cv.width,cv.height); gl.uniform1f(U.uP,Math.min(Math.max(o.p,0),1)); gl.uniform1f(U.uW,o.wane?-1:1);
         gl.uniform1f(U.uMoon,o.moon); gl.uniform1f(U.uTime,reduce?0:T); gl.uniform1f(U.uNight,night);
-        gl.uniform1f(U.uAlpha,o.alpha==null?1:o.alpha); gl.uniform1f(U.uGlow,o.glow||0); gl.uniform1f(U.uHalo,o.halo||0);
+        gl.uniform1f(U.uSw,o.sw||0); gl.uniform1f(U.uAlpha,o.alpha==null?1:o.alpha); gl.uniform1f(U.uGlow,o.glow||0); gl.uniform1f(U.uHalo,o.halo||0);
         gl.uniform2f(U.uTilt,(o.tx||0)*Math.PI/180*1.6,(o.ty||0)*Math.PI/180*1.6); gl.uniform2f(U.uLib,lx,ly);
         gl.drawArrays(gl.TRIANGLES,0,3); } };
     return api; };
