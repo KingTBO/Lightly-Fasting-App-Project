@@ -554,7 +554,7 @@ function renderMe(){
    '<button class="row" data-act="redo"><span>'+L('Redo setup','重新设置')+'</span>'+CHEV+'</button></div>';
   h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group"><button class="row" data-act="import"><span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export"><span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase"><span>'+L('Erase everything','清除所有数据')+'</span></button></div>';
   if(C.ramadanDay()===0) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
-  h+='<p class="gf" style="text-align:center">'+L('Lightly · web app · saved on this device','轻伴 · 网页版 · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
+  h+='<p class="gf" data-act="diag" style="text-align:center">'+L('Lightly · web app · saved on this device','轻伴 · 网页版 · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
   $('me').innerHTML=h;
 }
 function sw(k,label,on,dis){ return '<div class="row"><span>'+label+'</span><button class="sw" role="switch" aria-checked="'+!!on+'" aria-label="'+esc(label)+'" data-act="sw" data-k="'+k+'"'+(dis?' disabled':'')+'></button></div>'; }
@@ -693,6 +693,7 @@ var A={
   unwell:function(){ openSheet('<h3>'+L('I feel unwell','我感觉不舒服')+'</h3><p class="lede">'+L('Thank you for listening to your body. Long fasts pause for two weeks. If you’re fasting now, it’s fine to stop and eat. If this feels serious, please see a doctor.','谢谢你倾听身体的声音。长时间断食会暂停两周。如果你正在断食，停下来吃点东西没有问题。如果情况严重，请就医。')+'</p><div class="btns"><button class="btn" data-act="unwellok">'+L('Pause long fasts','暂停长时间断食')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   unwellok:function(){ S.unwell=Date.now(); if(S.planId==='24'||S.planId==='36') S.planId=S.profile.safety||!S.profile.fastedBefore?'13':'16'; save(); closeSheet(); toast(L('Take care. Long fasts are paused for two weeks.','多保重。长时间断食已暂停两周。')); },
   redo:function(){ closeSheet(); obStart(); },
+  diag:function(){ var vv=window.visualViewport; toast('win '+innerWidth+'×'+innerHeight+' · screen '+screen.width+'×'+screen.height+' · vv '+(vv?Math.round(vv.width)+'×'+Math.round(vv.height):'-')+' · ph '+ph.offsetHeight+' · '+(navigator.standalone?'home screen':'browser')); },
   import:function(){ importSheet(); },
   impdo:function(){ importDo(); },
   export:function(){ try{ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-fasts-'+today()+'.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }catch(e){ toast(L('Couldn’t export.','导出失败。')); } },
@@ -715,10 +716,7 @@ document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!
   if(t.dataset.chg==='usual'){ S.prefs.usualStart=t.value||''; save(); cache={}; updateToday(); } });
 /* the real viewport height, so a Home Screen launch fills the glass edge to edge on every phone (ignored while the keyboard is up) */
 (function(){ var sa=document.createElement('div'); sa.setAttribute('aria-hidden','true'); sa.style.cssText='position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding:var(--sat) 0 var(--sab)'; ph.appendChild(sa); function fit(){ var a=document.activeElement; if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
-    ph.style.setProperty('--app-h',Math.round(window.innerHeight)+'px'); ph.classList.toggle('tight',window.innerHeight-sa.offsetHeight<=600);
-    /* iPhone Home Screen apps can report a page that stops short of the screen bottom; stretch the app to the real screen height so no strip shows */
-    var st=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches), sh=Math.max(screen.height,screen.width), gap=sh-window.innerHeight;
-    if(st&&window.innerWidth<600&&window.innerHeight>window.innerWidth&&gap>8&&gap<160){ ph.style.bottom='auto'; ph.style.height=sh+'px'; } else{ ph.style.bottom=''; ph.style.height=''; } }
+    ph.style.setProperty('--app-h',Math.round(window.innerHeight)+'px'); ph.classList.toggle('tight',window.innerHeight-sa.offsetHeight<=600); }
   fit(); window.addEventListener('resize',fit); window.addEventListener('orientationchange',function(){ setTimeout(fit,200); }); window.addEventListener('pageshow',fit); })();
 /* scrolling down gives the screen to the content; scrolling up (or reaching the top) brings the tab bar back */
 (function(){ var last={}, acc={};
