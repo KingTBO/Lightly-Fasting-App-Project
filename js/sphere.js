@@ -55,7 +55,7 @@ window.LightlySphere=(function(){
   ' vec3 gc=mix(vec3(1.,.74,.30),vec3(.86,.90,1.),uMoon);float ga=mix(uGlow*.5,uHalo*.42,uMoon)*fall*(1.-edge);',
   ' if(edge<=0.){gl_FragColor=vec4(gc*ga,ga);return;}',
   ' float z=sqrt(max(1.-r*r,0.));vec3 n=vec3(q,z);',
-  /* moon to sun as a clockwise sweep from 12 o'clock with a soft feathered edge; uSw 0 keeps a plain cross-fade, -1 sweeps the other way */
+  /* moon and sun swap with a sweep from 12 o'clock and a soft feathered edge; uSw -1 runs counter-clockwise, 1 clockwise, 0 a plain cross-fade */
   ' float aa=fract(atan(q.x,q.y)/6.2831853+1.);if(uSw<0.)aa=1.-aa;float ws=clamp(((1.-uMoon)*1.22-aa)/.22,0.,1.);ws=ws*ws*(3.-2.*ws);float mm=uSw==0.?uMoon:1.-ws;',
   ' float ph=acos(clamp(2.*uP-1.,-1.,1.));vec3 L=vec3(sin(ph)*uW,0.,cos(ph));float lam=dot(n,L);',
   ' float lit=uP<.002?0.:smoothstep(-.012,.075,lam);',

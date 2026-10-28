@@ -197,7 +197,6 @@ function updateToday(){
   fitDisc();
 }
 
-var lastMoonV=moonV, swDir=1, SWEEP_BACK=false;
 var holdOn=false;
 function drawDisc(dt){
   shownP=shownP<0||reduce?tgtP:shownP+(tgtP-shownP)*Math.min(dt*5,1);
@@ -206,9 +205,8 @@ function drawDisc(dt){
   boost=Math.max(0,boost-dt/2.5);
   var wane=mode==='eat', night=/night|first|evening/.test(ph.getAttribute('data-sky'));
   var o3=orb&&orb.ok();
-  /* which way the sky is turning: moon to sun sweeps clockwise; SWEEP_BACK flips the sun to moon sweep */
-  if(moonV<lastMoonV-1e-4) swDir=1; else if(moonV>lastMoonV+1e-4) swDir=-1; lastMoonV=moonV;
-  if(o3){ flatShow(false); orb.draw({sw:reduce?0:(SWEEP_BACK&&swDir<0?-1:1),p:shownP,wane:wane,moon:moonV,tx:tiltX,ty:tiltY,ox:0,oy:0,scale:1,alpha:1,night:night,glow:(1-moonV)*shownP*(.35+.65*fullS)+boost*.3,halo:moonV*Math.max(fullS,boost)}); }
+  /* moon and sun change places with a counter-clockwise sweep from 12 o'clock, both ways */
+  if(o3){ flatShow(false); orb.draw({sw:reduce?0:-1,p:shownP,wane:wane,moon:moonV,tx:tiltX,ty:tiltY,ox:0,oy:0,scale:1,alpha:1,night:night,glow:(1-moonV)*shownP*(.35+.65*fullS)+boost*.3,halo:moonV*Math.max(fullS,boost)}); }
   else{ flatShow(true); var lit=$('lit'); lit.setAttribute('d',phasePath(shownP,84)); lit.setAttribute('transform',wane?'scale(-1 1)':''); $('litMoon').style.opacity=moonV; $('litSun').style.opacity=1-moonV; $('disc').style.transform=reduce?'':'rotateY('+tiltX.toFixed(1)+'deg) rotateX('+(-tiltY).toFixed(1)+'deg)'; }
 }
 function flatShow(v){ if(flat===v) return; flat=v; $('unlit').style.display=$('litMoon').parentNode.style.display=v?'':'none'; if(!v) $('disc').style.transform=''; }
