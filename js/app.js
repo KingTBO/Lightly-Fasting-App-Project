@@ -197,6 +197,7 @@ function updateToday(){
   fitDisc();
 }
 
+var shownM=-1;
 var holdOn=false;
 function drawDisc(dt){
   shownP=shownP<0||reduce?tgtP:shownP+(tgtP-shownP)*Math.min(dt*5,1);
@@ -206,7 +207,9 @@ function drawDisc(dt){
   var wane=mode==='eat', night=/night|first|evening/.test(ph.getAttribute('data-sky'));
   var o3=orb&&orb.ok();
   /* moon and sun change places with a counter-clockwise sweep from 12 o'clock, both ways */
-  if(o3){ flatShow(false); orb.draw({sw:reduce?0:-1,p:shownP,wane:wane,moon:moonV,tx:tiltX,ty:tiltY,ox:0,oy:0,scale:1,alpha:1,night:night,glow:(1-moonV)*shownP*(.35+.65*fullS)+boost*.3,halo:moonV*Math.max(fullS,boost)}); }
+  /* the sweep is a short, visible animation (about 2.4 s) that starts when the sky flips, however slowly the real light changes */
+  var tm=moonV>=.5?1:0; if(shownM<0||reduce) shownM=reduce?moonV:tm; else{ var dm=tm-shownM; shownM+=Math.sign(dm)*Math.min(Math.abs(dm),dt/2.4); }
+  if(o3){ flatShow(false); orb.draw({sw:reduce?0:-1,p:shownP,wane:wane,moon:shownM,tx:tiltX,ty:tiltY,ox:0,oy:0,scale:1,alpha:1,night:night,glow:(1-moonV)*shownP*(.35+.65*fullS)+boost*.3,halo:moonV*Math.max(fullS,boost)}); }
   else{ flatShow(true); var lit=$('lit'); lit.setAttribute('d',phasePath(shownP,84)); lit.setAttribute('transform',wane?'scale(-1 1)':''); $('litMoon').style.opacity=moonV; $('litSun').style.opacity=1-moonV; $('disc').style.transform=reduce?'':'rotateY('+tiltX.toFixed(1)+'deg) rotateX('+(-tiltY).toFixed(1)+'deg)'; }
 }
 function flatShow(v){ if(flat===v) return; flat=v; $('unlit').style.display=$('litMoon').parentNode.style.display=v?'':'none'; if(!v) $('disc').style.transform=''; }

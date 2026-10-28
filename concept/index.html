@@ -1235,6 +1235,8 @@ window.LightlySphere=(function(){
 
   function fmt(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60;
     return a+'<small>'+L('h','小时')+'</small>'+String(b).padStart(2,'0')+'<small>'+L('m','分')+'</small>'; }
+  /* the sweep is a short, visible animation (about 2.4 s) that starts when the sky flips */
+  var shM=-1, shT=0; function sweepM(m){ var now=performance.now(), dt=Math.min((now-shT)/1000,.1); shT=now; var t=m>=.5?1:0; if(shM<0||reduce) shM=reduce?m:t; else{ var d=t-shM; shM+=Math.sign(d)*Math.min(Math.abs(d),dt/2.4); } return shM; }
   function fmtS(hrs){ var t=Math.max(0,Math.ceil(hrs*3600-1e-6)), a=Math.floor(t/3600), b=Math.floor(t%3600/60), c=t%60, p=function(n){return String(n).padStart(2,'0');}; return a+'<i class="co">:</i>'+p(b)+'<i class="co">:</i>'+p(c); }
   var TIPS={night:['The long quiet stretch. Most of it passes while you sleep.','最安静的一段，大部分在睡梦中度过。'],
     first:['Hunger often comes in waves and passes. Water helps.','饥饿感常常一阵一阵，会过去的。喝点水会好些。'],
@@ -1328,7 +1330,7 @@ window.LightlySphere=(function(){
     var hx=(.38+tx/18*.14).toFixed(3), hy=(.34+ty/18*.14).toFixed(3); gMoon.setAttribute('cx',hx); gMoon.setAttribute('cy',hy); gSun.setAttribute('cx',hx); gSun.setAttribute('cy',hy);
     var sw=Math.min(Math.max(sSwap.x,0),1); bodyG.setAttribute('transform','scale('+(sScale.x*(0.82+0.18*sw)).toFixed(4)+')'); bodyG.style.opacity=sw.toFixed(3);
     /* 3D: the shader draws the ball; the SVG keeps the glow, halo and rays around it. Dragging turns the ball itself. */
-    if(o3){ bodyG.style.opacity=0; orb.draw({sw:reduce?0:-1,p:sP.x,wane:wane,moon:m,tx:tx,ty:ty,ox:sOx.x,oy:sOy.x,scale:sScale.x*(0.82+0.18*sw),alpha:sw,night:/night|first|evening/.test($('ph').dataset.sky),glow:(1-m)*Math.min(Math.max(sP.x,0),1)*(.35+.65*Math.min(Math.max(sFull.x,0),1)),halo:m*Math.min(Math.max(sFull.x,0),1)}); }
+    if(o3){ bodyG.style.opacity=0; orb.draw({sw:reduce?0:-1,p:sP.x,wane:wane,moon:sweepM(m),tx:tx,ty:ty,ox:sOx.x,oy:sOy.x,scale:sScale.x*(0.82+0.18*sw),alpha:sw,night:/night|first|evening/.test($('ph').dataset.sky),glow:(1-m)*Math.min(Math.max(sP.x,0),1)*(.35+.65*Math.min(Math.max(sFull.x,0),1)),halo:m*Math.min(Math.max(sFull.x,0),1)}); }
     /* with the 3D ball, the flat glow, halo and rays are replaced by the shader's soft bloom */
     var o3b=o3;
     var f=Math.max(sFull.x,0);
