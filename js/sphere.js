@@ -57,8 +57,9 @@ window.LightlySphere=(function(){
   ' float z=sqrt(max(1.-r*r,0.));vec3 n=vec3(q,z);',
   /* moon and sun swap with a sweep from 12 o'clock and a soft feathered edge; uSw -1 runs counter-clockwise, 1 clockwise, 0 a plain cross-fade */
   ' float aa=fract(atan(q.x,q.y)/6.2831853+1.);if(uSw<0.)aa=1.-aa;float ws=clamp(((1.-uMoon)*1.22-aa)/.22,0.,1.);ws=ws*ws*(3.-2.*ws);float mm=uSw==0.?uMoon:1.-ws;',
-  ' float ph=acos(clamp(2.*uP-1.,-1.,1.));vec3 L=vec3(sin(ph)*uW,0.,cos(ph));float lam=dot(n,L);',
-  ' float lit=uP<.002?0.:smoothstep(-.012,.075,lam);',
+  ' vec3 L=normalize(vec3(.3,.25,.9));',
+    /* progress is a wedge that fills counter-clockwise from 12 o'clock with a soft edge; while it wanes the wedge is taken away in the same direction */
+  ' float ca=fract(1.-atan(q.x,q.y)/6.2831853);float ax=uW>0.?ca:1.-ca;float lit=clamp((uP*1.07-ax)/.07,0.,1.);lit=lit*lit*(3.-2.*lit);',
   ' mat3 M=rX(uTilt.y)*rY(uTilt.x);vec3 o=M*n,Lo=M*L;',
   /* moon: sample the baked surface */
   ' float lon=atan(o.x,o.z)+uLib.x,lat=asin(clamp(o.y,-1.,1.))+uLib.y;vec2 tc=vec2(lon/6.2831853+.5,lat/3.14159265+.5);',
