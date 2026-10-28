@@ -1,0 +1,742 @@
+{
+  "global": {
+    "space": {
+      "margin": {
+        "value": "16",
+        "type": "dimension"
+      },
+      "group-gap": {
+        "value": "16",
+        "type": "dimension"
+      },
+      "row-min-height": {
+        "value": "48",
+        "type": "dimension"
+      },
+      "tap-min": {
+        "value": "44",
+        "type": "dimension"
+      },
+      "button-height": {
+        "value": "52",
+        "type": "dimension"
+      },
+      "primary-button-height": {
+        "value": "54",
+        "type": "dimension"
+      },
+      "tab-bar-height": {
+        "value": "64",
+        "type": "dimension"
+      },
+      "tab-bar-bottom": {
+        "value": "12",
+        "type": "dimension"
+      },
+      "row-padding-x": {
+        "value": "16",
+        "type": "dimension"
+      },
+      "list-inset": {
+        "value": "16",
+        "type": "dimension"
+      },
+      "disc-size": {
+        "value": "236",
+        "type": "dimension"
+      },
+      "screen-width": {
+        "value": "390",
+        "type": "dimension"
+      },
+      "screen-height": {
+        "value": "844",
+        "type": "dimension"
+      }
+    },
+    "radius": {
+      "card": {
+        "value": "14",
+        "type": "borderRadius"
+      },
+      "button": {
+        "value": "999",
+        "type": "borderRadius"
+      },
+      "chip": {
+        "value": "999",
+        "type": "borderRadius"
+      },
+      "tab-bar": {
+        "value": "999",
+        "type": "borderRadius"
+      },
+      "segmented": {
+        "value": "9",
+        "type": "borderRadius"
+      },
+      "segmented-item": {
+        "value": "7",
+        "type": "borderRadius"
+      },
+      "sheet": {
+        "value": "34",
+        "type": "borderRadius"
+      },
+      "phone-frame": {
+        "value": "44",
+        "type": "borderRadius"
+      },
+      "switch": {
+        "value": "999",
+        "type": "borderRadius"
+      },
+      "badge": {
+        "value": "999",
+        "type": "borderRadius"
+      },
+      "icon-tile": {
+        "value": "17",
+        "type": "borderRadius"
+      }
+    },
+    "typography": {
+      "large-title": {
+        "value": {
+          "fontFamily": "SF Pro Display",
+          "fontWeight": "700",
+          "fontSize": "34",
+          "lineHeight": "120%",
+          "letterSpacing": "-2%"
+        },
+        "type": "typography"
+      },
+      "sheet-title": {
+        "value": {
+          "fontFamily": "SF Pro Display",
+          "fontWeight": "700",
+          "fontSize": "22",
+          "lineHeight": "120%",
+          "letterSpacing": "-2%"
+        },
+        "type": "typography"
+      },
+      "timer-readout": {
+        "value": {
+          "fontFamily": "SF Pro Rounded",
+          "fontWeight": "600",
+          "fontSize": "56",
+          "lineHeight": "105%",
+          "letterSpacing": "-2%"
+        },
+        "type": "typography"
+      },
+      "sheet-big-number": {
+        "value": {
+          "fontFamily": "SF Pro Rounded",
+          "fontWeight": "600",
+          "fontSize": "48",
+          "lineHeight": "105%",
+          "letterSpacing": "-2%"
+        },
+        "type": "typography"
+      },
+      "title-3": {
+        "value": {
+          "fontFamily": "SF Pro Display",
+          "fontWeight": "600",
+          "fontSize": "20",
+          "lineHeight": "120%",
+          "letterSpacing": "-2.2%"
+        },
+        "type": "typography"
+      },
+      "body": {
+        "value": {
+          "fontFamily": "SF Pro Text",
+          "fontWeight": "400",
+          "fontSize": "17",
+          "lineHeight": "147%",
+          "letterSpacing": "-2.2%"
+        },
+        "type": "typography"
+      },
+      "body-semibold": {
+        "value": {
+          "fontFamily": "SF Pro Text",
+          "fontWeight": "600",
+          "fontSize": "17",
+          "lineHeight": "130%",
+          "letterSpacing": "-2.2%"
+        },
+        "type": "typography"
+      },
+      "subhead": {
+        "value": {
+          "fontFamily": "SF Pro Text",
+          "fontWeight": "400",
+          "fontSize": "15",
+          "lineHeight": "140%",
+          "letterSpacing": "-2.2%"
+        },
+        "type": "typography"
+      },
+      "subhead-semibold": {
+        "value": {
+          "fontFamily": "SF Pro Text",
+          "fontWeight": "600",
+          "fontSize": "15",
+          "lineHeight": "125%",
+          "letterSpacing": "-2.2%"
+        },
+        "type": "typography"
+      },
+      "callout": {
+        "value": {
+          "fontFamily": "SF Pro Text",
+          "fontWeight": "500",
+          "fontSize": "14",
+          "lineHeight": "120%",
+          "letterSpacing": "-2.2%"
+        },
+        "type": "typography"
+      },
+      "footnote": {
+        "value": {
+          "fontFamily": "SF Pro Text",
+          "fontWeight": "400",
+          "fontSize": "13",
+          "lineHeight": "135%",
+          "letterSpacing": "0.5%"
+        },
+        "type": "typography"
+      },
+      "footnote-semibold": {
+        "value": {
+          "fontFamily": "SF Pro Text",
+          "fontWeight": "600",
+          "fontSize": "13",
+          "lineHeight": "120%",
+          "letterSpacing": "0.5%"
+        },
+        "type": "typography"
+      },
+      "caption": {
+        "value": {
+          "fontFamily": "SF Pro Text",
+          "fontWeight": "400",
+          "fontSize": "12",
+          "lineHeight": "130%",
+          "letterSpacing": "0%"
+        },
+        "type": "typography"
+      },
+      "tab-label": {
+        "value": {
+          "fontFamily": "SF Pro Text",
+          "fontWeight": "600",
+          "fontSize": "10",
+          "lineHeight": "110%",
+          "letterSpacing": "1%"
+        },
+        "type": "typography"
+      }
+    },
+    "celestial": {
+      "moon": {
+        "value": "#F4EFE2",
+        "type": "color"
+      },
+      "moon-edge": {
+        "value": "#B9AF96",
+        "type": "color"
+      },
+      "night": {
+        "value": "#0E1430",
+        "type": "color"
+      },
+      "moon-gradient-0": {
+        "value": "#FFFFFF",
+        "type": "color"
+      },
+      "moon-gradient-55": {
+        "value": "#EEE8D9",
+        "type": "color"
+      },
+      "moon-gradient-100": {
+        "value": "#CFC7B2",
+        "type": "color"
+      },
+      "sun-gradient-0": {
+        "value": "#FFF6C2",
+        "type": "color"
+      },
+      "sun-gradient-50": {
+        "value": "#FFD21F",
+        "type": "color"
+      },
+      "sun-gradient-100": {
+        "value": "#F5A800",
+        "type": "color"
+      }
+    },
+    "motion": {
+      "spring": {
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "type": "other"
+      },
+      "spring-soft": {
+        "value": "cubic-bezier(0.2, 1, 0.3, 1)",
+        "type": "other"
+      },
+      "press-ms": {
+        "value": "100",
+        "type": "duration"
+      },
+      "sheet-open-ms": {
+        "value": "500",
+        "type": "duration"
+      },
+      "sheet-close-ms": {
+        "value": "320",
+        "type": "duration"
+      },
+      "sky-change-ms": {
+        "value": "1200",
+        "type": "duration"
+      },
+      "colour-ms": {
+        "value": "300",
+        "type": "duration"
+      },
+      "hold-to-end-ms": {
+        "value": "1200",
+        "type": "duration"
+      },
+      "celebration-ms": {
+        "value": "1900",
+        "type": "duration"
+      },
+      "press-scale": {
+        "value": "0.97",
+        "type": "duration"
+      }
+    }
+  },
+  "light": {
+    "color": {
+      "bg": {
+        "value": "#F2F2F7",
+        "type": "color"
+      },
+      "card": {
+        "value": "#FFFFFF",
+        "type": "color"
+      },
+      "label": {
+        "value": "#000000",
+        "type": "color"
+      },
+      "label-2": {
+        "value": "rgba(60,60,67,0.75)",
+        "type": "color"
+      },
+      "label-3": {
+        "value": "rgba(60,60,67,0.30)",
+        "type": "color"
+      },
+      "separator": {
+        "value": "rgba(60,60,67,0.29)",
+        "type": "color"
+      },
+      "fill": {
+        "value": "rgba(120,120,128,0.12)",
+        "type": "color"
+      },
+      "fill-2": {
+        "value": "rgba(120,120,128,0.20)",
+        "type": "color"
+      },
+      "tint": {
+        "value": "#FFCC00",
+        "type": "color"
+      },
+      "on-tint": {
+        "value": "#000000",
+        "type": "color"
+      },
+      "green": {
+        "value": "#34C759",
+        "type": "color"
+      },
+      "red": {
+        "value": "#C70012",
+        "type": "color"
+      },
+      "blue": {
+        "value": "#0062D9",
+        "type": "color"
+      },
+      "orange": {
+        "value": "#C93400",
+        "type": "color"
+      }
+    }
+  },
+  "dark": {
+    "color": {
+      "bg": {
+        "value": "#000000",
+        "type": "color"
+      },
+      "card": {
+        "value": "#1C1C1E",
+        "type": "color"
+      },
+      "label": {
+        "value": "#FFFFFF",
+        "type": "color"
+      },
+      "label-2": {
+        "value": "rgba(235,235,245,0.60)",
+        "type": "color"
+      },
+      "label-3": {
+        "value": "rgba(235,235,245,0.30)",
+        "type": "color"
+      },
+      "separator": {
+        "value": "rgba(84,84,88,0.60)",
+        "type": "color"
+      },
+      "fill": {
+        "value": "rgba(118,118,128,0.24)",
+        "type": "color"
+      },
+      "fill-2": {
+        "value": "rgba(118,118,128,0.32)",
+        "type": "color"
+      },
+      "tint": {
+        "value": "#FFD60A",
+        "type": "color"
+      },
+      "on-tint": {
+        "value": "#000000",
+        "type": "color"
+      },
+      "green": {
+        "value": "#34C759",
+        "type": "color"
+      },
+      "red": {
+        "value": "#FF453A",
+        "type": "color"
+      },
+      "blue": {
+        "value": "#0A84FF",
+        "type": "color"
+      },
+      "orange": {
+        "value": "#FF9F0A",
+        "type": "color"
+      }
+    }
+  },
+  "sky-night": {
+    "sky": {
+      "sky": {
+        "value": "#0E1430",
+        "type": "color"
+      },
+      "ink": {
+        "value": "#FFFFFF",
+        "type": "color"
+      },
+      "ink-2": {
+        "value": "rgba(235,235,245,0.70)",
+        "type": "color"
+      },
+      "unlit": {
+        "value": "rgba(255,255,255,0.10)",
+        "type": "color"
+      },
+      "rim": {
+        "value": "rgba(255,255,255,0.28)",
+        "type": "color"
+      },
+      "glass": {
+        "value": "rgba(40,44,70,0.55)",
+        "type": "color"
+      },
+      "tab-selected": {
+        "value": "#5AAEFF",
+        "type": "color"
+      }
+    }
+  },
+  "sky-first-light": {
+    "sky": {
+      "sky": {
+        "value": "#33406E",
+        "type": "color"
+      },
+      "ink": {
+        "value": "#FFFFFF",
+        "type": "color"
+      },
+      "ink-2": {
+        "value": "rgba(235,235,245,0.72)",
+        "type": "color"
+      },
+      "unlit": {
+        "value": "rgba(255,255,255,0.12)",
+        "type": "color"
+      },
+      "rim": {
+        "value": "rgba(255,255,255,0.30)",
+        "type": "color"
+      },
+      "glass": {
+        "value": "rgba(60,68,110,0.50)",
+        "type": "color"
+      },
+      "tab-selected": {
+        "value": "#5AAEFF",
+        "type": "color"
+      }
+    }
+  },
+  "sky-dawn": {
+    "sky": {
+      "sky": {
+        "value": "#F0B48C",
+        "type": "color"
+      },
+      "ink": {
+        "value": "#1C1C1E",
+        "type": "color"
+      },
+      "ink-2": {
+        "value": "rgba(28,28,30,0.74)",
+        "type": "color"
+      },
+      "unlit": {
+        "value": "rgba(28,28,30,0.10)",
+        "type": "color"
+      },
+      "rim": {
+        "value": "rgba(28,28,30,0.26)",
+        "type": "color"
+      },
+      "glass": {
+        "value": "rgba(255,255,255,0.45)",
+        "type": "color"
+      }
+    }
+  },
+  "sky-morning": {
+    "sky": {
+      "sky": {
+        "value": "#A8D5F0",
+        "type": "color"
+      },
+      "ink": {
+        "value": "#1C1C1E",
+        "type": "color"
+      },
+      "ink-2": {
+        "value": "rgba(28,28,30,0.66)",
+        "type": "color"
+      },
+      "unlit": {
+        "value": "rgba(28,28,30,0.09)",
+        "type": "color"
+      },
+      "rim": {
+        "value": "rgba(28,28,30,0.24)",
+        "type": "color"
+      },
+      "glass": {
+        "value": "rgba(255,255,255,0.50)",
+        "type": "color"
+      }
+    }
+  },
+  "sky-day": {
+    "sky": {
+      "sky": {
+        "value": "#CDE6F6",
+        "type": "color"
+      },
+      "ink": {
+        "value": "#1C1C1E",
+        "type": "color"
+      },
+      "ink-2": {
+        "value": "rgba(28,28,30,0.66)",
+        "type": "color"
+      },
+      "unlit": {
+        "value": "rgba(28,28,30,0.08)",
+        "type": "color"
+      },
+      "rim": {
+        "value": "rgba(28,28,30,0.22)",
+        "type": "color"
+      },
+      "glass": {
+        "value": "rgba(255,255,255,0.55)",
+        "type": "color"
+      }
+    }
+  },
+  "sky-sunset": {
+    "sky": {
+      "sky": {
+        "value": "#F3C58E",
+        "type": "color"
+      },
+      "ink": {
+        "value": "#1C1C1E",
+        "type": "color"
+      },
+      "ink-2": {
+        "value": "rgba(28,28,30,0.74)",
+        "type": "color"
+      },
+      "unlit": {
+        "value": "rgba(28,28,30,0.10)",
+        "type": "color"
+      },
+      "rim": {
+        "value": "rgba(28,28,30,0.26)",
+        "type": "color"
+      },
+      "glass": {
+        "value": "rgba(255,255,255,0.45)",
+        "type": "color"
+      }
+    }
+  },
+  "sky-evening": {
+    "sky": {
+      "sky": {
+        "value": "#2C3762",
+        "type": "color"
+      },
+      "ink": {
+        "value": "#FFFFFF",
+        "type": "color"
+      },
+      "ink-2": {
+        "value": "rgba(235,235,245,0.72)",
+        "type": "color"
+      },
+      "unlit": {
+        "value": "rgba(255,255,255,0.11)",
+        "type": "color"
+      },
+      "rim": {
+        "value": "rgba(255,255,255,0.30)",
+        "type": "color"
+      },
+      "glass": {
+        "value": "rgba(56,64,104,0.50)",
+        "type": "color"
+      },
+      "tab-selected": {
+        "value": "#5AAEFF",
+        "type": "color"
+      }
+    }
+  },
+  "$themes": [
+    {
+      "id": "light",
+      "name": "Light",
+      "selectedTokenSets": {
+        "global": "enabled",
+        "light": "enabled"
+      }
+    },
+    {
+      "id": "dark",
+      "name": "Dark",
+      "selectedTokenSets": {
+        "global": "enabled",
+        "dark": "enabled"
+      }
+    },
+    {
+      "id": "sky-night",
+      "name": "Sky / night",
+      "selectedTokenSets": {
+        "global": "enabled",
+        "sky-night": "enabled"
+      }
+    },
+    {
+      "id": "sky-first-light",
+      "name": "Sky / first-light",
+      "selectedTokenSets": {
+        "global": "enabled",
+        "sky-first-light": "enabled"
+      }
+    },
+    {
+      "id": "sky-dawn",
+      "name": "Sky / dawn",
+      "selectedTokenSets": {
+        "global": "enabled",
+        "sky-dawn": "enabled"
+      }
+    },
+    {
+      "id": "sky-morning",
+      "name": "Sky / morning",
+      "selectedTokenSets": {
+        "global": "enabled",
+        "sky-morning": "enabled"
+      }
+    },
+    {
+      "id": "sky-day",
+      "name": "Sky / day",
+      "selectedTokenSets": {
+        "global": "enabled",
+        "sky-day": "enabled"
+      }
+    },
+    {
+      "id": "sky-sunset",
+      "name": "Sky / sunset",
+      "selectedTokenSets": {
+        "global": "enabled",
+        "sky-sunset": "enabled"
+      }
+    },
+    {
+      "id": "sky-evening",
+      "name": "Sky / evening",
+      "selectedTokenSets": {
+        "global": "enabled",
+        "sky-evening": "enabled"
+      }
+    }
+  ],
+  "$metadata": {
+    "tokenSetOrder": [
+      "global",
+      "light",
+      "dark",
+      "sky-night",
+      "sky-first-light",
+      "sky-dawn",
+      "sky-morning",
+      "sky-day",
+      "sky-sunset",
+      "sky-evening"
+    ]
+  }
+}
