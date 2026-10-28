@@ -321,7 +321,8 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--blue);outline-offse
 .row>.chev:nth-child(2){margin-left:auto}
 
 /* ---------- fits every screen: real viewport height, safe areas, short landscape phones, tab bar that steps aside ---------- */
-@media (max-width:599px){.ph{inset:auto;left:0;top:0;width:100%;height:var(--app-h,100dvh)}}
+/* phones: fill the whole screen edge to edge, under the status bar and home bar (innerHeight can stop short of the bottom on iOS Home Screen apps, which left a coloured strip) */
+@media (max-width:599px){.ph{position:fixed;inset:0;width:auto;height:auto}}
 @media (min-width:600px) and (max-height:520px){.ph{inset:auto;left:0;top:0;width:100%;height:100dvh;transform:none;border-radius:0;box-shadow:none}}
 @media (max-height:540px){.scr,.ob-step{padding-left:max(var(--sal),0px);padding-right:max(var(--sar),0px)}}
 .tabs{transition:transform .5s var(--spr),opacity .3s ease,visibility 0s}
