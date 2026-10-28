@@ -274,6 +274,7 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .plan-card[data-locked="1"]{opacity:.5;cursor:not-allowed}
 @media (max-width:860px){.ob-wrap{grid-template-columns:1fr}}
 
+.try{margin-top:12px;min-height:44px;padding:0 20px;border:0;border-radius:999px;background:var(--label);color:var(--card);font:600 15px var(--font);cursor:pointer}
 .sec-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(24px,5vw,72px);align-items:end;margin-bottom:28px}
 .sec-head p{margin:0;color:var(--label-2);font-size:17px;max-width:52ch}
 .plan-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
@@ -711,6 +712,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <li><button type="button" data-go="f50"><svg viewBox="-12 -12 24 24" data-p=".5" data-h="8"></svg><span><b class="hrLbl" data-f=".5">Hour 8</b><span class="t" data-zh="半月，正好过了一半。">Half full, exactly halfway.</span></span></button></li>
         <li><button type="button" data-go="turn"><svg viewBox="-12 -12 24 24" data-p=".7" id="turnIcon"></svg><span><b id="turnB">Sunrise</b><span class="t" id="turnT">The moon fades into the sun.</span></span></button></li>
         <li><button type="button" data-go="goal"><svg viewBox="-12 -12 24 24" data-p="1" data-h="16"></svg><span><b data-zh="达成目标">Reach the goal</b><span class="t" data-zh="满了。太阳展开光芒，月亮亮起光晕，一次成功的震动。">Full. A sun opens its rays, a moon gets a halo, with one success tap.</span></span></button></li>
+        <li><button type="button" data-go="finish"><svg viewBox="-12 -12 24 24" data-p="1" data-h="16"></svg><span><b data-zh="完成并庆祝">Finish and celebrate</b><span class="t" data-zh="按住结束已达成目标的断食：圆盘绽放成日出，对勾画出，光点散开。每次一样，不会因为更久而更盛大。">Hold to end a fast that reached its goal: the disc blooms into sunrise, a check draws in, lights drift out. The same every time, never bigger for longer.</span></span></button></li>
         <li><button type="button" data-go="eat"><svg viewBox="-12 -12 24 24" data-p=".6" data-wane="1" data-h="19"></svg><span><b data-zh="结束并进食">End and eat</b><span class="t" data-zh="按住结束，进食窗口里它会慢慢变缺。">Hold to end. In the eating window it slowly wanes.</span></span></button></li>
       </ol>
     </div>
@@ -761,6 +763,19 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div><b data-zh="计时器永远免费">The timer stays free</b><p data-zh="计时、修改时间、历史记录和桌面小组件都免费，第一次断食前不会出现付费墙。">Timing, editing, history and the widget are free, and no paywall appears before your first fast.</p></div>
       <div><b data-zh="不记录饮食">No food logging</b><p data-zh="不数卡路里，没有 AI 教练。">No calorie counting and no AI coach.</p></div>
       <div><b data-zh="时间随时可改">Times you can fix</b><p data-zh="忘了开始？补记一次断食，或者直接拖动开始和结束时间。">Forgot to start? Log a fast afterwards, or drag the start and end times.</p></div>
+    </div>
+  </section>
+
+  <section class="sec" id="new" aria-labelledby="nw-h">
+    <div class="sec-head"><h2 class="h2" id="nw-h" data-zh="最近新增">New in the app</h2>
+      <p data-zh="这些都已经在网页版里能用。点下面的按钮，就能在上面的手机里试一试。">All of this already works in the web app. Use the buttons to try it in the phone above.</p></div>
+    <div class="kind">
+      <div><b data-zh="带上你的历史记录">Bring your history with you</b><p data-zh="从 Zero 或其他应用导出数据，先预览再导入，重复的记录会自动跳过。文件只在手机上读取。">Export from Zero or another app, preview it, then import. Duplicates are skipped, and the file never leaves your phone.</p><button type="button" class="try" id="tryImp" data-zh="试试导入">Try the import</button></div>
+      <div><b data-zh="完成时的小庆祝">A small celebration</b><p data-zh="达成目标后按住结束，圆盘绽放成日出。不论多长都一样。">Reach your goal and hold to end: the disc blooms into sunrise. The same for every length.</p><button type="button" class="try" id="tryFin" data-zh="看看动画">Watch it</button></div>
+      <div><b data-zh="滚动时让位">The tab bar steps aside</b><p data-zh="向下滚动，底部标签栏收起，整页可读；向上滚动就回来。">Scroll down and the tab bar slides away for a full page. Scroll up and it returns.</p></div>
+      <div><b data-zh="计划逐步解锁">Plans open as you go</b><p data-zh="新手从 13:11 开始，完成几次后开放 16:8，之后一步步往上。">New to fasting? Start with 13:11. A few fasts later 16:8 opens, then the rest one step at a time.</p></div>
+      <div><b data-zh="超时也不扣分">Overtime is just time</b><p data-zh="过了目标继续也行，只显示“超出多久”，没有额外奖励。">Keep going past your goal and it simply says how far over you are. Nothing extra is rewarded.</p></div>
+      <div><b data-zh="三种计时样式">Three timer styles</b><p data-zh="在应用里的“我”选择经典、大字或卡片，都显示时分秒。这个演示只显示时分。">In the app, pick Classic, Hero or Card in Me. All show hours, minutes and seconds. This demo shows hours and minutes only.</p></div>
     </div>
   </section>
 
@@ -1351,7 +1366,8 @@ window.LightlySphere=(function(){
     setTimeout(function(){ el.remove(); },2700);
   }
   
-  function endFast(){ var early=h<GOAL; setMode('saved'); if(!early) celebrate(); var s=START[startKey];
+  function endFast(){ var early=h<GOAL; if(!early){ celebrate(); setTimeout(finishSheet,reduce?300:850); } else finishSheet(); }
+  function finishSheet(){ var early=h<GOAL; setMode('saved'); var s=START[startKey];
     $('shK').textContent=early?L('Fast Saved, Ended Early','已保存，提前结束'):L('Fast Saved','已保存');
     var fin=h, c0=performance.now(); (function cu(){ var k=reduce?1:Math.min((performance.now()-c0)/700,1); $('shBig').innerHTML=fmt(fin*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(cu); })(); $('shEnd').textContent=clock(s+h);
     $('shNote').textContent=early?L('Ending early still counts toward your streak. Nothing is lost.','提前结束也算进连续天数，什么都不会失去。'):L('Goal reached. Your next fast can start at ','目标达成。下一次断食可以在 ')+clock(s+24)+L('.',' 开始。');
@@ -1469,6 +1485,7 @@ window.LightlySphere=(function(){
     else if(/^f\d+$/.test(g)){ var tgt=Math.round(GOAL*(+g.slice(1))/100)+.2; if(mode!=='fast'){ startFast(); h=Math.max(tgt-2,0); lastHour=Math.floor(h); } lapseTo('h',tgt,1300); }
     else if(g==='turn'){ var tn=nextTurn(START[startKey],GOAL); if(tn){ var a=Math.max(tn.d-1.2,0); if(mode!=='fast'){ startFast(); } h=a; lastHour=Math.floor(a); lastBody=null; lapseTo('h',Math.min(tn.d+1.2,GOAL),3200); } }
     else if(g==='goal'){ if(mode!=='fast'){ startFast(); h=14; lastHour=14; } lapseTo('h',GOAL,1500); }
+    else if(g==='finish'){ if(mode!=='fast'){ startFast(); } h=GOAL; lastHour=GOAL; sFull.t=1; endFast(); }
     else if(g==='eat'){ if(mode!=='fast'){ startFast(); } h=GOAL; lastHour=GOAL; sFull.t=1; endFast(); run([[1800,function(){ toEat(); lapseTo('e',3,3200); }]]); }
     setTimeout(function(){ btn.setAttribute('aria-current','true'); },0); }); });
 
@@ -1969,6 +1986,10 @@ window.LightlySphere=(function(){
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ if(imp.classList.contains('open')) impRender(); },0); }); });
   /* scrolling down on Me hides the tab bar for a full page; scrolling up brings it back */
   (function(){ var last=0, acc=0; me.addEventListener('scroll',function(){ var y=me.scrollTop, d=y-last; last=y; if(y<0||y>me.scrollHeight-me.clientHeight+1) return; if(y<24){ ph.classList.remove('tabs-off'); acc=0; return; } if((d>0)!==(acc>0)) acc=0; acc+=d; if(acc>28) ph.classList.add('tabs-off'); else if(acc<-12) ph.classList.remove('tabs-off'); },{passive:true}); })();
+  /* try-it buttons in the New section */
+  (function(){ var ph=document.getElementById('ph'); function view(){ var d=document.getElementById('ph'); if(d&&d.scrollIntoView) d.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'}); }
+    document.getElementById('tryFin').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(1)'); if(t) t.click(); setTimeout(function(){ var b=document.querySelector('#moments [data-go=finish]'); if(b) b.click(); },500); });
+    document.getElementById('tryImp').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(4)'); if(t) t.click(); setTimeout(function(){ var m=document.getElementById('meImp'); if(m) m.click(); },500); }); })();
   function select(i){ ph.style.setProperty('--ti',i); tabs.forEach(function(t,k){ t.classList.toggle('sel',k===i); t.setAttribute('aria-selected',k===i); });
     ph.classList.remove('tabs-off'); var open=i===3; me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ ph.setAttribute('data-me','1'); render(); me.scrollTop=0; } else ph.removeAttribute('data-me'); }
   tabs.forEach(function(t,i){ t.setAttribute('role','tab'); t.tabIndex=0; if(i===1||i===2) t.title=L('Not in this demo','这个演示里没有');
