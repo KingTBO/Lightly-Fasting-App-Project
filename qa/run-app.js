@@ -55,7 +55,7 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
     await p.click('#planBtn');await A('plan-sheet');await p.click('[data-act=more]');await A('plan-more');await p.click('[data-act=close]');
     await p.click('#streakBtn');await A('cheat-sheet');await p.click('#sheet [data-act=close]');
     await T(p,'days');await A('days');await p.click('.cal-g button.done');await p.waitForTimeout(100);await p.click('[data-act=edit]');await A('edit-fast');await p.click('#sheet [data-act=close]');
-    await p.click('[data-act=add]');await A('add-fast');await p.click('#sheet [data-act=close]');
+    await p.click('#days .cal-g button.today');await p.waitForTimeout(500);await A('days-fab');await p.click('#dayFab');await p.waitForTimeout(400);await A('add-fast');await p.click('#sheet [data-act=close]');
     await T(p,'me');await A('me');await p.click('[data-act=place]');await A('place-sheet');await p.click('#sheet [data-act=close]');
     await p.click('#me [data-act=timeoff]');await A('timeoff-sheet');await p.click('#sheet [data-act=offtravel]');await A('travel-sheet');await p.evaluate(()=>document.getElementById('scrim').click());await p.waitForTimeout(500);await p.click('[data-act=erase]');await A('erase-sheet');await p.click('#sheet [data-act=close]');
     await T(p,'today');await p.click('#act');await p.waitForTimeout(500);await A('today-started');});

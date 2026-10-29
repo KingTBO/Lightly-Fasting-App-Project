@@ -97,7 +97,7 @@ function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) naviga
 var toastT=0;
 function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); },3400); }
 var sheetEl=$('sheet'), scrim=$('scrim'), sheetOpen=false, sheetBack=null;
-var sheetFrom=null, BEHIND=['today','days','me','tabs'];
+var sheetFrom=null, BEHIND=['today','days','me','tabs','dayFab'];
 function setInert(v){ BEHIND.forEach(function(id){ var e=$(id); if(v) e.setAttribute('inert',''); else e.removeAttribute('inert'); }); }
 function openSheet(html,back,float){ if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
@@ -337,7 +337,7 @@ function showTab(t){
   document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('sel',b.dataset.tab===t); b.setAttribute('aria-current',b.dataset.tab===t?'page':'false'); });
   ph.classList.toggle('sys',t!=='today');
   var m=document.querySelector('meta[name=theme-color]');
-  if(t==='days') renderDays(); if(t==='me') renderMe(); if(t==='today') updateToday();
+  if(t==='days'){ ringPlay=true; fabOn=false; } if(t==='days') renderDays(); if(t==='me') renderMe(); fabSync(); if(t==='today') updateToday();
   if(m) m.setAttribute('content',t==='today'?getComputedStyle(ph).getPropertyValue('--sky').trim():getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
   $(t).scrollTop=0;
 }
@@ -399,11 +399,16 @@ function endOff(){
   toast(L('Welcome back. Your streak is where you left it.','欢迎回来。连续记录还在原来的位置。'));
 }
 
-var calY, calM, selDay;
+var calY, calM, selDay, fabOn=false;
+/* the round edit button on Days: slides in from the right once a date is tapped; pencil edits that day's fast, plus adds one */
+function fabSync(){ var f=$('dayFab'); if(!f) return; var on=curTab==='days'&&fabOn&&selDay<=today(), has=!!(C.fastDays(S.fasts)[selDay]||[]).length;
+  f.classList.toggle('on',on); f.setAttribute('aria-hidden',!on); f.tabIndex=on?0:-1; f.dataset.mode=has?'edit':'add';
+  f.setAttribute('aria-label',has?L('Edit this day’s fast','编辑这天的断食'):L('Add a fast for this day','为这天补记断食')); }
 function initCal(){ var d=new Date(); calY=d.getFullYear(); calM=d.getMonth(); selDay=today(); }
 /* the Days header: one ring toward the next streak milestone, then the two numbers that matter */
 var MILES=[3,7,14,30,60,100,200,365];
 function dayWord(n){ return L(n===1?'day':'days','天'); }
+var ringPlay=true;
 function milestoneHtml(st,best,total){
   var next=0, prev=0; MILES.forEach(function(m){ if(m<=st) prev=m; });
   for(var i=0;i<MILES.length;i++) if(MILES[i]>st){ next=MILES[i]; break; }
@@ -412,7 +417,7 @@ function milestoneHtml(st,best,total){
   var line=next?(L(left+' '+dayWord(left)+' to your '+next+'-day streak','还差 '+left+' 天，达成 '+next+' 天连续')):L('Every streak milestone reached','所有连续记录里程碑都已达成');
   var sub=st?(next?L('Keep going. One fast a day.','继续保持，每天一次断食。'):L('That is a full year.','整整一年了。')):L('Finish a fast to start your streak.','完成一次断食，开启你的连续记录。');
   var chips=MILES.slice(0,6).map(function(m){ return '<span class="mchip'+(m<=best?' on':'')+'"'+(m<=best?'':' aria-hidden="true"')+'>'+m+'</span>'; }).join('');
-  return '<div class="group mile"><div class="mhero"><div class="ring" role="img" aria-label="'+L('Current streak: '+st+' '+dayWord(st),'当前连续 '+st+' 天')+'"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rt" cx="60" cy="60" r="'+R+'"/><circle class="rp" cx="60" cy="60" r="'+R+'" style="--cir:'+CIR.toFixed(1)+';--off:'+off.toFixed(1)+'" stroke-dasharray="'+CIR.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rn"><b>'+st+'</b><span>'+L('day streak','天连续')+'</span></div></div>'+
+  return '<div class="group mile"><div class="mhero"><div class="ring" role="img" aria-label="'+L('Current streak: '+st+' '+dayWord(st),'当前连续 '+st+' 天')+'"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rt" cx="60" cy="60" r="'+R+'"/><circle class="rp'+(ringPlay?' play':'')+'" cx="60" cy="60" r="'+R+'" style="--cir:'+CIR.toFixed(1)+';--off:'+off.toFixed(1)+'" stroke-dasharray="'+CIR.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rn"><b>'+st+'</b><span>'+L('day streak','天连续')+'</span></div></div>'+
     '<div class="mtx"><b>'+line+'</b><small>'+sub+'</small>'+(record?'<span class="rec"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z"/></svg>'+L('Your longest streak','你的最长连续')+'</span>':'')+'</div></div>'+
     '<div class="mrow"><div><b>'+best+'</b><span>'+L('Longest streak','最长连续')+'</span></div><div><b>'+total+'</b><span>'+L('Fasts completed','已完成的断食')+'</span></div></div>'+
     '<div class="mchips" aria-label="'+L('Streak milestones reached','已达成的连续里程碑')+'">'+chips+'</div></div>';
@@ -431,43 +436,61 @@ function pickHtml(){
   h+='</div><div class="btns"><button class="btn sec" data-act="pickthis">'+L('This month','本月')+'</button><button class="btn" data-act="close">'+L('Done','完成')+'</button></div>';
   return h;
 }
-function calGo(y,m,dir){ calY=y; calM=m; renderDays(); var g=document.querySelector('#days .cal-g'); if(g&&dir&&!reduce&&g.animate) g.animate([{transform:'translateX('+(dir*44)+'px)',opacity:0},{transform:'none',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'}); }
+var slideEnd=null;
+/* month change: the new grid slides in beside the old one as a pager, and the card eases to the new height */
+function calGo(y,m,dir,x0){ if(slideEnd) slideEnd(); calY=y; calM=m;
+  var D=$('days'), v=D.querySelector('.cal-v'), og=v&&v.querySelector('.cal-g'), mn=D.querySelector('.cal-h .mn'), r=monthRange(), cur=y*12+m;
+  if(mn) mn.textContent=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(y,m,1));
+  var pv=D.querySelector('[data-act=calprev]'), nx=D.querySelector('[data-act=calnext]'); if(pv) pv.disabled=cur<=r[0]; if(nx) nx.disabled=cur>=r[1];
+  if(!v||!og){ renderDays(); return; }
+  var ng=og.cloneNode(false); ng.innerHTML=gridInner(y,m); ng.classList.add('in'); v.appendChild(ng);
+  if(reduce||!dir||!ng.animate){ og.remove(); ng.classList.remove('in'); og.style.cssText=''; return; }
+  var w=v.offsetWidth, h0=v.offsetHeight, h1=ng.offsetHeight, o={duration:520,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'}; x0=x0||0;
+  v.style.height=h0+'px'; og.style.transition='none'; og.style.transform=''; og.style.opacity='';
+  var a1=og.animate([{transform:'translateX('+x0+'px)',opacity:Math.max(.5,1-Math.abs(x0)/260)},{transform:'translateX('+(-dir*w*.5)+'px)',opacity:0}],o);
+  var a2=ng.animate([{transform:'translateX('+(dir*w*.5+x0)+'px)',opacity:0},{transform:'none',opacity:1}],o);
+  var a3=v.animate([{height:h0+'px'},{height:h1+'px'}],o), done=false;
+  slideEnd=function(){ if(done) return; done=true; slideEnd=null; [a1,a2,a3].forEach(function(a){ try{ a.cancel(); }catch(e){} }); og.remove(); ng.classList.remove('in'); v.style.height=''; };
+  a2.finished.then(function(){ if(slideEnd) slideEnd(); }).catch(function(){}); }
 /* swipe the month grid: right goes back in time, left goes forward; follows the finger, springs back at the ends */
 (function(){ var x0=0,y0=0,dx=0,lt=0,lx=0,vx=0,on=false,live=false,g=null,gone=0;
   var days=$('days');
-  days.addEventListener('pointerdown',function(e){ var el=e.target.closest&&e.target.closest('.cal-g'); if(!el||(e.pointerType==='mouse'&&e.button)) return; g=el; x0=lx=e.clientX; y0=e.clientY; dx=0; vx=0; lt=performance.now(); on=true; live=false; });
+  days.addEventListener('pointerdown',function(e){ var el=e.target.closest&&e.target.closest('.cal-g'); if(!el||el.classList.contains('in')||(e.pointerType==='mouse'&&e.button)) return; if(slideEnd) slideEnd(); g=el; x0=lx=e.clientX; y0=e.clientY; dx=0; vx=0; lt=performance.now(); on=true; live=false; });
   days.addEventListener('pointermove',function(e){ if(!on) return; var mx=e.clientX-x0, my=e.clientY-y0;
     if(!live){ if(Math.abs(mx)<10||Math.abs(mx)<Math.abs(my)*1.2){ if(Math.abs(my)>10) on=false; return; } live=true; try{ g.setPointerCapture(e.pointerId); }catch(x){} g.style.transition='none'; }
     var now=performance.now(); vx=.6*vx+.4*((e.clientX-lx)/Math.max(now-lt,1)); lx=e.clientX; lt=now;
     var r=monthRange(), cur=calY*12+calM, blocked=(mx>0&&cur<=r[0])||(mx<0&&cur>=r[1]); dx=blocked?mx*.25:mx; g.style.transform='translateX('+dx.toFixed(1)+'px)'; g.style.opacity=(1-Math.min(Math.abs(dx)/260,.5)).toFixed(2); });
   function end(){ if(!on) return; on=false; if(!live) return; gone=performance.now(); var r=monthRange(), cur=calY*12+calM, dir=dx>0?-1:1, tgt=cur+dir, go=(Math.abs(dx)>60||Math.abs(vx)>.45)&&tgt>=r[0]&&tgt<=r[1];
-    if(go){ calGo(Math.floor(tgt/12),((tgt%12)+12)%12,dir<0?-1:1); }
-    else { g.style.transition='transform .45s var(--spr),opacity .3s ease'; g.style.transform=''; g.style.opacity=''; }
+    g.style.transition=''; g.style.transform=''; g.style.opacity='';
+    if(go) calGo(Math.floor(tgt/12),((tgt%12)+12)%12,dir<0?-1:1,dx);
+    else if(!reduce&&g.animate) g.animate([{transform:'translateX('+dx.toFixed(1)+'px)',opacity:Math.max(.5,1-Math.abs(dx)/260)},{transform:'none',opacity:1}],{duration:520,easing:'cubic-bezier(.22,1,.36,1)'});
     live=false; }
   days.addEventListener('pointerup',end); days.addEventListener('pointercancel',end);
   days.addEventListener('click',function(e){ if(performance.now()-gone<350){ e.stopPropagation(); e.preventDefault(); gone=0; } },true);
 })();
+function gridInner(y,m){ var h='', t=today(), all=S.fasts;
+  var wd=S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S']; wd.forEach(function(w){ h+='<span class="wd">'+w+'</span>'; });
+  var lead=(new Date(y,m,1).getDay()+6)%7, dim=new Date(y,m+1,0).getDate(); for(var i=0;i<lead;i++) h+='<button class="out" tabindex="-1" aria-hidden="true"></button>';
+  var offK=C.offKeys(S.off); for(var d=1;d<=dim;d++){ var k=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2), s=C.dayStatus(k,all,S.flex.used,offK), fut=k>t;
+    h+='<button class="'+s+(k===t?' today':'')+(k===selDay?' sel':'')+(fut?' fut':'')+'" data-act="day" data-k="'+k+'" aria-label="'+dateLbl(C.keyToDate(k).getTime())+(s==='done'?', '+L('fast done','已完成'):s==='flex'?', '+L('cheat day','弹性日'):s==='off'?', '+L('time off','休息'):s==='early'?', '+L('ended early','提前结束'):'')+'"><span class="d">'+d+'</span></button>'; }
+  return h; }
 function renderDays(){
   var fs=streakFasts(), all=S.fasts, t=today(), first=all.length?new Date(Math.min.apply(null,all.map(function(f){return f.start;}))):new Date();
   var canPrev=calY*12+calM>first.getFullYear()*12+first.getMonth()-0, canNext=calY*12+calM<new Date().getFullYear()*12+new Date().getMonth();
   var total=all.filter(C.isDone).length, st=curStreak(), best=bestStreak();
   var h=milestoneHtml(st,best,total);
   var mname=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(calY,calM,1));
-  h+='<div class="group"><div class="cal"><div class="cal-h"><button data-act="calprev" aria-label="'+L('Previous month','上个月')+'"'+(canPrev?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button>'+(monthRange()[0]<monthRange()[1]?'<button class="cal-t" data-act="calpick" aria-haspopup="dialog">'+mname+'<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg></button>':'<b>'+mname+'</b>')+'<button data-act="calnext" aria-label="'+L('Next month','下个月')+'"'+(canNext?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div><div class="cal-g">';
-  var wd=S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S']; wd.forEach(function(w){ h+='<span class="wd">'+w+'</span>'; });
-  var lead=(new Date(calY,calM,1).getDay()+6)%7, dim=new Date(calY,calM+1,0).getDate(); for(var i=0;i<lead;i++) h+='<button class="out" tabindex="-1" aria-hidden="true"></button>';
-  var offK=C.offKeys(S.off); for(var d=1;d<=dim;d++){ var k=calY+'-'+('0'+(calM+1)).slice(-2)+'-'+('0'+d).slice(-2), s=C.dayStatus(k,all,S.flex.used,offK), fut=k>t;
-    h+='<button class="'+s+(k===t?' today':'')+(k===selDay?' sel':'')+(fut?' fut':'')+'" data-act="day" data-k="'+k+'" aria-label="'+dateLbl(C.keyToDate(k).getTime())+(s==='done'?', '+L('fast done','已完成'):s==='flex'?', '+L('cheat day','弹性日'):s==='off'?', '+L('time off','休息'):s==='early'?', '+L('ended early','提前结束'):'')+'"><span class="d">'+d+'</span></button>'; }
-  h+='</div></div><div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i style="border-color:var(--orange)"></i>'+L('Ended early','提前结束')+'</span><span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span><span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div></div>';
+  h+='<div class="group"><div class="cal"><div class="cal-h"><button data-act="calprev" aria-label="'+L('Previous month','上个月')+'"'+(canPrev?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button>'+(monthRange()[0]<monthRange()[1]?'<button class="cal-t" data-act="calpick" aria-haspopup="dialog"><span class="mn">'+mname+'</span><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg></button>':'<b class="cal-t0"><span class="mn">'+mname+'</span></b>')+'<button data-act="calnext" aria-label="'+L('Next month','下个月')+'"'+(canNext?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>';
+  h+='<div class="cal-v"><div class="cal-g">'+gridInner(calY,calM);
+  h+='</div></div></div><div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i style="border-color:var(--orange)"></i>'+L('Ended early','提前结束')+'</span><span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span><span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div></div>';
   /* the chosen day */
   var list=C.fastDays(all)[selDay]||[], fl=S.flex.used.indexOf(selDay)>=0;
   h+='<div class="gh">'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</div><div class="group">';
-  if(!list.length&&!fl) h+='<div class="empty">'+(selDay>t?L('Nothing here yet.','这天还没有记录。'):L('No fast logged for this day.','这天没有记录断食。'))+'</div>';
+  if(!list.length&&!fl) h+='<div class="empty">'+(selDay>t?L('Nothing here yet.','这天还没有记录。'):L('No fast logged for this day. Tap + to add one.','这天没有记录断食。点 + 可以补记。'))+'</div>';
   list.sort(function(a,b){return a.end-b.end;}).forEach(function(f){ h+='<button class="row fast-row" data-act="edit" data-id="'+f.id+'"><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(C.isDone(f)?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+'</small></span>'+CHEV.replace('class="chev"','class="chev" style="margin-left:auto"')+'</button>'; });
   if(fl) h+='<div class="row"><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
-  if(selDay<=t) h+='<button class="row" data-act="add" data-k="'+selDay+'" style="color:var(--link)">'+L('Add a fast for this day','为这天补记一次断食')+'</button>';
   h+='</div>';
-  $('days').innerHTML=h;
+  $('days').innerHTML=h; ringPlay=false; fabSync();
 }
 function toInput(ms){ var d=new Date(ms-new Date(ms).getTimezoneOffset()*60000); return d.toISOString().slice(0,16); }
 function fastSheet(f,addKey){
@@ -817,7 +840,8 @@ var A={
   close:closeSheet,
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
-  day:function(b){ selDay=b.dataset.k; renderDays(); },
+  day:function(b){ selDay=b.dataset.k; fabOn=true; renderDays(); },
+  fab:function(){ var l=(C.fastDays(S.fasts)[selDay]||[]).slice().sort(function(a,b){return a.end-b.end;}); if(l.length) fastSheet(l[l.length-1]); else fastSheet(null,selDay); },
   calprev:function(){ var i=calY*12+calM-1; calGo(Math.floor(i/12),((i%12)+12)%12,-1); },
   calnext:function(){ var i=calY*12+calM+1; calGo(Math.floor(i/12),((i%12)+12)%12,1); },
   calpick:function(){ pickY=calY; openSheet(pickHtml(),null,true); },

@@ -467,6 +467,13 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .dy-pop .acts{display:grid;gap:10px;padding:0 16px}.dy-pop .acts button{min-height:50px;border:0;border-radius:999px;font:600 17px var(--font);cursor:pointer}.dy-pop .acts .sec{background:var(--fill);color:var(--label)}.dy-pop .acts .pri{background:var(--tint);color:var(--on-tint)}
 #dScrim{transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}#dScrim.on{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;-webkit-backdrop-filter:blur(4px) saturate(1.05);backdrop-filter:blur(4px) saturate(1.05)}
 @media (prefers-reduced-motion:reduce){.ring .rp,.rec{animation:none}.dy-pop{transition:opacity .2s ease,visibility 0s .2s;transform:translateY(-50%)}}
+.dy-v{position:relative;overflow:hidden;border-radius:14px}.dy-cal.in{position:absolute;top:0;left:0;right:0}.ring .rp:not(.play){animation:none}
+.dy-cal button{cursor:pointer}.dy-cal button.sel{box-shadow:inset 0 0 0 2px var(--label)}
+.dy-fabw{position:absolute;right:0;bottom:92px;width:104px;height:88px;padding-right:16px;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;overflow:hidden;pointer-events:none;z-index:4}
+.dy-fab{position:relative;flex:none;width:56px;height:56px;border:0;border-radius:50%;background:var(--tint);color:var(--on-tint);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.22),0 1px 3px rgba(0,0,0,.18);transform:translateX(88px);opacity:0;visibility:hidden;pointer-events:none;transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .25s ease,visibility 0s .55s}
+.dy-fab.on{transform:none;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}.dy-fab:active{transform:scale(.92)}
+.dy-fab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-reduced-motion:reduce){.dy-fab{transition:opacity .2s ease,visibility 0s .2s;transform:none}.dy-fab.on{transition-delay:0s}}
 .dy-key{font-size:13px;color:var(--label-2);margin:10px 4px 14px}
 .ph[data-ts=a] .read .big{font:600 52px/1.05 var(--font-r);letter-spacing:-.02em}.ph[data-ts=a] .read .big .co{opacity:.5;width:.3em}
 .me-h{font:400 13px var(--font);color:var(--label-2);text-transform:uppercase;letter-spacing:.02em;margin:22px 16px 8px}
@@ -722,10 +729,10 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div class="me" id="daysScr" aria-hidden="true" aria-label="Days">
         <div class="mile" id="dyHead"></div>
         <div class="dy-th"><button type="button" class="dy-ar" id="dyPrev" aria-label="Previous month"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button><button type="button" class="dy-t" id="dyMonth" aria-haspopup="dialog"></button><button type="button" class="dy-ar" id="dyNext" aria-label="Next month"><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>
-        <div class="dy-cal" id="dyCal"></div>
+        <div class="dy-v" id="dyV"><div class="dy-cal" id="dyCal"></div></div>
         <p class="dy-key" id="dyKey"></p>
-        <button type="button" class="try" id="dyAdd" data-zh="补记一次断食">Add a fast</button>
       </div>
+      <div class="dy-fabw"><button type="button" class="dy-fab" id="dyFab" aria-hidden="true" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
       <div class="scrim" id="dScrim"></div>
       <div class="dy-pop" id="dyPop" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Go to a month"></div>
       <div class="me" id="meScr" aria-hidden="true" aria-label="Me">
@@ -2073,11 +2080,11 @@ window.LightlySphere=(function(){
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(meRows,0); }); });
   /* Days: a month of sample fasts */
   /* Days: milestone ring, a swipeable month (sample data), and a month picker over a blurred backdrop */
-  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches, dyOff=0, DY_BACK=3;
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches, dyOff=0, DY_BACK=3, dySel=null, dyEnd=null, dyPlay=true;
   function dyMonthDate(o){ var d=new Date(); return new Date(d.getFullYear(),d.getMonth()-o,1); }
   function daysRender(dir){ var zh=api.lang()==='zh', now=new Date(), md=dyMonthDate(dyOff), y=md.getFullYear(), m=md.getMonth(), isNow=dyOff===0, today=isNow?now.getDate():99, first=md.getDay(), n=new Date(y,m+1,0).getDate(), h='';
     ['S','M','T','W','T','F','S'].forEach(function(w){ h+='<i>'+w+'</i>'; }); for(var k=0;k<first;k++) h+='<span></span>';
-    for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=((i+dyOff)%9===4)?'early':((i+dyOff)%11===6)?'flex':(isNow&&i===today-2&&today>3)?'off':'done'; } else if(i===today) c='today'; h+='<button type="button" class="'+c+'" tabindex="-1" aria-label="'+i+'">'+i+'</button>'; }
+    for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=((i+dyOff)%9===4)?'early':((i+dyOff)%11===6)?'flex':(isNow&&i===today-2&&today>3)?'off':'done'; } else if(i===today) c='today'; h+='<button type="button" class="'+c+(dySel&&dySel[0]===dyOff&&dySel[1]===i?' sel':'')+'" data-d="'+i+'" aria-label="'+i+'">'+i+'</button>'; }
     /* the header always shows the sample streak for today */
     var nd=now.getDate(), st=0, done=0; for(var j=1;j<nd;j++){ var cc=(j%9===4)?'early':(j%11===6)?'flex':(j===nd-2&&nd>3)?'off':'done'; if(cc==='done'){ st++; done++; } else if(cc==='early') st=0; } st=Math.min(st,nd); var best=Math.max(st,12), total=done+31;
     var MI=[3,7,14,30,60,100], nx=0, pv=0; MI.forEach(function(v){ if(v<=st) pv=v; }); for(var q=0;q<MI.length;q++) if(MI[q]>st){ nx=MI[q]; break; }
@@ -2085,14 +2092,23 @@ window.LightlySphere=(function(){
     var dw=function(c){ return zh?'天':(c===1?'day':'days'); };
     var line=nx?(zh?'还差 '+left+' 天，达成 '+nx+' 天连续':left+' '+dw(left)+' to your '+nx+'-day streak'):(zh?'所有连续记录里程碑都已达成':'Every streak milestone reached');
     var sub=st?(zh?'继续保持，每天一次断食。':'Keep going. One fast a day.'):(zh?'完成一次断食，开启你的连续记录。':'Finish a fast to start your streak.');
-    $('dyHead').innerHTML='<div class="mhero"><div class="ring" role="img" aria-label="'+(zh?'当前连续 '+st+' 天':'Current streak: '+st+' '+dw(st))+'"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rt" cx="60" cy="60" r="'+R+'"/><circle class="rp" cx="60" cy="60" r="'+R+'" style="--cir:'+CIR.toFixed(1)+'" stroke-dasharray="'+CIR.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rn"><b>'+st+'</b><span>'+(zh?'天连续':'day streak')+'</span></div></div><div class="mtx"><b>'+line+'</b><small>'+sub+'</small>'+(rec?'<span class="rec"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z"/></svg>'+(zh?'你的最长连续':'Your longest streak')+'</span>':'')+'</div></div><div class="mrow"><div><b>'+best+'</b><span>'+(zh?'最长连续':'Longest streak')+'</span></div><div><b>'+total+'</b><span>'+(zh?'已完成的断食':'Fasts completed')+'</span></div></div><div class="mchips">'+MI.map(function(v){ return '<span class="mchip'+(v<=best?' on':'')+'">'+v+'</span>'; }).join('')+'</div>';
-    $('dyCal').innerHTML=h; var mn=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long',year:'numeric'}).format(md);
+    $('dyHead').innerHTML='<div class="mhero"><div class="ring" role="img" aria-label="'+(zh?'当前连续 '+st+' 天':'Current streak: '+st+' '+dw(st))+'"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rt" cx="60" cy="60" r="'+R+'"/><circle class="rp'+(dyPlay?' play':'')+'" cx="60" cy="60" r="'+R+'" style="--cir:'+CIR.toFixed(1)+'" stroke-dasharray="'+CIR.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rn"><b>'+st+'</b><span>'+(zh?'天连续':'day streak')+'</span></div></div><div class="mtx"><b>'+line+'</b><small>'+sub+'</small>'+(rec?'<span class="rec"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z"/></svg>'+(zh?'你的最长连续':'Your longest streak')+'</span>':'')+'</div></div><div class="mrow"><div><b>'+best+'</b><span>'+(zh?'最长连续':'Longest streak')+'</span></div><div><b>'+total+'</b><span>'+(zh?'已完成的断食':'Fasts completed')+'</span></div></div><div class="mchips">'+MI.map(function(v){ return '<span class="mchip'+(v<=best?' on':'')+'">'+v+'</span>'; }).join('')+'</div>';
+    $('dyCal').innerHTML=h; dyPlay=false; var mn=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long',year:'numeric'}).format(md);
     $('dyMonth').innerHTML=mn+'<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg>';
     $('dyPrev').disabled=dyOff>=DY_BACK; $('dyNext').disabled=dyOff<=0; $('dyPrev').setAttribute('aria-label',zh?'上个月':'Previous month'); $('dyNext').setAttribute('aria-label',zh?'下个月':'Next month');
     $('dyKey').textContent=zh?'实心：完成。圆环：提前结束。虚线：弹性日。点线：休息。点一天可以编辑或补记（这是示例）。':'Filled: done. Ring: ended early. Dashed: cheat day. Dotted: time off. In the app you tap a day to edit or add a fast. This is sample data.';
-    $('dyAdd').textContent=zh?'补记一次断食':'Add a fast';
     if(dir&&!reduce&&$('dyCal').animate) $('dyCal').animate([{transform:'translateX('+(dir*44)+'px)',opacity:0},{transform:'none',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'}); }
-  function dyGo(o,dir){ dyOff=Math.max(0,Math.min(DY_BACK,o)); daysRender(dir); }
+  function dyGo(o,dir,x0){ if(dyEnd) dyEnd(); var og=$('dyCal'), v=$('dyV'), oldHtml=og.innerHTML; dyOff=Math.max(0,Math.min(DY_BACK,o)); daysRender(); var newHtml=og.innerHTML;
+    if(!dir||reduce||!og.animate) return; og.innerHTML=oldHtml; x0=x0||0;
+    var ng=og.cloneNode(false); ng.removeAttribute('id'); ng.innerHTML=newHtml; ng.classList.add('in'); v.appendChild(ng);
+    var w=v.offsetWidth, h0=og.offsetHeight, h1=ng.offsetHeight, op={duration:520,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'};
+    v.style.height=h0+'px'; var a1=og.animate([{transform:'translateX('+x0+'px)',opacity:Math.max(.5,1-Math.abs(x0)/260)},{transform:'translateX('+(-dir*w*.5)+'px)',opacity:0}],op), a2=ng.animate([{transform:'translateX('+(dir*w*.5+x0)+'px)',opacity:0},{transform:'none',opacity:1}],op), a3=v.animate([{height:h0+'px'},{height:h1+'px'}],op), fin=false;
+    dyEnd=function(){ if(fin) return; fin=true; dyEnd=null; [a1,a2,a3].forEach(function(a){ try{ a.cancel(); }catch(e){} }); og.innerHTML=newHtml; ng.remove(); v.style.height=''; };
+    a2.finished.then(function(){ if(dyEnd) dyEnd(); }).catch(function(){}); }
+  function fabSync(){ $('dyFab').classList.toggle('on',dySel!==null); $('dyFab').setAttribute('aria-hidden',dySel===null); $('dyFab').tabIndex=dySel===null?-1:0; $('dyFab').setAttribute('aria-label',api.lang()==='zh'?'编辑这天的断食':'Edit this day’s fast'); }
+  $('dyCal').addEventListener('click',function(e){ var b=e.target.closest('button[data-d]'); if(!b||performance.now()-dyGone<350||b.classList.contains('fut')) return; dySel=[dyOff,+b.dataset.d]; [].forEach.call($('dyCal').querySelectorAll('button'),function(x){ x.classList.toggle('sel',x===b); }); fabSync(); });
+  $('dyFab').addEventListener('click',function(){ impFrom=$('dyFab'); impOpen(true,3); });
+  var dyGone=0;
   function dyPopRender(){ var zh=api.lang()==='zh', md=dyMonthDate(dyOff), y=md.getFullYear(), now=new Date(), h='<h3>'+(zh?'跳到某个月':'Go to a month')+'</h3><p class="yr">'+y+'</p><div class="dy-pm">';
     for(var mm=0;mm<12;mm++){ var o=(now.getFullYear()*12+now.getMonth())-(y*12+mm), ok=o>=0&&o<=DY_BACK; h+='<button type="button" data-o="'+o+'"'+(ok?'':' disabled')+(o===dyOff?' class="on"':'')+'>'+new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:zh?'long':'short'}).format(new Date(y,mm,1))+(ok?'<i></i>':'')+'</button>'; }
     h+='</div><div class="acts"><button type="button" class="sec" data-this>'+(zh?'本月':'This month')+'</button><button type="button" class="pri" data-x>'+(zh?'完成':'Done')+'</button></div>'; $('dyPop').innerHTML=h; }
@@ -2101,10 +2117,10 @@ window.LightlySphere=(function(){
   $('dyPop').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b||b.disabled) return; if(b.hasAttribute('data-x')){ dyPop(false); return; } var o=b.hasAttribute('data-this')?0:+b.dataset.o; var d=o>dyOff?1:o<dyOff?-1:0; dyPop(false); dyGo(o,d); });
   $('dyPrev').addEventListener('click',function(){ dyGo(dyOff+1,-1); }); $('dyNext').addEventListener('click',function(){ dyGo(dyOff-1,1); });
   (function(){ var cal=$('dyCal'), x0=0,y0=0,dx=0,lt=0,lx=0,vx=0,on=false,live=false,gone=0;
-    cal.addEventListener('pointerdown',function(e){ if(e.pointerType==='mouse'&&e.button) return; x0=lx=e.clientX; y0=e.clientY; dx=0; vx=0; lt=performance.now(); on=true; live=false; });
+    cal.addEventListener('pointerdown',function(e){ if(e.pointerType==='mouse'&&e.button) return; if(dyEnd) dyEnd(); x0=lx=e.clientX; y0=e.clientY; dx=0; vx=0; lt=performance.now(); on=true; live=false; });
     cal.addEventListener('pointermove',function(e){ if(!on) return; var mx=e.clientX-x0, my=e.clientY-y0; if(!live){ if(Math.abs(mx)<10||Math.abs(mx)<Math.abs(my)*1.2){ if(Math.abs(my)>10) on=false; return; } live=true; try{ cal.setPointerCapture(e.pointerId); }catch(x){} cal.style.transition='none'; }
       var now=performance.now(); vx=.6*vx+.4*((e.clientX-lx)/Math.max(now-lt,1)); lx=e.clientX; lt=now; var blocked=(mx>0&&dyOff>=DY_BACK)||(mx<0&&dyOff<=0); dx=blocked?mx*.25:mx; cal.style.transform='translateX('+dx.toFixed(1)+'px)'; cal.style.opacity=(1-Math.min(Math.abs(dx)/260,.5)).toFixed(2); });
-    function end(){ if(!on) return; on=false; if(!live) return; live=false; gone=performance.now(); var dir=dx>0?-1:1, tgt=dyOff+(dx>0?1:-1), go=(Math.abs(dx)>60||Math.abs(vx)>.45)&&tgt>=0&&tgt<=DY_BACK; cal.style.transition=''; cal.style.transform=''; cal.style.opacity=''; if(go) dyGo(tgt,dx>0?-1:1); else if(!reduce&&cal.animate) cal.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'}); }
+    function end(){ if(!on) return; on=false; if(!live) return; live=false; dyGone=performance.now(); var tgt=dyOff+(dx>0?1:-1), go=(Math.abs(dx)>60||Math.abs(vx)>.45)&&tgt>=0&&tgt<=DY_BACK; cal.style.transition=''; cal.style.transform=''; cal.style.opacity=''; if(go) dyGo(tgt,dx>0?-1:1,dx); else if(!reduce&&cal.animate) cal.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'}); }
     cal.addEventListener('pointerup',end); cal.addEventListener('pointercancel',end); })();
   /* a shared sheet for Import and Edit times */
   function editHtml(){ var zh=api.lang()==='zh'; return '<div class="imp-sum"><div><span>'+(zh?'开始':'Started')+'</span><small>8:30 PM</small></div><div><span>'+(zh?'结束':'Ended')+'</span><small>12:30 PM</small></div><div><span>'+(zh?'目标（小时）':'Goal (hours)')+'</span><small>16</small></div></div><button type="button" class="imp-go" id="edSave">'+(zh?'保存':'Save')+'</button>'; }
@@ -2152,7 +2168,6 @@ window.LightlySphere=(function(){
   function impOpen(v,step){ if(v){ impStep=step||0; impRender(); } imp.classList.toggle('open',v); imp.setAttribute('aria-hidden',!v); isc.classList.toggle('on',v); if(v) $('impClose').focus({preventScroll:true}); else if(impFrom) impFrom.focus({preventScroll:true}); }
   var impFrom=null; $('meImp').addEventListener('click',function(){ impFrom=$('meImp'); impOpen(true); });
   $('ph').addEventListener('click',function(ev){ var e=document.elementsFromPoint(ev.clientX,ev.clientY).filter(function(x){ return x.id==='endA'||x.id==='endB'; })[0]; if(e&&!imp.classList.contains('open')){ impFrom=e; impOpen(true,3); } });
-  $('dyAdd').addEventListener('click',function(){ impFrom=$('dyAdd'); impOpen(true,3); });
   var infoT='', infoN=''; function info(t,n,from){ infoT=t; infoN=n; impFrom=from; impOpen(true,4); }
   $('meExp').addEventListener('click',function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$('meExp')); });
   $('meErase').addEventListener('click',function(){ info(L('Erase everything?','清除所有数据？'),L('In the app this deletes your fasts, streak and settings from the phone, after one more confirmation. Nothing happens in this demo.','在应用里，这会在再次确认后删除手机上的断食记录、连续天数和设置。这个演示里不会发生任何事。'),$('meErase')); });
@@ -2169,7 +2184,7 @@ window.LightlySphere=(function(){
     document.getElementById('tryFin').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(1)'); if(t) t.click(); setTimeout(function(){ var b=document.querySelector('#moments [data-go=finish]'); if(b) b.click(); },500); });
     document.getElementById('tryImp').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(4)'); if(t) t.click(); setTimeout(function(){ var m=document.getElementById('meImp'); if(m) m.click(); },500); }); })();
   function select(i){ ph.style.setProperty('--ti',i); tabs.forEach(function(t,k){ t.classList.toggle('sel',k===i); t.setAttribute('aria-selected',k===i); });
-    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ daysRender(); dsc.scrollTop=0; } var open=i===3; me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(open||dopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
+    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ dyPlay=true; daysRender(); dsc.scrollTop=0; } else { dySel=null; fabSync(); } var open=i===3; me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(open||dopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
   tabs.forEach(function(t,i){ t.setAttribute('role','tab'); t.tabIndex=0; if(i===2) t.title=L('Not in this demo','这个演示里没有');
     t.addEventListener('click',function(){ if(i===0||i===1||i===3) select(i); });
     t.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); t.click(); } }); });

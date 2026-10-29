@@ -28,7 +28,7 @@ window.__audit=function(scope){
     if(b.closest('.seg')||b.classList.contains('ob-back')||b.closest('.loc')||b.classList.contains('morelink')) { if(Math.abs(dy)>1.5) out.push(['label-vcentre',name(b),dy.toFixed(1)]); return; }
     if(Math.abs(dx)>1.5||Math.abs(dy)>1.5) out.push(['label-centre',name(b),dx.toFixed(1)+','+dy.toFixed(1)]); });
   // 4. clipped text
-  root.querySelectorAll('*').forEach(e=>{ if(!vis(e)||e.closest('svg')) return; const cs=getComputedStyle(e); if(e.scrollWidth>e.clientWidth+1&&cs.overflowX!=='visible'&&cs.overflowX!=='auto'&&e.tagName!=='SELECT'&&!e.classList.contains('tw')) out.push(['clipped-x',name(e),e.scrollWidth+'>'+e.clientWidth]); });
+  root.querySelectorAll('*').forEach(e=>{ if(!vis(e)||e.closest('svg')) return; const cs=getComputedStyle(e); if(e.scrollWidth>e.clientWidth+1&&cs.overflowX!=='visible'&&cs.overflowX!=='auto'&&e.tagName!=='SELECT'&&!e.classList.contains('tw')&&!e.classList.contains('fabwrap')&&!e.classList.contains('dy-fabw')) out.push(['clipped-x',name(e),e.scrollWidth+'>'+e.clientWidth]); });
   // 5. tap targets inside the phone mocks (HIG 44pt) and on the page (allow 32 for segmented/HIG small controls)
   root.querySelectorAll('button,a,select,[role=tab],[role=switch]').forEach(e=>{ if(!vis(e)) return; if(e.getAttribute('role')==='switch'||e.closest('p.src,p,li')&&e.tagName==='A') return; const r=e.getBoundingClientRect(); const inPh=!!e.closest('.ph'); const min=inPh?44:(e.closest('.seg')||e.tagName==='SELECT'||e.closest('.loc')||e.closest('.step')||e.tagName==='A'?28:44);
     if(e.closest('.tabs')||e.closest('.me-pick')) return; if(Math.min(r.height,Math.max(r.width,44))<min) out.push(['tap-size',name(e),r.width.toFixed(0)+'x'+r.height.toFixed(0)]); });

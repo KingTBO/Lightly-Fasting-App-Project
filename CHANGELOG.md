@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.27.0
+- **design** Swiping between months is smoother: the old month slides away while the new one slides in beside it, carrying the speed of your swipe, and the card eases to the new height. The streak ring no longer redraws every time you change month or tap a day.
+- **feature** Days has a round edit button at the bottom right. It slides in from the right once you tap a date: a pencil to change the fast on that day, or a plus to add one you forgot. It replaces the "Add a fast for this day" row under the calendar. The concept page matches.
+
 ## 0.26.0
 - **feature** Days: swipe the calendar. Swipe right for earlier months, left for later ones; it follows your finger and springs back at the first and last month.
 - **feature** Days: tap the month and year to open a floating picker over the blurred background, with a shortcut for every month and a year row. It appears only once you have more than one month of fasts, and only months with data can be chosen.
