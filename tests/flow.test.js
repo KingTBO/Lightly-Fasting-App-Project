@@ -82,6 +82,13 @@ const H=3600000,D=24*H;
  await q.click('#sheet .pm:not([disabled]):not(.on)');await q.waitForTimeout(600);assert.notStrictEqual(await q.textContent('#days .cal-t'),t0,'picker jumps to the month');
  const q2=await fresh(seed({planId:'16',fasts:fl.slice(0,3)}));await q2.click('#tabs [data-tab=days]');await q2.waitForTimeout(700);assert(!(await q2.$('#days .cal-t')),'no picker with one month of data');
  await q.context().close();await q2.context().close();ok('Days header, swipe, picker, no cheat row');}
+ // appearance: the sheet stays open, the whole app switches, the sheet shows the new choice
+ {const q=await fresh(seed({theme:'light'}));await q.click('#tabs [data-tab=me]');await q.click('#me [data-act=choice][data-k=theme]');await q.waitForTimeout(500);
+ await q.click('#sheet [data-act=pick][data-v=dark]');await q.waitForTimeout(900);
+ assert.strictEqual(await q.evaluate(()=>document.documentElement.getAttribute('data-theme')),'dark');assert(await q.$('#sheet.open'),'sheet stays open after choosing');assert(await q.$('#sheet .plan.sel[data-v=dark]'),'sheet shows the new choice');
+ assert.strictEqual(await q.evaluate(()=>getComputedStyle(document.body).getPropertyValue('color-scheme')||getComputedStyle(document.documentElement).colorScheme),'dark');
+ await q.click('#sheet [data-act=pick][data-v=light]');await q.waitForTimeout(900);assert.strictEqual(await q.evaluate(()=>document.documentElement.getAttribute('data-theme')),'light');assert(await q.$('#sheet.open'),'still open');
+ await q.click('#sheet [data-act=close]');await q.waitForTimeout(500);assert(!(await q.$('#sheet.open')),'closes only when asked');await q.context().close();ok('appearance switches in place and the sheet stays open');}
  // first timer: 16:8 locked with progress, opens after three completed 13 h fasts
  let q=await fresh(seed({fasts:fz(1,13)}));await q.click('#planBtn');
  assert(await q.$('.plan[data-id="16"][disabled]'),'16:8 locked');assert.match(await q.textContent('.plan[data-id="16"]'),/1 of 3 fasts of 13 h/);assert(await q.$('.plan[data-id="13"]:not([disabled])'));ok('first timer: only 13:11 open, 16:8 shows 1 of 3');
@@ -115,7 +122,7 @@ const H=3600000,D=24*H;
  q=await fresh(seed({}));await q.click('#tabs [data-tab=me]');await q.waitForTimeout(500);
  await q.evaluate(()=>{const e=document.getElementById('me');e.scrollTop=120;});await q.waitForTimeout(100);await q.evaluate(()=>{const e=document.getElementById('me');e.scrollTop=260;});await q.waitForTimeout(700);
  assert(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off')),'tabs hidden on scroll down');await q.waitForFunction(()=>getComputedStyle(document.getElementById('tabs')).visibility==='hidden',null,{timeout:4000});
- await q.evaluate(()=>{document.getElementById('me').scrollTop=200;});await q.waitForTimeout(700);assert(!(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off'))),'tabs return on scroll up');ok('tab bar hides on scroll down and returns on scroll up');
+ await q.evaluate(()=>{document.getElementById('me').scrollTop=200;});await q.waitForFunction(()=>!document.getElementById('ph').classList.contains('tabs-off'),null,{timeout:4000}).catch(()=>{});assert(!(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off'))),'tabs return on scroll up');ok('tab bar hides on scroll down and returns on scroll up');
  // finishing a fast that reached its goal plays the celebration; ending early does not
  {const q=await fresh(seed({cur:{start:Date.now()-14*H,goalH:13,planId:'13',reached:true}}));const bx=await q.locator('#act').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(2400);await q.mouse.up();await q.waitForTimeout(300);
   assert(await q.$('#cele'),'celebration plays');await q.waitForTimeout(3000);assert(!(await q.$('#cele')),'celebration cleans up');ok('goal reached plays the celebration and cleans up');}

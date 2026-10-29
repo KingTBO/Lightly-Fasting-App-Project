@@ -99,7 +99,7 @@ function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('on');
 var sheetEl=$('sheet'), scrim=$('scrim'), sheetOpen=false, sheetBack=null;
 var sheetFrom=null, BEHIND=['today','days','me','tabs','dayFab'];
 function setInert(v){ BEHIND.forEach(function(id){ var e=$(id); if(v) e.setAttribute('inert',''); else e.removeAttribute('inert'); }); }
-function openSheet(html,back,float){ if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
+function openSheet(html,back,float){ if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
 function closeSheet(){ if(!sheetOpen) return; sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
 /* drag the grabber: 1:1 with the finger, then project where the flick was going and dismiss or spring back */
@@ -697,7 +697,7 @@ function choiceLabel(k,v){ var o=CHOICES[k].opts.filter(function(x){return x[0]=
 function choiceSheet(k){
   var c=CHOICES[k], cur=c.cur(), h='<h3>'+L(c.title[0],c.title[1])+'</h3><div class="group">';
   c.opts.forEach(function(o){ h+='<button class="plan'+(o[0]===cur?' sel':'')+'" data-act="pick" data-k="'+k+'" data-v="'+o[0]+'"><span class="pn"><b>'+esc(cl(o[1]))+'</b>'+(o[2]?'<small>'+esc(cl(o[2]))+'</small>':'')+'</span>'+CHECK+'</button>'; });
-  openSheet(h+'</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
+  openSheet(h+'</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'); scrim.classList.toggle('peek',k==='theme');
 }
 function renderMe(){
   var zh=S.lang==='zh', h='';
@@ -720,6 +720,12 @@ function renderMe(){
   $('me').innerHTML=h;
 }
 function sw(k,label,on,dis){ return '<div class="row"><span>'+label+'</span><button class="sw" role="switch" aria-checked="'+!!on+'" aria-label="'+esc(label)+'" data-act="sw" data-k="'+k+'"'+(dis?' disabled':'')+'></button></div>'; }
+/* Light / Dark / Auto: the browser snapshots the screen and cross-fades to the new look in one piece, so nothing is half themed. Without that API, colours fade together for a moment. Still instant under Reduce Motion. */
+function switchTheme(fn){
+  if(reduce){ fn(); return; }
+  if(document.startViewTransition){ try{ document.startViewTransition(fn); return; }catch(e){} }
+  var r=document.documentElement; r.classList.add('theme-fade'); fn(); setTimeout(function(){ r.classList.remove('theme-fade'); },520);
+}
 function applyTheme(){ var r=document.documentElement; if(S.theme==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',S.theme); }
 function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'; tabLabels(); document.title=S.lang==='zh'?'轻伴':'Lightly'; }
 
@@ -878,8 +884,9 @@ var A={
   syncnow:function(){ syncNow(false); },
   lang:function(b){ S.lang=b.dataset.v; save(); applyLang(); cache={}; if(!$('ob').hidden){ obRefresh(); } else renderMe(); updateToday(); },
   choice:function(b){ choiceSheet(b.dataset.k); },
-  pick:function(b){ var f=A[b.dataset.k]; if(f) f(b); setTimeout(closeSheet,180); },
-  theme:function(b){ S.theme=b.dataset.v; save(); applyTheme(); renderMe(); },
+  pick:function(b){ var f=A[b.dataset.k]; if(f) f(b); if(b.dataset.k!=='theme') setTimeout(closeSheet,180); /* appearance stays open so you can see the change behind it */ },
+  theme:function(b){ S.theme=b.dataset.v; save(); switchTheme(function(){ applyTheme(); renderMe(); [].forEach.call(sheetEl.querySelectorAll('[data-act=pick][data-k=theme]'),function(x){ x.classList.toggle('sel',x.dataset.v===S.theme); });
+    var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',curTab==='today'?getComputedStyle(ph).getPropertyValue('--sky').trim():getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()); }); },
   sw:function(b){ var k=b.dataset.k, on=b.getAttribute('aria-checked')!=='true';
     if(k==='notify') return setNotify(on,function(){ if(!$('ob').hidden) obRefresh(); else renderMe(); });
     if(k==='ram'){ S.ramadanPreview=on; save(); return renderMe(); }

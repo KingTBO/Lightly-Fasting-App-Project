@@ -474,6 +474,15 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .dy-fab.on{transform:none;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}.dy-fab:active{transform:scale(.92)}
 .dy-fab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 @media (prefers-reduced-motion:reduce){.dy-fab{transition:opacity .2s ease,visibility 0s .2s;transform:none}.dy-fab.on{transition-delay:0s}}
+.thm{background:var(--bg);border-radius:14px;overflow:hidden;margin:0 0 14px}
+.thm button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:52px;padding:8px 16px;border:0;background:transparent;color:var(--label);text-align:left;font:500 17px var(--font);cursor:pointer}
+.thm button+button{border-top:.5px solid var(--sep)}
+.thm small{display:block;font:400 13px var(--font);color:var(--label-2)}
+.thm svg{width:22px;height:22px;fill:none;stroke:var(--tint);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.thm .sel svg{opacity:1}
+#iScrim.peek{background:rgba(0,0,0,.12)}#iScrim.peek.on{-webkit-backdrop-filter:none;backdrop-filter:none}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.5s;animation-timing-function:ease}
+.theme-fade,.theme-fade *{transition:background-color .45s ease,color .45s ease,border-color .45s ease,fill .45s ease,stroke .45s ease,box-shadow .45s ease!important}
 .dy-key{font-size:13px;color:var(--label-2);margin:10px 4px 14px}
 .ph[data-ts=a] .read .big{font:600 52px/1.05 var(--font-r);letter-spacing:-.02em}.ph[data-ts=a] .read .big .co{opacity:.5;width:.3em}
 .me-h{font:400 13px var(--font);color:var(--label-2);text-transform:uppercase;letter-spacing:.02em;margin:22px 16px 8px}
@@ -2074,9 +2083,9 @@ window.LightlySphere=(function(){
   function meRows(){ var zh=api.lang()==='zh';
     function v(id,t){ var e=$(id+'V'); if(e) e.textContent=t; }
     v('meUnwell',off?(off.kind==='travel'?(zh?'旅行中':'Travelling'):(zh?'休养中':'Resting')):''); v('meWhere',zh?'上海':'Shanghai'); v('meUsual','8:00 PM'); v('meCheat',zh?'还剩 1 个':'1 left');
-    v('meLang',zh?'中文':'English'); v('meApp',zh?'自动':'Auto'); v('meTs',(ph.dataset.ts==='a')?(zh?'经典':'Classic'):(zh?'大字':'Hero')); v('meSnd',zh?'开':'On'); v('meRem',zh?'开':'On'); }
+    v('meLang',zh?'中文':'English'); v('meApp',thmLabel()); v('meTs',(ph.dataset.ts==='a')?(zh?'经典':'Classic'):(zh?'大字':'Hero')); v('meSnd',zh?'开':'On'); v('meRem',zh?'开':'On'); }
   [['meCheat',function(){ $('streak').click(); }],['meLang',function(){ $(api.lang()==='zh'?'l-en':'l-zh').click(); }],
-   ['meTs',function(){ ph.dataset.ts=ph.dataset.ts==='a'?'b':'a'; meRows(); }]].forEach(function(r){ var e=$(r[0]); e.addEventListener('click',r[1]); e.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); r[1](); } }); });
+   ['meApp',function(){ impFrom=$('meApp'); impOpen(true,8); }],['meTs',function(){ ph.dataset.ts=ph.dataset.ts==='a'?'b':'a'; meRows(); }]].forEach(function(r){ var e=$(r[0]); e.addEventListener('click',r[1]); e.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); r[1](); } }); });
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(meRows,0); }); });
   /* Days: a month of sample fasts */
   /* Days: milestone ring, a swipeable month (sample data), and a month picker over a blurred backdrop */
@@ -2149,7 +2158,18 @@ window.LightlySphere=(function(){
     go('offM',function(){ offDays=Math.max(1,offDays-1); offSync(); }); go('offP',function(){ offDays=Math.min(14,offDays+1); offSync(); });
     go('offGoT',function(){ off={kind:'travel',days:offDays}; offBar(); meRows(); impOpen(false); }); go('offGoU',function(){ off={kind:'unwell',days:14}; offBar(); meRows(); impOpen(false); });
     go('offEnd',function(){ off=null; offBar(); meRows(); impOpen(false); }); go('offKeep',function(){ impOpen(false); }); }
+  /* Appearance: the whole page cross-fades between looks, and the sheet stays open so the change can be seen behind it */
+  var thm=(function(){ try{ return localStorage.getItem('lightly-theme')||'auto'; }catch(e){ return 'auto'; } })();
+  function applyThm(){ var r=document.documentElement; if(thm==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',thm); }
+  function thmLabel(){ var zh=api.lang()==='zh'; return thm==='auto'?(zh?'自动':'Auto'):thm==='light'?(zh?'浅色':'Light'):(zh?'深色':'Dark'); }
+  function thmSwitch(fn){ if(reduce){ fn(); return; } if(document.startViewTransition){ try{ document.startViewTransition(fn); return; }catch(e){} } var r=document.documentElement; r.classList.add('theme-fade'); fn(); setTimeout(function(){ r.classList.remove('theme-fade'); },520); }
+  applyThm();
+  function themeRender(){ var zh=api.lang()==='zh', o=[['auto',zh?'自动':'Auto',zh?'跟随手机':'Follows your phone'],['light',zh?'浅色':'Light',''],['dark',zh?'深色':'Dark','']];
+    $('impTitle').textContent=zh?'外观':'Appearance'; $('impNote').textContent=''; $('impBody').innerHTML='<div class="thm" role="radiogroup">'+o.map(function(x){ return '<button type="button" role="radio" aria-checked="'+(thm===x[0])+'" class="'+(thm===x[0]?'sel':'')+'" data-t="'+x[0]+'"><span><b>'+x[1]+'</b>'+(x[2]?'<small>'+x[2]+'</small>':'')+'</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>'; }).join('')+'</div><button type="button" class="imp-go" id="thmOk">'+(zh?'完成':'Done')+'</button>';
+    [].forEach.call($('impBody').querySelectorAll('.thm button'),function(bn){ bn.onclick=function(){ thm=bn.dataset.t; try{ localStorage.setItem('lightly-theme',thm); }catch(e){} thmSwitch(function(){ applyThm(); [].forEach.call($('impBody').querySelectorAll('.thm button'),function(x){ var on=x.dataset.t===thm; x.classList.toggle('sel',on); x.setAttribute('aria-checked',on); }); meRows(); }); }; });
+    $('thmOk').onclick=function(){ impOpen(false); }; isc.classList.add('peek'); }
   function impRender(){
+    if(impStep===8){ themeRender(); return; }
     if(impStep>=5){ offRender(); return; }
     if(impStep===4){ $('impTitle').textContent=infoT; $('impNote').textContent=infoN; $('impBody').innerHTML='<button type="button" class="imp-go" id="infoOk">'+L('Done','完成')+'</button>'; $('infoOk').onclick=function(){ impOpen(false); }; return; }
     if(impStep===3){ $('impTitle').textContent=L('Edit times','修改时间'); $('impNote').textContent=L('Fix a start or end time, or add one you forgot to log. In the app these are time pickers.','修改开始或结束时间，或补上忘记记录的一次。在应用里这些是时间选择器。'); $('impBody').innerHTML=editHtml(); $('edSave').onclick=function(){ impOpen(false); }; return; }
@@ -2165,7 +2185,7 @@ window.LightlySphere=(function(){
     if((b=$('impGo'))) b.onclick=function(){ impStep=2; impRender(); };
     if((b=$('impBack'))) b.onclick=function(){ impStep=0; impRender(); };
     if((b=$('impDone'))) b.onclick=function(){ impOpen(false); }; }
-  function impOpen(v,step){ if(v){ impStep=step||0; impRender(); } imp.classList.toggle('open',v); imp.setAttribute('aria-hidden',!v); isc.classList.toggle('on',v); if(v) $('impClose').focus({preventScroll:true}); else if(impFrom) impFrom.focus({preventScroll:true}); }
+  function impOpen(v,step){ isc.classList.remove('peek'); if(v){ impStep=step||0; impRender(); } imp.classList.toggle('open',v); imp.setAttribute('aria-hidden',!v); isc.classList.toggle('on',v); if(v) $('impClose').focus({preventScroll:true}); else if(impFrom) impFrom.focus({preventScroll:true}); }
   var impFrom=null; $('meImp').addEventListener('click',function(){ impFrom=$('meImp'); impOpen(true); });
   $('ph').addEventListener('click',function(ev){ var e=document.elementsFromPoint(ev.clientX,ev.clientY).filter(function(x){ return x.id==='endA'||x.id==='endB'; })[0]; if(e&&!imp.classList.contains('open')){ impFrom=e; impOpen(true,3); } });
   var infoT='', infoN=''; function info(t,n,from){ infoT=t; infoN=n; impFrom=from; impOpen(true,4); }

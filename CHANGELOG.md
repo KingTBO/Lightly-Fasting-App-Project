@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.28.2
+- **fix** Switching Appearance (Auto, Light, Dark) now fades the whole screen smoothly in one piece. Before, some parts changed instantly and others slowly, so it looked half-switched. With Reduce Motion it changes instantly.
+- **design** The Appearance sheet now stays open after you choose, with a light dim and no blur, so you can see the change behind it. Close it with Done. The concept page's Appearance row now works the same way.
+
 ## 0.28.1
 - **chore** The alignment checks are much faster: they now run a quick sweep by default (about 1 minute instead of 15 or more), run in parallel, and can be limited to some screens. The full sweep is still there with `--full`, for big layout changes and bigger releases. RELEASING.md says when to use which.
 
