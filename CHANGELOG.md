@@ -4,6 +4,13 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.20.0
+- **design** The app now has one accent: the sun yellow. The selected tab, links, back buttons, calendar arrows, check marks and tick boxes no longer use system blue. In light mode links and the selected tab use dark ink and a deep amber, because yellow text is too faint on white.
+- **design** On Today the stars no longer run through the time and the sentences under the moon, and they no longer show across the moon itself. Secondary text on the night sky is a little brighter.
+- **design** The floating tab bar has a plainer selected pill, slightly larger labels (larger still in Chinese), and content now fades out under it instead of being cut off.
+- **design** Me: Usual start time shows "Not set" like any other row until you choose a time, instead of a blank browser time field. The Timer style row is gone (the large light numerals stay).
+- **copy** Locked plans in onboarding say "After 3 fasts" instead of "Opens as you go".
+
 ## 0.19.4
 - **chore** (this change) Added `scripts/tag-history.sh`, which creates the version tags for the past changes. The tags could not be pushed from the automated session, so they need to be pushed once from a normal clone.
 

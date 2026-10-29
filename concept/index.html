@@ -158,14 +158,14 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .tabs>span>span{display:block}
 .tabs>span.sel{color:var(--tabsel)}
 .tabs>span{position:relative;z-index:1;transition:color .3s ease}
-.ph{--tabsel:var(--blue)}
-.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:#5AAEFF}
-.ph[data-sky="dawn"],.ph[data-sky="morning"],.ph[data-sky="day"],.ph[data-sky="sunset"]{--tabsel:#0058C8}
-.ph[data-me]{--tabsel:var(--blue)}
-.tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/4);border-radius:999px;background:color-mix(in srgb,var(--tabsel) 18%,transparent);box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--tabsel) 40%,transparent);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s cubic-bezier(.2,1,.3,1),background .3s ease;will-change:transform;pointer-events:none}
+.ph{--tabsel:var(--tint);--tabfill:color-mix(in srgb,var(--tint) 24%,transparent)}
+.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:var(--tint)}
+.ph[data-sky="dawn"],.ph[data-sky="morning"],.ph[data-sky="day"],.ph[data-sky="sunset"]{--tabsel:#1C1C1E;--tabfill:rgba(255,255,255,.55)}
+.ph[data-me]{--tabsel:var(--label);--tabfill:color-mix(in srgb,var(--tint) 40%,transparent)}
+.tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/4);border-radius:999px;background:var(--tabfill);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s cubic-bezier(.2,1,.3,1),background .3s ease;will-change:transform;pointer-events:none}
 @supports (transition-timing-function:linear(0,1)){.tab-ind{transition-timing-function:linear(0,.18 6%,.52 13%,.82 21%,1.03 30%,1.07 38%,1.04 46%,1.01 56%,.995 70%,1),ease}}
 @media (prefers-reduced-motion:reduce){.tab-ind{transition:background .2s}}
-@media (prefers-contrast:more){.tab-ind{background:color-mix(in srgb,var(--tabsel) 30%,transparent);box-shadow:inset 0 0 0 1.5px var(--tabsel)}}
+@media (prefers-contrast:more){.tab-ind{background:var(--tabfill);box-shadow:inset 0 0 0 1.5px var(--tabsel)}}
 .tabs svg{width:24px;height:24px;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .tabs .sel svg{stroke-width:2.1}
 .home{position:absolute;bottom:8px;left:50%;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--ink);opacity:.85}
