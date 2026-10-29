@@ -445,6 +445,28 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .dy-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:var(--card);border-radius:14px;padding:10px 8px}.dy-cal i{font-style:normal;font-size:11px;color:var(--label-2);text-align:center;padding-bottom:4px}
 .dy-cal button{aspect-ratio:1;min-height:36px;border:0;background:transparent;border-radius:50%;font:500 14px var(--font);color:var(--label);display:grid;place-items:center;position:relative;cursor:default}
 .dy-cal button.done{background:var(--label);color:var(--card)}.dy-cal button.early{box-shadow:inset 0 0 0 2px var(--label-2)}.dy-cal button.flex{box-shadow:inset 0 0 0 2px var(--label-2);border-radius:50%;outline:1.5px dashed var(--label-2);outline-offset:-3px;box-shadow:none}.dy-cal button.today{box-shadow:0 0 0 2px var(--tint)}.dy-cal button.fut{color:var(--label-3)}
+.mile{background:var(--card);border-radius:14px;margin-top:10px;overflow:hidden}
+.mhero{display:flex;align-items:center;gap:16px;padding:18px 16px 8px}
+.ring{position:relative;width:112px;height:112px;flex:none}.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9;stroke-linecap:round}.ring .rt{stroke:var(--fill-2)}.ring .rp{stroke:var(--tint);animation:ringIn .9s cubic-bezier(.2,.9,.3,1.1) both}
+@keyframes ringIn{from{stroke-dashoffset:var(--cir)}}
+.rn{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.rn b{font:700 40px/1 var(--font-r);font-variant-numeric:tabular-nums}.rn span{font:500 12px var(--font);color:var(--label-2);margin-top:2px}
+.mtx{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}.mtx b{font:600 17px/1.25 var(--font)}.mtx small{font:400 14px/1.35 var(--font);color:var(--label-2)}
+.rec{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px 4px 8px;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 12px var(--font);animation:recPop .6s cubic-bezier(.2,.9,.3,1.2) .5s both}.rec svg{width:13px;height:13px;fill:currentColor}
+@keyframes recPop{from{transform:scale(.6);opacity:0}}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 16px 4px}.mrow div{background:var(--fill);border-radius:14px;padding:10px 12px}.mrow b{display:block;font:700 24px/1.1 var(--font-r);font-variant-numeric:tabular-nums}.mrow span{font:500 13px var(--font);color:var(--label-2)}
+.mchips{display:flex;gap:8px;padding:10px 16px 16px}.mchip{flex:1;min-height:32px;border-radius:999px;display:grid;place-items:center;font:600 13px var(--font-r);border:1.5px dashed var(--label-3);color:var(--label-2)}.mchip.on{background:var(--tint);color:var(--on-tint);border-color:transparent}
+.dy-th{display:flex;align-items:center;justify-content:space-between;margin:12px 0 4px}
+.dy-ar{width:44px;height:44px;border:0;background:transparent;color:var(--blue);display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer}.dy-ar:disabled{opacity:.25;cursor:default}.dy-ar svg{width:10px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.dy-t{min-height:44px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--label);font:600 17px var(--font);display:inline-flex;align-items:center;gap:6px;cursor:pointer}.dy-t svg{width:11px;height:8px;stroke:var(--blue);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.dy-cal{touch-action:pan-y}
+.dy-pop{position:absolute;left:16px;right:16px;top:50%;z-index:6;background:var(--card);border-radius:28px;padding:22px 0 16px;box-shadow:0 24px 64px rgba(0,0,0,.28);transform:translateY(-46%) scale(.94);opacity:0;visibility:hidden;transition:transform .45s cubic-bezier(.16,1,.3,1),opacity .25s ease,visibility 0s .45s}
+.dy-pop.open{transform:translateY(-50%);opacity:1;visibility:visible;transition-delay:0s}
+.dy-pop h3{font:700 22px/1.2 var(--font);padding:0 16px 4px}.dy-pop .yr{font:400 15px var(--font);color:var(--label-2);padding:0 16px 12px}
+.dy-pm{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:2px 16px 14px}.dy-pm button{position:relative;min-height:48px;border:0;border-radius:14px;background:var(--fill);color:var(--label);font:500 16px var(--font);cursor:pointer}.dy-pm button:disabled{opacity:.3;cursor:default}.dy-pm button.on{background:var(--tint);color:var(--on-tint);font-weight:600}.dy-pm i{position:absolute;bottom:6px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:currentColor;opacity:.55}
+.dy-pop .acts{display:grid;gap:10px;padding:0 16px}.dy-pop .acts button{min-height:50px;border:0;border-radius:999px;font:600 17px var(--font);cursor:pointer}.dy-pop .acts .sec{background:var(--fill);color:var(--label)}.dy-pop .acts .pri{background:var(--tint);color:var(--on-tint)}
+#dScrim{transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}#dScrim.on{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;-webkit-backdrop-filter:blur(4px) saturate(1.05);backdrop-filter:blur(4px) saturate(1.05)}
+@media (prefers-reduced-motion:reduce){.ring .rp,.rec{animation:none}.dy-pop{transition:opacity .2s ease,visibility 0s .2s;transform:translateY(-50%)}}
 .dy-key{font-size:13px;color:var(--label-2);margin:10px 4px 14px}
 .ph[data-ts=a] .read .big{font:600 52px/1.05 var(--font-r);letter-spacing:-.02em}.ph[data-ts=a] .read .big .co{opacity:.5;width:.3em}
 .me-h{font:400 13px var(--font);color:var(--label-2);text-transform:uppercase;letter-spacing:.02em;margin:22px 16px 8px}
@@ -698,12 +720,14 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <div class="ps-scroll"><div id="impBody"></div></div>
       </div>
       <div class="me" id="daysScr" aria-hidden="true" aria-label="Days">
-        <div class="dy-sum"><div><b id="dyStreak">0</b><span data-zh="天连续">day streak</span></div><div><b id="dyBest">0</b><span data-zh="最长纪录">best</span></div><div><b id="dyTotal">0</b><span data-zh="次完成">fasts done</span></div></div>
-        <p class="me-h" id="dyMonth"></p>
+        <div class="mile" id="dyHead"></div>
+        <div class="dy-th"><button type="button" class="dy-ar" id="dyPrev" aria-label="Previous month"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button><button type="button" class="dy-t" id="dyMonth" aria-haspopup="dialog"></button><button type="button" class="dy-ar" id="dyNext" aria-label="Next month"><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>
         <div class="dy-cal" id="dyCal"></div>
         <p class="dy-key" id="dyKey"></p>
         <button type="button" class="try" id="dyAdd" data-zh="补记一次断食">Add a fast</button>
       </div>
+      <div class="scrim" id="dScrim"></div>
+      <div class="dy-pop" id="dyPop" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Go to a month"></div>
       <div class="me" id="meScr" aria-hidden="true" aria-label="Me">
         <div class="me-card">
           <span class="me-av" id="meAv"></span>
@@ -2048,13 +2072,40 @@ window.LightlySphere=(function(){
    ['meTs',function(){ ph.dataset.ts=ph.dataset.ts==='a'?'b':'a'; meRows(); }]].forEach(function(r){ var e=$(r[0]); e.addEventListener('click',r[1]); e.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); r[1](); } }); });
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(meRows,0); }); });
   /* Days: a month of sample fasts */
-  function daysRender(){ var zh=api.lang()==='zh', d=new Date(), y=d.getFullYear(), m=d.getMonth(), today=d.getDate(), first=new Date(y,m,1).getDay(), n=new Date(y,m+1,0).getDate(), h='';
+  /* Days: milestone ring, a swipeable month (sample data), and a month picker over a blurred backdrop */
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches, dyOff=0, DY_BACK=3;
+  function dyMonthDate(o){ var d=new Date(); return new Date(d.getFullYear(),d.getMonth()-o,1); }
+  function daysRender(dir){ var zh=api.lang()==='zh', now=new Date(), md=dyMonthDate(dyOff), y=md.getFullYear(), m=md.getMonth(), isNow=dyOff===0, today=isNow?now.getDate():99, first=md.getDay(), n=new Date(y,m+1,0).getDate(), h='';
     ['S','M','T','W','T','F','S'].forEach(function(w){ h+='<i>'+w+'</i>'; }); for(var k=0;k<first;k++) h+='<span></span>';
-    var done=0, st=0; for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=(i%9===4)?'early':(i%11===6)?'flex':(i===today-2&&i>0&&today>3)?'off':'done'; if(c==='done') done++; } else if(i===today) c='today'; if(c==='done') st++; else if(c==='early'||c==='flex'||c==='off') st=(c==='flex'||c==='off')?st:0; h+='<button type="button" class="'+c+'" tabindex="-1" aria-label="'+i+'">'+i+'</button>'; }
-    $('dyCal').innerHTML=h; $('dyMonth').textContent=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long',year:'numeric'}).format(d);
-    $('dyStreak').textContent=Math.min(st,today); $('dyBest').textContent=Math.max(st,12); $('dyTotal').textContent=done+31;
+    for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=((i+dyOff)%9===4)?'early':((i+dyOff)%11===6)?'flex':(isNow&&i===today-2&&today>3)?'off':'done'; } else if(i===today) c='today'; h+='<button type="button" class="'+c+'" tabindex="-1" aria-label="'+i+'">'+i+'</button>'; }
+    /* the header always shows the sample streak for today */
+    var nd=now.getDate(), st=0, done=0; for(var j=1;j<nd;j++){ var cc=(j%9===4)?'early':(j%11===6)?'flex':(j===nd-2&&nd>3)?'off':'done'; if(cc==='done'){ st++; done++; } else if(cc==='early') st=0; } st=Math.min(st,nd); var best=Math.max(st,12), total=done+31;
+    var MI=[3,7,14,30,60,100], nx=0, pv=0; MI.forEach(function(v){ if(v<=st) pv=v; }); for(var q=0;q<MI.length;q++) if(MI[q]>st){ nx=MI[q]; break; }
+    var R=52, CIR=2*Math.PI*R, frac=nx?(st-pv)/(nx-pv):1, off=CIR*(1-Math.max(0,Math.min(1,frac))), left=nx-st, rec=st>=3&&st>=best;
+    var dw=function(c){ return zh?'天':(c===1?'day':'days'); };
+    var line=nx?(zh?'还差 '+left+' 天，达成 '+nx+' 天连续':left+' '+dw(left)+' to your '+nx+'-day streak'):(zh?'所有连续记录里程碑都已达成':'Every streak milestone reached');
+    var sub=st?(zh?'继续保持，每天一次断食。':'Keep going. One fast a day.'):(zh?'完成一次断食，开启你的连续记录。':'Finish a fast to start your streak.');
+    $('dyHead').innerHTML='<div class="mhero"><div class="ring" role="img" aria-label="'+(zh?'当前连续 '+st+' 天':'Current streak: '+st+' '+dw(st))+'"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rt" cx="60" cy="60" r="'+R+'"/><circle class="rp" cx="60" cy="60" r="'+R+'" style="--cir:'+CIR.toFixed(1)+'" stroke-dasharray="'+CIR.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rn"><b>'+st+'</b><span>'+(zh?'天连续':'day streak')+'</span></div></div><div class="mtx"><b>'+line+'</b><small>'+sub+'</small>'+(rec?'<span class="rec"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z"/></svg>'+(zh?'你的最长连续':'Your longest streak')+'</span>':'')+'</div></div><div class="mrow"><div><b>'+best+'</b><span>'+(zh?'最长连续':'Longest streak')+'</span></div><div><b>'+total+'</b><span>'+(zh?'已完成的断食':'Fasts completed')+'</span></div></div><div class="mchips">'+MI.map(function(v){ return '<span class="mchip'+(v<=best?' on':'')+'">'+v+'</span>'; }).join('')+'</div>';
+    $('dyCal').innerHTML=h; var mn=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long',year:'numeric'}).format(md);
+    $('dyMonth').innerHTML=mn+'<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg>';
+    $('dyPrev').disabled=dyOff>=DY_BACK; $('dyNext').disabled=dyOff<=0; $('dyPrev').setAttribute('aria-label',zh?'上个月':'Previous month'); $('dyNext').setAttribute('aria-label',zh?'下个月':'Next month');
     $('dyKey').textContent=zh?'实心：完成。圆环：提前结束。虚线：弹性日。点线：休息。点一天可以编辑或补记（这是示例）。':'Filled: done. Ring: ended early. Dashed: cheat day. Dotted: time off. In the app you tap a day to edit or add a fast. This is sample data.';
-    $('dyAdd').textContent=zh?'补记一次断食':'Add a fast'; }
+    $('dyAdd').textContent=zh?'补记一次断食':'Add a fast';
+    if(dir&&!reduce&&$('dyCal').animate) $('dyCal').animate([{transform:'translateX('+(dir*44)+'px)',opacity:0},{transform:'none',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'}); }
+  function dyGo(o,dir){ dyOff=Math.max(0,Math.min(DY_BACK,o)); daysRender(dir); }
+  function dyPopRender(){ var zh=api.lang()==='zh', md=dyMonthDate(dyOff), y=md.getFullYear(), now=new Date(), h='<h3>'+(zh?'跳到某个月':'Go to a month')+'</h3><p class="yr">'+y+'</p><div class="dy-pm">';
+    for(var mm=0;mm<12;mm++){ var o=(now.getFullYear()*12+now.getMonth())-(y*12+mm), ok=o>=0&&o<=DY_BACK; h+='<button type="button" data-o="'+o+'"'+(ok?'':' disabled')+(o===dyOff?' class="on"':'')+'>'+new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:zh?'long':'short'}).format(new Date(y,mm,1))+(ok?'<i></i>':'')+'</button>'; }
+    h+='</div><div class="acts"><button type="button" class="sec" data-this>'+(zh?'本月':'This month')+'</button><button type="button" class="pri" data-x>'+(zh?'完成':'Done')+'</button></div>'; $('dyPop').innerHTML=h; }
+  function dyPop(open){ $('dyPop').classList.toggle('open',open); $('dyPop').setAttribute('aria-hidden',!open); $('dScrim').classList.toggle('on',open); if(open) dyPopRender(); }
+  $('dyMonth').addEventListener('click',function(){ dyPop(true); }); $('dScrim').addEventListener('click',function(){ dyPop(false); });
+  $('dyPop').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b||b.disabled) return; if(b.hasAttribute('data-x')){ dyPop(false); return; } var o=b.hasAttribute('data-this')?0:+b.dataset.o; var d=o>dyOff?1:o<dyOff?-1:0; dyPop(false); dyGo(o,d); });
+  $('dyPrev').addEventListener('click',function(){ dyGo(dyOff+1,-1); }); $('dyNext').addEventListener('click',function(){ dyGo(dyOff-1,1); });
+  (function(){ var cal=$('dyCal'), x0=0,y0=0,dx=0,lt=0,lx=0,vx=0,on=false,live=false,gone=0;
+    cal.addEventListener('pointerdown',function(e){ if(e.pointerType==='mouse'&&e.button) return; x0=lx=e.clientX; y0=e.clientY; dx=0; vx=0; lt=performance.now(); on=true; live=false; });
+    cal.addEventListener('pointermove',function(e){ if(!on) return; var mx=e.clientX-x0, my=e.clientY-y0; if(!live){ if(Math.abs(mx)<10||Math.abs(mx)<Math.abs(my)*1.2){ if(Math.abs(my)>10) on=false; return; } live=true; try{ cal.setPointerCapture(e.pointerId); }catch(x){} cal.style.transition='none'; }
+      var now=performance.now(); vx=.6*vx+.4*((e.clientX-lx)/Math.max(now-lt,1)); lx=e.clientX; lt=now; var blocked=(mx>0&&dyOff>=DY_BACK)||(mx<0&&dyOff<=0); dx=blocked?mx*.25:mx; cal.style.transform='translateX('+dx.toFixed(1)+'px)'; cal.style.opacity=(1-Math.min(Math.abs(dx)/260,.5)).toFixed(2); });
+    function end(){ if(!on) return; on=false; if(!live) return; live=false; gone=performance.now(); var dir=dx>0?-1:1, tgt=dyOff+(dx>0?1:-1), go=(Math.abs(dx)>60||Math.abs(vx)>.45)&&tgt>=0&&tgt<=DY_BACK; cal.style.transition=''; cal.style.transform=''; cal.style.opacity=''; if(go) dyGo(tgt,dx>0?-1:1); else if(!reduce&&cal.animate) cal.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'}); }
+    cal.addEventListener('pointerup',end); cal.addEventListener('pointercancel',end); })();
   /* a shared sheet for Import and Edit times */
   function editHtml(){ var zh=api.lang()==='zh'; return '<div class="imp-sum"><div><span>'+(zh?'开始':'Started')+'</span><small>8:30 PM</small></div><div><span>'+(zh?'结束':'Ended')+'</span><small>12:30 PM</small></div><div><span>'+(zh?'目标（小时）':'Goal (hours)')+'</span><small>16</small></div></div><button type="button" class="imp-go" id="edSave">'+(zh?'保存':'Save')+'</button>'; }
   /* ---------- import from another app: the real app reads the file on the phone; here the preview is a sample ---------- */

@@ -47,6 +47,7 @@ const H=3600000,D=24*H;
  await p.click('#days [data-act=add]');await p.click('[data-act=fssave]');await p.waitForTimeout(300);assert.strictEqual((await S()).fasts.length,1,'overlap refused');await p.click('#sheet [data-act=close]');
  await p.click('#days [data-act=edit]');await p.click('[data-act=fsdel]');await p.waitForTimeout(200);assert.strictEqual((await S()).fasts.length,0);ok('fasts can be added, deleted; overlaps refused');
  // cheat day: use today, then it is spent
+ await p.evaluate(()=>{document.getElementById('days').scrollTop=0});await p.waitForTimeout(700);
  await p.click('#tabs [data-tab=today]');await p.click('#streakBtn');await p.click('#sheet [data-act=usecheat]');await p.waitForTimeout(300);s=await S();
  assert.strictEqual(s.flex.used.length,1);ok('cheat day used');
  // language
@@ -63,6 +64,20 @@ const H=3600000,D=24*H;
  const seed=(o)=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{fastedBefore:false,safety:false},planId:'13',customH:16,place:{key:'shanghai'},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},ramadanPreview:false,startedAt:Date.now()-30*D,mod:1,del:[]},o);
  async function fresh(state){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));if(state)await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(state));await q.goto(url);await q.waitForTimeout(600);return q;}
  const fz=(n,h)=>Array.from({length:n},(_,i)=>({id:'f'+i+'-'+h,start:Date.now()-(i+2)*D,end:Date.now()-(i+2)*D+h*H,goalH:h,plan:String(h)}));
+ // Days: milestone header, swipe between months, month picker, no cheat row
+ {const old=Date.now()-75*D;const fl=Array.from({length:6},(_,i)=>({id:'dd'+i,start:Date.now()-(i+1)*D-16*H,end:Date.now()-(i+1)*D,goalH:16,plan:'16'})).concat([{id:'dold',start:old-16*H,end:old,goalH:16,plan:'16'}]);
+ const q=await fresh(seed({planId:'16',fasts:fl}));await q.click('#tabs [data-tab=days]');await q.waitForTimeout(900);
+ assert.match(await q.textContent('#days .mile'),/Longest streak/);assert.match(await q.textContent('#days .mile'),/Fasts completed/);assert(!(await q.$('#days [data-act=usecheat]')),'no cheat row on Days');
+ const t0=await q.textContent('#days .cal-t');const g=await q.locator('#days .cal-g').boundingBox();
+ const sw=async(dx)=>{await q.mouse.move(g.x+200,g.y+100);await q.mouse.down();for(let i=1;i<=8;i++)await q.mouse.move(g.x+200+dx*i/8,g.y+100);await q.mouse.up();await q.waitForTimeout(700);};
+ await sw(-150);assert.strictEqual(await q.textContent('#days .cal-t'),t0,'no month after this one');
+ await sw(150);const t1=await q.textContent('#days .cal-t');assert.notStrictEqual(t1,t0,'swipe right goes back');
+ await sw(-150);assert.strictEqual(await q.textContent('#days .cal-t'),t0,'swipe left comes forward');
+ await q.click('#days .cal-t');await q.waitForTimeout(600);assert(await q.$('#sheet.float.open'),'picker opens as floating card');assert(await q.evaluate(()=>getComputedStyle(document.getElementById('scrim')).backdropFilter!=='none'),'blur behind picker');
+ const en=await q.evaluate(()=>[...document.querySelectorAll('#sheet .pm:not([disabled])')].length);assert(en>=3,'months with data are open');
+ await q.click('#sheet .pm:not([disabled]):not(.on)');await q.waitForTimeout(600);assert.notStrictEqual(await q.textContent('#days .cal-t'),t0,'picker jumps to the month');
+ const q2=await fresh(seed({planId:'16',fasts:fl.slice(0,3)}));await q2.click('#tabs [data-tab=days]');await q2.waitForTimeout(700);assert(!(await q2.$('#days .cal-t')),'no picker with one month of data');
+ await q.context().close();await q2.context().close();ok('Days header, swipe, picker, no cheat row');}
  // first timer: 16:8 locked with progress, opens after three completed 13 h fasts
  let q=await fresh(seed({fasts:fz(1,13)}));await q.click('#planBtn');
  assert(await q.$('.plan[data-id="16"][disabled]'),'16:8 locked');assert.match(await q.textContent('.plan[data-id="16"]'),/1 of 3 fasts of 13 h/);assert(await q.$('.plan[data-id="13"]:not([disabled])'));ok('first timer: only 13:11 open, 16:8 shows 1 of 3');
