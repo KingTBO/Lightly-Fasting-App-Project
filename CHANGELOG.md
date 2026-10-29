@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.25.0
+- **design** The blur behind sheets is softer (6 px instead of 14 px), so the screen behind stays recognisable. The concept page matches.
+
 ## 0.24.0
 - **design** Sheets now blur what is behind them instead of only darkening it: plans, Time off, edit times, cheat days, import and the rest. The dim is lighter, and the blur fades in and out with the sheet, including while you drag it down. With Reduce Transparency on, or where blur is unsupported, you get a plain darker dim instead. The concept page matches.
 
