@@ -459,6 +459,13 @@ html:lang(zh-Hans) .me-h{text-transform:none}
 .imp-sum{background:var(--card);border-radius:14px;overflow:hidden;margin:0 0 14px}.imp-sum div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;min-height:48px;font-size:17px}.imp-sum div+div{border-top:.5px solid var(--sep)}.imp-sum small{font-size:15px;color:var(--label-2);text-align:right}
 .imp-go{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint,#fff);font:600 17px var(--font);cursor:pointer}.imp-go+.imp-go{margin-top:10px;background:var(--fill);color:var(--label)}.imp-go:disabled{opacity:.4}
 .me-list div[role=button]{cursor:pointer}
+.me{padding-top:62px}
+.offbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 16px 0;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--glass,rgba(255,255,255,.14));color:var(--ink,#fff);font:600 14px var(--font);width:calc(100% - 32px);cursor:pointer;position:relative;z-index:2}.offbar[hidden]{display:none}.offbar span{font-weight:500;opacity:.75}
+.offopts{display:grid;gap:10px;margin:0 0 14px}.offopt{display:flex;align-items:center;gap:14px;width:100%;min-height:84px;padding:14px 16px;border:0;border-radius:16px;background:var(--card);color:var(--label);text-align:left;font:inherit;cursor:pointer;transition:transform .3s cubic-bezier(.2,.8,.2,1)}.offopt:active{transform:scale(.98)}
+.offopt .oi{flex:none;width:48px;height:48px;border-radius:14px;background:color-mix(in srgb,var(--tint) 30%,transparent);color:var(--label);display:flex;align-items:center;justify-content:center}.offopt .tx{flex:1;display:flex;flex-direction:column;gap:2px}.offopt b{font:600 17px var(--font)}.offopt small{font:400 13px/1.3 var(--font);color:var(--label-2)}
+.stepper{display:flex;align-items:center;justify-content:space-between;padding:14px 16px}.stepper button{width:52px;height:52px;border-radius:50%;border:0;background:var(--fill);color:var(--label);font:500 28px/1 var(--font);cursor:pointer}.stepper button:disabled{opacity:.3}.stepper .sv{display:flex;flex-direction:column;align-items:center}.stepper .sv b{font:700 48px/1 var(--font);font-variant-numeric:tabular-nums}.stepper .sv span{font:400 15px var(--font);color:var(--label-2)}
+.offcard{padding:16px;display:grid;gap:10px}.offcard b{font:600 17px var(--font)}.offcard small{font:400 14px var(--font);color:var(--label-2)}.ods{display:flex;gap:5px;flex-wrap:wrap}.od{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--label-2)}.od.past{background:var(--label-2)}.od.now{background:var(--tint);border-color:var(--tint)}
+.dy-cal button.off{box-shadow:inset 0 0 0 2px var(--label-2);border-radius:50%;outline:1.5px dotted var(--label-2);outline-offset:1px}
 .me-list div+div{border-top:.5px solid var(--sep)}
 .me-list small{font-size:17px;color:var(--label-2);display:flex;align-items:center;gap:10px}
 .me-list small::after{content:"";width:7px;height:7px;border-right:2px solid var(--label-3);border-top:2px solid var(--label-3);transform:rotate(45deg)}
@@ -607,9 +614,10 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <svg class="stars" viewBox="0 0 390 420" aria-hidden="true"><circle cx="177" cy="187" r="1.5" opacity="0.71"/><circle cx="49" cy="384" r="0.8" opacity="0.55"/><circle cx="41" cy="369" r="1.0" opacity="0.37"/><circle cx="234" cy="324" r="0.8" opacity="0.48"/><circle cx="294" cy="327" r="0.8" opacity="0.80"/><circle cx="75" cy="224" r="0.8" opacity="0.67"/><circle cx="215" cy="135" r="1.0" opacity="0.38"/><circle cx="80" cy="258" r="1.5" opacity="0.43"/><circle cx="72" cy="402" r="1.2" opacity="0.66"/><circle cx="361" cy="202" r="0.8" opacity="0.67"/><circle cx="339" cy="206" r="1.2" opacity="0.40"/><circle cx="376" cy="142" r="0.8" opacity="0.69"/><circle cx="266" cy="382" r="1.5" opacity="0.78"/><circle cx="250" cy="409" r="1.5" opacity="0.55"/><circle cx="139" cy="202" r="1.0" opacity="0.40"/><circle cx="165" cy="378" r="1.5" opacity="0.83"/><circle cx="241" cy="257" r="0.8" opacity="0.41"/><circle cx="226" cy="194" r="1.2" opacity="0.43"/><circle cx="262" cy="325" r="0.8" opacity="0.88"/><circle cx="51" cy="395" r="1.2" opacity="0.54"/><circle cx="191" cy="364" r="1.5" opacity="0.39"/><circle cx="59" cy="248" r="1.5" opacity="0.73"/></svg>
       <div class="sb"><span id="sbClock">9:41</span><span class="ic"><b></b><b></b></span></div>
       <div class="nav">
-        <div><h3 class="lt" data-zh="今天">Today</h3><span class="sub" id="sub">Night · Moon fast</span></div>
+        <div><span class="sub" id="sub">Night · Moon fast</span></div>
         <button type="button" class="pchip" id="planBtn" aria-haspopup="dialog" aria-label="Change plan"><span class="chip"><span id="planChip">16:8</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></span></button>
       </div>
+      <button type="button" class="offbar" id="offBar" hidden></button>
       <div class="disc-wrap">
         <svg id="disc" viewBox="-118 -118 236 236" aria-hidden="true">
           <g id="rays" opacity="0"></g>
@@ -676,7 +684,6 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <div class="ps-scroll"><div id="impBody"></div></div>
       </div>
       <div class="me" id="daysScr" aria-hidden="true" aria-label="Days">
-        <h3 class="lt" data-zh="日子">Days</h3>
         <div class="dy-sum"><div><b id="dyStreak">0</b><span data-zh="天连续">day streak</span></div><div><b id="dyBest">0</b><span data-zh="最长纪录">best</span></div><div><b id="dyTotal">0</b><span data-zh="次完成">fasts done</span></div></div>
         <p class="me-h" id="dyMonth"></p>
         <div class="dy-cal" id="dyCal"></div>
@@ -684,7 +691,6 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <button type="button" class="try" id="dyAdd" data-zh="补记一次断食">Add a fast</button>
       </div>
       <div class="me" id="meScr" aria-hidden="true" aria-label="Me">
-        <h3 class="lt" data-zh="我">Me</h3>
         <div class="me-card">
           <span class="me-av" id="meAv"></span>
           <div><b id="meName"></b><span id="meSub"></span></div>
@@ -701,11 +707,11 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
           <p class="me-note" id="meNote"></p>
         </div>
         <p class="me-h" data-zh="断食">Fasting</p>
-        <div class="me-list"><div role="button" tabindex="0" id="mePlanR"><span data-zh="计划">Plan</span><small id="mePlanRV"></small></div><div role="button" tabindex="0" id="meWhere"><span data-zh="所在地">Where you are</span><small id="meWhereV"></small></div><div role="button" tabindex="0" id="meUsual"><span data-zh="通常开始时间">Usual start time</span><small id="meUsualV"></small></div><div role="button" tabindex="0" id="meCheat"><span data-zh="弹性日">Cheat days</span><small id="meCheatV"></small></div></div>
+        <div class="me-list"><div role="button" tabindex="0" id="meWhere"><span data-zh="所在地">Where you are</span><small id="meWhereV"></small></div><div role="button" tabindex="0" id="meUsual"><span data-zh="通常开始时间">Usual start time</span><small id="meUsualV"></small></div><div role="button" tabindex="0" id="meCheat"><span data-zh="弹性日">Cheat days</span><small id="meCheatV"></small></div></div>
         <p class="me-h" data-zh="应用">App</p>
         <div class="me-list"><div role="button" tabindex="0" id="meLang"><span data-zh="语言">Language</span><small id="meLangV"></small></div><div role="button" tabindex="0" id="meApp"><span data-zh="外观">Appearance</span><small id="meAppV"></small></div><div role="button" tabindex="0" id="meTs"><span data-zh="计时样式">Timer style</span><small id="meTsV"></small></div><div role="button" tabindex="0" id="meSnd"><span data-zh="声音">Sound</span><small id="meSndV"></small></div><div role="button" tabindex="0" id="meRem"><span data-zh="提醒">Reminders</span><small id="meRemV"></small></div></div>
         <p class="me-h" data-zh="关怀">Care</p>
-        <div class="me-list"><div role="button" tabindex="0" id="meUnwell"><span data-zh="我感觉不舒服">I feel unwell</span><small id="meUnwellV"></small></div><div role="button" tabindex="0" id="meRedo"><span data-zh="重新设置">Redo setup</span><small id="meRedoV"></small></div></div>
+        <div class="me-list"><div role="button" tabindex="0" id="meUnwell"><span data-zh="休息一下">Time off</span><small id="meUnwellV"></small></div></div>
         <p class="me-h" data-zh="你的数据">Your data</p>
         <div class="me-list"><div role="button" tabindex="0" id="meImp"><span data-zh="从其他应用导入">Import from another app</span><small></small></div><div role="button" tabindex="0" id="meExp"><span data-zh="导出我的记录">Export my fasts</span><small></small></div><div role="button" tabindex="0" id="meErase" style="color:var(--red)"><span data-zh="清除所有数据">Erase everything</span></div></div>
         <button type="button" class="me-out" id="meSignOut" hidden></button>
@@ -1997,27 +2003,48 @@ window.LightlySphere=(function(){
     [].forEach.call($('meBtns').children,function(b){ b.addEventListener('click',function(){ signed=b.dataset.w.replace(/^(Continue with |通过 |用)| 继续$|继续$|登录$/g,''); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} render(); }); }); }
   $('meLogin').addEventListener('click',function(){ signed=L('Email','邮箱'); render(); });
   $('meSignOut').addEventListener('click',function(){ signed=null; render(); });
+  /* Time off: travel (1 to 14 days) or unwell (2 weeks), playable here */
+  var off=null, offDays=3;
+  function offBar(){ var b=$('offBar'); b.hidden=!off; if(off) b.innerHTML=(off.kind==='travel'?L('Travelling · day 1 of ','旅行中 · 第 1 天 / ')+off.days:L('Resting · day 1 of ','休养中 · 第 1 天 / ')+off.days)+'<span>'+L('Manage','管理')+'</span>'; }
   /* Me settings: the same rows as the app; Language, Timer style, Plan and Cheat days really work here */
   function meRows(){ var zh=api.lang()==='zh';
     function v(id,t){ var e=$(id+'V'); if(e) e.textContent=t; }
-    v('mePlanR',$('planChip').textContent); v('meWhere',zh?'上海':'Shanghai'); v('meUsual','8:00 PM'); v('meCheat',zh?'还剩 1 个':'1 left');
+    v('meUnwell',off?(off.kind==='travel'?(zh?'旅行中':'Travelling'):(zh?'休养中':'Resting')):''); v('meWhere',zh?'上海':'Shanghai'); v('meUsual','8:00 PM'); v('meCheat',zh?'还剩 1 个':'1 left');
     v('meLang',zh?'中文':'English'); v('meApp',zh?'自动':'Auto'); v('meTs',(ph.dataset.ts==='a')?(zh?'经典':'Classic'):(zh?'大字':'Hero')); v('meSnd',zh?'开':'On'); v('meRem',zh?'开':'On'); }
-  [['mePlanR',function(){ $('planBtn').click(); }],['meCheat',function(){ $('streak').click(); }],['meLang',function(){ $(api.lang()==='zh'?'l-en':'l-zh').click(); }],
+  [['meCheat',function(){ $('streak').click(); }],['meLang',function(){ $(api.lang()==='zh'?'l-en':'l-zh').click(); }],
    ['meTs',function(){ ph.dataset.ts=ph.dataset.ts==='a'?'b':'a'; meRows(); }]].forEach(function(r){ var e=$(r[0]); e.addEventListener('click',r[1]); e.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); r[1](); } }); });
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(meRows,0); }); });
   /* Days: a month of sample fasts */
   function daysRender(){ var zh=api.lang()==='zh', d=new Date(), y=d.getFullYear(), m=d.getMonth(), today=d.getDate(), first=new Date(y,m,1).getDay(), n=new Date(y,m+1,0).getDate(), h='';
     ['S','M','T','W','T','F','S'].forEach(function(w){ h+='<i>'+w+'</i>'; }); for(var k=0;k<first;k++) h+='<span></span>';
-    var done=0, st=0; for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=(i%9===4)?'early':(i%11===6)?'flex':'done'; if(c==='done') done++; } else if(i===today) c='today'; if(c==='done') st++; else if(c==='early'||c==='flex') st=c==='flex'?st:0; h+='<button type="button" class="'+c+'" tabindex="-1" aria-label="'+i+'">'+i+'</button>'; }
+    var done=0, st=0; for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=(i%9===4)?'early':(i%11===6)?'flex':(i===today-2&&i>0&&today>3)?'off':'done'; if(c==='done') done++; } else if(i===today) c='today'; if(c==='done') st++; else if(c==='early'||c==='flex'||c==='off') st=(c==='flex'||c==='off')?st:0; h+='<button type="button" class="'+c+'" tabindex="-1" aria-label="'+i+'">'+i+'</button>'; }
     $('dyCal').innerHTML=h; $('dyMonth').textContent=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long',year:'numeric'}).format(d);
     $('dyStreak').textContent=Math.min(st,today); $('dyBest').textContent=Math.max(st,12); $('dyTotal').textContent=done+31;
-    $('dyKey').textContent=zh?'实心：完成。圆环：提前结束。虚线：弹性日。点一天可以编辑或补记（这是示例）。':'Filled: done. Ring: ended early. Dashed: cheat day. In the app you tap a day to edit or add a fast. This is sample data.';
+    $('dyKey').textContent=zh?'实心：完成。圆环：提前结束。虚线：弹性日。点线：休息。点一天可以编辑或补记（这是示例）。':'Filled: done. Ring: ended early. Dashed: cheat day. Dotted: time off. In the app you tap a day to edit or add a fast. This is sample data.';
     $('dyAdd').textContent=zh?'补记一次断食':'Add a fast'; }
   /* a shared sheet for Import and Edit times */
   function editHtml(){ var zh=api.lang()==='zh'; return '<div class="imp-sum"><div><span>'+(zh?'开始':'Started')+'</span><small>8:30 PM</small></div><div><span>'+(zh?'结束':'Ended')+'</span><small>12:30 PM</small></div><div><span>'+(zh?'目标（小时）':'Goal (hours)')+'</span><small>16</small></div></div><button type="button" class="imp-go" id="edSave">'+(zh?'保存':'Save')+'</button>'; }
   /* ---------- import from another app: the real app reads the file on the phone; here the preview is a sample ---------- */
   var imp=$('impSheet'), isc=$('iScrim'), impStep=0;
+  function offRender(){ var zh=api.lang()==='zh', t=$('impTitle'), n=$('impNote'), b=$('impBody'), ICO_T='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 13.5 3 11l1.5-1.5 7-.5L16 4.5a1.8 1.8 0 0 1 2.5 2.5L14 11.5l-.5 7L12 20l-2.5-7.5Z"/></svg>', ICO_U='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg>', h='', bk;
+    function dt(d){ var x=new Date(); x.setDate(x.getDate()+d); return new Intl.DateTimeFormat(zh?'zh-CN':'en',{weekday:'short',month:'short',day:'numeric'}).format(x); }
+    if(impStep===5){ t.textContent=L('Time off','休息一下'); n.textContent=L('Life comes first. Choose a break and your streak waits for you.','生活优先。选择休息，连续记录会等着你。');
+      h='<div class="offopts"><button type="button" class="offopt" id="offT"><span class="oi">'+ICO_T+'</span><span class="tx"><b>'+L('Travel','旅行')+'</b><small>'+L('Away from your routine. You choose how many days, up to 14.','暂时离开日常节奏。选择天数，最多 14 天。')+'</small></span></button><button type="button" class="offopt" id="offU"><span class="oi">'+ICO_U+'</span><span class="tx"><b>'+L('I feel unwell','我感觉不舒服')+'</b><small>'+L('A two-week break starts right away. End it whenever you are ready.','立即开始两周休息，准备好了随时结束。')+'</small></span></button></div>'; }
+    else if(impStep===6){ t.textContent=L('Travel','旅行'); n.textContent=L('How long will you be away? Your streak keeps, and you can end the break early.','你要离开多久？连续记录会保留，也可以提前结束。');
+      h='<div class="imp-sum"><div class="stepper" style="padding:14px 16px"><button type="button" id="offM" aria-label="'+L('One day less','少一天')+'"'+(offDays<=1?' disabled':'')+'>\u2212</button><div class="sv" role="status" aria-live="polite"><b>'+offDays+'</b><span>'+L(offDays===1?'day':'days','天')+'</span></div><button type="button" id="offP" aria-label="'+L('One day more','多一天')+'"'+(offDays>=14?' disabled':'')+'>+</button></div><div><span>'+L('Back to fasting','恢复断食')+'</span><small>'+dt(offDays)+'</small></div></div><button type="button" class="imp-go" id="offGoT">'+L('Start travel break','开始旅行休息')+'</button><button type="button" class="imp-go" id="offBk">'+L('Back','返回')+'</button>'; }
+    else if(impStep===7){ t.textContent=L('I feel unwell','我感觉不舒服'); n.textContent=L('Thank you for listening to your body. If you are fasting now, it is fine to stop and eat. If this feels serious, please see a doctor.','谢谢你倾听身体的声音。如果你正在断食，停下来吃点东西没有问题。如果情况严重，请就医。');
+      h='<div class="imp-sum"><div><span>'+L('Break length','休息时长')+'</span><small>'+L('2 weeks','两周')+'</small></div><div><span>'+L('Back to fasting','恢复断食')+'</span><small>'+dt(14)+'</small></div></div><p class="cap" style="padding:0 2px 14px;color:var(--label-2);font-size:15px">'+L('Your streak is kept. Long fasts stay paused. You can end the break early from Me, Time off.','连续记录会保留，长时间断食保持暂停。你可以在“我的 · 休息一下”里提前结束。')+'</p><button type="button" class="imp-go" id="offGoU">'+L('Start 2-week break','开始两周休息')+'</button><button type="button" class="imp-go" id="offBk">'+L('Back','返回')+'</button>'; }
+    else { t.textContent=off.kind==='travel'?L('Travelling','旅行中'):L('Taking a rest','好好休息'); n.textContent=off.kind==='travel'?L('Your streak is waiting. Nothing to do until you are back.','连续记录在等你。回来之前什么都不用做。'):L('Rest well. Your streak is on hold and long fasts stay paused.','好好休息。连续记录暂停，长时间断食也保持暂停。');
+      var dots=''; for(var i=1;i<=off.days;i++) dots+='<i class="od'+(i===1?' now':'')+'"></i>';
+      h='<div class="imp-sum"><div class="offcard" style="display:grid"><b>'+L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')+'</b><div class="ods" aria-hidden="true">'+dots+'</div><small>'+L('Back to fasting on ','恢复断食：')+dt(off.days)+'</small></div></div><button type="button" class="imp-go" id="offEnd">'+L('I\u2019m back, end the break','我回来了，结束休息')+'</button><button type="button" class="imp-go" id="offKeep">'+L('Keep resting','继续休息')+'</button>'; }
+    b.innerHTML=h;
+    function go(id,f){ var e=$(id); if(e) e.onclick=f; }
+    go('offT',function(){ impStep=6; impRender(); }); go('offU',function(){ impStep=7; impRender(); }); go('offBk',function(){ impStep=5; impRender(); });
+    go('offM',function(){ offDays=Math.max(1,offDays-1); impRender(); }); go('offP',function(){ offDays=Math.min(14,offDays+1); impRender(); });
+    go('offGoT',function(){ off={kind:'travel',days:offDays}; offBar(); meRows(); impOpen(false); }); go('offGoU',function(){ off={kind:'unwell',days:14}; offBar(); meRows(); impOpen(false); });
+    go('offEnd',function(){ off=null; offBar(); meRows(); impOpen(false); }); go('offKeep',function(){ impOpen(false); }); }
   function impRender(){
+    if(impStep>=5){ offRender(); return; }
     if(impStep===4){ $('impTitle').textContent=infoT; $('impNote').textContent=infoN; $('impBody').innerHTML='<button type="button" class="imp-go" id="infoOk">'+L('Done','完成')+'</button>'; $('infoOk').onclick=function(){ impOpen(false); }; return; }
     if(impStep===3){ $('impTitle').textContent=L('Edit times','修改时间'); $('impNote').textContent=L('Fix a start or end time, or add one you forgot to log. In the app these are time pickers.','修改开始或结束时间，或补上忘记记录的一次。在应用里这些是时间选择器。'); $('impBody').innerHTML=editHtml(); $('edSave').onclick=function(){ impOpen(false); }; return; }
     $('impTitle').textContent=impStep===0?L('Import from another app','从其他应用导入'):impStep===1?L('Ready to import','准备导入'):L('Added','已添加');
@@ -2039,8 +2066,8 @@ window.LightlySphere=(function(){
   var infoT='', infoN=''; function info(t,n,from){ infoT=t; infoN=n; impFrom=from; impOpen(true,4); }
   $('meExp').addEventListener('click',function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$('meExp')); });
   $('meErase').addEventListener('click',function(){ info(L('Erase everything?','清除所有数据？'),L('In the app this deletes your fasts, streak and settings from the phone, after one more confirmation. Nothing happens in this demo.','在应用里，这会在再次确认后删除手机上的断食记录、连续天数和设置。这个演示里不会发生任何事。'),$('meErase')); });
-  $('meUnwell').addEventListener('click',function(){ info(L('I feel unwell','我感觉不舒服'),L('Long fasts pause for two weeks. If you are fasting now, it is fine to stop and eat. If this feels serious, please see a doctor.','长时间断食暂停两周。如果正在断食，停下来吃东西也没关系。如果情况严重，请去看医生。'),$('meUnwell')); });
-  $('meRedo').addEventListener('click',function(){ info(L('Redo setup','重新设置'),L('Takes you back through the first-open questions. In this page, use Start over in the onboarding demo.','带你重新回答第一次打开时的问题。在这个页面里，可以使用上面引导演示的“重新开始”。'),$('meRedo')); });
+  $('meUnwell').addEventListener('click',function(){ impFrom=$('meUnwell'); impOpen(true,off?8:5); });
+  $('offBar').addEventListener('click',function(){ impFrom=$('offBar'); impOpen(true,8); });
   $('meImp').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); impOpen(true); } });
   $('impClose').addEventListener('click',function(){ impOpen(false); }); isc.addEventListener('click',function(){ impOpen(false); });
   imp.addEventListener('keydown',function(e){ if(e.key==='Escape') impOpen(false); });

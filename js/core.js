@@ -170,18 +170,28 @@ function planStatus(id,profile,state){
 }
 function planStatusLabel(st){ return Math.min(st.n,st.need)+' of '+st.need+' fasts of '+st.from+' h or more'; }
 
+/* ---------- time off: a break for travel (1 to 14 days) or for feeling unwell (14 days, can be ended early) ----------
+   off = {id, kind:'travel'|'unwell', start:ms, days, endedAt?:ms}. Break days keep the streak but do not grow it, like cheat days.
+   A break covers days from its start day; if ended early it stops before the day it was ended. */
+var OFF_MAX=14;
+function offLastKey(o){ var last=addDays(dayKey(o.start),o.days-1); if(o.endedAt){ var e=addDays(dayKey(o.endedAt),-1); if(e<last) last=e; } return last; }
+function offKeys(offs){ var out=[]; (offs||[]).forEach(function(o){ var k=dayKey(o.start), last=offLastKey(o), g=0; while(k<=last&&g++<40){ if(out.indexOf(k)<0) out.push(k); k=addDays(k,1); } }); return out; }
+function offActive(offs,now){ now=now||Date.now(); var t=dayKey(now), r=null; (offs||[]).forEach(function(o){ if(!o.endedAt&&dayKey(o.start)<=t&&t<=addDays(dayKey(o.start),o.days-1)) r=o; }); return r; }
+function offDayNo(o,now){ now=now||Date.now(); var a=keyToDate(dayKey(now)), b=keyToDate(dayKey(o.start)); return Math.round((a-b)/D)+1; }
+
 /* ---------- days, streaks, cheat days (弹性日) ----------
    One new cheat day each Monday once the first full week is over, bank of 2, at most 2 used in any 7 days.
    A cheat day keeps the streak but does not grow it. */
 function fastDays(fasts){ var m={}; fasts.forEach(function(f){ if(!f.end) return; var k=dayKey(f.end); (m[k]=m[k]||[]).push(f); }); return m; }
-function dayStatus(k,fasts,flexUsed){
+function dayStatus(k,fasts,flexUsed,offKeys){
   var fm=fastDays(fasts), list=fm[k]||[];
   if(list.some(isDone)) return 'done';
   if(flexUsed.indexOf(k)>=0) return 'flex';
+  if(offKeys&&offKeys.indexOf(k)>=0) return 'off';
   if(list.length) return 'early';
   return 'none';
 }
-function streak(fasts,flexUsed,now){
+function streak(fasts,flexUsed,now){ /* flexUsed may also carry break days */
   now=now||Date.now(); var today=dayKey(now), k=today, n=0, fm=fastDays(fasts);
   function st(x){ return fm[x]&&fm[x].some(isDone)?'done':flexUsed.indexOf(x)>=0?'flex':'none'; }
   if(st(k)==='none') k=addDays(k,-1);
@@ -209,6 +219,6 @@ function flexBlock(k,state,now){
 
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,planStatusLabel:planStatusLabel,
-  fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock};
+  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);

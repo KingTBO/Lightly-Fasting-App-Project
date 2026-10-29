@@ -51,9 +51,15 @@ const H=3600000,D=24*H;
  await p.click('#tabs [data-tab=today]');await p.click('#streakBtn');await p.click('#sheet [data-act=usecheat]');await p.waitForTimeout(300);s=await S();
  assert.strictEqual(s.flex.used.length,1);ok('cheat day used');
  // language
- await p.click('#tabs [data-tab=me]');await p.click('#me [data-act=choice][data-k=lang]');await p.click('#sheet [data-act=pick][data-v=zh]');await p.waitForTimeout(450);assert.match(await p.textContent('#me .h-title'),/我的/);assert.strictEqual(await p.evaluate(()=>document.documentElement.lang),'zh-Hans');ok('language switch');
+ await p.click('#tabs [data-tab=me]');await p.click('#me [data-act=choice][data-k=lang]');await p.click('#sheet [data-act=pick][data-v=zh]');await p.waitForTimeout(450);assert.match(await p.textContent('#me'),/断食/);assert(!(await p.$('#me .h-title')),'no big title');assert.strictEqual(await p.evaluate(()=>document.documentElement.lang),'zh-Hans');ok('language switch');
  // ramadan preview adds the plan
- await p.click('[data-act=sw][data-k=ram]');await p.click('[data-act=plan]');assert(await p.$('.plan[data-id="ramadan"]'));ok('Ramadan row appears only with season/preview');
+ await p.click('[data-act=sw][data-k=ram]');await p.evaluate(()=>{document.querySelector('#me').scrollTop=0});await p.waitForTimeout(500);await p.click('#tabs [data-tab=today]');await p.click('#planBtn');assert(await p.$('.plan[data-id="ramadan"]'));ok('Ramadan row appears only with season/preview');
+ // time off: travel then end early; unwell break; rows removed
+ await p.keyboard.press('Escape');await p.evaluate(()=>{document.querySelector('#scrim').click()});await p.waitForTimeout(500);await p.click('#tabs [data-tab=me]');assert(!(await p.$('#me [data-act=redo]'))&&!(await p.$('#me [data-act=plan]')),'redo and plan rows gone');
+ await p.click('#me [data-act=timeoff]');await p.click('#sheet [data-act=offtravel]');for(let i=0;i<11;i++)await p.click('#sheet [data-d="1"]');assert((await p.$('#sheet [data-d="1"][disabled]')),'capped at 14');assert.match(await p.textContent('#sheet .sv b'),/^14$/);
+ for(let i=0;i<12;i++)await p.click('#sheet [data-d="-1"]');await p.click('#sheet [data-act=offgo]');await p.waitForTimeout(300);s=await S();assert.strictEqual(s.off.length,1);assert.strictEqual(s.off[0].kind,'travel');assert.strictEqual(s.off[0].days,2);
+ await p.evaluate(()=>{document.querySelector('#me').scrollTop=0});await p.waitForTimeout(500);await p.click('#tabs [data-tab=today]');assert(await p.isVisible('#offBar'),'banner shows');await p.click('#offBar');await p.click('#sheet [data-act=offend]');await p.waitForTimeout(300);s=await S();assert(s.off[0].endedAt);assert(!(await p.isVisible('#offBar')));ok('time off: travel 1 to 14 days, banner, end early');
+ await p.click('#tabs [data-tab=me]');await p.click('#me [data-act=timeoff]');await p.click('#sheet [data-act=offunwell]');await p.click('#sheet [data-act=offgo]');await p.waitForTimeout(300);s=await S();assert.strictEqual(s.off[1].kind,'unwell');assert.strictEqual(s.off[1].days,14);assert(s.unwell);ok('time off: unwell starts a 2-week break at once');
  // ---- plan ladder, experienced setup, overtime, editing the end of a finished fast, email-only sign-in
  const seed=(o)=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{fastedBefore:false,safety:false},planId:'13',customH:16,place:{key:'shanghai'},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},ramadanPreview:false,startedAt:Date.now()-30*D,mod:1,del:[]},o);
  async function fresh(state){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));if(state)await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(state));await q.goto(url);await q.waitForTimeout(600);return q;}
@@ -94,7 +100,7 @@ const H=3600000,D=24*H;
  {const q=await fresh(seed({cur:{start:Date.now()-14*H,goalH:13,planId:'13',reached:true}}));const bx=await q.locator('#act').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(1700);await q.mouse.up();await q.waitForTimeout(300);
   assert(await q.$('#cele'),'celebration plays');await q.waitForTimeout(3000);assert(!(await q.$('#cele')),'celebration cleans up');ok('goal reached plays the celebration and cleans up');}
  // export + erase
- await p.click('#sheet [data-act=close]');
+ if(await p.$('#sheet.open [data-act=close]'))await p.click('#sheet [data-act=close]');
  // import from another app: preview first, nothing added until confirmed, a second import adds nothing
  {const before=(await S()).fasts.length, t=Date.now()-40*D, row=(i)=>({FastID:'T'+i,StartDTM:new Date(t+i*D).toISOString(),EndDTM:new Date(t+i*D+16*H).toISOString(),GoalHours:16,IsEnded:true});
   const file={name:'biodata.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({fast_data:[1,2,3,4,5].map(row)}))};
