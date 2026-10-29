@@ -145,6 +145,7 @@ function updateToday(){
   var hp=C.placeHour(pi,now), sk=C.skyAt(hp,sun), p=plan(), cur=S.cur, le=lastFast();
   moonV=C.moonAmt(hp,sun);
   mode=cur?'fast':(le&&now-le.end<eatH(le)*H?'eat':'idle');
+  var offA=offNow(), brk=!!offA&&!cur; if(brk) mode='idle';
   setSky(sk[1]);
   if(S.planId==='ramadan'&&!inRamadan()){ S.planId='16'; normalisePlan(); p=plan(); save(); }
   var ram=S.planId==='ramadan'&&!cur, goal=cur?cur.goalH:(mode==='eat'?le.goalH:p.fast), eatLen=le?eatH(le):0, eatEl=mode==='eat'?(now-le.end)/H:0;
@@ -154,10 +155,13 @@ function updateToday(){
   var turn=C.nextTurn(hp,sun), moonNow=moonV>=.5;
   var skyName=S.lang==='zh'?sk[3]:sk[2];
   put($('sub'),'sub',skyName+' · '+(mode==='eat'?L('Eating window','进食窗口'):moonNow?L('Moon until ','月亮，直到 ')+clockH(sun.rise):L('Sun until ','太阳，直到 ')+clockH(sun.set)));
-  var offA=offNow(), bar=$('offBar'); bar.hidden=!offA; if(offA) put(bar,'ob',(offA.kind==='travel'?L('Travelling · day ','旅行中 · 第 '):L('Resting · day ','休养中 · 第 '))+Math.min(C.offDayNo(offA),offA.days)+L(' of ',' / ')+offA.days+'<span>'+L('Manage','管理')+'</span>',1);
+  var bar=$('offBar'); bar.hidden=!offA; if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
   put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):C.planLabel(cur?C.planById(cur.planId,cur.goalH):p));
   var ramadan=cur&&cur.planId==='ramadan';
-  if(mode==='idle'){
+  if(brk){ var dn=Math.min(C.offDayNo(offA),offA.days);
+      put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Break','休息'):L('Rest','静养'));
+      put($('readTip'),'t',L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。')); put($('actLbl'),'a',L('Start Fast','开始断食')); }
+  else if(mode==='idle'){
     put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); setBigText(L('Ready','准备好了')); put(altEl,'alt','');
     put($('readTip'),'t',ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。')); put($('actLbl'),'a',L('Start Fast','开始断食'));
   }else if(mode==='fast'){
@@ -169,6 +173,7 @@ function updateToday(){
     put($('readK'),'k',L('Eating window left','进食窗口还剩')); setBigTime(Math.max(0,Math.ceil((eatLen-eatEl)*3600))); put(altEl,'alt','');
     put($('readTip'),'t',L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start Fast','开始断食'));
   }
+  act.disabled=brk; act.setAttribute('aria-disabled',brk); $('track').style.visibility=brk?'hidden':'';
   /* timeline */
   var a0=mode==='eat'?le.end:mode==='fast'?cur.start:now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:ram?placeMs(sun.set,now):now+p.fast*H;
   var n=Math.min(Math.round(mode==='eat'?eatLen:ram?13:goal),36)||1; buildTicks(n);
@@ -235,6 +240,7 @@ act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } i
 
 /* ---------- start and end ---------- */
 function startFlow(planId){
+  if(offNow()){ toast(L('You’re on a break. End it first to start a fast.','你正在休息中。先结束休息才能开始断食。')); return; }
   var id=planId||S.planId, p=C.planById(id,S.customH);
   if(id==='ramadan'){ return startRamadan(); }
   if(!p.long&&!planOk(id)){ normalisePlan(); p=plan(); toast(L('That plan opens later. Starting '+C.planLabel(p)+' instead.','那个计划稍后开放，先用 '+C.planLabel(p)+'。')); }
@@ -253,6 +259,7 @@ function beginFast(p,start,extra){
   toast(L('Fast started. Hold the button when you want to end it.','断食开始了。想结束时按住按钮。'));
 }
 function startRamadan(){
+  if(offNow()){ toast(L('You’re on a break. End it first to start a fast.','你正在休息中。先结束休息才能开始断食。')); return; }
   var now=Date.now(), f=C.fajrHour(pi,now); if(f==null){ toast(L('Dawn can’t be worked out at this latitude yet.','这个纬度暂时算不出黎明时间。')); return; }
   var s=placeMs(f,now), e=placeMs(sun.set,now);
   if(now>=e){ toast(L('The fast has already ended for today. Come back before dawn.','今天的斋戒已经结束，黎明前再来。')); return; }
@@ -340,7 +347,7 @@ function tabLabels(){ $('tabT').textContent=L('Today','今天'); $('tabD').textC
 /* ---------- time off ---------- */
 var offDays=3;
 function offNow(){ return C.offActive(S.off); }
-function offIco(k){ return k==='travel'?'<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><g transform="rotate(45 12 12)"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="translate(1 -0.5)"/></g></svg>':'<svg viewBox="3 4.4 18 17.2" width="32" height="31" aria-hidden="true"><path fill="currentColor" d="M12 20.3s-7.6-4.6-7.6-10.3A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.6 10c0 5.7-7.6 10.3-7.6 10.3Z"/></svg>'; }
+function offIco(k){ return k==='travel'?'<svg viewBox="-3 -3 30 30" width="32" height="32" aria-hidden="true"><g transform="rotate(45 12 12)"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="translate(1 -0.5)"/></g></svg>':'<svg viewBox="2 3.4 20 19.2" width="34" height="33" aria-hidden="true"><path fill="currentColor" d="M12 20.3s-7.6-4.6-7.6-10.3A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.6 10c0 5.7-7.6 10.3-7.6 10.3Z"/></svg>'; }
 function offBackLbl(o){ var e=C.keyToDate(C.addDays(C.dayKey(o.start),o.days)).getTime(); return dateLbl(e); }
 function timeOffSheet(){
   var o=offNow();
@@ -355,18 +362,20 @@ function timeOffSheet(){
    '<button class="offopt" data-act="offunwell"><span class="oi">'+offIco('unwell')+'</span><span class="stack"><b>'+L('I feel unwell','我感觉不舒服')+'</b><small>'+L('A two-week break starts right away. End it whenever you are ready.','立即开始两周休息，准备好了随时结束。')+'</small></span>'+CHEV+'</button></div>');
 }
 function offTravelSheet(){
-  var d=offDays, end=C.keyToDate(C.addDays(today(),d)).getTime();
+  var d=offDays, end=C.keyToDate(C.addDays(today(),d)).getTime(), chips='';
+  [3,7,10,14].forEach(function(n){ chips+='<button type="button" data-act="offset" data-n="'+n+'" aria-pressed="'+(d===n)+'">'+n+'</button>'; });
   openSheet('<h3>'+L('Travel','旅行')+'</h3><p class="lede">'+L('How long will you be away? Your streak keeps, and you can end the break early.','你要离开多久？连续记录会保留，也可以提前结束。')+'</p>'+
-   '<div class="group"><div class="stepper"><button data-act="offdays" data-d="-1" aria-label="'+L('One day less','少一天')+'"'+(d<=1?' disabled':'')+'>−</button><div class="sv" role="status" aria-live="polite"><b>'+d+'</b><span>'+L(d===1?'day':'days',d===1?'天':'天')+'</span></div><button data-act="offdays" data-d="1" aria-label="'+L('One day more','多一天')+'"'+(d>=C.OFF_MAX?' disabled':'')+'>+</button></div>'+
+   '<div class="group"><div class="stepper"><button type="button" data-act="offdays" data-d="-1" aria-label="'+L('One day less','少一天')+'"'+(d<=1?' disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button><div class="sv" role="status" aria-live="polite"><b>'+d+'</b><span>'+L(d===1?'day':'days','天')+'</span></div><button type="button" data-act="offdays" data-d="1" aria-label="'+L('One day more','多一天')+'"'+(d>=C.OFF_MAX?' disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg></button></div>'+
+   '<div class="offchips seg" role="group" aria-label="'+L('Quick pick','快速选择')+'">'+chips+'</div>'+
    '<div class="row"><span>'+L('Back to fasting','恢复断食')+'</span><span class="v">'+dateLbl(end)+'</span></div></div>'+
-   '<div class="btns"><button class="btn" data-act="offgo" data-k="travel">'+L('Start travel break','开始旅行休息')+'</button></div>',timeOffSheet);
+   '<div class="btns"><button class="btn" data-act="offgo" data-k="travel">'+L('Start travel break','开始旅行休息')+'</button><button class="btn sec" data-act="offback">'+L('Back','返回')+'</button></div>',timeOffSheet);
 }
 function offUnwellSheet(){
   var end=C.keyToDate(C.addDays(today(),14)).getTime();
   openSheet('<h3>'+L('I feel unwell','我感觉不舒服')+'</h3><p class="lede">'+L('Thank you for listening to your body. If you are fasting now, it is fine to stop and eat. If this feels serious, please see a doctor.','谢谢你倾听身体的声音。如果你正在断食，停下来吃点东西没有问题。如果情况严重，请就医。')+'</p>'+
    '<div class="group"><div class="row"><span>'+L('Break length','休息时长')+'</span><span class="v">'+L('2 weeks','两周')+'</span></div><div class="row"><span>'+L('Back to fasting','恢复断食')+'</span><span class="v">'+dateLbl(end)+'</span></div></div>'+
    '<p class="note">'+L('Your streak is kept. Long fasts stay paused. You can end the break early from Me, Time off.','连续记录会保留，长时间断食保持暂停。你可以在“我的 · 休息一下”里提前结束。')+'</p>'+
-   '<div class="btns"><button class="btn" data-act="offgo" data-k="unwell">'+L('Start 2-week break','开始两周休息')+'</button></div>',timeOffSheet);
+   '<div class="btns"><button class="btn" data-act="offgo" data-k="unwell">'+L('Start 2-week break','开始两周休息')+'</button><button class="btn sec" data-act="offback">'+L('Back','返回')+'</button></div>',timeOffSheet);
 }
 function startOff(kind,days){
   if(offNow()) return;
@@ -772,6 +781,8 @@ var A={
   timeoff:timeOffSheet,
   offtravel:function(){ offDays=offDays||3; offTravelSheet(); },
   offdays:function(b){ offDays=Math.max(1,Math.min(C.OFF_MAX,offDays+(+b.dataset.d))); offTravelSheet(); },
+  offset:function(b){ offDays=+b.dataset.n; offTravelSheet(); },
+  offback:timeOffSheet,
   offgo:function(b){ startOff(b.dataset.k,b.dataset.k==='unwell'?14:offDays); },
   offunwell:offUnwellSheet,
   offend:endOff,

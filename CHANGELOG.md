@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.21.4
+- **design** Travel sheet redesigned: a large day count with round minus and plus buttons, quick picks for 3, 7, 10 and 14 days, a divider above the return date, and a Back button. The unwell sheet also has Back now.
+- **feature** While you are on a break, Today says "Break" (travel) or "Rest" (feeling unwell) with the day count, instead of "Ready". Start Fast is greyed out and cannot be pressed, a short line explains why, and the pill at the top reads "End break". The timeline is hidden during a break.
+- **fix** The break pill showed the day count without "days" in Chinese.
+
 ## 0.21.3
 - **design** The I feel unwell card uses a plain heart icon, without the bandage.
 
