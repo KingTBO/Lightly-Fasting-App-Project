@@ -20,11 +20,12 @@ console.log('merge ok');
 if(!process.argv.includes('--e2e')&&!process.env.NODE_PATH){process.exit(0);}
 const {chromium}=require('playwright');
 const root=path.join(__dirname,'..');
-let rows={},codes={};
+let rows={},codes={},googleOn=false;
 const mock=http.createServer((q,r)=>{
   r.setHeader('Access-Control-Allow-Origin','*');r.setHeader('Access-Control-Allow-Headers','*');r.setHeader('Access-Control-Allow-Methods','*');
   if(q.method==='OPTIONS'){r.writeHead(204);return r.end();}
   let body='';q.on('data',d=>body+=d);q.on('end',()=>{const j=body?JSON.parse(body):{};const u=q.url;const out=(c,o)=>{r.writeHead(c,{'Content-Type':'application/json'});r.end(JSON.stringify(o));};
+    if(u.startsWith('/auth/v1/settings')) return out(200,{external:{google:googleOn,email:true}});
     if(u.startsWith('/auth/v1/otp')){codes[j.email]='123456';return out(200,{});}
     if(u.startsWith('/auth/v1/verify')){if(j.token!==codes[j.email])return out(400,{msg:'Token has expired or is invalid'});return out(200,{access_token:'tok-'+j.email,refresh_token:'r',expires_in:3600,user:{id:'uid-'+j.email,email:j.email}});}
     if(u.startsWith('/auth/v1/user')) return out(200,{id:'uid-x',email:'x@y.z'});
@@ -58,6 +59,13 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  // sign out keeps local data
  await d2.p.click('#tabs [data-tab=me]');await d2.p.click('[data-act=signout]');await d2.p.click('[data-act=signoutok]');await d2.p.waitForTimeout(300);
  assert(await d2.p.$('[data-act=emailsheet]'),'signed-out card is back');assert.strictEqual((await d2.p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).fasts.length,2);ok('sign out keeps local fasts');
+ // Google: off in the project -> a friendly toast; on -> the browser goes to Supabase's authorize URL with a redirect back here
+ {const g=await device(base([f('g',now-20*H)]));await g.p.click('#tabs [data-tab=me]');await g.p.click('#me [data-act=google]');await g.p.waitForTimeout(700);
+ assert.match(await g.p.textContent('#toast'),/Google sign-in is not switched on/);assert(!(await g.p.evaluate(()=>document.querySelector('#me [data-act=google]').disabled)),'button usable again');
+ googleOn=true;const g2=await device(base([f('g2',now-20*H)]));await g2.p.click('#tabs [data-tab=me]');
+ const [rq]=await Promise.all([g2.p.waitForRequest(r=>r.url().includes('/auth/v1/authorize'),{timeout:5000}),g2.p.click('#me [data-act=google]')]);
+ const ru=new URL(rq.url());assert.strictEqual(ru.searchParams.get('provider'),'google');assert(ru.searchParams.get('redirect_to').startsWith(url),'redirect comes back to the app');googleOn=false;
+ ok('Google sign-in: friendly fallback when off, authorize redirect when on');}
  // link-only emails (no code field): send, then return through the link; also an expired link
  const d3=await device(base([f('three',now-30*H)]),false);
  await d3.p.click('#tabs [data-tab=me]');await d3.p.click('[data-act=emailsheet]');await d3.p.fill('#emIn','link@example.com');await d3.p.click('[data-act=emsend]');await d3.p.waitForSelector('#emResend');

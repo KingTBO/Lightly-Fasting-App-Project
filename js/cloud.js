@@ -44,6 +44,10 @@ function takeCarried(){ var m=/[?&]r=([\w-]+)/.exec(location.search); if(!m) ret
 function codeOn(){ return !!cfg().code; }
 function sendCode(email,state){ var r=pack(state); return call('/auth/v1/otp?redirect_to='+encodeURIComponent(location.origin+location.pathname+(r?'?r='+r:'')),{method:'POST',body:{email:email,create_user:true}}); }
 function verify(email,code){ return call('/auth/v1/verify',{method:'POST',body:{type:'email',email:email,token:String(code).replace(/\s/g,'')}}).then(function(r){ var a=toAuth(r); setAuth(a); return a; }); }
+/* Google (and other providers): Supabase sends the person to the provider, then back here with the tokens in the hash, exactly like the email link */
+var provCache=null;
+function providerOn(name){ if(!ready()) return Promise.resolve(false); if(!provCache) provCache=call('/auth/v1/settings').catch(function(){ provCache=null; return null; }); return provCache.then(function(st){ return !!(st&&st.external&&st.external[name]); }); }
+function oauthUrl(name,state){ var r=pack(state); return cfg().url.replace(/\/$/,'')+'/auth/v1/authorize?provider='+encodeURIComponent(name)+'&redirect_to='+encodeURIComponent(location.origin+location.pathname+(r?'?r='+r:'')); }
 /* returning from a magic link: the tokens arrive in the URL hash */
 function fromHash(){
   var h=location.hash.replace(/^#/,''); if(h.indexOf('access_token=')<0&&h.indexOf('error=')<0) return Promise.resolve(null);
@@ -63,6 +67,6 @@ function signOut(){ var a=getAuth(); setAuth(null); if(a&&ready()) call('/auth/v
 function pull(){ return token().then(function(t){ return call('/rest/v1/lightly_state?select=data,updated_at',{token:t}); }).then(function(rows){ return rows&&rows[0]||null; }); }
 function push(data){ data=scrub(data); var a=getAuth(); return token().then(function(t){ return call('/rest/v1/lightly_state?on_conflict=user_id',{method:'POST',token:t,headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{user_id:a.uid,data:data,updated_at:new Date().toISOString()}}); }); }
 
-root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,signOut:signOut,pull:pull,push:push};
+root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,pull:pull,push:push};
 if(typeof module!=='undefined'&&module.exports) module.exports=root.LightlyCloud;
 })(typeof self!=='undefined'?self:this);

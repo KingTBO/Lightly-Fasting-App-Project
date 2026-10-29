@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.28.0
+- **feature** "Continue with Google" is on the Me tab. It sends you to Google through Supabase and brings you back to the Me tab, with your fasts backed up and merged the same way as email sign-in. Until Google is switched on in the Supabase project, the button shows a short message and email keeps working. The concept page shows the button too.
+
 ## 0.27.1
 - **fix** On Days, the date you tap is now clearly highlighted with a bold ring, including on the yellow filled days. Before, a tapped yellow day looked unchanged.
 - **design** Days starts with no date selected, and the day description (and its fasts) appears only after you tap a date. Leaving and coming back clears the selection. The concept page matches.

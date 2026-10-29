@@ -452,3 +452,8 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 @media (prefers-reduced-motion:reduce){.fab{transition:opacity .2s ease,visibility 0s .2s;transform:none}.fab.on{transition-delay:0s}}
 .cal-g button.sel .d{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--label)}
 .cal-g button.sel:not(.done) .d{background:var(--fill-2)}
+.btn.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1F1F1F;box-shadow:inset 0 0 0 1px #747775}
+.btn.gbtn svg{width:20px;height:20px;flex:none}
+.btn.gbtn:disabled{opacity:.6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.gbtn{background:#131314;color:#E3E3E3;box-shadow:inset 0 0 0 1px #8E918F}}
+:root[data-theme="dark"] .btn.gbtn{background:#131314;color:#E3E3E3;box-shadow:inset 0 0 0 1px #8E918F}
