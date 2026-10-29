@@ -363,12 +363,21 @@ function timeOffSheet(){
 }
 function offTravelSheet(){
   var d=offDays, end=C.keyToDate(C.addDays(today(),d)).getTime(), chips='';
-  [3,7,10,14].forEach(function(n){ chips+='<button type="button" data-act="offset" data-n="'+n+'" aria-pressed="'+(d===n)+'">'+n+'</button>'; });
+  var OFF_PICKS=[3,7,10,14], pi0=OFF_PICKS.indexOf(d); OFF_PICKS.forEach(function(n){ chips+='<button type="button" data-act="offset" data-n="'+n+'" aria-pressed="'+(d===n)+'">'+n+'</button>'; });
   openSheet('<h3>'+L('Travel','旅行')+'</h3><p class="lede">'+L('How long will you be away? Your streak keeps, and you can end the break early.','你要离开多久？连续记录会保留，也可以提前结束。')+'</p>'+
-   '<div class="group"><div class="stepper"><button type="button" data-act="offdays" data-d="-1" aria-label="'+L('One day less','少一天')+'"'+(d<=1?' disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button><div class="sv" role="status" aria-live="polite"><b>'+d+'</b><span>'+L(d===1?'day':'days','天')+'</span></div><button type="button" data-act="offdays" data-d="1" aria-label="'+L('One day more','多一天')+'"'+(d>=C.OFF_MAX?' disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg></button></div>'+
-   '<div class="offchips seg" role="group" aria-label="'+L('Quick pick','快速选择')+'">'+chips+'</div>'+
-   '<div class="row"><span>'+L('Back to fasting','恢复断食')+'</span><span class="v">'+dateLbl(end)+'</span></div></div>'+
+   '<div class="group"><div class="stepper"><button type="button" data-act="offdays" id="offMinus" data-d="-1" aria-label="'+L('One day less','少一天')+'"'+(d<=1?' disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button><div class="sv" role="status" aria-live="polite"><b id="offN">'+d+'</b><span id="offUnit">'+L(d===1?'day':'days','天')+'</span></div><button type="button" data-act="offdays" id="offPlus" data-d="1" aria-label="'+L('One day more','多一天')+'"'+(d>=C.OFF_MAX?' disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg></button></div>'+
+   '<div class="offchips seg" id="offChips" role="group" aria-label="'+L('Quick pick','快速选择')+'"><i class="thumb" style="--i:'+Math.max(pi0,0)+';opacity:'+(pi0<0?0:1)+'"></i>'+chips+'</div>'+
+   '<div class="row"><span>'+L('Back to fasting','恢复断食')+'</span><span class="v" id="offDate">'+dateLbl(end)+'</span></div></div>'+
    '<div class="btns"><button class="btn" data-act="offgo" data-k="travel">'+L('Start travel break','开始旅行休息')+'</button><button class="btn sec" data-act="offback">'+L('Back','返回')+'</button></div>',timeOffSheet);
+}
+function offTravelSync(){
+  var d=offDays, picks=[3,7,10,14], i=picks.indexOf(d), th=document.querySelector('#offChips .thumb');
+  if(!$('offN')) return offTravelSheet();
+  $('offN').textContent=d; $('offUnit').textContent=L(d===1?'day':'days','天');
+  $('offDate').textContent=dateLbl(C.keyToDate(C.addDays(today(),d)).getTime());
+  $('offMinus').disabled=d<=1; $('offPlus').disabled=d>=C.OFF_MAX;
+  if(th){ if(i>=0) th.style.setProperty('--i',i); th.style.opacity=i<0?0:1; }
+  picks.forEach(function(n,k){ var b=document.querySelectorAll('#offChips button')[k]; if(b) b.setAttribute('aria-pressed',n===d); });
 }
 function offUnwellSheet(){
   var end=C.keyToDate(C.addDays(today(),14)).getTime();
@@ -780,8 +789,8 @@ var A={
     S.prefs[k]=on; save(); if(k==='d3'&&orb) orb.set(on); b.setAttribute('aria-checked',on); },
   timeoff:timeOffSheet,
   offtravel:function(){ offDays=offDays||3; offTravelSheet(); },
-  offdays:function(b){ offDays=Math.max(1,Math.min(C.OFF_MAX,offDays+(+b.dataset.d))); offTravelSheet(); },
-  offset:function(b){ offDays=+b.dataset.n; offTravelSheet(); },
+  offdays:function(b){ offDays=Math.max(1,Math.min(C.OFF_MAX,offDays+(+b.dataset.d))); offTravelSync(); },
+  offset:function(b){ offDays=+b.dataset.n; offTravelSync(); },
   offback:timeOffSheet,
   offgo:function(b){ startOff(b.dataset.k,b.dataset.k==='unwell'?14:offDays); },
   offunwell:offUnwellSheet,

@@ -378,6 +378,10 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 @media (prefers-reduced-motion:reduce){.offopt,.stepper button{transition:none}}
 
 /* v0.21.4: quick picks, Start Fast off during a break */
-.offchips{margin:4px 16px 14px;width:auto}
+.offchips{margin:4px 16px 14px;width:auto;position:relative}
+.offchips .thumb{position:absolute;top:2px;bottom:2px;left:2px;width:calc((100% - 4px)/4);border-radius:7px;background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);transform:translateX(calc(var(--i,0)*100%));transition:transform .5s var(--spr),opacity .25s ease;pointer-events:none}
+.offchips button{position:relative;z-index:1;background:transparent!important;box-shadow:none!important;transition:color .25s ease,font-weight .25s ease}
+.stepper .sv b{transition:transform .3s var(--spr)}
+@media (prefers-reduced-motion:reduce){.offchips .thumb{transition:opacity .01s}}
 .act:disabled{background:color-mix(in srgb,var(--ink) 16%,transparent);color:var(--ink-2);pointer-events:none;box-shadow:none}
 @media (forced-colors:active){.act:disabled{color:GrayText}}
