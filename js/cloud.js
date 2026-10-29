@@ -16,6 +16,8 @@ function merge(a,b){
   var used={}; ((a.flex||{}).used||[]).concat((b.flex||{}).used||[]).forEach(function(d){used[d]=1;});
   out.flex=Object.assign({},n.flex||{}); out.flex.used=Object.keys(used).sort();
   var sa=[a.startedAt,b.startedAt].filter(Boolean); out.startedAt=sa.length?Math.min.apply(null,sa):null;
+  var lp=[a.place,b.place].filter(function(x){ return x&&x.key==='here'&&x.lat!=null; })[0]; /* keep this device's own coordinates */
+  if(out.place&&out.place.key==='here'&&out.place.lat==null) out.place=lp||{key:'shanghai'};
   var os={}; (a.off||[]).concat(b.off||[]).forEach(function(o){ var x=os[o.id]; if(!x||(o.endedAt&&!x.endedAt)) os[o.id]=o; }); out.off=Object.keys(os).map(function(i){return os[i];}).sort(function(x,y){return x.start-y.start;});
   out.unwell=Math.max(a.unwell||0,b.unwell||0)||null;
   var un={}; [a.unlocked||{},b.unlocked||{}].forEach(function(u){ for(var x in u) un[x]=un[x]?Math.min(un[x],u[x]):u[x]; }); out.unlocked=un;
@@ -33,7 +35,9 @@ function call(path,o){ o=o||{}; var c=cfg(), h={apikey:c.key,'Content-Type':'app
    So the link carries a small copy of the state (settings, current fast, newest fasts) in ?r=, and the app restores it before it decides about onboarding. */
 function b64(str){ return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function unb64(x){ x=x.replace(/-/g,'+').replace(/_/g,'/'); while(x.length%4) x+='='; return decodeURIComponent(escape(atob(x))); }
-function pack(S){ if(!S||!S.onboarded) return ''; var c=JSON.parse(JSON.stringify(S)); delete c.cloudUid; delete c.del; var f=(c.fasts||[]).slice(); var out='';
+/* a precise location never leaves the phone: backups and sign-in links carry the place without its coordinates */
+function scrub(S){ var c=JSON.parse(JSON.stringify(S)); if(c.place&&c.place.key==='here') c.place={key:'here',lat:null,lon:null}; return c; }
+function pack(S){ if(!S||!S.onboarded) return ''; var c=scrub(S); delete c.cloudUid; delete c.del; var f=(c.fasts||[]).slice(); var out='';
   for(;;){ c.fasts=f; out=b64(JSON.stringify(c)); if(out.length<=1800||!f.length) break; f.shift(); } return out.length<=1800?out:''; }
 function unpack(x){ try{ var o=JSON.parse(unb64(x)); return o&&o.onboarded?o:null; }catch(e){ return null; } }
 function takeCarried(){ var m=/[?&]r=([\w-]+)/.exec(location.search); if(!m) return null; try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){} return unpack(m[1]); }
@@ -57,7 +61,7 @@ function signOut(){ var a=getAuth(); setAuth(null); if(a&&ready()) call('/auth/v
 
 /* ---------- backup ---------- */
 function pull(){ return token().then(function(t){ return call('/rest/v1/lightly_state?select=data,updated_at',{token:t}); }).then(function(rows){ return rows&&rows[0]||null; }); }
-function push(data){ var a=getAuth(); return token().then(function(t){ return call('/rest/v1/lightly_state?on_conflict=user_id',{method:'POST',token:t,headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{user_id:a.uid,data:data,updated_at:new Date().toISOString()}}); }); }
+function push(data){ data=scrub(data); var a=getAuth(); return token().then(function(t){ return call('/rest/v1/lightly_state?on_conflict=user_id',{method:'POST',token:t,headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{user_id:a.uid,data:data,updated_at:new Date().toISOString()}}); }); }
 
 root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,signOut:signOut,pull:pull,push:push};
 if(typeof module!=='undefined'&&module.exports) module.exports=root.LightlyCloud;

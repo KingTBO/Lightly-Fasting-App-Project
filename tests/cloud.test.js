@@ -2,6 +2,11 @@
 const assert=require('assert'),http=require('http'),fs=require('fs'),path=require('path');
 const CL=require('../js/cloud.js');const H=3600000;
 const f=(id,s,g=16)=>({id,start:s,end:s+g*H,goalH:g,plan:'16'});
+// a precise location never goes to the backup or the sign-in link; merge keeps this device's own coordinates
+{ const st={onboarded:true,place:{key:'here',lat:31.23,lon:121.47},fasts:[],flex:{used:[]},mod:5};
+  assert.strictEqual(JSON.stringify(CL.unpack(CL.pack(st)).place),JSON.stringify({key:'here',lat:null,lon:null}));
+  const m=CL.merge(Object.assign({},st,{mod:1}),{place:{key:'here',lat:null,lon:null},fasts:[],flex:{used:[]},mod:9});
+  assert.strictEqual(m.place.lat,31.23); console.log('place stays on the phone ok'); }
 // union, tombstones, newer wins, flex union
 const a={mod:10,fasts:[f('a',1e12),f('b',2e12)],del:[],flex:{bank:1,used:['2026-10-01']},planId:'16',startedAt:5,unwell:null,unlocked:{24:9}};
 const b={mod:20,fasts:[f('b',2e12,18),f('c',3e12),f('a',1e12)],del:['a'],flex:{bank:2,used:['2026-10-02']},planId:'18',startedAt:3,unwell:7,unlocked:{24:4,36:8}};
@@ -71,3 +76,4 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  assert(!(await d6.p.evaluate(()=>document.getElementById('ob').hidden)),'new account sees onboarding');ok('new account still gets onboarding');
  assert.deepStrictEqual(d1.errs.concat(d2.errs,d3.errs,d4.errs,d5.errs,d6.errs),[]);console.log('cloud e2e ok');await b.close();mock.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});
 function ok(n){console.log('ok -',n);}
+
