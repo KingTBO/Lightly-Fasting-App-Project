@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.21.3
+- **design** The I feel unwell card uses a plain heart icon, without the bandage.
+
 ## 0.21.2
 - **design** Time off cards use drawn icons again (a plane and a heart with a bandage) instead of emoji, so they look the same on every phone.
 
