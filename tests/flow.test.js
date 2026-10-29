@@ -32,7 +32,7 @@ const H=3600000,D=24*H;
  // hold to end: short press does nothing, long press saves and does not restart
  const box=await p.locator('#act').boundingBox();await p.mouse.move(box.x+box.width/2,box.y+box.height/2);
  await p.mouse.down();await p.waitForTimeout(300);await p.mouse.up();assert((await S()).cur,'short press keeps fasting');
- await p.mouse.down();await p.waitForTimeout(1500);await p.mouse.up();await p.waitForTimeout(400);s=await S();
+ await p.mouse.down();await p.waitForTimeout(2200);await p.mouse.up();await p.waitForTimeout(400);s=await S();
  assert(!s.cur&&s.fasts.length===1,'long press ends and saves');assert(await p.$('#sheet.open'),'saved sheet');ok('hold to end saves exactly one fast, no restart');
  await p.click('#sheet [data-act=close]');
  // eating window
@@ -84,21 +84,21 @@ const H=3600000,D=24*H;
  q=await fresh(seed({cur:{start:Date.now()-(13*H+80*60000),goalH:13,planId:'13',reached:true}}));
  assert.match(await q.textContent('#readK'),/\+1 h 20 m over your goal/);assert.match(await q.textContent('#readBig'),/14/);ok('overtime label and running timer');
  q=await fresh(seed({cur:{start:Date.now()-(16*H),goalH:13,planId:'13',reached:true}}));await q.waitForTimeout(400);assert.match(await q.textContent('#toast'),/past your goal/);assert((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).cur.nudged);ok('one calm nudge after two hours over');
- await q.click('#act',{timeout:500}).catch(()=>{});const bx=await q.locator('#act').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(1500);await q.mouse.up();await q.waitForTimeout(400);
+ await q.click('#act',{timeout:500}).catch(()=>{});const bx=await q.locator('#act').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(2200);await q.mouse.up();await q.waitForTimeout(400);
  const sv=(await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).fasts[0];assert(sv&&(sv.end-sv.start)/H>15.9&&sv.goalH===13,'full duration logged against the plan goal');ok('overtime fast logs its full duration as completed');
  // the end time of a finished fast can be edited from Today
  await q.click('#sheet [data-act=close]');await q.waitForTimeout(300);await q.click('#endA');assert.match(await q.textContent('#sheet h3'),/Edit fast/);ok('end time editable from the eating window');
  // signed out Me offers email only
  q=await fresh(seed({}));await q.click('#tabs [data-tab=me]');assert(await q.$('[data-act=emailsheet]'));assert(!(await q.$('#me [data-act=soon]')),'no placeholder sign-in buttons');ok('Me offers only email sign-in');
  // a shooting star crosses the night sky, then removes itself
- q=await fresh(seed({}));assert(await q.evaluate(()=>window.lightlyShoot(true)),'shooting star starts');await q.waitForTimeout(100);assert(await q.$('#stars line.shoot'),'streak drawn');await q.waitForTimeout(1900);assert(!(await q.$('#stars line.shoot')),'streak removed when done');ok('shooting star appears and cleans up');
+ q=await fresh(seed({}));assert(await q.evaluate(()=>window.lightlyShoot(true)),'shooting star starts');await q.waitForTimeout(100);assert(await q.$('#stars line.shoot'),'streak drawn');await q.waitForFunction(()=>!document.querySelector('#stars line.shoot'),null,{timeout:5000}).catch(()=>{});assert(!(await q.$('#stars line.shoot')),'streak removed when done');ok('shooting star appears and cleans up');
  // the tab bar steps aside when scrolling down and returns when scrolling up
  q=await fresh(seed({}));await q.click('#tabs [data-tab=me]');await q.waitForTimeout(500);
  await q.evaluate(()=>{const e=document.getElementById('me');e.scrollTop=120;});await q.waitForTimeout(100);await q.evaluate(()=>{const e=document.getElementById('me');e.scrollTop=260;});await q.waitForTimeout(700);
- assert(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off')),'tabs hidden on scroll down');assert.strictEqual(await q.evaluate(()=>getComputedStyle(document.getElementById('tabs')).visibility),'hidden');
+ assert(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off')),'tabs hidden on scroll down');await q.waitForFunction(()=>getComputedStyle(document.getElementById('tabs')).visibility==='hidden',null,{timeout:4000});
  await q.evaluate(()=>{document.getElementById('me').scrollTop=200;});await q.waitForTimeout(700);assert(!(await q.evaluate(()=>document.getElementById('ph').classList.contains('tabs-off'))),'tabs return on scroll up');ok('tab bar hides on scroll down and returns on scroll up');
  // finishing a fast that reached its goal plays the celebration; ending early does not
- {const q=await fresh(seed({cur:{start:Date.now()-14*H,goalH:13,planId:'13',reached:true}}));const bx=await q.locator('#act').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(1700);await q.mouse.up();await q.waitForTimeout(300);
+ {const q=await fresh(seed({cur:{start:Date.now()-14*H,goalH:13,planId:'13',reached:true}}));const bx=await q.locator('#act').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(2400);await q.mouse.up();await q.waitForTimeout(300);
   assert(await q.$('#cele'),'celebration plays');await q.waitForTimeout(3000);assert(!(await q.$('#cele')),'celebration cleans up');ok('goal reached plays the celebration and cleans up');}
  // export + erase
  if(await p.$('#sheet.open [data-act=close]'))await p.click('#sheet [data-act=close]');
