@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.23.0
+- **feature** Setup now ends with a "You're set" screen in the app too: your plan, how Lightly follows the sun, and when your first fast can start, then "Open Lightly". The concept page already had it; it now says "Sunrise and sunset".
+- **design** The safety questions moved to the last step before that summary. If anything applies, the plan is set to 13:11 there and longer fasts stay off.
+- **design** "Have you fasted before?" is fuller: four plan tiles (13:11, 16:8, 18:6, 20:4) light up as you choose, showing where you start and what opens later. No food or weight pictures. The concept page matches, and it no longer loses the Continue button after the doctor note.
+
 ## 0.22.2
 - **fix** The Time off sheet no longer shows two huge black arrows. The Travel and "I feel unwell" options now have the small grey arrow every other list has, so their text has room again, in English and 中文, light and dark. The concept page shows the same arrows.
 

@@ -247,6 +247,11 @@ html:lang(zh-Hans) .grp-h{text-transform:none}
 .ob-step h4{font:700 30px/1.15 var(--font-d);letter-spacing:-.02em;margin:8px 0 8px}
 html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-step .sub{font-size:16px;color:var(--label-2);margin:0 0 20px;line-height:1.4}
+.ladder{display:flex;gap:8px;margin:20px 0 10px}
+.rung{flex:1;min-height:56px;border-radius:14px;display:grid;place-items:center;font:600 0.9375rem var(--font);font-variant-numeric:tabular-nums;border:1.5px dashed var(--label-3);color:var(--label-2);transition:background .5s cubic-bezier(.2,.9,.3,1.2),color .4s ease,border-color .4s ease,transform .5s cubic-bezier(.2,.9,.3,1.2);transition-delay:calc(var(--k,0)*50ms)}
+.rung.on{background:var(--tint);color:var(--on-tint);border-color:transparent;transform:translateY(-3px)}
+.ladcap{font:400 0.9375rem/1.4 var(--font);color:var(--label-2);padding:0 4px;min-height:2.8em}
+@media (prefers-reduced-motion:reduce){.rung{transition:none}}
 .ob-list{background:var(--card);border-radius:14px;overflow:hidden}
 .ob-opt{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;text-align:left;padding:13px 16px;min-height:56px;cursor:pointer;font:400 17px var(--font);color:var(--label)}
 .ob-opt + .ob-opt{border-top:.5px solid var(--sep)}
@@ -1592,7 +1597,8 @@ window.LightlySphere=(function(){
   var st={step:0, exp:null, safety:[], plan:null, city:'shanghai'}, CITIES={shanghai:{en:'Shanghai',zh:'上海'},singapore:{en:'Singapore',zh:'新加坡'},london:{en:'London',zh:'伦敦'},newyork:{en:'New York',zh:'纽约'}};
   var stage=document.getElementById('obStage'), dots=document.getElementById('obDots'), back=document.getElementById('obBack');
   /* people who have fasted before get one more step, to make it theirs */
-  function flow(){ return st.exp==='some'?(risky()?[0,1,2,3,6,4]:[0,1,2,3,5,6,4]):[0,1,2,3,4]; }
+  /* safety comes last, just before the summary */
+  function flow(){ return st.exp==='some'?[0,1,3,5,6,7,2,4]:[0,1,3,7,2,4]; }
   function disc(p,col){ var r=60, rx=r*Math.abs(1-2*p), sw=p<.5?0:1; var d=p<=0?'':'M0 -'+r+' A'+r+' '+r+' 0 0 1 0 '+r+' A'+rx.toFixed(1)+' '+r+' 0 0 '+sw+' 0 -'+r+'Z';
     return '<svg viewBox="-70 -70 140 140" aria-hidden="true"><circle r="60" fill="rgba(142,142,147,.16)" stroke="rgba(142,142,147,.5)"/><path d="'+d+'" fill="'+col+'"/></svg>'; }
   function opt(id,label,sub,checked,extra,disabled){ return '<button type="button" class="ob-opt" role="'+(extra==='multi'?'checkbox':'radio')+'" data-v="'+id+'" aria-checked="'+(!!checked)+'"'+(disabled?' disabled':'')+'><span>'+label+(sub?'<small>'+sub+'</small>':'')+'</span><span class="ck"></span></button>'; }
@@ -1617,12 +1623,17 @@ window.LightlySphere=(function(){
       var isFull=p>.93; if(isFull&&!full){ pulse=1; try{ if(navigator.vibrate) navigator.vibrate([14,40,14]); }catch(x){} } full=isFull; pulse=Math.max(0,pulse-dt/1.4);
       halo.setAttribute('r',(46+14*(1-pulse)).toFixed(1)); halo.setAttribute('opacity',(pulse*.8).toFixed(2)); requestAnimationFrame(f); })(last);
   }
+  function ladder(){
+    var open=st.exp==='some'?4:1, names=['13:11','16:8','18:6','20:4'];
+    var cap=st.exp==='some'?L('Every everyday plan is open from day one, up to 20:4. Longer fasts unlock as you build up.','每个日常计划从第一天起都可用，最高 20:4。更长的断食会随你的进度开放。'):st.exp==='first'?L('You start at 13:11. Each next plan opens after three completed fasts.','你从 13:11 开始。每完成三次断食，开放下一个计划。'):L('Choose one to see where you will start.','选一个，看看你会从哪里开始。');
+    return '<div class="ladder" role="img" aria-label="'+cap+'">'+names.map(function(n,k){ return '<span class="rung'+(k<open?' on':'')+'" style="--k:'+k+'">'+n+'</span>'; }).join('')+'</div><p class="ladcap" aria-live="polite">'+cap+'</p>';
+  }
   function view(i){
-    if(i===0) return '<div class="ob-hero">'+heroSvg()+'</div><h4>'+L('Lightly','轻伴')+'</h4><p class="sub">'+L('Fasting that follows the sky. A moon through the night, a sun through the day, full when you reach your goal. Four quick questions to set it up for you.','跟着天空走的断食。夜里是月亮，白天是太阳，满了就是到了目标。回答四个小问题，帮你设置好。')+'</p><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
+    if(i===0) return '<div class="ob-hero">'+heroSvg()+'</div><h4>'+L('Lightly','轻伴')+'</h4><p class="sub">'+L('Fasting that follows the sky. A moon through the night, a sun through the day, full when you reach your goal. A few quick questions to set it up for you.','跟着天空走的断食。夜里是月亮，白天是太阳，满了就是到了目标。回答几个小问题，帮你设置好。')+'</p><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
     if(i===1) return '<h4>'+L('Have you fasted before?','你以前断食过吗？')+'</h4><p class="sub">'+L('So we can start you at the right pace.','这样我们能按合适的节奏开始。')+'</p><div class="ob-list" data-q="exp">'+
       opt('first',L('This is my first time','这是第一次'),L('Start with 13:11 and build up.','从 13:11 开始，慢慢增加。'),st.exp==='first')+
       opt('some',L('I\u2019ve fasted before','以前断食过'),L('Every everyday plan is open, and you can tune it next.','所有日常计划都可用，下一步可以细调。'),st.exp==='some')+
-      '</div><button type="button" class="ob-cta" data-next'+(st.exp?'':' disabled')+'>'+L('Continue','继续')+'</button>';
+      '</div>'+ladder()+'<button type="button" class="ob-cta" data-next'+(st.exp?'':' disabled')+'>'+L('Continue','继续')+'</button>';
     if(i===2) return '<h4>'+L('Does any of this apply to you?','以下情况适用于你吗？')+'</h4><p class="sub">'+L('Only you see this. It keeps your plans safe.','只有你能看到，用来让计划更安全。')+'</p><div class="ob-list" data-q="safety" data-multi="1">'+
       opt('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'),'',st.safety.indexOf('preg')>=0,'multi')+
       opt('diab',L('Taking diabetes medication','正在服用糖尿病药物'),'',st.safety.indexOf('diab')>=0,'multi')+
@@ -1638,10 +1649,12 @@ window.LightlySphere=(function(){
         return opt(id,lab,sub,st.plan===id,null,!ok); }).join('')+'</div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'; }
     if(i===6) return '<div class="imp3d" aria-hidden="true">'+[['Zero','Z','#6C9BFF','#3562D6'],['Fastic','F','#FF9A6B','#E65A2E'],['Simple','S','#3FD1A5','#1F9F78'],['Life','L','#B98AFF','#7F4AE3'],['BodyFast','B','#FF7FAE','#DE3F7C']].map(function(t,k){ return '<span class="t3" style="--x:'+(k-2)+';--c1:'+t[2]+';--c2:'+t[3]+';--d:'+(k*-.45).toFixed(2)+'s"><b>'+t[1]+'</b></span>'; }).join('')+'</div><p class="imp-names" aria-hidden="true">Zero \u00b7 Fastic \u00b7 Simple \u00b7 Life \u00b7 BodyFast</p><h4 style="text-align:center">'+(st.imp?L('128 fasts added','已添加 128 次断食'):L('Bring your fasts with you','带上你的断食记录'))+'</h4><p class="sub" style="text-align:center">'+(st.imp?L('Sample result: nothing was added twice. In the app this reads your real file on the phone.','示例结果：没有任何重复。在应用里，这会在手机上读取你的真实文件。'):L('Using another fasting app? Import your history now so you never lose it. It\u2019s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我的”里导入。'))+'</p>'+(st.imp?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>':'<button type="button" class="ob-cta" data-imp>'+L('Choose a file (sample)','选择文件（示例）')+'</button><button type="button" class="ob-skip" data-next>'+L('Skip for now','暂时跳过')+'</button>');
     if(i===5) return '<h4>'+L('Make it yours','按你的习惯来')+'</h4><p class="sub">'+L('Since you\u2019ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default"><span>'+L('Usual start time','通常开始时间')+'</span><input class="tin" type="time" value="20:30" aria-label="'+L('Usual start time','通常开始时间')+'"></div><div class="ob-opt" style="cursor:default"><span>'+L('Remind me when I reach my goal','达成目标时提醒我')+'</span><span class="ck"></span></div></div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
-    if(i===4){ var hereOn=st.loc==='here', cityOn=st.loc==='city', cn=function(k){ return CITIES[k][api.lang()==='zh'?'zh':'en']; };
-      return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('Match the sky to your day','让天空跟着你的一天')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(st.plan)+'</b></div><div><span>'+L('Sunrise and sunset','日出日落')+'</span>'+(cityOn?'<select data-obcity aria-label="'+L('Nearest city','最近的城市')+'">'+Object.keys(CITIES).map(function(k){ return '<option value="'+k+'"'+(st.city===k?' selected':'')+'>'+cn(k)+'</option>'; }).join('')+'</select>':'<b>'+(hereOn?L('Your location','当前位置'):cn(st.city))+'</b>')+'</div><div><span>'+L('First fast','第一次断食')+'</span><b>'+L('Tonight, 8:30 PM','今晚 8:30')+'</b></div></div><p class="ob-note">'+L('Lightly shows the moon and sun by your local sunrise and sunset. Your location is used on this phone only to work that out. It is never uploaded or shared.','轻伴按你当地的日出日落显示月亮和太阳。位置只在这台手机上用来计算，不会上传，也不会分享。')+'</p>'+
-        (hereOn||cityOn?'<button type="button" class="ob-cta" data-done>'+L('Start Tonight','今晚开始')+'</button>'+(cityOn?'<button type="button" class="ob-cta quiet" data-loc="here">'+L('Use my location instead','改用我的位置')+'</button>':'')
+    if(i===7){ var hereOn=st.loc==='here', cityOn=st.loc==='city', cn=function(k){ return CITIES[k][api.lang()==='zh'?'zh':'en']; };
+      return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('Match the sky to your day','让天空跟着你的一天')+'</h4>'+(cityOn?'<div class="ob-sum"><div><span>'+L('Nearest city','最近的城市')+'</span><select data-obcity aria-label="'+L('Nearest city','最近的城市')+'">'+Object.keys(CITIES).map(function(k){ return '<option value="'+k+'"'+(st.city===k?' selected':'')+'>'+cn(k)+'</option>'; }).join('')+'</select></div></div>':hereOn?'<div class="ob-sum"><div><span>'+L('Using your location','正在使用你的位置')+'</span><b>\u2713</b></div></div>':'')+'<p class="ob-note">'+L('Lightly shows the moon and sun by your local sunrise and sunset. Your location is used on this phone only to work that out. It is never uploaded or shared.','轻伴按你当地的日出日落显示月亮和太阳。位置只在这台手机上用来计算，不会上传，也不会分享。')+'</p>'+
+        (hereOn||cityOn?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'+(cityOn?'<button type="button" class="ob-cta quiet" data-loc="here">'+L('Use my location instead','改用我的位置')+'</button>':'')
           :'<button type="button" class="ob-cta" data-loc="here">'+L('Use my location','使用我的位置')+'</button><button type="button" class="ob-cta quiet" data-loc="city">'+L('Choose a city instead','改选城市')+'</button>'); }
+    if(i===4){ var rk=risky(), pid=rk?'13':st.plan, usual=st.exp==='some'&&!rk;
+      return '<div class="ob-hero">'+disc(0.12,'#E9E3D3')+'</div><h4>'+L('You\u2019re set','准备好了')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(pid)+'</b></div><div><span>'+L('Sunrise and sunset','日出日落')+'</span><b>'+(st.loc==='here'?L('Your location','当前位置'):CITIES[st.city][api.lang()==='zh'?'zh':'en'])+'</b></div><div><span>'+L('First fast','第一次断食')+'</span><b>'+(usual?L('Tonight, 8:30 PM','今晚 8:30'):L('When you\u2019re ready','准备好时'))+'</b></div></div><p class="ob-note">'+(rk?L('Your plan stays at 13:11 and longer fasts stay off. Please talk to your doctor before changing that.','你的计划保持在 13:11，长时间断食保持关闭。要调整前请先咨询医生。'):L('Everything here can be changed later in Me.','这里的一切都可以之后在“我的”里修改。'))+'</p><button type="button" class="ob-cta" data-done>'+L('Open Lightly','打开 Lightly')+'</button>'; }
   }
   var cur=null;
   function show(i,dir){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(flow()[i]); stage.appendChild(el); bind(el); if(i===0) heroInit(el);
@@ -1667,7 +1680,12 @@ window.LightlySphere=(function(){
     if(o.childNodes.length!==n.childNodes.length){ o.innerHTML=n.innerHTML; return; }
     for(i=0;i<o.childNodes.length;i++) morph(o.childNodes[i],n.childNodes[i]);
   }
-  function rerender(){ var t=document.createElement('div'); t.innerHTML=view(flow()[st.step]); var hadHero=cur.querySelector('.ob-hero'); if(hadHero&&t.querySelector('.ob-hero')&&!t.querySelector('.ob-hero').isEqualNode(hadHero)){ cur.innerHTML=t.innerHTML; bind(cur); if(st.step===0) heroInit(cur); out(); return; } for(var i=0;i<cur.childNodes.length&&i<t.childNodes.length;i++) morph(cur.childNodes[i],t.childNodes[i]); if(cur.childNodes.length!==t.childNodes.length){ cur.innerHTML=t.innerHTML; } bind(cur); out(); }
+  function rerender(){ var t=document.createElement('div'); t.innerHTML=view(flow()[st.step]); var hadHero=cur.querySelector('.ob-hero'); if(hadHero&&t.querySelector('.ob-hero')&&!t.querySelector('.ob-hero').isEqualNode(hadHero)){ cur.innerHTML=t.innerHTML; bind(cur); if(st.step===0) heroInit(cur); out(); return; } if(cur.childNodes.length!==t.childNodes.length){ cur.innerHTML=t.innerHTML; } else for(var i=0;i<cur.childNodes.length;i++) morph(cur.childNodes[i],t.childNodes[i]); bind(cur); out(); }
+  /* buttons are morphed in place between renders, so next / location / done are delegated rather than bound per node */
+  stage.addEventListener('click',function(e){ var t=e.target.closest&&e.target.closest('[data-next],[data-loc],[data-done]'); if(!t||!stage.contains(t)) return;
+    if(t.hasAttribute('data-done')) api.setPlan(risky()?'13':st.plan);
+    else if(t.hasAttribute('data-loc')){ st.loc=t.dataset.loc; rerender(); }
+    else if(!t.disabled) show(st.step+1,1); });
   function bind(el){
     el.querySelectorAll('.ob-opt').forEach(function(b){ if(b._b) return; b._b=1; b.addEventListener('click',function(){ var q=b.closest('.ob-list').dataset.q, v=b.dataset.v;
       if(q==='custom') return;
@@ -1676,11 +1694,8 @@ window.LightlySphere=(function(){
       else if(q==='plan') st.plan=v;
       try{ if(navigator.vibrate) navigator.vibrate(5); }catch(e){}
       rerender(); }); });
-    var n=el.querySelector('[data-next]'); if(n&&!n._b){ n._b=1; n.addEventListener('click',function(){ if(!n.disabled) show(st.step+1,1); }); }
     var im=el.querySelector('[data-imp]'); if(im&&!im._b){ im._b=1; im.addEventListener('click',function(){ st.imp=true; rerender(); }); }
-    el.querySelectorAll('[data-loc]').forEach(function(b){ if(b._b) return; b._b=1; b.addEventListener('click',function(){ st.loc=b.dataset.loc; rerender(); }); });
     var oc=el.querySelector('[data-obcity]'); if(oc&&!oc._b){ oc._b=1; oc.addEventListener('change',function(){ st.city=oc.value; }); }
-    var d=el.querySelector('[data-done]'); if(d&&!d._b){ d._b=1; d.addEventListener('click',function(){ api.setPlan(st.plan); }); }
   }
   back.addEventListener('click',function(){ if(st.step>0) show(st.step-1,-1); });
   function out(){ var rec=risky()?'13':RULES.recommend[st.exp||'first']; var started=st.exp||st.safety.length;
