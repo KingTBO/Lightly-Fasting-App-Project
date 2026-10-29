@@ -450,3 +450,5 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 .fab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .fab[data-mode=add] .fi-edit,.fab[data-mode=edit] .fi-add{display:none}
 @media (prefers-reduced-motion:reduce){.fab{transition:opacity .2s ease,visibility 0s .2s;transform:none}.fab.on{transition-delay:0s}}
+.cal-g button.sel .d{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--label)}
+.cal-g button.sel:not(.done) .d{background:var(--fill-2)}
