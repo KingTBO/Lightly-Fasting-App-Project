@@ -169,8 +169,11 @@ html:lang(zh-Hans) .h-title,html:lang(zh-Hans) .ob h1{letter-spacing:0}
 .empty{padding:20px 16px;color:var(--label-2);font-size:0.9375rem;text-align:center}
 
 /* sheets */
-.scrim{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:6;transition:opacity .35s ease}
-.scrim.on{opacity:.4;pointer-events:auto}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.24);-webkit-backdrop-filter:blur(0px);backdrop-filter:blur(0px);opacity:0;visibility:hidden;pointer-events:none;z-index:6;transition:opacity .35s ease,visibility 0s .35s,backdrop-filter .35s ease,-webkit-backdrop-filter .35s ease}
+.scrim.on{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;-webkit-backdrop-filter:blur(14px) saturate(1.05);backdrop-filter:blur(14px) saturate(1.05)}
+/* no blur available, or Reduce Transparency: a plain, slightly darker dim */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.scrim{background:rgba(0,0,0,.4)}}
+@media (prefers-reduced-transparency:reduce){.scrim,.scrim.on{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.4)}}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:7;max-height:92%;overflow-y:auto;background:var(--bg);color:var(--label);border-radius:34px 34px 0 0;padding:8px 0 calc(24px + var(--sab));transform:translateY(105%);transition:transform .5s var(--spring);visibility:hidden;--ink:var(--label);--ink-2:var(--label-2)}
 .sheet.open{transform:none;visibility:visible}
 .sheet .grab{width:36px;height:5px;border-radius:3px;background:var(--label-3);margin:0 auto 12px}

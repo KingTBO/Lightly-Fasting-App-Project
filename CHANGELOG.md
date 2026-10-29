@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.24.0
+- **design** Sheets now blur what is behind them instead of only darkening it: plans, Time off, edit times, cheat days, import and the rest. The dim is lighter, and the blur fades in and out with the sheet, including while you drag it down. With Reduce Transparency on, or where blur is unsupported, you get a plain darker dim instead. The concept page matches.
+
 ## 0.23.0
 - **feature** Setup now ends with a "You're set" screen in the app too: your plan, how Lightly follows the sun, and when your first fast can start, then "Open Lightly". The concept page already had it; it now says "Sunrise and sunset".
 - **design** The safety questions moved to the last step before that summary. If anything applies, the plan is set to 13:11 there and longer fasts stay off.

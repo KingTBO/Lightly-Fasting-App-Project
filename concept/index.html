@@ -171,7 +171,11 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .home{position:absolute;bottom:8px;left:50%;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--ink);opacity:.85}
 
 /* sheet (medium detent) */
-.scrim{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:4}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.24);-webkit-backdrop-filter:blur(0px);backdrop-filter:blur(0px);opacity:0;visibility:hidden;pointer-events:none;z-index:4;transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}
+.scrim.on{visibility:visible;transition-delay:0s;-webkit-backdrop-filter:blur(14px) saturate(1.05);backdrop-filter:blur(14px) saturate(1.05)}
+#scrim{visibility:visible;transition:none;-webkit-backdrop-filter:blur(14px) saturate(1.05);backdrop-filter:blur(14px) saturate(1.05)}  /* driven frame by frame by the sheet spring */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.scrim{background:rgba(0,0,0,.4)}}
+@media (prefers-reduced-transparency:reduce){.scrim,.scrim.on,#scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.4)}}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--card);color:var(--label);border-radius:34px 34px 0 0;padding:8px 16px 34px;transform:translateY(105%);will-change:transform}
 .sheet .grab{width:36px;height:5px;border-radius:3px;background:var(--label-3);margin:0 auto 18px}
 .sheet .k{font:600 15px var(--font);color:var(--label-2)}
@@ -407,8 +411,8 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 #rph .rsheet .ob-list{background:var(--bg);margin:10px 0 14px}
 #rph .rsheet p{opacity:1;transform:none;margin:4px 0 0}
 #rph .rsheet .done{opacity:1;transform:none;background:var(--fill);color:var(--label)}
-#rph .scrim{transition:opacity .3s ease}
-#rph .scrim.on{opacity:.35;pointer-events:auto}
+#rph .scrim{transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}#rph .scrim.on{transition-delay:0s}
+#rph .scrim.on{opacity:1;pointer-events:auto}
 .rkind{margin-top:28px}
 .rkind div b small{display:block;font:500 13px var(--font);color:var(--label-2);margin-top:2px}
 .later{margin-top:12px;background:var(--card);border-radius:20px;padding:18px 20px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
@@ -461,7 +465,7 @@ html:lang(zh-Hans) .me-h{text-transform:none}
 .me-list{background:var(--card);border-radius:14px;overflow:hidden}
 .me-list div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;min-height:48px;font-size:17px}
 .ph.tabs-off .tabs{transform:translateY(calc(100% + 28px));opacity:0;visibility:hidden;pointer-events:none;transition:transform .5s cubic-bezier(.2,1,.3,1),opacity .25s ease,visibility 0s .5s}
-#iScrim{transition:opacity .3s ease}#iScrim.on{opacity:.3;pointer-events:auto}
+#iScrim{transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}#iScrim.on{visibility:visible;transition-delay:0s}#iScrim.on{opacity:1;pointer-events:auto}
 .imp-sum{background:var(--card);border-radius:14px;overflow:hidden;margin:0 0 14px}.imp-sum div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;min-height:48px;font-size:17px}.imp-sum div+div{border-top:.5px solid var(--sep)}.imp-sum small{font-size:15px;color:var(--label-2);text-align:right}
 .imp-go{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint,#fff);font:600 17px var(--font);cursor:pointer}.imp-go+.imp-go{margin-top:10px;background:var(--fill);color:var(--label)}.imp-go:disabled{opacity:.4}
 .me-list div[role=button]{cursor:pointer}
@@ -543,8 +547,8 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .ps-extra.open{max-height:520px}
 .ps-extra .ps-row{border-top:.5px solid var(--sep)}
 .ps-foot{font-size:13px;color:var(--label-2);margin:10px 4px 0;line-height:1.4}
-#pScrim,#cScrim{transition:opacity .3s ease}
-#pScrim.on,#cScrim.on{opacity:.3;pointer-events:auto}
+#pScrim,#cScrim{transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}#pScrim.on,#cScrim.on{visibility:visible;transition-delay:0s}
+#pScrim.on,#cScrim.on{opacity:1;pointer-events:auto}
 .streak{cursor:pointer;text-align:left;border:0;color:inherit;font:inherit;width:calc(100% - 32px)}
 .streak:focus-visible{outline:2px solid var(--tint);outline-offset:2px}
 .cheat-moons{display:flex;gap:10px;align-items:center;margin:2px 0 12px}
@@ -1383,7 +1387,7 @@ window.LightlySphere=(function(){
     marker.setAttribute('r',(9+Math.max(sMk.x,-3)).toFixed(2));
     var tk=Math.min(Math.max(sTrack.x,0),1); track.style.opacity=tk.toFixed(3); track.style.transform='translateY('+((1-tk)*8).toFixed(2)+'px)';
     sheet.style.transform='translateY('+((1-sSheet.x)*105).toFixed(2)+'%)';
-    scrim.style.opacity=(Math.max(Math.min(sSheet.x,1),0)*.25).toFixed(3);
+    scrim.style.opacity=(Math.max(Math.min(sSheet.x,1),0)*1).toFixed(3);
     setText();
     requestAnimationFrame(frame);
   }
