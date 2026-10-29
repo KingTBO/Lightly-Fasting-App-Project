@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.22.2
+- **fix** The Time off sheet no longer shows two huge black arrows. The Travel and "I feel unwell" options now have the small grey arrow every other list has, so their text has room again, in English and 中文, light and dark. The concept page shows the same arrows.
+
 ## 0.22.1
 - **fix** Your precise location now really stays on the phone. The cloud backup and the sign-in link used to carry the saved coordinates; they now carry only that you use your location, and each phone keeps its own coordinates. A new phone signing in picks a nearby city until you allow location there.
 
