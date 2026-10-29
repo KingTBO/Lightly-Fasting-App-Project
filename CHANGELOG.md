@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.28.1
+- **chore** The alignment checks are much faster: they now run a quick sweep by default (about 1 minute instead of 15 or more), run in parallel, and can be limited to some screens. The full sweep is still there with `--full`, for big layout changes and bigger releases. RELEASING.md says when to use which.
+
 ## 0.28.0
 - **feature** "Continue with Google" is on the Me tab. It sends you to Google through Supabase and brings you back to the Me tab, with your fasts backed up and merged the same way as email sign-in. Until Google is switched on in the Supabase project, the button shows a short message and email keeps working. The concept page shows the button too.
 

@@ -12,7 +12,7 @@ A fasting timer that follows the sky. Moon at night, sun by day, set by your rea
   - `js/sphere.js` the 3D moon and sun (one WebGL shader, flat SVG fallback).
 - `sw.js` + `manifest.webmanifest` make it installable and offline.
 - `concept/` the design concept page and the moon/sun timer demo.
-- `qa/run-app.js` the alignment check for the app (16 px margin, 44 pt targets, centring). `qa/run.js` is the older one for the concept page.
+- `qa/run-app.js` the alignment check for the app (16 px margin, 44 pt targets, centring). `qa/run.js` is the older one for the concept page. Both run a quick sweep by default; add `--full` for every width, theme and language (see RELEASING.md for when).
 - `tests/core.test.js` unit tests for the rules.
 
 ## Sign-in and backup (optional)
@@ -35,7 +35,7 @@ python3 -m http.server 8000          # then open http://localhost:8000
 node tests/core.test.js
 NODE_PATH=$(npm root -g) node tests/flow.test.js
 NODE_PATH=$(npm root -g) node tests/cloud.test.js --e2e   # merge rules + sign-in against a mock Supabase
-NODE_PATH=$(npm root -g) node qa/run-app.js [shots-dir]   # needs Playwright; exits 1 on any alignment issue
+NODE_PATH=$(npm root -g) node qa/run-app.js [shots-dir] [--full] [--screens=idle,ob]   # needs Playwright; quick by default (about 1 min); exits 1 on any alignment issue
 ```
 
 Deploys with GitHub Pages from `main` / root.

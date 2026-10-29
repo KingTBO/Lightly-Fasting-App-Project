@@ -1,9 +1,11 @@
 /* Alignment check for the real app (index.html at the site root).
-   usage: node qa/run-app.js [shots-dir]     needs Playwright, serves the repo itself.
-   Covers 390 and 1440 wide, light/dark, EN/中文, and every screen and sheet. Prints only what breaks the rules:
+   usage: node qa/run-app.js [shots-dir] [--full] [--screens=idle,ob] [--jobs=4]     needs Playwright, serves the repo itself.
+   Default is the quick sweep (3 phone setups, runs in parallel, a few minutes). --full adds every width, theme and language (about 10 times longer):
+   use it for big layout or design changes and before bigger releases. --screens limits it to some scenarios: idle, mid, goal, eat, empty, ob.
+   Covers every screen and sheet. Prints only what breaks the rules:
    16 px side margin, 44 pt tap targets, centred icons and labels, no clipped text, nothing outside the phone. */
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http');
-const root=path.join(__dirname,'..'),shots=process.argv[2]||'';
+const root=path.join(__dirname,'..'),args=process.argv.slice(2),shots=args.filter(a=>!a.startsWith('--'))[0]||'',full=args.includes('--full'),only=((args.find(a=>a.startsWith('--screens='))||'').slice(10)||'').split(',').filter(Boolean),jobs=+((args.find(a=>a.startsWith('--jobs='))||'').slice(7))||3;
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.webmanifest':'application/manifest+json'};
 const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.url.split('?')[0]));if(f.endsWith('/'))f+='index.html';fs.readFile(f,(e,d)=>{if(e){r.writeHead(404);r.end();}else{r.writeHead(200,{'Content-Type':mime[path.extname(f)]||'application/octet-stream'});r.end(d);}});});
 const H=3600000,D=24*H,probe=fs.readFileSync(path.join(__dirname,'probe.js'),'utf8')+fs.readFileSync(path.join(__dirname,'contrast.js'),'utf8');
@@ -36,21 +38,25 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
    return out;};
  const contrast=()=>window.__contrast('#ph');
  const pages=[];
- const configs=[]; [[390,844],[375,667],[1440,900]].forEach(([w,h])=>['light','dark'].forEach(scheme=>['en','zh'].forEach(lng=>configs.push({w,h,scheme,lng}))));
+ const configs=[];
+ if(!full) configs.push({w:390,h:844,scheme:'light',lng:'en'},{w:390,h:844,scheme:'dark',lng:'zh'},{w:375,h:667,scheme:'light',lng:'en'});
+ if(full){ [[390,844],[375,667],[1440,900]].forEach(([w,h])=>['light','dark'].forEach(scheme=>['en','zh'].forEach(lng=>configs.push({w,h,scheme,lng}))));
  /* the rest of the market: small and large Androids and iPhones, plus a notched phone with real safe-area insets */
  [[360,780],[430,932],[412,915],[320,568]].forEach(([w,h])=>['en','zh'].forEach(lng=>configs.push({w,h,scheme:'light',lng})));
- configs.push({w:390,h:844,scheme:'light',lng:'en',notch:true},{w:375,h:667,scheme:'dark',lng:'zh',notch:true});
+ configs.push({w:390,h:844,scheme:'light',lng:'en',notch:true},{w:375,h:667,scheme:'dark',lng:'zh',notch:true}); }
  const T=async(p,t)=>{await p.evaluate(()=>{['today','days','me'].forEach(i=>{document.getElementById(i).scrollTop=0})});await p.waitForTimeout(80);await p.click('#tabs [data-tab='+t+']');};
+ const tasks=[];
  for(const {w,h,scheme,lng,notch} of configs){
-  const run=async(kind,steps)=>{const ctx=await b.newContext({viewport:{width:w,height:h},colorScheme:scheme,timezoneId:'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});
+  const runNow=async(kind,steps)=>{const ctx=await b.newContext({viewport:{width:w,height:h},colorScheme:scheme,timezoneId:'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});
    const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
    if(notch) await p.addInitScript(()=>{ document.addEventListener('DOMContentLoaded',()=>{ const t=document.createElement('style'); t.textContent=':root{--sat:47px!important;--sab:34px!important}'; document.head.appendChild(t); }); });
    await p.addInitScript(([k,v])=>{ if(!sessionStorage.getItem('seeded')){localStorage.setItem(k,v);sessionStorage.setItem('seeded','1');} },['lightly:v1',JSON.stringify(seed(kind,lng))]);
    await p.goto('http://localhost:'+port+'/');await p.addScriptTag({content:probe});await p.waitForTimeout(900);
    const st=`${w}${notch?'n':''}/${scheme}/${lng}`;
-   const A=async n=>{await p.waitForTimeout(1300);add(st+'/'+n,await p.evaluate(()=>__audit('#ph')));add(st+'/'+n,await p.evaluate(margin));add(st+'/'+n,await p.evaluate(icons));add(st+'/'+n,await p.evaluate(contrast));
+   const A=async n=>{await p.waitForTimeout(900);add(st+'/'+n,await p.evaluate(()=>__audit('#ph')));add(st+'/'+n,await p.evaluate(margin));add(st+'/'+n,await p.evaluate(icons));add(st+'/'+n,await p.evaluate(contrast));
      if(shots&&w===390&&!notch&&scheme==='light'&&lng==='en') await p.screenshot({path:path.join(shots,n+'.png')});};
    await steps(p,A,st);if(errs.length)console.log('ERR',st,errs);await ctx.close();};
+  const run=(kind,steps)=>{ if(!only.length||only.includes(kind)) tasks.push(()=>runNow(kind,steps)); };
   await run('idle',async(p,A)=>{await A('today-idle');
     await p.click('#planBtn');await A('plan-sheet');await p.click('[data-act=more]');await A('plan-more');await p.click('[data-act=close]');
     await p.click('#streakBtn');await A('cheat-sheet');await p.click('#sheet [data-act=close]');
@@ -66,6 +72,7 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
   await run('ob',async(p,A)=>{await A('ob0');for(let i=1;i<=4;i++){const o=await p.$('#ob .ob-step.on [data-act=obopt],#ob .ob-step.on [data-act=obsafe]:last-child');if(o){await o.click();await p.waitForTimeout(150);}
      const nx=await p.$('#ob .ob-step.on [data-act=obnext]:not([disabled])');if(nx){await nx.click();await p.waitForTimeout(100);await A('ob'+i);}}});
  }
+ await Promise.all(Array.from({length:jobs},async()=>{ while(tasks.length){ const t=tasks.shift(); await t(); } }));
  const keys=Object.keys(all).sort();let n=0;keys.forEach(k=>{if(all[k].v.length||true){}});
  const bad=keys.filter(k=>true);console.log('issues:',bad.length);
  bad.forEach(k=>console.log(k,'=>',all[k].v,'['+[...all[k].st].length+' states e.g. '+[...all[k].st][0]+']'));
