@@ -340,7 +340,7 @@ function tabLabels(){ $('tabT').textContent=L('Today','今天'); $('tabD').textC
 /* ---------- time off ---------- */
 var offDays=3;
 function offNow(){ return C.offActive(S.off); }
-function offIco(k){ return k==='travel'?'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 13.5 3 11l1.5-1.5 7-.5L16 4.5a1.8 1.8 0 0 1 2.5 2.5L14 11.5l-.5 7L12 20l-2.5-7.5Z"/></svg>':'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg>'; }
+function offIco(k){ return '<span aria-hidden="true">'+(k==='travel'?'\u2708\uFE0F':'\u2764\uFE0F\u200D\uD83E\uDE79')+'</span>'; }
 function offBackLbl(o){ var e=C.keyToDate(C.addDays(C.dayKey(o.start),o.days)).getTime(); return dateLbl(e); }
 function timeOffSheet(){
   var o=offNow();

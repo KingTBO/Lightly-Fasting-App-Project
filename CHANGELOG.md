@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.21.1
+- **design** Time off uses the ✈️ and ❤️‍🩹 emoji for Travel and I feel unwell instead of line icons, in the app and on the concept page.
+
 ## 0.21.0
 - **feature** New Time off sheet in Me, under Care (it replaces "I feel unwell"). Choose Travel and pick 1 to 14 days, or choose I feel unwell and a two-week break starts right away. A pill on Today shows which day of the break it is, and you can end the break early from there or from Me.
 - **feature** Break days keep your streak, like cheat days, without growing it. They show as dotted days in the calendar. A break for feeling unwell also keeps long fasts paused for the two weeks, even if you end it early.
