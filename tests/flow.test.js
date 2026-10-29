@@ -84,7 +84,9 @@ const H=3600000,D=24*H;
  await q.context().close();await q2.context().close();ok('Days header, swipe, picker, no cheat row');}
  // appearance: the sheet stays open, the whole app switches, the sheet shows the new choice
  {const q=await fresh(seed({theme:'light'}));await q.click('#tabs [data-tab=me]');await q.click('#me [data-act=choice][data-k=theme]');await q.waitForTimeout(500);
- await q.click('#sheet [data-act=pick][data-v=dark]');await q.waitForTimeout(900);
+ await q.evaluate(()=>{window.__pick=()=>[...document.querySelectorAll('#me .group,#me .row,#sheet,.tabs,.scrim,#me .gh,.btn')].map(e=>getComputedStyle(e).backgroundColor+'|'+getComputedStyle(e).color);});
+ await q.click('#sheet [data-act=pick][data-v=dark]');const early=await q.evaluate(()=>new Promise(r=>setTimeout(()=>r(window.__pick()),80)));await q.waitForTimeout(900);const late=await q.evaluate(()=>window.__pick());
+ assert.strictEqual(early.filter((v,i)=>v!==late[i]).length,0,'every element is already in its final colours while the cross-fade runs');
  assert.strictEqual(await q.evaluate(()=>document.documentElement.getAttribute('data-theme')),'dark');assert(await q.$('#sheet.open'),'sheet stays open after choosing');assert(await q.$('#sheet .plan.sel[data-v=dark]'),'sheet shows the new choice');
  assert.strictEqual(await q.evaluate(()=>getComputedStyle(document.body).getPropertyValue('color-scheme')||getComputedStyle(document.documentElement).colorScheme),'dark');
  await q.click('#sheet [data-act=pick][data-v=light]');await q.waitForTimeout(900);assert.strictEqual(await q.evaluate(()=>document.documentElement.getAttribute('data-theme')),'light');assert(await q.$('#sheet.open'),'still open');

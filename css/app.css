@@ -464,3 +464,4 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 .scrim.peek{background:rgba(0,0,0,.12)}
 .sheet.open{box-shadow:0 -1px 0 var(--sep)}
 .scrim.peek.on{-webkit-backdrop-filter:none;backdrop-filter:none}
+.theme-now,.theme-now *,.theme-now *::before,.theme-now *::after{transition:none!important}

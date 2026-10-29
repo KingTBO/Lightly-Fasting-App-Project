@@ -723,7 +723,8 @@ function sw(k,label,on,dis){ return '<div class="row"><span>'+label+'</span><but
 /* Light / Dark / Auto: the browser snapshots the screen and cross-fades to the new look in one piece, so nothing is half themed. Without that API, colours fade together for a moment. Still instant under Reduce Motion. */
 function switchTheme(fn){
   if(reduce){ fn(); return; }
-  if(document.startViewTransition){ try{ document.startViewTransition(fn); return; }catch(e){} }
+  if(document.startViewTransition){ var r0=document.documentElement; r0.classList.add('theme-now'); /* no element animates on its own inside the cross-fade: the new look is complete from its first frame */
+    try{ var vt=document.startViewTransition(fn), done=function(){ r0.classList.remove('theme-now'); }; vt.finished.then(done,done); setTimeout(done,1500); return; }catch(e){ r0.classList.remove('theme-now'); } }
   var r=document.documentElement; r.classList.add('theme-fade'); fn(); setTimeout(function(){ r.classList.remove('theme-fade'); },520);
 }
 function applyTheme(){ var r=document.documentElement; if(S.theme==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',S.theme); }
