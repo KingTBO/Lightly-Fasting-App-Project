@@ -2,40 +2,125 @@
 
 Lightly (轻伴). Every change that reaches GitHub gets a version number, a plain description and a category. Newest first. See [RELEASING.md](RELEASING.md) for the rules.
 
-Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a new feature or visible behaviour change bumps MINOR, a fix or small polish bumps PATCH.
+Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
-## 0.28.0 (2026-10-28)
-- **fix** The yellow "In season" badge on the Ramadan row in the plan sheet now sits next to the title and lines up with it.
-- **design** Progress now fills the disc as a wedge growing counter-clockwise from 12 o'clock with a soft edge, and unwinds the same way in the eating window. Sunrise and sunset keep the plain fade. (Earlier tries at a moon-to-sun sweep were replaced.)
-- **feature** Finishing a fast that reached its goal plays a short celebration: the disc blooms like a sunrise, a check draws in, small lights drift out. The same for every fast length. Reduce Motion gets a soft fade. Also playable on the concept page.
-- **feature** Onboarding has an optional "Bring your fasts with you" screen for people who have fasted before, with neutral 3D tiles and Skip for now.
-- **design** The Card timer style is removed. Classic and Hero remain, Hero by default.
-- **docs** The concept page gains a Days tab, Me settings that match the app, an Edit times sheet and a "New in the app" section.
-- **docs** Added this changelog, release rules and issue labels.
+## 0.19.3
+- **docs** (this change) Past changes now carry version numbers, tags, releases and labelled issues. Version numbers before this one were assigned afterwards, so they are approximate.
 
-## 0.27.0 and 0.26.0 (2026-10-28)
-- **design** Experiments with a moon-to-sun sweep animation (clockwise, then counter-clockwise, then a timed animation). Superseded by 0.28.0.
+## 0.19.2
+- **docs** (commit 3ccf32e) Added the changelog, release rules, a version number and issue labels.
 
-## 0.25.0 (2026-10-28)
-- **feature** Import from another app (Me, Your data): reads a Zero export (`firestore.json` or `biodata.json`), a Lightly backup, or any CSV or JSON with start and end times. Preview first, nothing added until you confirm, duplicates and overlaps skipped, the file never leaves the phone.
-- **feature** The tab bar slides away when you scroll down and returns when you scroll up.
-- **fix** Better fit on small and notched phones; the Start button no longer hides behind the tab bar on the smallest screens.
-- **chore** iPhone launch images, a size readout (tap the Me footer) and a larger device matrix in the UI check, while investigating the strip at the bottom of the Home Screen app.
+## 0.19.1
+- **fix** (commit 60993a9) The In season badge on the Ramadan plan now lines up with its title.
 
-## 0.20.0 (2026-10-27)
-- **design** Shooting stars now and then under the night sky.
-- **design** Tabs use one blue accent; Me settings open pickers instead of cramped rows; the usual start time is aligned right.
-- **design** Fluid tab bar with a gliding pill and screen cross-fade; smoother onboarding.
-- **feature** The timer shows hours, minutes and seconds with rolling digits; three temporary styles; tap to swap left and elapsed.
+## 0.19.0
+- **design** (commit 836163e) Progress now fills the disc as a wedge growing counter-clockwise from 12 o'clock, and unwinds the same way while eating.
 
-## 0.15.0 (2026-10-27)
-- **feature** Plan ladder: 13:11 first, 16:8 after three completed fasts, then the rest step by step; setup step for people who have fasted before; overtime display; editable end time.
-- **copy** Plan rows lead with the fasting hours only.
-- **fix** The Suggested badge aligns with the plan name.
+## 0.18.0
+- **design** (commit 7391f02) Made the sweep a visible animation (replaced later).
 
-## 0.10.0 (2026-10-27)
-- **feature** Email sign-in and cloud backup on Supabase, with link-only emails, a sign-in link that restores your settings and lands on Me.
-- **docs** The concept page doubles as the product landing page and mirrors the app.
+## 0.17.0
+- **design** (commit 448655a) Made the sweep counter-clockwise (replaced later).
 
-## 0.1.0 (2026-10-27)
-- **feature** First working web app at the site root: real timer, moon and sun by local sunrise and sunset, plans, Days, Me, onboarding, installable and offline.
+## 0.16.0
+- **design** (commit 90a9918) First try at a clockwise moon-to-sun sweep (replaced later).
+
+## 0.15.1
+- **docs** (commit c532ddb) The concept page gains a Days tab, Me settings that match the app and an Edit times sheet.
+
+## 0.15.0
+- **feature** (commit b456df8) Removed the Card timer style and added an optional import step to onboarding.
+
+## 0.14.1
+- **docs** (commit 901c401) The concept page can play the celebration and has a 'New in the app' section.
+
+## 0.14.0
+- **feature** (commit 1cfcd72) A short celebration when a fast reaches its goal.
+
+## 0.13.4
+- **fix** (commit 861c194) Undid the stretch, added iPhone launch images and a size readout in the Me footer.
+
+## 0.13.3
+- **fix** (commit bb7f45f) Tried stretching the app to the real screen height in Home Screen mode (later undone).
+
+## 0.13.2
+- **fix** (commit da5ba83) Tried filling the whole screen on phones to remove the strip at the bottom of the Home Screen app.
+
+## 0.13.1
+- **chore** (commit 12ef375) Added the Supabase agent skills to the repository.
+
+## 0.13.0
+- **feature** (commit 40b15b8) Import fasts from Zero and other apps, the tab bar hides while you scroll down, and better fit on every phone size.
+
+## 0.12.0
+- **design** (commit 9fe7aee) Shooting stars now and then under the night sky.
+
+## 0.11.0
+- **design** (commit 4574cdd) One blue accent for the tabs, Me settings open as pickers, and the usual start time is aligned right.
+
+## 0.10.0
+- **design** (commit 96774a5) A fluid tab bar with a gliding highlight, smoother screen changes and smoother onboarding.
+
+## 0.9.0
+- **feature** (commit 29f4134) The timer shows hours, minutes and seconds with rolling digits, with temporary style choices.
+
+## 0.8.0
+- **feature** (commit 3573d66) Plans open step by step (13:11 first, 16:8 after three fasts), a setup step for experienced fasters, overtime display and editable end times.
+
+## 0.7.5
+- **copy** (commit 2b23cda) Plan descriptions show only the fasting hours, and the Chinese plan names match the app.
+
+## 0.7.4
+- **copy** (commit b3f4df1) Plan rows lead with the fasting hours.
+
+## 0.7.3
+- **fix** (commit a24bc7f) The Suggested badge now lines up with the plan name in onboarding.
+
+## 0.7.2
+- **fix** (commit 3a9f08b) After a sign-in link you land on the Me tab.
+
+## 0.7.1
+- **fix** (commit 481f110) After a sign-in link, your onboarding choices are kept so you are not asked again.
+
+## 0.7.0
+- **feature** (commit 61e7d88) Turned on cloud backup for the live project.
+
+## 0.6.0
+- **feature** (commit bc861d0) Email sign-in now works with link-only emails, with a resend timer and a clear expired-link message.
+
+## 0.5.4
+- **chore** (commit 9aac783) Made the database setup safe to run again and limited access to signed-in people.
+
+## 0.5.3
+- **fix** (commit 79de577) Fixed a stray style rule left behind on the concept page.
+
+## 0.5.2
+- **docs** (commit e5879df) Removed the 'Not Boring Weather' section from the concept page.
+
+## 0.5.1
+- **docs** (commit 8add621) The concept page now mirrors the app and works as the landing page, with Open the app buttons.
+
+## 0.5.0
+- **feature** (commit 0608a98) Optional email sign-in and cloud backup (switched off until configured).
+
+## 0.4.1
+- **fix** (commit 56d67e8) The streak card no longer collides with the Start button on shorter phones.
+
+## 0.4.0
+- **design** (commit f7f274a) Welcome screen: one name per language and an animated moon you can touch.
+
+## 0.3.0
+- **design** (commit 48c45bc) A design pass: clearer text contrast, steadier motion, focus rings and sheets that drag smoothly.
+
+## 0.2.2
+- **fix** (commit 2e3cdd4) Fixed the welcome icon and its centring, and added icon and centring checks.
+
+## 0.2.1
+- **chore** (commit 9b39478) Added automatic end-to-end tests, and fixed the wording to 'hour to eat' in the singular.
+
+## 0.2.0
+- **feature** (commit c0cce62) The site root becomes a working app: a real timer, a sky that follows sunrise and sunset, plans, a Days calendar, a Me tab and first-time setup.
+
+## 0.1.0
+- **feature** (commit ad0213f) First installable version: a timer you can add to the Home Screen, with icons and offline support.
+
