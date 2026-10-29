@@ -54,7 +54,7 @@ function pName(p){ return S.lang==='zh'?p.zh:p.name; }
 /* ---------- place and sun ---------- */
 var pi, sun, sunDay='';
 function refreshSun(now){ var k=C.dayKey(now)+S.place.key+(S.place.lat||''); if(k===sunDay&&pi) return; sunDay=k; pi=C.placeInfo(S.place,now); sun=C.sunTimes(pi,now); }
-function placeName(){ return S.place.key==='here'?L('Your location','你的位置'):C.CITIES[S.place.key][S.lang==='zh'?'zh':'en']; }
+function placeName(){ return S.place.key==='here'?L('Your location','当前位置'):C.CITIES[S.place.key][S.lang==='zh'?'zh':'en']; }
 function placeMs(hr,now){ /* today's local hour hr at the place, as a timestamp */ return now-C.placeHour(pi,now)*H+hr*H; }
 
 /* ---------- fasts ---------- */
@@ -549,10 +549,10 @@ function pickPlan(id){
   save(); cache={}; ticksKey=''; updateToday(); planSheet();
 }
 
-/* ---------- where you are ---------- */
+/* ---------- sunrise and sunset: location, or a nearby city ---------- */
 function placeSheet(){
-  var h='<h3>'+L('Where you are','你的位置')+'</h3><p class="lede">'+L('Used only to work out your sunrise and sunset. It never leaves your phone.','只用来计算你所在地的日出日落，不会离开你的手机。')+'</p>';
-  h+='<div class="group"><button class="plan'+(S.place.key==='here'?' sel':'')+'" data-act="geo"><span class="pn"><b>'+L('Use my location','使用我的位置')+'</b><small>'+L('Most accurate','最准确')+'</small></span>'+CHECK+'</button></div><div class="group">';
+  var h='<h3>'+L('Sunrise and sunset','日出日落')+'</h3><p class="lede">'+L('Lightly uses your location on this phone only to find your local sunrise and sunset. It is never uploaded or shared. Prefer not to share? Choose a nearby city.','轻伴只在这台手机上用你的位置来算当地的日出日落，不会上传，也不会分享。不想分享？选一个附近的城市就行。')+'</p>';
+  h+='<div class="group"><button class="plan'+(S.place.key==='here'?' sel':'')+'" data-act="geo"><span class="pn"><b>'+L('Use my location','使用我的位置')+'</b><small>'+L('Most accurate. Stays on this phone.','最准确，只留在这台手机上。')+'</small></span>'+CHECK+'</button></div><div class="gh">'+L('Or choose a city','或选择城市')+'</div><div class="group">';
   Object.keys(C.CITIES).forEach(function(k){ h+='<button class="plan'+(S.place.key===k?' sel':'')+'" data-act="city" data-k="'+k+'" style="min-height:48px"><span class="pn"><b style="font-weight:400">'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</b></span>'+CHECK+'</button>'; });
   h+='</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'; openSheet(h);
 }
@@ -633,7 +633,7 @@ function renderMe(){
   h+=accountHtml();
   var p=plan(), ls=S.cur?null:null;
   h+='<div class="gh">'+L('Fasting','断食')+'</div><div class="group">'+
-   '<button class="row" data-act="place"><span>'+L('Where you are','你的位置')+'</span><span class="v">'+esc(placeName())+'</span>'+CHEV+'</button>'+
+   '<button class="row" data-act="place"><span>'+L('Sunrise and sunset','日出日落')+'</span><span class="v">'+esc(placeName())+'</span>'+CHEV+'</button>'+
    (S.prefs.usualStart?'<div class="row"><label for="usualStart">'+L('Usual start time','通常开始时间')+'</label><input id="usualStart" class="tin" type="time" value="'+esc(S.prefs.usualStart)+'" data-chg="usual" aria-label="'+L('Usual start time','通常开始时间')+'"></div>':'<button class="row" data-act="usualset"><span>'+L('Usual start time','通常开始时间')+'</span><span class="v">'+L('Not set','未设置')+'</span>'+CHEV+'</button>')+
    '<button class="row" data-act="cheat"><span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button></div>';
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
@@ -653,7 +653,7 @@ function applyTheme(){ var r=document.documentElement; if(S.theme==='auto') r.re
 function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'; tabLabels(); document.title=S.lang==='zh'?'轻伴':'Lightly'; }
 
 /* ---------- onboarding ---------- */
-var ob={step:0,fasted:null,safe:[],plan:null,start:'20:00'};
+var ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',city:false};
 function obRisky(){ return !!(ob.safe.length&&ob.safe.indexOf('none')<0); }
 /* everyone: welcome, fasted before, safety, plan, where you are. People who have fasted before also get a step to make it theirs. */
 function obFlow(){ var f=['welcome','fasted','safety','plan']; if(ob.fasted==='before'&&!obRisky()) f.push('custom'); if(ob.fasted==='before') f.push('import'); f.push('set'); return f; }
@@ -693,8 +693,13 @@ function obHtml(i){
     body='<h1>'+L('Make it yours','按你的习惯来')+'</h1><p class="lede">'+L('Since you’ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="group"><div class="field"><label for="obStart">'+L('Usual start time','通常开始时间')+'</label><input id="obStart" class="tin" type="time" value="'+esc(ob.start||'20:00')+'" data-chg="obstart"></div></div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else{
-    body='<h1>'+L('You’re set','准备好了')+'</h1><p class="lede">'+L('Lightly needs to know where you are to find your sunrise and sunset. Your first fast can start tonight.','Lightly 需要知道你在哪里，才能算出日出日落。今晚就可以开始第一次断食。')+'</p><div class="group"><button class="row" data-act="obgeo"><span class="stack"><span>'+L('Use my location','使用我的位置')+'</span><small>'+L('Stays on your phone','只留在你的手机上')+'</small></span><span class="v">'+(S.place.key==='here'?'✓':'')+'</span></button><div class="row"><span>'+L('Or pick a city','或选择城市')+'</span><select id="obCity" data-chg="obcity" aria-label="'+L('City','城市')+'">'+Object.keys(C.CITIES).map(function(k){ return '<option value="'+k+'"'+(S.place.key===k?' selected':'')+'>'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</option>'; }).join('')+'</select></div></div>'+(flow.indexOf('custom')<0?'<div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>':'')+'<div class="grow"></div>';
-    cta='<button class="btn" data-act="obdone">'+L('Open Lightly','打开 Lightly')+'</button>';
+    var hereOn=S.place.key==='here';
+    body='<h1>'+L('Match the sky to your day','让天空跟着你的一天')+'</h1><p class="lede">'+L('Lightly shows the moon and sun by your local sunrise and sunset. Your location is used on this phone only to work that out. It is never uploaded or shared.','轻伴按你当地的日出日落显示月亮和太阳。位置只在这台手机上用来计算，不会上传，也不会分享。')+'</p>'+
+     (hereOn?'<div class="group"><div class="row"><span class="stack"><span>'+L('Using your location','正在使用你的位置')+'</span><small>'+L('Stays on this phone','只留在这台手机上')+'</small></span><span class="v">✓</span></div></div>':'')+
+     (!hereOn&&ob.city?'<div class="group"><div class="row"><label for="obCity">'+L('Nearest city','最近的城市')+'</label><select id="obCity" data-chg="obcity" aria-label="'+L('Nearest city','最近的城市')+'">'+Object.keys(C.CITIES).map(function(k){ return '<option value="'+k+'"'+(S.place.key===k?' selected':'')+'>'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</option>'; }).join('')+'</select></div></div>':'')+
+     (flow.indexOf('custom')<0?'<div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>':'')+'<div class="grow"></div>';
+    cta=hereOn||ob.city?'<button class="btn" data-act="obdone">'+L('Open Lightly','打开 Lightly')+'</button>'+(hereOn?'':'<button class="btn quiet" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
+      :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn quiet" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
   }
   return '<div class="ob-step" data-i="'+i+'">'+top+body+'<div class="ob-cta">'+cta+'</div></div>';
 }
@@ -808,7 +813,8 @@ var A={
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
   obsafe:function(b){ var v=b.dataset.v, i=ob.safe.indexOf(v); if(v==='none') ob.safe=i>=0?[]:['none']; else{ ob.safe=ob.safe.filter(function(x){return x!=='none';}); if(i>=0) ob.safe.splice(ob.safe.indexOf(v),1); else ob.safe.push(v); } obRefresh(); },
   obplan:function(b){ if(b.disabled) return; ob.plan=b.dataset.id; obRefresh(); },
-  obgeo:function(){ geo(function(){ obRefresh(); }); },
+  obgeo:function(){ geo(function(ok){ if(!ok) ob.city=true; obRefresh(); }); },
+  obcityshow:function(){ ob.city=true; obRefresh(); },
   obdone:obFinish
 };
 document.addEventListener('click',function(e){ var b=e.target.closest('[data-act]'); if(!b||!ph.contains(b)) return; var f=A[b.dataset.act]; if(f){ if(b.tagName==='BUTTON'&&b.disabled) return; f(b); } });

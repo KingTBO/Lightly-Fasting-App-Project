@@ -260,6 +260,7 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-opt .tag{font:600 11px var(--font);color:var(--on-tint);background:var(--tint);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;display:inline-flex;align-items:center;height:20px;line-height:1}
 .ob-opt .lk{font:600 11px var(--font);color:var(--label-2);background:var(--fill);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
 .ob-cta{margin-top:auto;width:100%;min-height:54px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out,opacity .2s}
+.ob-cta.quiet{margin-top:6px;background:transparent;color:var(--label-2);min-height:44px;font:500 15px var(--font)}.ob-sum select{border:0;background:transparent;color:var(--label);font:600 17px var(--font);text-align:right}
 .ob-skip{width:100%;min-height:50px;margin-top:8px;border:0;border-radius:999px;background:var(--fill);color:var(--label);font:600 17px var(--font);cursor:pointer}
 .imp3d{position:relative;height:150px;perspective:640px;perspective-origin:50% 40%;margin:14px 0 6px;transform-style:preserve-3d}
 .imp3d .t3{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:16px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,var(--c1),var(--c2));transform:translateX(calc(var(--x)*52px)) translateZ(calc(40px - (var(--x)*var(--x))*14px)) rotateY(calc(var(--x)*-16deg)) rotateX(8deg);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.55),inset 0 -4px 0 rgba(0,0,0,.16),0 2px 0 rgba(0,0,0,.12),0 18px 24px -10px rgba(20,20,60,.5)}
@@ -606,7 +607,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
           <button type="button" id="st-day" aria-pressed="false"><span data-zh="今早">This morning</span><small id="st-day-t">7:00 AM</small></button>
         </div>
         <p class="why" id="why"></p>
-        <div class="loc"><label for="city" data-zh="所在地">Where you are</label><select id="city"><option value="shanghai">Shanghai</option><option value="singapore">Singapore</option><option value="london">London</option><option value="newyork">New York</option></select><button type="button" id="geoBtn" data-zh="用我的位置">Use my location</button></div>
+        <div class="loc"><label for="city" data-zh="日出日落地">Sunrise and sunset for</label><select id="city"><option value="shanghai">Shanghai</option><option value="singapore">Singapore</option><option value="london">London</option><option value="newyork">New York</option></select><button type="button" id="geoBtn" data-zh="用我的位置">Use my location</button></div>
         <p class="why" id="sunWhy"></p>
       </div>
       <div class="group row2"><div><b data-zh="声音">Sound</b><span data-zh="每小时一声轻响，满了有一声铃。应用里会跟随手机的静音设置。">A soft tick each hour, a chime when full. In the app it follows your phone's silent mode.</span></div><button class="sw" type="button" role="switch" aria-checked="true" id="sndSw" aria-label="Sound"></button></div>
@@ -711,7 +712,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
           <p class="me-note" id="meNote"></p>
         </div>
         <p class="me-h" data-zh="断食">Fasting</p>
-        <div class="me-list"><div role="button" tabindex="0" id="meWhere"><span data-zh="所在地">Where you are</span><small id="meWhereV"></small></div><div role="button" tabindex="0" id="meUsual"><span data-zh="通常开始时间">Usual start time</span><small id="meUsualV"></small></div><div role="button" tabindex="0" id="meCheat"><span data-zh="弹性日">Cheat days</span><small id="meCheatV"></small></div></div>
+        <div class="me-list"><div role="button" tabindex="0" id="meWhere"><span data-zh="日出日落">Sunrise and sunset</span><small id="meWhereV"></small></div><div role="button" tabindex="0" id="meUsual"><span data-zh="通常开始时间">Usual start time</span><small id="meUsualV"></small></div><div role="button" tabindex="0" id="meCheat"><span data-zh="弹性日">Cheat days</span><small id="meCheatV"></small></div></div>
         <p class="me-h" data-zh="应用">App</p>
         <div class="me-list"><div role="button" tabindex="0" id="meLang"><span data-zh="语言">Language</span><small id="meLangV"></small></div><div role="button" tabindex="0" id="meApp"><span data-zh="外观">Appearance</span><small id="meAppV"></small></div><div role="button" tabindex="0" id="meTs"><span data-zh="计时样式">Timer style</span><small id="meTsV"></small></div><div role="button" tabindex="0" id="meSnd"><span data-zh="声音">Sound</span><small id="meSndV"></small></div><div role="button" tabindex="0" id="meRem"><span data-zh="提醒">Reminders</span><small id="meRemV"></small></div></div>
         <p class="me-h" data-zh="关怀">Care</p>
@@ -826,7 +827,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         </div>
         <div class="group">
           <span class="k" data-zh="黎明和日落">Dawn and sunset</span>
-          <div class="loc first"><label for="rCity" data-zh="所在地">Where you are</label><select id="rCity"></select></div>
+          <div class="loc first"><label for="rCity" data-zh="日出日落地">Sunrise and sunset for</label><select id="rCity"></select></div>
           <div class="loc"><label for="rMethod" data-zh="黎明算法">Dawn method</label><select id="rMethod"></select></div>
           <div class="mosque" id="rMosque" hidden>
             <div class="step"><span data-zh="封斋饭结束">Suhoor ends</span><span><output id="rOffF">0 min</output></span><span class="st"><button type="button" data-o="f" data-d="-1" aria-label="One minute earlier">−</button><button type="button" data-o="f" data-d="1" aria-label="One minute later">+</button></span></div>
@@ -1588,7 +1589,7 @@ window.LightlySphere=(function(){
     recommend:{first:'13', some:'16'}
   };
   function key36(id){ return id==='24'?'24':'36'; } /* 36L uses the '36' rule */
-  var st={step:0, exp:null, safety:[], plan:null, city:'shanghai'};
+  var st={step:0, exp:null, safety:[], plan:null, city:'shanghai'}, CITIES={shanghai:{en:'Shanghai',zh:'上海'},singapore:{en:'Singapore',zh:'新加坡'},london:{en:'London',zh:'伦敦'},newyork:{en:'New York',zh:'纽约'}};
   var stage=document.getElementById('obStage'), dots=document.getElementById('obDots'), back=document.getElementById('obBack');
   /* people who have fasted before get one more step, to make it theirs */
   function flow(){ return st.exp==='some'?(risky()?[0,1,2,3,6,4]:[0,1,2,3,5,6,4]):[0,1,2,3,4]; }
@@ -1637,7 +1638,10 @@ window.LightlySphere=(function(){
         return opt(id,lab,sub,st.plan===id,null,!ok); }).join('')+'</div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'; }
     if(i===6) return '<div class="imp3d" aria-hidden="true">'+[['Zero','Z','#6C9BFF','#3562D6'],['Fastic','F','#FF9A6B','#E65A2E'],['Simple','S','#3FD1A5','#1F9F78'],['Life','L','#B98AFF','#7F4AE3'],['BodyFast','B','#FF7FAE','#DE3F7C']].map(function(t,k){ return '<span class="t3" style="--x:'+(k-2)+';--c1:'+t[2]+';--c2:'+t[3]+';--d:'+(k*-.45).toFixed(2)+'s"><b>'+t[1]+'</b></span>'; }).join('')+'</div><p class="imp-names" aria-hidden="true">Zero \u00b7 Fastic \u00b7 Simple \u00b7 Life \u00b7 BodyFast</p><h4 style="text-align:center">'+(st.imp?L('128 fasts added','已添加 128 次断食'):L('Bring your fasts with you','带上你的断食记录'))+'</h4><p class="sub" style="text-align:center">'+(st.imp?L('Sample result: nothing was added twice. In the app this reads your real file on the phone.','示例结果：没有任何重复。在应用里，这会在手机上读取你的真实文件。'):L('Using another fasting app? Import your history now so you never lose it. It\u2019s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我的”里导入。'))+'</p>'+(st.imp?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>':'<button type="button" class="ob-cta" data-imp>'+L('Choose a file (sample)','选择文件（示例）')+'</button><button type="button" class="ob-skip" data-next>'+L('Skip for now','暂时跳过')+'</button>');
     if(i===5) return '<h4>'+L('Make it yours','按你的习惯来')+'</h4><p class="sub">'+L('Since you\u2019ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default"><span>'+L('Usual start time','通常开始时间')+'</span><input class="tin" type="time" value="20:30" aria-label="'+L('Usual start time','通常开始时间')+'"></div><div class="ob-opt" style="cursor:default"><span>'+L('Remind me when I reach my goal','达成目标时提醒我')+'</span><span class="ck"></span></div></div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
-    if(i===4) return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('You’re set','准备好了')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(st.plan)+'</b></div><div><span>'+L('Where you are','所在地')+'</span><b>'+L('Shanghai','上海')+'</b></div><div><span>'+L('First fast','第一次断食')+'</span><b>'+L('Tonight, 8:30 PM','今晚 8:30')+'</b></div></div><p class="ob-note">'+L('We use your city for sunrise and sunset only. You can share your precise location later if you like.','我们只用城市来算日出日落。想更准的话，以后可以再授权精确位置。')+'</p><button type="button" class="ob-cta" data-done>'+L('Start Tonight','今晚开始')+'</button>';
+    if(i===4){ var hereOn=st.loc==='here', cityOn=st.loc==='city', cn=function(k){ return CITIES[k][api.lang()==='zh'?'zh':'en']; };
+      return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('Match the sky to your day','让天空跟着你的一天')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(st.plan)+'</b></div><div><span>'+L('Sunrise and sunset','日出日落')+'</span>'+(cityOn?'<select data-obcity aria-label="'+L('Nearest city','最近的城市')+'">'+Object.keys(CITIES).map(function(k){ return '<option value="'+k+'"'+(st.city===k?' selected':'')+'>'+cn(k)+'</option>'; }).join('')+'</select>':'<b>'+(hereOn?L('Your location','当前位置'):cn(st.city))+'</b>')+'</div><div><span>'+L('First fast','第一次断食')+'</span><b>'+L('Tonight, 8:30 PM','今晚 8:30')+'</b></div></div><p class="ob-note">'+L('Lightly shows the moon and sun by your local sunrise and sunset. Your location is used on this phone only to work that out. It is never uploaded or shared.','轻伴按你当地的日出日落显示月亮和太阳。位置只在这台手机上用来计算，不会上传，也不会分享。')+'</p>'+
+        (hereOn||cityOn?'<button type="button" class="ob-cta" data-done>'+L('Start Tonight','今晚开始')+'</button>'+(cityOn?'<button type="button" class="ob-cta quiet" data-loc="here">'+L('Use my location instead','改用我的位置')+'</button>':'')
+          :'<button type="button" class="ob-cta" data-loc="here">'+L('Use my location','使用我的位置')+'</button><button type="button" class="ob-cta quiet" data-loc="city">'+L('Choose a city instead','改选城市')+'</button>'); }
   }
   var cur=null;
   function show(i,dir){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(flow()[i]); stage.appendChild(el); bind(el); if(i===0) heroInit(el);
@@ -1674,6 +1678,8 @@ window.LightlySphere=(function(){
       rerender(); }); });
     var n=el.querySelector('[data-next]'); if(n&&!n._b){ n._b=1; n.addEventListener('click',function(){ if(!n.disabled) show(st.step+1,1); }); }
     var im=el.querySelector('[data-imp]'); if(im&&!im._b){ im._b=1; im.addEventListener('click',function(){ st.imp=true; rerender(); }); }
+    el.querySelectorAll('[data-loc]').forEach(function(b){ if(b._b) return; b._b=1; b.addEventListener('click',function(){ st.loc=b.dataset.loc; rerender(); }); });
+    var oc=el.querySelector('[data-obcity]'); if(oc&&!oc._b){ oc._b=1; oc.addEventListener('change',function(){ st.city=oc.value; }); }
     var d=el.querySelector('[data-done]'); if(d&&!d._b){ d._b=1; d.addEventListener('click',function(){ api.setPlan(st.plan); }); }
   }
   back.addEventListener('click',function(){ if(st.step>0) show(st.step-1,-1); });
@@ -1686,7 +1692,7 @@ window.LightlySphere=(function(){
     document.getElementById('obOut').innerHTML=rows.map(function(r){ return '<li><span>'+r[0]+'</span><b>'+r[1]+'</b></li>'; }).join('');
     document.getElementById('obRule').textContent=!started?'':risky()?L('Long fasts are never offered with a safety flag, and Lightly suggests seeing a doctor first.','有安全提示时永远不提供长时间断食，并建议先咨询医生。'):L('Long fasts unlock as you go: ','长时间断食随着进度解锁：')+lockInfo('24')[0]+' '+lockInfo('36L')[0]+' '+L(RULES.freqText[0],RULES.freqText[1]);
     api.lock(locked,L('Locked for you for now','暂时为你锁定')); api.lockedIds=locked; api.lockInfo=lockInfo; api.risky=risky; }
-  document.getElementById('obReset').addEventListener('click',function(){ st={step:0,exp:null,safety:[],plan:null,imp:false}; show(0,-1); });
+  document.getElementById('obReset').addEventListener('click',function(){ st={step:0,exp:null,safety:[],plan:null,imp:false,city:'shanghai'}; show(0,-1); });
   ['l-en','l-zh'].forEach(function(id){ document.getElementById(id).addEventListener('click',function(){ setTimeout(rerender,0); }); });
   show(0,0);
 })();

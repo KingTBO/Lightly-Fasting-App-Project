@@ -17,7 +17,7 @@ const H=3600000,D=24*H;
  await p.click('[data-act=obsafe][data-v=none]');await p.click('[data-act=obnext]');await p.waitForTimeout(600);
  assert(await p.$('.ob-step.on .plan.sel[data-id="13"]'),'13:11 suggested for a first timer');
  await p.click('.ob-step.on [data-act=obnext]');await p.waitForTimeout(600);
- await p.selectOption('#obCity','london');await p.click('[data-act=obdone]');await p.waitForTimeout(800);
+ assert(!(await p.$('#obCity')),'no city list until asked');assert.match(await p.textContent('.ob-step.on [data-act=obgeo]'),/Use my location/);await p.click('.ob-step.on [data-act=obcityshow]');await p.waitForTimeout(500);await p.selectOption('#obCity','london');await p.click('[data-act=obdone]');await p.waitForTimeout(800);
  let s=await S();assert.strictEqual(s.planId,'13');assert.strictEqual(s.place.key,'london');assert(s.onboarded);ok('onboarding sets plan, city and profile');
  // start, reload, still running
  await p.click('#act');await p.waitForTimeout(400);s=await S();assert(s.cur&&s.cur.goalH===13);
@@ -75,7 +75,7 @@ const H=3600000,D=24*H;
  // experienced onboarding has the extra step and keeps the start time
  q=await fresh(null);await q.click('[data-act=obnext]');await q.waitForTimeout(500);await q.click('[data-act=obopt][data-v=before]');await q.click('[data-act=obnext]');await q.waitForTimeout(500);await q.click('[data-act=obsafe][data-v=none]');await q.click('[data-act=obnext]');await q.waitForTimeout(500);
  assert(await q.$('.ob-step.on .plan[data-id="20"]:not([disabled])'),'all plans open');assert(await q.$('.ob-step.on .plan.sel[data-id="16"]'),'16:8 default');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(500);
- assert(await q.$('#obStart'),'customise step');await q.fill('#obStart','21:30');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);assert(await q.$('.ob-step.on #obImpFile'),'import step for people who fasted before');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('[data-act=obdone]');await q.waitForTimeout(600);
+ assert(await q.$('#obStart'),'customise step');await q.fill('#obStart','21:30');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);assert(await q.$('.ob-step.on #obImpFile'),'import step for people who fasted before');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(500);await q.click('[data-act=obdone]');await q.waitForTimeout(600);
  assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).prefs.usualStart,'21:30');ok('experienced onboarding: customise step saves the usual start');
  q=await fresh(null);await q.click('[data-act=obnext]');await q.waitForTimeout(500);await q.click('[data-act=obopt][data-v=first]');await q.click('[data-act=obnext]');await q.waitForTimeout(500);await q.click('[data-act=obsafe][data-v=none]');await q.click('[data-act=obnext]');await q.waitForTimeout(500);
  assert(await q.$('.ob-step.on .plan[data-id="16"][disabled]'),'16:8 locked in onboarding');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(500);assert(!(await q.$('#obStart')),'no customise step for first timers');ok('first-timer onboarding shows locks and skips the customise step');

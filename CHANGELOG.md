@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.22.0
+- **design** The last onboarding step no longer asks "where you are". It is now "Match the sky to your day", says plainly that your location is used on this phone only to work out sunrise and sunset and is never uploaded or shared, and makes "Use my location" the main button. "Choose a city instead" is a quiet link underneath; the city list only appears if you ask for it or if location is not available.
+- **copy** In Me, the row and sheet are now "Sunrise and sunset" (日出日落), with the same privacy wording and "Or choose a city" under the location button. The concept page matches, in English and Chinese.
+
 ## 0.21.5
 - **design** The 3, 7, 10, 14 day quick picks now use a highlight that slides smoothly to the chosen day, and the day count, return date and arrows update in place instead of redrawing the sheet. With Reduce Motion it changes without sliding.
 

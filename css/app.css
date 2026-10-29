@@ -385,3 +385,4 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 @media (prefers-reduced-motion:reduce){.offchips .thumb{transition:opacity .01s}}
 .act:disabled{background:color-mix(in srgb,var(--ink) 16%,transparent);color:var(--ink-2);pointer-events:none;box-shadow:none}
 @media (forced-colors:active){.act:disabled{color:GrayText}}
+.btn.quiet{background:transparent;color:var(--label-2);min-height:44px;font:500 0.9375rem var(--font)}
