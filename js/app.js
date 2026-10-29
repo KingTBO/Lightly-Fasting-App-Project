@@ -340,7 +340,7 @@ function tabLabels(){ $('tabT').textContent=L('Today','今天'); $('tabD').textC
 /* ---------- time off ---------- */
 var offDays=3;
 function offNow(){ return C.offActive(S.off); }
-function offIco(k){ return '<span aria-hidden="true">'+(k==='travel'?'\u2708\uFE0F':'\u2764\uFE0F\u200D\uD83E\uDE79')+'</span>'; }
+function offIco(k){ return k==='travel'?'<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><g transform="rotate(45 12 12)"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="translate(1 -0.5)"/></g></svg>':'<svg viewBox="3 4.4 18 17.2" width="32" height="31" aria-hidden="true"><path fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M12 20.3s-7.6-4.6-7.6-10.3A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.6 10c0 5.7-7.6 10.3-7.6 10.3Z"/><g transform="rotate(-38 12 13)"><rect x="5.8" y="10.6" width="12.4" height="4.8" rx="2.4" fill="var(--card,#fff)" stroke="currentColor" stroke-width="1.5"/><path d="M9.6 10.6v4.8M14.4 10.6v4.8" stroke="currentColor" stroke-width="1.1" opacity=".5"/><circle cx="12" cy="13" r=".7" fill="currentColor"/></g></svg>'; }
 function offBackLbl(o){ var e=C.keyToDate(C.addDays(C.dayKey(o.start),o.days)).getTime(); return dateLbl(e); }
 function timeOffSheet(){
   var o=offNow();
