@@ -331,6 +331,8 @@ function setNotify(on,done){
 var curTab='today';
 function showTab(t){
   var prev=curTab, order=['today','days','me']; curTab=t; closeSheet(); ph.classList.remove('tabs-off');
+  /* Today has the sky behind it and the other tabs a plain background: the colours must swap instantly, not fade in over a second */
+  if((prev==='today')!==(t==='today')){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); }
   order.forEach(function(k){ $(k).classList.remove('leaving'); });
   order.forEach(function(k){ var e=$(k), was=e.classList.contains('on'); e.classList.toggle('on',k===t); if(!reduce&&prev!==t&&e.animate){ if(k===t){ e.getAnimations().forEach(function(a){ a.cancel(); }); e.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.16,1,.3,1)'}); } else if(was){ e.classList.add('leaving'); var an=e.animate([{opacity:1},{opacity:0}],{duration:160,easing:'ease-out'}); an.onfinish=function(){ e.classList.remove('leaving'); }; } } });
   ph.style.setProperty('--ti',order.indexOf(t));

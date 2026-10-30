@@ -465,3 +465,6 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 .sheet.open{box-shadow:0 -1px 0 var(--sep)}
 .scrim.peek.on{-webkit-backdrop-filter:none;backdrop-filter:none}
 .theme-now,.theme-now *,.theme-now *::before,.theme-now *::after{transition:none!important}
+/* switching between Today and the other tabs: colours change at once; movement keeps its animation */
+.ph.snap{transition:none!important}
+.ph.snap *,.ph.snap *::before,.ph.snap *::after{transition-property:transform,opacity,visibility,stroke-width!important}

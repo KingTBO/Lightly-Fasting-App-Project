@@ -91,6 +91,10 @@ const H=3600000,D=24*H;
  assert.strictEqual(await q.evaluate(()=>getComputedStyle(document.body).getPropertyValue('color-scheme')||getComputedStyle(document.documentElement).colorScheme),'dark');
  await q.click('#sheet [data-act=pick][data-v=light]');await q.waitForTimeout(900);assert.strictEqual(await q.evaluate(()=>document.documentElement.getAttribute('data-theme')),'light');assert(await q.$('#sheet.open'),'still open');
  await q.click('#sheet [data-act=close]');await q.waitForTimeout(500);assert(!(await q.$('#sheet.open')),'closes only when asked');await q.context().close();ok('appearance switches in place and the sheet stays open');}
+ // Today has the sky behind it, the other tabs a plain background: the swap is instant, not a slow fade
+ {const q=await fresh(seed({}));await q.waitForTimeout(1200);const bg=()=>q.evaluate(()=>getComputedStyle(document.getElementById('ph')).backgroundColor);
+ for(const [a,b2] of [['today','days'],['days','today'],['today','me']]){await q.click('#tabs [data-tab='+a+']');await q.waitForTimeout(1500);await q.click('#tabs [data-tab='+b2+']');await q.waitForTimeout(80);const e=await bg();await q.waitForTimeout(1400);assert.strictEqual(e,await bg(),'background is already final 80 ms after switching '+a+' to '+b2);}
+ await q.context().close();ok('tab switches change the background colour at once');}
  // first timer: 16:8 locked with progress, opens after three completed 13 h fasts
  let q=await fresh(seed({fasts:fz(1,13)}));await q.click('#planBtn');
  assert(await q.$('.plan[data-id="16"][disabled]'),'16:8 locked');assert.match(await q.textContent('.plan[data-id="16"]'),/1 of 3 fasts of 13 h/);assert(await q.$('.plan[data-id="13"]:not([disabled])'));ok('first timer: only 13:11 open, 16:8 shows 1 of 3');
