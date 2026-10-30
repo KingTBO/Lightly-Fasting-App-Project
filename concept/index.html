@@ -115,12 +115,16 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .row2{display:flex;align-items:center;justify-content:space-between;gap:12px}.row2 b{font-weight:500;font-size:16px;display:block}.row2 span{font-size:13px;color:var(--label-2)}
 #disc{width:236px;height:236px;overflow:visible;touch-action:none}
 .read{text-align:center;padding:0 24px}
-.read .k{font:500 15px var(--font);color:var(--ink-2);min-height:20px;display:block}
+.read .kline{display:flex;justify-content:center;flex-wrap:wrap;column-gap:.4em;min-height:20px;font:500 15px/1.3 var(--font);color:var(--ink-2)}
+.read .k{display:block}
+.read .alt{display:block;font-variant-numeric:tabular-nums;opacity:.8}
+.read .alt:not(:empty)::before{content:"\00b7";margin-right:.4em}
 .read .big{font:600 56px/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:block}
 .read .big{font:300 min(58px,15vw)/1 var(--font-d);letter-spacing:-.045em}
 .read .big .co{font-style:normal;opacity:.4;display:inline-block;width:.26em;text-align:center;transform:translateY(-.08em)}
 .read .big small{font-size:.5em;font-weight:600;color:var(--ink-2);margin:0 .12em 0 .04em}
-.read .tip{font:400 15px/1.4 var(--font);color:var(--ink-2);margin:6px auto 0;max-width:30ch;min-height:42px}
+.read .tip{font:400 15px/1.4 var(--font);color:var(--ink-2);margin:6px auto 0;max-width:30ch;min-height:42px;transition:opacity .7s ease}
+.read .tip.quiet{opacity:0}
 .track{margin:14px 16px 0;position:relative;touch-action:none;cursor:grab}
 .track svg{display:block;width:100%;height:auto;overflow:visible}
 .track .ends #endA,.ends #endB{cursor:pointer}
@@ -271,11 +275,23 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-opt[aria-checked="true"] .ck{background:var(--blue);border-color:var(--blue)}
 .ob-opt[aria-checked="true"] .ck::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .ob-opt[disabled]{opacity:.4;cursor:not-allowed}
-.tin{font:inherit;font-size:16px;font-variant-numeric:tabular-nums;color:var(--label);background:var(--fill);border:0;border-radius:8px;min-height:36px;padding:0 10px;margin-left:auto}
+.pk{position:relative}
+.pk-row{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;text-align:left;padding:0;min-height:56px;font:400 17px var(--font);color:var(--label);cursor:pointer}
+.pk-row .pk-v{margin-left:auto;background:var(--fill);color:var(--label);border-radius:8px;padding:6px 12px;font-size:17px;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;transition:background .2s}
+.pk.open .pk-v{background:var(--fill-2)}
+.pk-w{position:relative;display:flex;height:0;overflow:hidden;visibility:hidden;margin:0 -8px;padding:0 8px;transition:height .4s var(--spring),visibility 0s .4s}
+.pk.open .pk-w{height:180px;visibility:visible;transition:height .4s var(--spring),visibility 0s}
+.pk-band{position:absolute;left:8px;right:8px;top:72px;height:36px;border-radius:9px;background:var(--fill);pointer-events:none}
+.pk-c{position:relative;flex:1;min-width:0;height:180px;box-sizing:border-box;padding:72px 0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;overscroll-behavior:contain;touch-action:pan-y;-webkit-mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent);mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent)}
+.pk-c::-webkit-scrollbar{display:none}
+.pk-c:focus-visible{outline:3px solid var(--ink);outline-offset:-3px;border-radius:9px}
+.pk-i{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;scroll-snap-stop:always;font:400 19px var(--font);font-variant-numeric:tabular-nums;color:var(--label-2);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
+.pk-i.sel{color:var(--label)}
+@media (prefers-reduced-motion:reduce){.pk-w,.pk.open .pk-w{transition:none}}
 .ob-opt .tag{font:600 11px var(--font);color:var(--on-tint);background:var(--tint);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;display:inline-flex;align-items:center;height:20px;line-height:1}
 .ob-opt .lk{font:600 11px var(--font);color:var(--label-2);background:var(--fill);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
 .ob-cta{margin-top:auto;width:100%;min-height:54px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out,opacity .2s}
-.ob-cta.quiet{margin-top:6px;background:transparent;color:var(--label-2);min-height:44px;font:500 15px var(--font)}.ob-sum select{border:0;background:transparent;color:var(--label);font:600 17px var(--font);text-align:right}
+.ob-cta.quiet{margin-top:6px;background:transparent;color:var(--label-2);min-height:44px;font:500 15px var(--font)}
 .ob-skip{width:100%;min-height:50px;margin-top:8px;border:0;border-radius:999px;background:var(--fill);color:var(--label);font:600 17px var(--font);cursor:pointer}
 .ob-hero.imp-glyph svg{width:72px;height:72px;fill:none;stroke:var(--label-2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .ob-cta:active{transform:scale(.97)}.ob-cta[disabled]{opacity:.35;cursor:not-allowed}
@@ -695,7 +711,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         </svg>
       </div>
       <div class="read">
-        <span class="k" id="readK"></span>
+        <div class="kline"><span class="k" id="readK"></span><span class="alt" id="readAlt"></span></div>
         <span class="big" id="readBig" aria-live="polite"></span>
         <p class="tip" id="readTip"></p>
       </div>
@@ -1309,6 +1325,12 @@ window.LightlySphere=(function(){
     late:['The last two hours. You have done the hard part.','最后两小时，最难的部分已经过去了。']};
   function tipFor(hr,sk){ if(GOAL-hr<=2) return TIPS.late; if(sk==='night'&&body()==='moon') return TIPS.night; if(sk==='first') return TIPS.first; return hr<4?TIPS.early:TIPS.mid; }
 
+  /* the hint speaks at moments (a new stage, each hour, opening the screen) and then goes quiet; idle and break notes stay */
+  var tipUntil=0, tipTxt='', tipHr=-1;
+  function tip(txt,always,hr){ var t=Date.now(); if(txt!==tipTxt){ tipTxt=txt; tipUntil=t+6000; }
+    if(hr!=null){ if(tipHr>=0&&hr>tipHr) tipUntil=t+6000; tipHr=hr; } else tipHr=-1;
+    put(readTip,'t',txt); readTip.classList.toggle('quiet',!always&&t>tipUntil); }
+  function hmsS(hrs){ var t=Math.max(0,Math.floor(hrs*3600+1e-6)), p=function(n){return String(n).padStart(2,'0');}; return Math.floor(t/3600)+':'+p(Math.floor(t%3600/60))+':'+p(t%60); }
   var cache={};
   var SWAP={sub:1,k:1,t:1};
   function put(el,key,val,html){ if(cache[key]===val) return; var had=cache[key]!=null; cache[key]=val; if(html) el.innerHTML=val; else el.textContent=val;
@@ -1320,7 +1342,7 @@ window.LightlySphere=(function(){
     if(mode==='saved'||(mode==='fast'&&h>=GOAL)) todayDone=true;
     var n=ST0+(todayDone?1:0), t=FT0+(todayDone?1:0);
     put($('stA'),'stA',L(n+' day streak','连续 '+n+' 天'));
-    put($('stB'),'stB',L(t+' fasts · '+window.LIGHTLY_CHEAT.left+' cheat day'+(window.LIGHTLY_CHEAT.left===1?'':'s')+' left','共 '+t+' 次断食 · 弹性日剩 '+window.LIGHTLY_CHEAT.left+' 个'));
+    put($('stB'),'stB','');
     put($('shStreak'),'shS',String(n));
     var d=$('stDots'), nw=d.lastElementChild, ck=window.LIGHTLY_CHEAT; nw.classList.toggle('on',todayDone&&!ck.used); nw.classList.toggle('rest',ck.used);
     d.setAttribute('aria-label',L('Last 7 days. '+(ck.used?'Today is a cheat day.':todayDone?'Today is done.':'Today is not done yet.')+' One cheat day, kept in your streak.','最近 7 天。'+(ck.used?'今天是弹性日。':todayDone?'今天已完成。':'今天还没完成。')+'其中一天是弹性日，不影响连续天数。'));
@@ -1333,14 +1355,14 @@ window.LightlySphere=(function(){
     var nh=((nowHour()%24)+24)%24, sh=Math.floor(nh), sm=Math.floor((nh-sh)*60); put($('sbClock'),'sb',(sh%12===0?12:sh%12)+':'+String(sm).padStart(2,'0'));
     var bodyName=b==='moon'?L('Moon until ','月亮，直到 ')+clock(SUN.rise):L('Sun until ','太阳，直到 ')+clock(SUN.set);
     put(sub,'sub',(lang==='zh'?sk[3]:sk[2])+' · '+(mode==='eat'?L('Eating window','进食窗口'):bodyName));
-    var off=window.LIGHTLY_OFF, brk=!!off&&mode!=='fast';
-    if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); put(readTip,'t',L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。')); put(actLbl,'a',L('Start fast','开始断食')); }
-    else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); put(readTip,'t',L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。')); put(actLbl,'a',L('Start fast','开始断食')); }
+    var off=window.LIGHTLY_OFF, brk=!!off&&mode!=='fast'; if(brk||mode==='idle'||mode==='eat') put($('readAlt'),'alt','');
+    if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); tip(L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
+    else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); tip(L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(mode==='fast'||mode==='saved'){
-      if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmtS(GOAL-h),1); var tp=tipFor(h,sk[1]); put(readTip,'t',tp[lang==='zh'?1:0]); }
-      else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L((oh?oh+' h':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' m':'')+' past your goal','超出目标 '+(oh?oh+' 小时':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' 分':''))); put(readBig,'b',fmt(h),1); put(readTip,'t',L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
+      if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmtS(GOAL-h),1); put($('readAlt'),'alt',L('Elapsed ','已断食 ')+hmsS(h)); var tp=tipFor(h,sk[1]); tip(tp[lang==='zh'?1:0],0,Math.floor(h)); }
+      else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L((oh?oh+' h':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' m':'')+' past your goal','超出目标 '+(oh?oh+' 小时':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' 分':''))); put(readBig,'b',fmt(h),1); put($('readAlt'),'alt',L('Goal ','目标 ')+GOAL+L(' h',' 小时')); tip(L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
       if(!holding) put(actLbl,'a',L('Hold to end fast','按住结束断食')); }
-    else if(mode==='eat'){ put(readK,'k',L('Eating window left','进食窗口还剩')); put(readBig,'b',fmtS(EAT-e),1); put(readTip,'t',L('Your next fast can start at ','下一次断食可以在 ')+clock(s+24)+L(', or whenever you’re ready.',' 开始，也可以随时提前。')); put(actLbl,'a',L('Start next fast','开始下一次断食')); }
+    else if(mode==='eat'){ put(readK,'k',L('Eating window left','进食窗口还剩')); put(readBig,'b',fmtS(EAT-e),1); tip(L('Your next fast can start at ','下一次断食可以在 ')+clock(s+24)+L(', or whenever you’re ready.',' 开始，也可以随时提前。')); put(actLbl,'a',L('Start next fast','开始下一次断食')); }
     var a0=mode==='eat'?s+GOAL:s, a1=mode==='eat'?s+GOAL+EAT:s+GOAL;
     put($('endA'),'ea',clock(a0)); put($('endB'),'eb','<b>'+clock(a1)+'</b>',1);
     var tr=$('track'); tr.setAttribute('aria-valuenow',(mode==='eat'?e:h).toFixed(1));
@@ -1639,7 +1661,7 @@ window.LightlySphere=(function(){
     recommend:{first:'13', some:'16'}
   };
   function key36(id){ return id==='24'?'24':'36'; } /* 36L uses the '36' rule */
-  var st={step:0, exp:null, safety:[], plan:null, city:'shanghai'}, CITIES={shanghai:{en:'Shanghai',zh:'上海'},singapore:{en:'Singapore',zh:'新加坡'},london:{en:'London',zh:'伦敦'},newyork:{en:'New York',zh:'纽约'}};
+  var st={step:0, exp:null, safety:[], plan:null, city:'shanghai', start:'20:30'}, CITIES={shanghai:{en:'Shanghai',zh:'上海'},singapore:{en:'Singapore',zh:'新加坡'},london:{en:'London',zh:'伦敦'},newyork:{en:'New York',zh:'纽约'}};
   var stage=document.getElementById('obStage'), dots=document.getElementById('obDots'), back=document.getElementById('obBack');
   /* people who have fasted before get one more step, to make it theirs */
   /* safety comes last, just before the summary */
@@ -1693,9 +1715,9 @@ window.LightlySphere=(function(){
         var pl=api.plans.filter(function(x){return x.id===id;})[0], li=!ok?lockInfo(id):null, sub=li?(li[1]?li[1]+' \u00b7 ':'')+li[0]:(pl&&pl.grp!=='long'?L('Fast '+pl.fast+' hours','断食 '+pl.fast+' 小时'):L('Fast '+pl.fast+' hours','断食 '+pl.fast+' 小时'));
         return opt(id,lab,sub,st.plan===id,null,!ok); }).join('')+'</div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'; }
     if(i===6) return '<div class="ob-hero imp-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11.5v5M9.5 14l2.5 2.5 2.5-2.5"/></svg></div><h4 style="text-align:center">'+(st.imp?L('128 fasts added','已添加 128 次断食'):L('Bring your fasts with you','带上你的断食记录'))+'</h4><p class="sub" style="text-align:center">'+(st.imp?L('Sample result: nothing was added twice. In the app this reads your real file on the phone.','示例结果：没有任何重复。在应用里，这会在手机上读取你的真实文件。'):L('Using another fasting app? Import your history now so you never lose it. It\u2019s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我的”里导入。'))+'</p>'+(st.imp?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>':'<button type="button" class="ob-cta" data-imp>'+L('Choose a file (sample)','选择文件（示例）')+'</button><button type="button" class="ob-skip" data-next>'+L('Skip for now','暂时跳过')+'</button>');
-    if(i===5) return '<h4>'+L('Make it yours','按你的习惯来')+'</h4><p class="sub">'+L('Since you\u2019ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default"><span>'+L('Usual start time','通常开始时间')+'</span><input class="tin" type="time" value="20:30" aria-label="'+L('Usual start time','通常开始时间')+'"></div><div class="ob-opt" style="cursor:default"><span>'+L('Remind me when I reach my goal','达成目标时提醒我')+'</span><span class="ck"></span></div></div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
+    if(i===5) return '<h4>'+L('Make it yours','按你的习惯来')+'</h4><p class="sub">'+L('Since you\u2019ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField('start',L('Usual start time','通常开始时间'),st.start||'20:30','t')+'</div><div class="ob-opt" style="cursor:default"><span>'+L('Remind me when I reach my goal','达成目标时提醒我')+'</span><span class="ck"></span></div></div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
     if(i===7){ var hereOn=st.loc==='here', cityOn=st.loc==='city', cn=function(k){ return CITIES[k][api.lang()==='zh'?'zh':'en']; };
-      return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('Match the sky to your day','让天空跟着你的一天')+'</h4>'+(cityOn?'<div class="ob-sum"><div><span>'+L('Nearest city','最近的城市')+'</span><select data-obcity aria-label="'+L('Nearest city','最近的城市')+'">'+Object.keys(CITIES).map(function(k){ return '<option value="'+k+'"'+(st.city===k?' selected':'')+'>'+cn(k)+'</option>'; }).join('')+'</select></div></div>':hereOn?'<div class="ob-sum"><div><span>'+L('Using your location','正在使用你的位置')+'</span><b>\u2713</b></div></div>':'')+'<p class="ob-note">'+L('Lightly shows the moon and sun by your local sunrise and sunset. Your location is used on this phone only to work that out. It is never uploaded or shared.','轻伴按你当地的日出日落显示月亮和太阳。位置只在这台手机上用来计算，不会上传，也不会分享。')+'</p>'+
+      return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('Match the sky to your day','让天空跟着你的一天')+'</h4>'+(cityOn?'<div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField('city',L('Nearest city','最近的城市'),st.city,'sel',Object.keys(CITIES).map(function(k){ return [k,cn(k)]; }))+'</div></div>':hereOn?'<div class="ob-sum"><div><span>'+L('Using your location','正在使用你的位置')+'</span><b>\u2713</b></div></div>':'')+'<p class="ob-note">'+L('Lightly shows the moon and sun by your local sunrise and sunset. Your location is used on this phone only to work that out. It is never uploaded or shared.','轻伴按你当地的日出日落显示月亮和太阳。位置只在这台手机上用来计算，不会上传，也不会分享。')+'</p>'+
         (hereOn||cityOn?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'+(cityOn?'<button type="button" class="ob-cta quiet" data-loc="here">'+L('Use my location instead','改用我的位置')+'</button>':'')
           :'<button type="button" class="ob-cta" data-loc="here">'+L('Use my location','使用我的位置')+'</button><button type="button" class="ob-cta quiet" data-loc="city">'+L('Choose a city instead','改选城市')+'</button>'); }
     if(i===4){ var rk=risky(), pid=rk?'13':st.plan, usual=st.exp==='some'&&!rk;
@@ -1731,7 +1753,29 @@ window.LightlySphere=(function(){
     if(t.hasAttribute('data-done')) api.setPlan(risky()?'13':st.plan);
     else if(t.hasAttribute('data-loc')){ st.loc=t.dataset.loc; rerender(); }
     else if(!t.disabled) show(st.step+1,1); });
+  /* in-app wheel picker (same component as the app): time of day and a short list */
+  function pkCol(key,label,items,sel,flex){ return '<div class="pk-c" role="listbox" tabindex="0" data-c="'+key+'" data-sel="'+sel+'" aria-label="'+label+'" style="flex:'+flex+'">'+items.map(function(t,i){ return '<div class="pk-i'+(i===sel?' sel':'')+'" role="option" aria-selected="'+(i===sel)+'" data-i="'+i+'">'+t+'</div>'; }).join('')+'</div>'; }
+  function pkClock(v){ var a=v.split(':'), hh=+a[0], mm=+a[1]; return (hh%12||12)+':'+(mm<10?'0':'')+mm+' '+(api.lang()==='zh'?(hh<12?'上午':'下午'):(hh<12?'AM':'PM')); }
+  function pkField(id,label,val,kind,opts){ var cols, i, hrs=[], mins=[], hh, mm;
+    if(kind==='sel') cols=pkCol('s',label,opts.map(function(o){return o[1];}),Math.max(0,opts.map(function(o){return o[0];}).indexOf(val)),1);
+    else{ var a=val.split(':'); hh=+a[0]; mm=+a[1]; for(i=1;i<=12;i++) hrs.push(i); for(i=0;i<60;i++) mins.push((i<10?'0':'')+i);
+      cols=pkCol('h',L('Hour','小时'),hrs,(hh%12||12)-1,1)+pkCol('m',L('Minute','分钟'),mins,mm,1)+pkCol('p',L('AM or PM','上午或下午'),[L('AM','上午'),L('PM','下午')],hh<12?0:1,1.2); }
+    return '<div class="pk" data-id="'+id+'" data-kind="'+kind+'" data-val="'+val+'"><button type="button" class="pk-row" aria-expanded="false"><span>'+label+'</span><span class="pk-v">'+(kind==='sel'?(opts.filter(function(o){return o[0]===val;})[0]||opts[0])[1]:pkClock(val))+'</span></button><div class="pk-w" role="group" aria-label="'+label+'"><i class="pk-band" aria-hidden="true"></i>'+cols+'</div></div>'; }
+  function pkBind(pk,onchange){ if(pk._b) return; pk._b=1; var row=pk.querySelector('.pk-row'), kind=pk.dataset.kind;
+    function rd(k){ var e=pk.querySelector('[data-c="'+k+'"]'); return e?+e.dataset.sel:0; }
+    pk.querySelectorAll('.pk-c').forEach(function(c){
+      function go(i,sm){ i=Math.max(0,Math.min(c.children.length-1,i)); c.scrollTo({top:i*36,behavior:sm?'smooth':'auto'}); }
+      c._go=go;
+      c.addEventListener('scroll',function(){ var i=Math.max(0,Math.min(c.children.length-1,Math.round(c.scrollTop/36))); if(+c.dataset.sel===i) return;
+        c.children[+c.dataset.sel].classList.remove('sel'); c.children[+c.dataset.sel].setAttribute('aria-selected','false'); c.dataset.sel=i; c.children[i].classList.add('sel'); c.children[i].setAttribute('aria-selected','true');
+        try{ if(navigator.vibrate) navigator.vibrate(3); }catch(e){}
+        var v; if(kind==='sel') v=pk._opts[rd('s')][0]; else { var hh=((rd('h')+1)%12)+(rd('p')?12:0), mm=rd('m'); v=(hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm; }
+        pk.dataset.val=v; pk.querySelector('.pk-v').textContent=kind==='sel'?pk._opts[rd('s')][1]:pkClock(v); onchange(v); },{passive:true});
+      c.addEventListener('click',function(e){ var it=e.target.closest('.pk-i'); if(it) go(+it.dataset.i,true); });
+      c.addEventListener('keydown',function(e){ var step={ArrowUp:-1,ArrowDown:1,PageUp:-5,PageDown:5}[e.key], i=Math.round(c.scrollTop/36); if(e.key==='Home') step=-i; if(e.key==='End') step=c.children.length-1-i; if(step==null) return; e.preventDefault(); go(i+step,true); }); });
+    row.addEventListener('click',function(){ var open=!pk.classList.contains('open'); pk.classList.toggle('open',open); row.setAttribute('aria-expanded',String(open)); if(open) pk.querySelectorAll('.pk-c').forEach(function(c){ c._go(+c.dataset.sel,false); }); }); }
   function bind(el){
+    el.querySelectorAll('.pk').forEach(function(pk){ if(pk.dataset.kind==='sel') pk._opts=Object.keys(CITIES).map(function(k){ return [k,CITIES[k][api.lang()==='zh'?'zh':'en']]; }); pkBind(pk,function(v){ if(pk.dataset.id==='city') st.city=v; else st.start=v; }); });
     el.querySelectorAll('.ob-opt').forEach(function(b){ if(b._b) return; b._b=1; b.addEventListener('click',function(){ var q=b.closest('.ob-list').dataset.q, v=b.dataset.v;
       if(q==='custom') return;
       if(q==='exp') st.exp=v;
@@ -1740,7 +1784,6 @@ window.LightlySphere=(function(){
       try{ if(navigator.vibrate) navigator.vibrate(5); }catch(e){}
       rerender(); }); });
     var im=el.querySelector('[data-imp]'); if(im&&!im._b){ im._b=1; im.addEventListener('click',function(){ st.imp=true; rerender(); }); }
-    var oc=el.querySelector('[data-obcity]'); if(oc&&!oc._b){ oc._b=1; oc.addEventListener('change',function(){ st.city=oc.value; }); }
   }
   back.addEventListener('click',function(){ if(st.step>0) show(st.step-1,-1); });
   function out(){ var rec=risky()?'13':RULES.recommend[st.exp||'first']; var started=st.exp||st.safety.length;
@@ -1752,7 +1795,7 @@ window.LightlySphere=(function(){
     document.getElementById('obOut').innerHTML=rows.map(function(r){ return '<li><span>'+r[0]+'</span><b>'+r[1]+'</b></li>'; }).join('');
     document.getElementById('obRule').textContent=!started?'':risky()?L('Long fasts are never offered with a safety flag, and Lightly suggests seeing a doctor first.','有安全提示时永远不提供长时间断食，并建议先咨询医生。'):L('Long fasts unlock as you go: ','长时间断食随着进度解锁：')+lockInfo('24')[0]+' '+lockInfo('36L')[0]+' '+L(RULES.freqText[0],RULES.freqText[1]);
     api.lock(locked,L('Locked for you for now','暂时为你锁定')); api.lockedIds=locked; api.lockInfo=lockInfo; api.risky=risky; }
-  document.getElementById('obReset').addEventListener('click',function(){ st={step:0,exp:null,safety:[],plan:null,imp:false,city:'shanghai'}; show(0,-1); });
+  document.getElementById('obReset').addEventListener('click',function(){ st={step:0,exp:null,safety:[],plan:null,imp:false,city:'shanghai',start:'20:30'}; show(0,-1); });
   ['l-en','l-zh'].forEach(function(id){ document.getElementById(id).addEventListener('click',function(){ setTimeout(rerender,0); }); });
   show(0,0);
 })();
