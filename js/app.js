@@ -764,7 +764,7 @@ function obHtml(i){
   }else if(key==='safety'){
     function ck(v,label){ var on=ob.safe.indexOf(v)>=0; return '<button class="check" role="checkbox" aria-checked="'+on+'" data-act="obsafe" data-v="'+v+'"><span class="bx"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span>'+label+'</span></button>'; }
     body='<h1>'+L('Is any of this true for you?','下面有符合你的情况吗？')+'</h1><p class="lede">'+L('Fasting isn’t right for everyone. Pick all that apply.','断食并不适合所有人。可多选。')+'</p><div class="group">'+ck('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'))+ck('diab',L('I take medication for diabetes','我在服用糖尿病药物'))+ck('ed',L('I have had an eating disorder','我有过进食障碍'))+ck('none',L('None of these','都不是'))+'</div>'+
-      (ob.safe.length&&ob.safe.indexOf('none')<0?'<p class="gf" style="padding:0 4px;color:var(--label)">'+L('Thank you for telling us. We’ll suggest the gentlest plan and never offer long fasts. Please talk to your doctor before fasting.','谢谢你告诉我们。我们会推荐最温和的计划，也不会提供长时间断食。断食前请先咨询医生。')+'</p>':'')+'<div class="grow"></div>';
+      (ob.safe.length&&ob.safe.indexOf('none')<0?'<p class="gf obnote" style="padding:0 4px;color:var(--label)">'+L('Thank you for telling us. We’ll suggest the gentlest plan and never offer long fasts. Please talk to your doctor before fasting.','谢谢你告诉我们。我们会推荐最温和的计划，也不会提供长时间断食。断食前请先咨询医生。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obnext"'+(ob.safe.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='plan'){
     var risky=obRisky(), sug=risky||ob.fasted==='first'?'13':'16', prof={fastedBefore:ob.fasted==='before',safety:risky}; if(!ob.plan||C.planStatus(ob.plan,prof,{fasts:[]}).st!=='ok') ob.plan=sug;
@@ -816,7 +816,7 @@ function morph(o,n){
   if(o.childNodes.length!==n.childNodes.length){ o.innerHTML=n.innerHTML; return; }
   for(i=0;i<o.childNodes.length;i++) morph(o.childNodes[i],n.childNodes[i]);
 }
-function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); heroStart(true); return; } n.className=c.className; var ap=document.activeElement; morph(c,n); heroStart(true); }
+function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); heroStart(true); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement; morph(c,n); heroStart(true); }
 function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00'}; $('ob').innerHTML=''; obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;

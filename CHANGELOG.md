@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.29.1
+- **fix** On "Is any of this true for you?" in setup, picking or clearing an option no longer makes the whole screen flash. The step was redrawing itself and replaying its entrance animation each time a note appeared or went away. Now only the note fades in. The concept page's setup has the same fix, and a flow test guards it.
+
 ## 0.29.0
 Round 1 of the "feel premium" pass (colours, logo and type faces are unchanged).
 - **design** The moon now hides the stars behind it, and no star sits on the text on Today. Stars that would land there fade out and come back when the layout moves.

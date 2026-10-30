@@ -252,6 +252,7 @@ html:lang(zh-Hans) .grp-h{text-transform:none}
 .ob-step{position:absolute;inset:0;padding:12px 16px 34px;display:flex;flex-direction:column;will-change:transform,opacity}
 @keyframes obin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .ob-step>*{animation:obin .6s cubic-bezier(.2,1,.3,1) both}.ob-step>:nth-child(2){animation-delay:.09s}.ob-step>:nth-child(3){animation-delay:.14s}.ob-step>:nth-child(4){animation-delay:.2s}.ob-step>:nth-child(n+5){animation-delay:.26s}
+.ob-step.nostagger>*{animation:none}
 @media (prefers-reduced-motion:reduce){.ob-step>*{animation:none}}
 .ob-step h4{font:700 30px/1.15 var(--font-d);letter-spacing:-.02em;margin:8px 0 8px}
 html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
@@ -1724,7 +1725,7 @@ window.LightlySphere=(function(){
     if(o.childNodes.length!==n.childNodes.length){ o.innerHTML=n.innerHTML; return; }
     for(i=0;i<o.childNodes.length;i++) morph(o.childNodes[i],n.childNodes[i]);
   }
-  function rerender(){ var t=document.createElement('div'); t.innerHTML=view(flow()[st.step]); var hadHero=cur.querySelector('.ob-hero'); if(hadHero&&t.querySelector('.ob-hero')&&!t.querySelector('.ob-hero').isEqualNode(hadHero)){ cur.innerHTML=t.innerHTML; bind(cur); if(st.step===0) heroInit(cur); out(); return; } if(cur.childNodes.length!==t.childNodes.length){ cur.innerHTML=t.innerHTML; } else for(var i=0;i<cur.childNodes.length;i++) morph(cur.childNodes[i],t.childNodes[i]); bind(cur); out(); }
+  function rerender(){ cur.classList.add('nostagger'); var t=document.createElement('div'); t.innerHTML=view(flow()[st.step]); var hadHero=cur.querySelector('.ob-hero'); if(hadHero&&t.querySelector('.ob-hero')&&!t.querySelector('.ob-hero').isEqualNode(hadHero)){ cur.innerHTML=t.innerHTML; bind(cur); if(st.step===0) heroInit(cur); out(); return; } if(cur.childNodes.length!==t.childNodes.length){ cur.innerHTML=t.innerHTML; } else for(var i=0;i<cur.childNodes.length;i++) morph(cur.childNodes[i],t.childNodes[i]); bind(cur); out(); }
   /* buttons are morphed in place between renders, so next / location / done are delegated rather than bound per node */
   stage.addEventListener('click',function(e){ var t=e.target.closest&&e.target.closest('[data-next],[data-loc],[data-done]'); if(!t||!stage.contains(t)) return;
     if(t.hasAttribute('data-done')) api.setPlan(risky()?'13':st.plan);
