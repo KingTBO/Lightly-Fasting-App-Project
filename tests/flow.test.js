@@ -49,7 +49,9 @@ const H=3600000,D=24*H;
  await p.click('#days [data-act=edit]');await p.click('[data-act=fsdel]');await p.waitForTimeout(200);assert.strictEqual((await S()).fasts.length,0);
  await p.click('#days .cal-g button.today');await p.waitForTimeout(450);await p.click('#dayFab');await p.click('[data-act=fssave]');await p.waitForTimeout(300);assert.strictEqual((await S()).fasts.length,1,'a missed fast can be added');
  await p.click('#days .cal-g button.today');await p.waitForTimeout(450);assert.strictEqual(await p.getAttribute('#dayFab','data-mode'),'edit','a day with a fast offers edit, not a second add');assert.strictEqual((await S()).fasts.length,1);
- await p.click('#days [data-act=edit]');await p.click('[data-act=fsdel]');await p.waitForTimeout(200);assert.strictEqual((await S()).fasts.length,0);ok('fasts can be added, deleted; a filled day offers edit');
+ await p.click('#days [data-act=edit]');await p.waitForTimeout(300);assert(await p.$('#sheet .sh-h .x'),'dismiss lives in the title row');assert(!(await p.$('#sheet .btn.sec')),'no Cancel pill in the sheet');assert.strictEqual((await p.$$('#sheet .btns .btn')).length,1,'one primary button');
+ await p.click('[data-act=fsdel]');await p.waitForTimeout(300);assert.strictEqual((await S()).fasts.length,0);assert(await p.$('#toast [data-act=toastundo]'),'delete offers undo');await p.click('#toast [data-act=toastundo]');await p.waitForTimeout(300);assert.strictEqual((await S()).fasts.length,1,'undo brings the fast back');
+ await p.click('#days .cal-g button.today');await p.waitForTimeout(450);await p.click('#days [data-act=edit]');await p.click('[data-act=fsdel]');await p.waitForTimeout(200);assert.strictEqual((await S()).fasts.length,0);ok('fasts can be added, deleted with undo; a filled day offers edit; sheets dismiss from the title row');
  // cheat day: use today, then it is spent
  await p.evaluate(()=>{document.getElementById('days').scrollTop=0});await p.waitForTimeout(700);
  await p.click('#tabs [data-tab=today]');assert(await p.$eval('#streakBtn',e=>e.hidden),'no streak card before the first fast');
@@ -74,12 +76,19 @@ const H=3600000,D=24*H;
    assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).flex.used.length,0,'a short press does nothing');
    await q.mouse.down();await q.waitForTimeout(1500);await q.mouse.up();await q.waitForTimeout(300);}
   assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).flex.used.length,1);ok('streak card opens the cheat days sheet; a short press does nothing, holding uses one');}
+ {const q=await fresh(seed({}));await q.click('#tabs [data-tab=days]');await q.waitForTimeout(700);
+  assert(await q.$('#days .firstuse'),'first use shows one line and one action');assert(!(await q.$('#days .mile')),'no stats before the first fast');assert(!(await q.$('#days .legend')),'no legend before the first fast');
+  await q.click('#days .firstuse [data-act=gotoday]');await q.waitForTimeout(500);assert.strictEqual(await q.getAttribute('#tabs [data-tab=today]','aria-current'),'page');ok('Days first use: one line, one action, no empty stats');}
+ {const f0=Date.now()-3*D;const q=await fresh(seed({fasts:[{id:'a1',start:f0,end:f0+16*H,goalH:16,plan:'16'}]}));await q.click('#tabs [data-tab=days]');await q.waitForTimeout(700);
+  const yk=await q.evaluate(()=>{const d=new Date(Date.now()-24*36e5);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')});
+  const cell=await q.$('#days .cal-g button[data-k="'+yk+'"]');if(cell){await cell.click();await q.waitForTimeout(500);assert.match(await q.textContent('#days .nolog'),/Nothing logged/);assert(await q.$('#days [data-act=addday]'),'add a fast row');
+   await q.click('#days [data-act=addday]');await q.waitForTimeout(500);assert(await q.$('#sheet #fsS'),'add sheet opens for that day');ok('Days empty day: Nothing logged with an add row');}else{ok('Days empty day (no cell hook, skipped)');}}
  async function fresh(state){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));if(state)await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(state));await q.goto(url);await q.waitForTimeout(600);return q;}
  const fz=(n,h)=>Array.from({length:n},(_,i)=>({id:'f'+i+'-'+h,start:Date.now()-(i+2)*D,end:Date.now()-(i+2)*D+h*H,goalH:h,plan:String(h)}));
  // Days: milestone header, swipe between months, month picker, no cheat row
  {const old=Date.now()-75*D;const fl=Array.from({length:6},(_,i)=>({id:'dd'+i,start:Date.now()-(i+1)*D-16*H,end:Date.now()-(i+1)*D,goalH:16,plan:'16'})).concat([{id:'dold',start:old-16*H,end:old,goalH:16,plan:'16'}]);
  const q=await fresh(seed({planId:'16',fasts:fl}));await q.click('#tabs [data-tab=days]');await q.waitForTimeout(900);
- assert.match(await q.textContent('#days .mile'),/Longest streak/);assert.match(await q.textContent('#days .mile'),/Fasts completed/);assert(!(await q.$('#days [data-act=usecheat]')),'no cheat row on Days');
+ assert.match(await q.textContent('#days .mile .mline'),/fasts? this month|No fasts yet this month/);assert(!(await q.$('#days .mrow')),'no tile row, one quiet line');assert(!(await q.$('#days [data-act=usecheat]')),'no cheat row on Days');
  const t0=await q.textContent('#days .cal-t');const g=await q.locator('#days .cal-g').boundingBox();
  const sw=async(dx)=>{await q.mouse.move(g.x+200,g.y+100);await q.mouse.down();for(let i=1;i<=8;i++)await q.mouse.move(g.x+200+dx*i/8,g.y+100);await q.mouse.up();await q.waitForTimeout(700);};
  await sw(-150);assert.strictEqual(await q.textContent('#days .cal-t'),t0,'no month after this one');

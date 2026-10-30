@@ -97,11 +97,19 @@ function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) naviga
 
 /* ---------- toast, sheet ---------- */
 var toastT=0;
-function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); },3400); }
+var toastFn=null;
+function toast(msg,undo){ var t=$('toast'); toastFn=undo||null; t.textContent=msg; t.classList.toggle('has-undo',!!undo);
+  if(undo){ var b=document.createElement('button'); b.type='button'; b.className='tundo'; b.dataset.act='toastundo'; b.textContent=L('Undo','撤销'); t.appendChild(b); }
+  t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); toastFn=null; },undo?5600:3400); }
 var sheetEl=$('sheet'), scrim=$('scrim'), sheetOpen=false, sheetBack=null;
 var sheetFrom=null, BEHIND=['today','days','me','tabs','dayFab'];
 function setInert(v){ BEHIND.forEach(function(id){ var e=$(id); if(v) e.setAttribute('inert',''); else e.removeAttribute('inert'); }); }
-function openSheet(html,back,float){ if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
+/* one sheet pattern: the title row carries the dismiss (a round X, same as the concept page); a sheet keeps one primary button and no Cancel, Close or Done pill.
+   Start a sheet with <!--keep--> to leave its buttons alone (confirmations that must be answered). */
+var SHX='<button type="button" class="x" data-act="close" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button>';
+function shChrome(html){ if(html.indexOf('<h3>')!==0) return html; var i=html.indexOf('</h3>')+5;
+  return ('<div class="sh-h">'+html.slice(0,i)+SHX.replace('aria-label="Close"','aria-label="'+L('Close','关闭')+'"')+'</div>'+html.slice(i)).replace(/<button class="btn sec" data-act="close">[^<]*<\/button>/g,'').replace('<div class="btns"></div>',''); }
+function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
 function closeSheet(){ if(!sheetOpen) return; sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
 /* drag the grabber: 1:1 with the finger, then project where the flick was going and dismiss or spring back */
@@ -115,6 +123,7 @@ function closeSheet(){ if(!sheetOpen) return; sheetEl.classList.remove('open'); 
   sheetEl.addEventListener('pointerup',end); sheetEl.addEventListener('pointercancel',end); })();
 scrim.addEventListener('click',closeSheet);
 document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&sheetOpen) closeSheet(); });
+var IC_PLUS='<svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>', IC_MOON='<svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
 var CHECK='<svg class="ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 var CHEV='<svg class="chev" viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5 7 7l-5.5 5.5"/></svg>';
 
@@ -427,6 +436,10 @@ function initCal(){ var d=new Date(); calY=d.getFullYear(); calM=d.getMonth(); s
 var MILES=[3,7,14,30,60,100,200,365];
 function dayWord(n){ return L(n===1?'day':'days','天'); }
 var ringPlay=true;
+/* one quiet line instead of a row of stat tiles: this month's fasts, then the longest streak */
+function statLine(best){ var d=new Date(), m0=new Date(d.getFullYear(),d.getMonth(),1).getTime(), n=S.fasts.filter(function(f){ return C.isDone(f)&&f.end>=m0; }).length;
+  var a=n?L(n+(n===1?' fast':' fasts')+' this month','本月 '+n+' 次断食'):L('No fasts yet this month','本月还没有断食');
+  return a+(best>0?' · '+L('longest streak '+best+' '+dayWord(best),'最长连续 '+best+' 天'):''); }
 function milestoneHtml(st,best,total){
   var next=0, prev=0; MILES.forEach(function(m){ if(m<=st) prev=m; });
   for(var i=0;i<MILES.length;i++) if(MILES[i]>st){ next=MILES[i]; break; }
@@ -437,7 +450,7 @@ function milestoneHtml(st,best,total){
   var chips=MILES.slice(0,6).map(function(m){ return '<span class="mchip'+(m<=best?' on':'')+'"'+(m<=best?'':' aria-hidden="true"')+'>'+m+'</span>'; }).join('');
   return '<div class="group mile"><div class="mhero"><div class="ring" role="img" aria-label="'+L('Current streak: '+st+' '+dayWord(st),'当前连续 '+st+' 天')+'"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rt" cx="60" cy="60" r="'+R+'"/><circle class="rp'+(ringPlay?' play':'')+'" cx="60" cy="60" r="'+R+'" style="--cir:'+CIR.toFixed(1)+';--off:'+off.toFixed(1)+'" stroke-dasharray="'+CIR.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rn"><b>'+st+'</b><span>'+L('day streak','天连续')+'</span></div></div>'+
     '<div class="mtx"><b>'+line+'</b><small>'+sub+'</small>'+(record?'<span class="rec"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z"/></svg>'+L('Your longest streak','你的最长连续')+'</span>':'')+'</div></div>'+
-    '<div class="mrow"><div><b>'+best+'</b><span>'+L('Longest streak','最长连续')+'</span></div><div><b>'+total+'</b><span>'+L('Fasts completed','已完成的断食')+'</span></div></div>'+
+    '<p class="mline">'+statLine(best)+'</p>'+
     '<div class="mchips" aria-label="'+L('Streak milestones reached','已达成的连续里程碑')+'">'+chips+'</div></div>';
 }
 /* the month and year picker: a floating card, only offered once there is more than one month to move between */
@@ -496,17 +509,18 @@ function renderDays(){
   var fs=streakFasts(), all=S.fasts, t=today(), first=all.length?new Date(Math.min.apply(null,all.map(function(f){return f.start;}))):new Date();
   var canPrev=calY*12+calM>first.getFullYear()*12+first.getMonth()-0, canNext=calY*12+calM<new Date().getFullYear()*12+new Date().getMonth();
   var total=all.filter(C.isDone).length, st=curStreak(), best=bestStreak();
-  var h=milestoneHtml(st,best,total);
+  var first1=!all.length, h=first1?'<div class="group firstuse"><p>'+L('Fasts you finish show up here as filled days.','完成的断食会在这里显示为实心的日子。')+'</p><button class="btn sec" data-act="gotoday">'+L('Start a fast','开始断食')+'</button></div>':milestoneHtml(st,best,total);
   var mname=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(calY,calM,1));
-  h+='<div class="group"><div class="cal"><div class="cal-h"><button data-act="calprev" aria-label="'+L('Previous month','上个月')+'"'+(canPrev?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button>'+(monthRange()[0]<monthRange()[1]?'<button class="cal-t" data-act="calpick" aria-haspopup="dialog"><span class="mn">'+mname+'</span><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg></button>':'<b class="cal-t0"><span class="mn">'+mname+'</span></b>')+'<button data-act="calnext" aria-label="'+L('Next month','下个月')+'"'+(canNext?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>';
+  h+='<div class="group'+(first1?' dim':'')+'"><div class="cal"><div class="cal-h"><button data-act="calprev" aria-label="'+L('Previous month','上个月')+'"'+(canPrev?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button>'+(monthRange()[0]<monthRange()[1]?'<button class="cal-t" data-act="calpick" aria-haspopup="dialog"><span class="mn">'+mname+'</span><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg></button>':'<b class="cal-t0"><span class="mn">'+mname+'</span></b>')+'<button data-act="calnext" aria-label="'+L('Next month','下个月')+'"'+(canNext?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>';
   h+='<div class="cal-v"><div class="cal-g">'+gridInner(calY,calM);
-  h+='</div></div></div><div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i style="border-color:var(--orange)"></i>'+L('Ended early','提前结束')+'</span><span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span><span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div></div>';
+  h+='</div></div></div>'+(first1?'':'<div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i style="border-color:var(--orange)"></i>'+L('Ended early','提前结束')+'</span><span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span><span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div>')+'</div>';
   /* the chosen day */
   /* the chosen day: nothing is shown until a date is tapped */
   if(selDay){
   var list=C.fastDays(all)[selDay]||[], fl=S.flex.used.indexOf(selDay)>=0;
   h+='<div class="gh">'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</div><div class="group">';
-  if(!list.length&&!fl) h+='<div class="empty">'+(selDay>t?L('Nothing here yet.','这天还没有记录。'):L('No fast logged for this day. Tap + to add one.','这天没有记录断食。点 + 可以补记。'))+'</div>';
+  if(!list.length&&!fl){ if(selDay>t) h+='<div class="empty">'+L('Nothing here yet.','这天还没有记录。')+'</div>';
+    else h+='<div class="row nolog"><span>'+L('Nothing logged','没有记录')+'</span></div><button class="row" data-act="addday">'+IC_PLUS+'<span>'+L('Add a fast','补记断食')+'</span></button>'+(C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex})?'':'<button class="row" data-act="cheatday" data-k="'+selDay+'">'+IC_MOON+'<span>'+L('Use a cheat day','使用弹性日')+'</span></button>'); }
   list.sort(function(a,b){return a.end-b.end;}).forEach(function(f){ h+='<button class="row fast-row" data-act="edit" data-id="'+f.id+'"><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(C.isDone(f)?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+'</small></span>'+CHEV.replace('class="chev"','class="chev" style="margin-left:auto"')+'</button>'; });
   if(fl) h+='<div class="row"><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
   h+='</div>';
@@ -579,7 +593,7 @@ function fastSheet(f,addKey){
   var goal=isNew?plan().fast:f.goalH;
   openSheet('<h3>'+(isNew?L('Add a fast','补记断食'):L('Edit fast','编辑断食'))+'</h3><p class="lede">'+L('Fix a start or end time, or add one you forgot to log.','修改开始或结束时间，或补上忘记记录的一次。')+'</p>'+
    '<div class="group">'+pkField('fsS',L('Started','开始'),start,'dt')+pkField('fsE',L('Ended','结束'),end,'dt')+'<div class="field"><label for="fsG">'+L('Goal (hours)','目标（小时）')+'</label><input id="fsG" type="number" min="1" max="36" step="1" inputmode="numeric" value="'+Math.round(goal)+'"></div></div>'+
-   '<div class="btns"><button class="btn" data-act="fssave" data-id="'+(isNew?'':f.id)+'">'+L('Save','保存')+'</button>'+(isNew?'':'<button class="btn red" data-act="fsdel" data-id="'+f.id+'">'+L('Delete this fast','删除这次断食')+'</button>')+'<button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
+   (isNew?'':'<div class="group"><button class="row red" data-act="fsdel" data-id="'+f.id+'">'+L('Delete this fast','删除这次断食')+'</button></div>')+'<div class="btns"><button class="btn" data-act="fssave" data-id="'+(isNew?'':f.id)+'">'+L('Save','保存')+'</button></div>');
 }
 function fastSave(id){
   var s=+pkVal('fsS'), e=+pkVal('fsE'), g=Math.round(+$('fsG').value), now=Date.now();
@@ -619,7 +633,7 @@ function importPreview(p){
    (n?'<div class="row"><span>'+L('Dates','日期范围')+'</span><span class="v">'+rng+'</span></div><div class="row"><span>'+L('Reached the goal','达成目标')+'</span><span class="v">'+ok+'</span></div>':'')+
    (skip.length?'<div class="row"><span class="stack"><span>'+L('Skipped','已跳过')+'</span><small>'+skip.join(' · ')+'</small></span></div>':'')+'</div>'+
    (n?'':'<p class="note">'+L('There is nothing new in this file.','这个文件里没有新的记录。')+'</p>')+
-   '<div class="btns"><button class="btn" data-act="impdo"'+(n?'':' disabled')+'>'+(n?L('Add '+n+' fasts','添加 '+n+' 次断食'):L('Nothing to add','没有可添加的内容'))+'</button><button class="btn sec" data-act="import">'+L('Choose another file','换一个文件')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
+   '<div class="btns"><button class="btn" data-act="impdo"'+(n?'':' disabled')+'>'+(n?L('Add '+n+' fasts','添加 '+n+' 次断食'):L('Nothing to add','没有可添加的内容'))+'</button><button class="btn quiet" data-act="import">'+L('Choose another file','换一个文件')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
 }
 function importDo(){
   var p=impPlan; if(!p||!p.add.length) return;
@@ -643,14 +657,14 @@ document.addEventListener('change',function(e){
 
 /* ---------- cheat days (弹性日) ---------- */
 function flexTick(){ C.flexRefill(S.flex,S.startedAt||Date.now()); }
-function cheatSheet(){
-  flexTick(); var k=today(), used=S.flex.used.indexOf(k)>=0, blk=C.flexBlock(k,{fasts:S.fasts,flex:S.flex}), b=S.flex.bank;
+function cheatSheet(day){
+  flexTick(); var k=typeof day==='string'?day:today(), used=S.flex.used.indexOf(k)>=0, blk=C.flexBlock(k,{fasts:S.fasts,flex:S.flex}), b=S.flex.bank;
   var moons=''; for(var i=0;i<2;i++) moons+='<svg width="30" height="30" viewBox="-15 -15 30 30" style="margin-right:6px" aria-hidden="true"><circle r="12" style="fill:'+(i<b?'var(--moon)':'none')+';stroke:'+(i<b?'var(--moon-edge)':'var(--label-2)')+'" stroke-width="1.5"/></svg>';
   var why={used:'',fasted:L('You fasted today, so you don’t need one.','今天你已经断食了，不需要使用。'),bank:L('None left. A new one arrives every Monday.','已经用完。每周一会补一个。'),week:L('Two in a week is the limit, so you still fast at least five days.','一周最多两个，这样每周至少断食五天。'),window:''}[blk]||'';
   openSheet('<h3>'+L('Cheat days','弹性日')+'</h3><p class="lede">'+L('A day off that keeps your streak going.','休息一天，连续记录不会断。')+'</p>'+
     '<div class="group"><div class="row" style="min-height:60px"><span style="display:flex">'+moons+'</span><span class="v">'+L(b+' left',b+' 个可用')+'</span></div></div>'+
     '<p class="note">'+(why||L('A new one arrives every Monday. You can keep two.','每周一补充一个，最多存两个。'))+'</p>'+
-    '<div class="btns">'+(used?'<button class="btn sec" data-act="undocheat">'+L('Take today’s cheat day back','收回今天的弹性日')+'</button>':'<button class="btn hold" data-hold="usecheat" data-k="'+k+'"'+(blk?' disabled':'')+'><span class="hl">'+L('Hold to use a cheat day','按住使用弹性日')+'</span></button>')+'<button class="btn sec" data-act="close">'+L('Close','关闭')+'</button></div>');
+    '<div class="btns">'+(used?'<button class="btn sec" data-act="undocheat" data-k="'+k+'">'+(k===today()?L('Take today’s cheat day back','收回今天的弹性日'):L('Take this cheat day back','收回这天的弹性日'))+'</button>':'<button class="btn hold" data-hold="usecheat" data-k="'+k+'"'+(blk?' disabled':'')+'><span class="hl">'+L('Hold to use a cheat day','按住使用弹性日')+'</span></button>')+'<button class="btn sec" data-act="close">'+L('Close','关闭')+'</button></div>');
 }
 function useCheat(k){ flexTick(); var b=C.flexBlock(k,{fasts:S.fasts,flex:S.flex}); if(b) return toast(L('A cheat day can’t be used for that day.','这天不能使用弹性日。')); S.flex.used.push(k); S.flex.bank--; save(); closeSheet(); cache={}; updateToday(); if(curTab==='days') renderDays(); toast(L('Cheat day used. Your streak holds.','已使用弹性日，连续记录保持。')); }
 
@@ -923,6 +937,9 @@ var A={
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
   day:function(b){ selDay=b.dataset.k; fabOn=true; renderDays(); },
+  gotoday:function(){ showTab('today'); },
+  addday:function(){ fastSheet(null,selDay); },
+  cheatday:function(b){ cheatSheet(b.dataset.k); },
   fab:function(){ var l=(C.fastDays(S.fasts)[selDay]||[]).slice().sort(function(a,b){return a.end-b.end;}); if(l.length) fastSheet(l[l.length-1]); else fastSheet(null,selDay); },
   calprev:function(){ var i=calY*12+calM-1; calGo(Math.floor(i/12),((i%12)+12)%12,-1); },
   calnext:function(){ var i=calY*12+calM+1; calGo(Math.floor(i/12),((i%12)+12)%12,1); },
@@ -933,9 +950,11 @@ var A={
   edit:function(b){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(f) fastSheet(f); },
   add:function(b){ fastSheet(null,b.dataset.k); },
   fssave:function(b){ fastSave(b.dataset.id); },
-  fsdel:function(b){ S.fasts=S.fasts.filter(function(x){return x.id!==b.dataset.id;}); (S.del=S.del||[]).push(b.dataset.id); save(); closeSheet(); renderDays(); cache={}; toast(L('Deleted.','已删除。')); },
+  fsdel:function(b){ var id=b.dataset.id, gone=S.fasts.filter(function(x){return x.id===id;})[0]; S.fasts=S.fasts.filter(function(x){return x.id!==id;}); (S.del=S.del||[]).push(id); save(); closeSheet(); renderDays(); cache={}; updateToday();
+    toast(L('Fast deleted.','已删除这次断食。'),gone?function(){ S.del=(S.del||[]).filter(function(x){return x!==id;}); S.fasts.push(gone); save(); cache={}; updateToday(); if(curTab==='days') renderDays(); }:null); },
+  toastundo:function(){ var f=toastFn; if(!f) return; toastFn=null; $('toast').classList.remove('on'); f(); buzz(6); },
   usecheat:function(b){ useCheat(b.dataset.k||today()); },
-  undocheat:function(){ var k=today(), i=S.flex.used.indexOf(k); if(i>=0){ S.flex.used.splice(i,1); S.flex.bank=Math.min(2,S.flex.bank+1); save(); closeSheet(); cache={}; updateToday(); if(curTab==='me') renderMe(); } },
+  undocheat:function(b){ var k=(b&&b.dataset.k)||today(), i=S.flex.used.indexOf(k); if(i>=0){ S.flex.used.splice(i,1); S.flex.bank=Math.min(2,S.flex.bank+1); save(); closeSheet(); cache={}; updateToday(); if(curTab==='me') renderMe(); } },
   more:function(){ moreOpen=!moreOpen; planSheet(); },
   pickplan:function(b){ pickPlan(b.dataset.id); },
   geo:function(){ geo(function(){ placeSheet(); }); },
@@ -952,7 +971,7 @@ var A={
   emresend:function(b){ var e=b.dataset.e; if(Date.now()<emCool) return; emCool=Date.now()+60000; CL.sendCode(e,S).then(function(){ emailSheet('sent',e); toast(L('Sent again.','已重新发送。')); }).catch(function(x){ emCool=0; emailSheet('sent',e,emailErr(x)); }); },
   emverify:function(b){ var e=b.dataset.e, c=($('emCode').value||'').trim(); if(c.length<6) return emailSheet('sent',e,L('Enter the 6-digit code.','请输入 6 位验证码。')); b.disabled=true; b.textContent=L('Checking…','验证中…');
     CL.verify(e,c).then(function(){ closeSheet(); toast(L('Signed in.','已登录。')); renderMe(); syncNow(true); }).catch(function(x){ emailSheet('sent',e,L('That code didn’t work. ','验证码不对：')+x.message); }); },
-  signout:function(){ openSheet('<h3>'+L('Sign out?','退出登录？')+'</h3><p class="lede">'+L('Your fasts stay on this phone and in your account. You can sign back in any time.','记录会保留在这台手机和你的账号里，随时可以重新登录。')+'</p><div class="btns"><button class="btn dark" data-act="signoutok">'+L('Sign out','退出登录')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
+  signout:function(){ openSheet('<!--keep--><h3>'+L('Sign out?','退出登录？')+'</h3><p class="lede">'+L('Your fasts stay on this phone and in your account. You can sign back in any time.','记录会保留在这台手机和你的账号里，随时可以重新登录。')+'</p><div class="btns"><button class="btn dark" data-act="signoutok">'+L('Sign out','退出登录')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   signoutok:function(){ CL.signOut(); sync.at=0; sync.err=''; closeSheet(); renderMe(); },
   syncnow:function(){ syncNow(false); },
   lang:function(b){ S.lang=b.dataset.v; save(); applyLang(); cache={}; if(!$('ob').hidden){ obRefresh(); } else renderMe(); updateToday(); },
@@ -976,7 +995,7 @@ var A={
   import:function(){ importSheet(); },
   impdo:function(){ importDo(); },
   export:function(){ try{ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-fasts-'+today()+'.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }catch(e){ toast(L('Couldn’t export.','导出失败。')); } },
-  erase:function(){ openSheet('<h3>'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede">'+L('This deletes your fasts, streak and settings from this phone. It can’t be undone.','这会删除这台手机上的断食记录、连续天数和设置，无法撤销。')+'</p><div class="btns"><button class="btn red" data-act="eraseok">'+L('Erase everything','清除所有数据')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
+  erase:function(){ openSheet('<!--keep--><h3>'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede">'+L('This deletes your fasts, streak and settings from this phone. It can’t be undone.','这会删除这台手机上的断食记录、连续天数和设置，无法撤销。')+'</p><div class="btns"><button class="btn red" data-act="eraseok">'+L('Erase everything','清除所有数据')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   eraseok:function(){ try{ localStorage.removeItem(KEY); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
   usualset:function(){ S.prefs.usualStart='20:00'; save(); cache={}; updateToday(); renderMe(); pkToggle('usualStart'); },
   pktog:function(b){ pkToggle(b.dataset.id); },
