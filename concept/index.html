@@ -610,12 +610,11 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .cheat-moons i{width:28px;height:28px;border-radius:50%;box-sizing:border-box;box-shadow:inset 0 0 0 1.5px var(--label-3);display:block}
 .cheat-moons i.on{background:var(--label);box-shadow:none}
 .cheat-moons span{font:500 15px/1.3 var(--font);color:var(--label-2);margin-left:4px}
-.cheat-list{background:var(--bg);border-radius:14px;padding:4px 16px;margin:0 0 14px;list-style:none}
-.cheat-list li{font:400 15px/1.4 var(--font);color:var(--label);padding:11px 0}
-.cheat-list li+li{border-top:.5px solid var(--sep)}
-.cheat-list li small{display:block;font-size:13px;color:var(--label-2)}
 .cheat-go{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--label);color:var(--card);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out}
 .cheat-go:active{transform:scale(.97)}
+.cheat-go{position:relative;overflow:hidden;isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none}
+.cheat-go::before{content:"";position:absolute;inset:0;background:rgba(128,128,128,.4);transform-origin:left;transform:scaleX(var(--hold,0));z-index:-1;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.cheat-go.holding::before{transition:none}
 .cheat-go[disabled]{opacity:.35;cursor:default;transform:none}
 @media (prefers-reduced-motion:reduce){.cheat-go{transition:none}}
 @media (prefers-reduced-motion:reduce){.psheet{transform:none!important;opacity:0;transition:opacity .25s ease;pointer-events:none}.psheet.open{opacity:1;pointer-events:auto}.ps-extra{transition:none}}
@@ -735,7 +734,6 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <p class="ps-note" id="chNote"></p>
         <div class="ps-scroll">
           <div class="cheat-moons" id="chMoons" role="img"></div>
-          <ul class="cheat-list" id="chList"></ul>
           <button type="button" class="cheat-go" id="chGo"></button>
         </div>
       </div>
@@ -2038,24 +2036,27 @@ window.LightlySphere=(function(){
     $('chNote').textContent=C.used?L('Today is a cheat day. Your streak is safe, and tomorrow is a fresh start.','今天是弹性日，连续天数不会断，明天重新开始。')
       :off?L('You fasted today, so there\u2019s nothing to cover.','今天你已经断食了，不需要弹性日。')
       :none?L('None left this week. A new one arrives on Monday.','这周用完了，周一会再给你一个。')
-      :L('Life happens: an office catch-up, a birthday, a late night. Can\u2019t fast today? A cheat day keeps your streak.','加班、聚会、朋友生日、熬夜，都是生活。今天没法断食？弹性日会保住你的连续天数。');
+      :L('A day off that keeps your streak going. A new one arrives every Monday, and you can keep two.','休息一天，连续记录不会断。每周一补充一个，最多存两个。');
     $('chMoons').innerHTML='<i class="'+(C.left>0?'on':'')+'"></i><i class="'+(C.left>1?'on':'')+'"></i><span>'+L(C.left+' of 2 held','存有 '+C.left+' 个，最多 2 个')+'</span>';
     $('chMoons').setAttribute('aria-label',L(C.left+' of 2 cheat days held','存有 '+C.left+' 个弹性日，最多 2 个'));
-    $('chList').innerHTML=[
-      [L('One new every week','每周新增一个'),L('Unused ones carry over, up to two.','没用的可以留着，最多存两个。')],
-      [L('Use one until noon the next day','可用到第二天中午'),L('So a late night is covered.','熬夜的那天也算在内。')],
-      [L('It holds your streak, it doesn\u2019t add to it','保住连续天数，但不增加'),L('At most two in any 7 days, so most days stay fasting days.','任意 7 天最多用两个，所以大多数日子还是断食日。')],
-      [L('If a streak ends, you can bring it back','连续天数断了也能找回'),L('Finish two fasts in the next three days, once a month. Your stars and best streak always stay.','接下来三天内完成两次断食，每月一次。星星和最长纪录永远保留。')]
-    ].map(function(r){ return '<li>'+r[0]+'<small>'+r[1]+'</small></li>'; }).join('');
     var g=$('chGo'); g.disabled=C.used||off||none;
-    g.textContent=C.used?L('Used for today','今天已使用'):L('Use a cheat day for today','今天用一个弹性日'); }
+    g.textContent=C.used?L('Used for today','今天已使用'):L('Hold to use a cheat day','按住使用弹性日'); }
   function open(v){ if(v) render(); sh.classList.toggle('open',v); sh.setAttribute('aria-hidden',!v); sc.classList.toggle('on',v);
     if(v) $('chClose').focus({preventScroll:true}); else $('streak').focus({preventScroll:true}); }
   $('streak').addEventListener('click',function(){ open(true); });
   $('chClose').addEventListener('click',function(){ open(false); }); sc.addEventListener('click',function(){ open(false); });
   sh.addEventListener('keydown',function(e){ if(e.key==='Escape') open(false); });
-  $('chGo').addEventListener('click',function(){ if(this.disabled) return; C.left--; C.used=true; try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){}
-    render(); if(window.refreshStreak) window.refreshStreak(); setTimeout(function(){ open(false); },reduceMs()+300); });
+  /* press and hold to use it, the same gesture as ending a fast */
+  var gr=0, gOn=false, gT=0;
+  function gDone(){ C.left--; C.used=true; try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){}
+    render(); if(window.refreshStreak) window.refreshStreak(); setTimeout(function(){ open(false); },reduceMs()+300); }
+  function gEnd(){ if(!gOn) return; gOn=false; cancelAnimationFrame(gr); var g=$('chGo'); g.classList.remove('holding'); g.style.setProperty('--hold',0); render(); }
+  function gBegin(){ var g=$('chGo'); if(gOn||g.disabled) return; gOn=true; gT=performance.now(); g.classList.add('holding'); g.textContent=L('Keep holding…','继续按住…');
+    (function st(){ if(!gOn) return; var f=Math.min((performance.now()-gT)/1200,1); g.style.setProperty('--hold',f); if(f>=1){ gOn=false; g.classList.remove('holding'); g.style.setProperty('--hold',0); gDone(); return; } gr=requestAnimationFrame(st); })(); }
+  $('chGo').addEventListener('pointerdown',function(e){ e.preventDefault(); try{ this.setPointerCapture(e.pointerId); }catch(x){} gBegin(); });
+  ['pointerup','pointercancel'].forEach(function(n){ $('chGo').addEventListener(n,gEnd); });
+  $('chGo').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); if(!e.repeat) gBegin(); } });
+  $('chGo').addEventListener('keyup',function(e){ if(e.key==='Enter'||e.key===' ') gEnd(); });
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ if(sh.classList.contains('open')) render(); if(window.refreshStreak) window.refreshStreak(); },0); }); });
 })();
 </script>

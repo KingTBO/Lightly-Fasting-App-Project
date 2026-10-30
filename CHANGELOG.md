@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.32.0
+- **design** The cheat days sheet is much shorter. It says what a cheat day is in one line, shows how many you have left, and gives the Monday refill in one short sentence. The four rule lines that repeated each other are gone, and the reason a cheat day can't be used today still shows when it applies. The Chinese wording follows.
+- **design** Using a cheat day now takes a press and hold, the same gesture as ending a fast, so a stray tap can't spend one. The button fills as you hold and says "Hold to use a cheat day". A short press does nothing. The concept page matches.
+
 ## 0.31.0
 Round 2 of the "feel premium" pass, second part: the browser's own date, time and list controls are gone.
 - **design** Start times (when you edit a running fast, or edit or add a past one), your usual start time and the nearest city in setup now use Lightly's own wheels. A row shows the value in a small capsule with tabular numerals; tap it and a wheel opens in place with a day, hour, minute and AM or PM column that snap, scroll by touch, mouse wheel or arrow keys, and follow the language. The same look on every phone and browser, with no system popup.

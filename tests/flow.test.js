@@ -69,8 +69,11 @@ const H=3600000,D=24*H;
  // ---- plan ladder, experienced setup, overtime, editing the end of a finished fast, email-only sign-in
  const seed=(o)=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{fastedBefore:false,safety:false},planId:'13',customH:16,place:{key:'shanghai'},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},ramadanPreview:false,startedAt:Date.now()-30*D,mod:1,del:[]},o);
  {const f0=Date.now()-2*D;const q=await fresh(seed({fasts:[{id:'a1',start:f0,end:f0+16*H,goalH:16,plan:'16'}]}));await q.waitForTimeout(400);
-  assert(!(await q.$eval('#streakBtn',e=>e.hidden)),'streak card shows once there is a fast');await q.click('#streakBtn');await q.click('#sheet [data-act=usecheat]');await q.waitForTimeout(300);
-  assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).flex.used.length,1);ok('streak card opens the cheat days sheet; one is used');}
+  assert(!(await q.$eval('#streakBtn',e=>e.hidden)),'streak card shows once there is a fast');await q.click('#streakBtn');await q.click('#sheet [data-act=usecheat]',{timeout:400}).then(()=>assert.fail('a plain click must not use a cheat day'),()=>{});
+  {const bx=await q.locator('#sheet [data-hold=usecheat]').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(300);await q.mouse.up();await q.waitForTimeout(200);
+   assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).flex.used.length,0,'a short press does nothing');
+   await q.mouse.down();await q.waitForTimeout(1500);await q.mouse.up();await q.waitForTimeout(300);}
+  assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).flex.used.length,1);ok('streak card opens the cheat days sheet; a short press does nothing, holding uses one');}
  async function fresh(state){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));if(state)await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(state));await q.goto(url);await q.waitForTimeout(600);return q;}
  const fz=(n,h)=>Array.from({length:n},(_,i)=>({id:'f'+i+'-'+h,start:Date.now()-(i+2)*D,end:Date.now()-(i+2)*D+h*H,goalH:h,plan:String(h)}));
  // Days: milestone header, swipe between months, month picker, no cheat row

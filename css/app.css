@@ -484,3 +484,8 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .pk-i{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;scroll-snap-stop:always;font:400 1.1875rem var(--font);font-variant-numeric:tabular-nums;color:var(--label-2);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
 .pk-i.sel{color:var(--label)}
 @media (prefers-reduced-motion:reduce){.pk-w,.pk.open .pk-w{transition:none}}
+
+/* hold-to-confirm button in a sheet */
+.btn.hold{position:relative;overflow:hidden;isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.btn.hold::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.16);transform-origin:left;transform:scaleX(var(--hold,0));z-index:-1;transition:transform .35s var(--spring)}
+.btn.hold.holding::before{transition:none}
