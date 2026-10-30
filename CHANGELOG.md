@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.28.9
+- **copy** The Time off descriptions are back in the pop-up sheet (Travel and I feel unwell), because the 0.28.8 change was on the wrong thing. The line under the Time off row in Me is removed instead. The concept page's Me row already had none.
+
 ## 0.28.8
 - **copy** The Time off sheet is less packed: Travel and "I feel unwell" no longer have a description line under them, just the name and the arrow. The concept page matches.
 
