@@ -47,8 +47,10 @@ function setBigTime(sec){
 }
 var bigSec=0;
 function setBigText(t){ if(bigTime){ bigTime=false; bigStr=''; bigEl.removeAttribute('aria-label'); } put(bigEl,'b',t); }
-function fmtH(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60; return a+'<small>'+L('h','小时')+'</small>'+(b<10?'0':'')+b+'<small>'+L('m','分')+'</small>'; }
-function durTxt(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60; return S.lang==='zh'?a+' 小时 '+b+' 分':a+' h '+b+' m'; }
+function fmtH(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60; return a+'<small>'+L('h','小时')+'</small>'+(b?(b<10?'0':'')+b+'<small>'+L('m','分')+'</small>':''); }
+/* hours and minutes, leaving out a zero part: "16 h", "45 m", "1 h 20 m" */
+function hmTxt(m){ var a=Math.floor(m/60), b=m%60, zh=S.lang==='zh', o=[]; if(a||!b) o.push(a+(zh?' 小时':' h')); if(b) o.push(b+(zh?' 分':' m')); return o.join(' '); }
+function durTxt(hrs){ return hmTxt(Math.max(0,Math.round(hrs*60))); }
 function pName(p){ return S.lang==='zh'?p.zh:p.name; }
 
 /* ---------- place and sun ---------- */
@@ -77,7 +79,7 @@ function usualTxt(){ var t=(S.prefs.usualStart||'20:00').split(':'); var d=new D
 function pst(id){ return C.planStatus(id,S.profile,{fasts:S.fasts}); }
 function planOk(id){ return pst(id).st==='ok'; }
 function normalisePlan(){ if(S.planId==='ramadan') return; if(planOk(S.planId)) return; var best=['20','18','16','13'].filter(planOk)[0]||'13'; S.planId=best; save(); }
-function overTxt(h){ var m=Math.max(0,Math.round(h*60)), a=Math.floor(m/60), b=m%60; return S.lang==='zh'?'超出目标 '+(a?a+' 小时 ':'')+b+' 分':'+'+(a?a+' h ':'')+b+' m over your goal'; }
+function overTxt(h){ var m=Math.max(0,Math.round(h*60)); return S.lang==='zh'?'超出目标 '+hmTxt(m):hmTxt(m)+' past your goal'; }
 function longSt(k){ checkUnlocks(); return C.longStatus(k,S.profile,{fasts:S.fasts,unwell:S.unwell,unlocked:S.unlocked}); }
 
 /* ---------- sound and haptics (tiny synthesized tones; the page follows the phone's silent switch) ---------- */
@@ -160,25 +162,25 @@ function updateToday(){
   var ramadan=cur&&cur.planId==='ramadan';
   if(brk){ var dn=Math.min(C.offDayNo(offA),offA.days);
       put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Break','休息'):L('Rest','静养'));
-      put($('readTip'),'t',L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。')); put($('actLbl'),'a',L('Start Fast','开始断食')); }
+      put($('readTip'),'t',L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。')); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(mode==='idle'){
     put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); setBigText(L('Ready','准备好了')); put(altEl,'alt','');
-    put($('readTip'),'t',ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。')); put($('actLbl'),'a',L('Start Fast','开始断食'));
+    put($('readTip'),'t',ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。')); put($('actLbl'),'a',L('Start fast','开始断食'));
   }else if(mode==='fast'){
     if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(el,goal,sk[1],moonV,ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); put($('readTip'),'t',tp[S.lang==='zh'?1:0]); }
     else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); setBigTime(Math.floor(el*3600)); put(altEl,'alt',L('Goal ','目标 ')+Math.round(goal)+L(' h',' 小时')); put($('readTip'),'t',ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
       if(!ramadan&&over>=2&&!cur.nudged){ cur.nudged=true; save(); toast(L('You’re well past your goal. Eat when you’re ready; extra time isn’t scored.','已经超过目标很久了。准备好就可以吃东西，超出的时间不计分。')); } }
-    if(!holdOn) put($('actLbl'),'a',L('Hold to End Fast','按住结束断食'));
+    if(!holdOn) put($('actLbl'),'a',L('Hold to end fast','按住结束断食'));
   }else{
     put($('readK'),'k',L('Eating window left','进食窗口还剩')); setBigTime(Math.max(0,Math.ceil((eatLen-eatEl)*3600))); put(altEl,'alt','');
-    put($('readTip'),'t',L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start Fast','开始断食'));
+    put($('readTip'),'t',L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start fast','开始断食'));
   }
   act.disabled=brk; act.setAttribute('aria-disabled',brk); $('track').style.visibility=brk?'hidden':'';
   /* timeline */
   var a0=mode==='eat'?le.end:mode==='fast'?cur.start:now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:ram?placeMs(sun.set,now):now+p.fast*H;
   var n=Math.min(Math.round(mode==='eat'?eatLen:ram?13:goal),36)||1; buildTicks(n);
   var tt=mode==='fast'?Math.min(el/goal,1):mode==='eat'?Math.min(eatEl/eatLen,1):0;
-  put($('endA'),'ea',mode==='fast'||mode==='eat'?clockMs(a0)+' ✎':mode==='idle'?L('Now','现在'):clockMs(a0));
+  put($('endA'),'ea',mode==='fast'||mode==='eat'?clockMs(a0)+'<svg class="ic-edit" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>':mode==='idle'?L('Now','现在'):clockMs(a0),1);
   put($('endB'),'eb','<b>'+clockMs(a1)+'</b>',1);
   $('tDone').style.strokeDasharray=(mode==='idle'?0:lenAt(tt))+' 9999';
   var q=tPt(tt); $('marker').setAttribute('cx',q.x.toFixed(1)); $('marker').setAttribute('cy',q.y.toFixed(1)); $('marker').style.opacity=mode==='idle'?0:1;
@@ -714,7 +716,7 @@ function renderMe(){
    '<button class="row" data-act="choice" data-k="theme"><span>'+L('Appearance','外观')+'</span><span class="v">'+choiceLabel('theme',S.theme)+'</span>'+CHEV+'</button>'+
    sw('sound',L('Sound','声音'),S.prefs.sound)+(navigator.vibrate?sw('haptics',L('Vibration','振动'),S.prefs.haptics):'')+sw('d3',L('3D moon and sun','3D 月亮和太阳'),S.prefs.d3&&!!orb,!orb)+
    sw('notify',L('Reminders','提醒'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>';
-  h+='<div class="gf">'+L('Reminders tell you when your goal is reached. A web app can only do this while it is open or recently open; the phone app will do it properly.','提醒会在达成目标时通知你。网页应用只有在打开或刚刚打开时才能做到，手机应用会做得更好。')+'</div>';
+  h+='<div class="gf">'+L('You’ll hear when you reach your goal, as long as Lightly was opened recently.','只要最近打开过轻伴，达成目标时就会提醒你。')+'</div>';
   h+='<div class="gh">'+L('Care','关怀')+'</div><div class="group"><button class="row" data-act="timeoff"><span class="stack"><span>'+L('Time off','休息一下')+'</span></span>'+(offNow()?'<span class="v">'+(offNow().kind==='travel'?L('Travelling','旅行中'):L('Resting','休养中'))+'</span>':'')+CHEV+'</button></div>';
   h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group"><button class="row" data-act="import"><span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export"><span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase"><span>'+L('Erase everything','清除所有数据')+'</span></button></div>';
   if(C.ramadanDay()===0) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
@@ -742,9 +744,8 @@ function obRisky(){ return !!(ob.safe.length&&ob.safe.indexOf('none')<0); }
 /* everyone: welcome, fasted before, safety, plan, where you are. People who have fasted before also get a step to make it theirs. */
 /* safety comes last, just before the summary; a flag then lowers the plan to 13:11 */
 function obFlow(){ var f=['welcome','fasted','plan']; if(ob.fasted==='before'){ f.push('custom'); f.push('import'); } f.push('set','safety','summary'); return f; }
-/* neutral stylised tiles with plain name labels (not the real logos), shown as a 3D fan that pops out of the screen */
-var IMP_APPS=[['Zero','Z','#6C9BFF','#3562D6'],['Fastic','F','#FF9A6B','#E65A2E'],['Simple','S','#3FD1A5','#1F9F78'],['Life','L','#B98AFF','#7F4AE3'],['BodyFast','B','#FF7FAE','#DE3F7C']];
-function impTiles(){ return '<div class="imp3d" aria-hidden="true">'+IMP_APPS.map(function(t,i){ return '<span class="t3" style="--x:'+(i-2)+';--c1:'+t[2]+';--c2:'+t[3]+';--d:'+(i*-.45).toFixed(2)+'s"><b>'+t[1]+'</b></span>'; }).join('')+'</div><p class="imp-names" aria-hidden="true">'+IMP_APPS.map(function(t){ return t[0]; }).join(' · ')+'</p>'; }
+/* the import step shows a plain file glyph, not look-alike tiles of other apps */
+var IMP_GLYPH='<div class="ob-hero imp-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11.5v5M9.5 14l2.5 2.5 2.5-2.5"/></svg></div>';
 function obHtml(i){
   var back=i>0?'<button class="ob-back" data-act="obback"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg>'+L('Back','返回')+'</button>':'<span></span>';
   var flow=obFlow(), key=flow[i]; var dots='<span class="ob-dots" aria-hidden="true">'+flow.map(function(j){return '<i'+(j===i?' class="on"':'')+'></i>';}).join('')+'</span>';
@@ -772,7 +773,7 @@ function obHtml(i){
       '<p class="gf" style="padding:0 4px">'+(risky?L('Longer fasts stay off for you.','长时间断食对你保持关闭。'):L('A 24-hour fast unlocks later, as you build up.','24 小时断食会在你逐步适应后解锁。'))+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='import'){
-    body='<div class="grow"></div>'+impTiles()+'<h1 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h1><p class="lede" style="text-align:center">'+L('Using another fasting app? Import your history now so you never lose it. It’s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我”里导入。')+'</p><p class="gf" style="text-align:center">'+L('Zero: unzip your download and choose firestore.json. Other apps: a CSV or JSON file with start and end times. The file stays on this phone.','Zero：解压下载的文件，选择 firestore.json。其他应用：包含开始和结束时间的 CSV 或 JSON 文件。文件只留在这台手机上。')+'</p><div class="grow"></div><input id="obImpFile" type="file" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden>';
+    body='<div class="grow"></div>'+IMP_GLYPH+'<h1 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h1><p class="lede" style="text-align:center">'+L('Using another fasting app? Import your history now so you never lose it. It’s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我”里导入。')+'</p><p class="gf" style="text-align:center">'+L('Zero: unzip your download and choose firestore.json. Other apps: a CSV or JSON file with start and end times. The file stays on this phone.','Zero：解压下载的文件，选择 firestore.json。其他应用：包含开始和结束时间的 CSV 或 JSON 文件。文件只留在这台手机上。')+'</p><div class="grow"></div><input id="obImpFile" type="file" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden>';
     cta='<label class="btn" for="obImpFile">'+L('Choose a file','选择文件')+'</label><button class="btn sec" data-act="obnext">'+L('Skip for now','暂时跳过')+'</button>';
   }else if(key==='custom'){
     body='<h1>'+L('Make it yours','按你的习惯来')+'</h1><p class="lede">'+L('Since you’ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="group"><div class="field"><label for="obStart">'+L('Usual start time','通常开始时间')+'</label><input id="obStart" class="tin" type="time" value="'+esc(ob.start||'20:00')+'" data-chg="obstart"></div></div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
@@ -780,7 +781,7 @@ function obHtml(i){
   }else if(key==='set'){
     var hereOn=S.place.key==='here';
     body='<h1>'+L('Match the sky to your day','让天空跟着你的一天')+'</h1><p class="lede">'+L('Lightly shows the moon and sun by your local sunrise and sunset. Your location is used on this phone only to work that out. It is never uploaded or shared.','轻伴按你当地的日出日落显示月亮和太阳。位置只在这台手机上用来计算，不会上传，也不会分享。')+'</p>'+
-     (hereOn?'<div class="group"><div class="row"><span class="stack"><span>'+L('Using your location','正在使用你的位置')+'</span><small>'+L('Stays on this phone','只留在这台手机上')+'</small></span><span class="v">✓</span></div></div>':'')+
+     (hereOn?'<div class="group"><div class="row"><span class="stack"><span>'+L('Using your location','正在使用你的位置')+'</span><small>'+L('Stays on this phone','只留在这台手机上')+'</small></span><span class="v">'+CHECK+'</span></div></div>':'')+
      (!hereOn&&ob.city?'<div class="group"><div class="row"><label for="obCity">'+L('Nearest city','最近的城市')+'</label><select id="obCity" data-chg="obcity" aria-label="'+L('Nearest city','最近的城市')+'">'+Object.keys(C.CITIES).map(function(k){ return '<option value="'+k+'"'+(S.place.key===k?' selected':'')+'>'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</option>'; }).join('')+'</select></div></div>':'')+
      (flow.indexOf('custom')<0?'<div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>':'')+'<div class="grow"></div>';
     cta=hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn quiet" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
@@ -952,6 +953,15 @@ A.stsave=function(){ var s=new Date($('stS').value).getTime(), now=Date.now(); i
 
 /* ---------- boot ---------- */
 (function stars(){ var o='', s=7; function r(){ s=(s*9301+49297)%233280; return s/233280; } for(var i=0;i<70;i++) o+='<circle cx="'+(r()*390).toFixed(0)+'" cy="'+(r()*400).toFixed(0)+'" r="'+(0.6+r()*1.1).toFixed(1)+'" opacity="'+(0.3+r()*0.6).toFixed(2)+'"/>'; $('stars').innerHTML=o; })();
+/* the moon hides the stars behind it, and none sit on the words: stars that fall on the disc or on the readout fade out, and come back when it moves */
+var starSig='';
+function clearStars(){ var svg=$('stars'), dr=$('disc').getBoundingClientRect(); if(!svg||dr.width<2) return;
+  var ids=['sub','readK','readBig','readAlt','readTip','endA','endB'], sig=ids.map(function(i){ return i==='readBig'?$(i).textContent.length:$(i).textContent; }).join('|')+'|'+dr.width.toFixed(0)+'|'+dr.top.toFixed(0)+'|'+innerWidth+'x'+innerHeight; if(sig===starSig) return; starSig=sig;
+  var zones=ids.map(function(i){ var rg=document.createRange(); rg.selectNodeContents($(i)); var r=rg.getBoundingClientRect(); return r.width>1&&r.height>1?{l:r.left-10,r:r.right+10,t:r.top-6,b:r.bottom+6}:null; }).filter(Boolean),
+    cx=dr.left+dr.width/2, cy=dr.top+dr.height/2, rad=dr.width*84/236+5;
+  Array.prototype.forEach.call(svg.querySelectorAll('circle'),function(c){ var r=c.getBoundingClientRect(), x=(r.left+r.right)/2, y=(r.top+r.bottom)/2;
+    var hid=(x-cx)*(x-cx)+(y-cy)*(y-cy)<rad*rad||zones.some(function(z){ return x>z.l&&x<z.r&&y>z.t&&y<z.b; });
+    if(hid) c.style.opacity='0'; else c.style.removeProperty('opacity'); }); }
 var dsNow=1;
 /* the disc gives way first: it shrinks until the streak card and the button both fit above the tab bar */
 function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) return; var free=$('gap').offsetHeight-14, over=t.scrollHeight-t.clientHeight, d=(free>0?free:0)-(over>0?over:0);
@@ -991,7 +1001,7 @@ if(CL&&CL.ready()){ window.addEventListener('storage',function(ev){ if(ev.key===
 var lastT=performance.now(), lastSec=0, frame=0;
 function loop(t){
   var dt=Math.min((t-lastT)/1000,.1); lastT=t; frame++;
-  if(!document.hidden&&curTab==='today'&&$('ob').hidden){ var sn=Math.floor(Date.now()/1000); if(sn!==lastSec){ lastSec=sn; updateToday(); } if(reduce?frame%6===0:(frame%2===0||boost>0||Math.abs(shownP-tgtP)>.001||Math.abs(tiltX)>.01||Math.abs(tiltY)>.01||tgtX||tgtY)) drawDisc(dt*(reduce?6:2)); }
+  if(!document.hidden&&curTab==='today'&&$('ob').hidden){ var sn=Math.floor(Date.now()/1000); if(sn!==lastSec){ lastSec=sn; updateToday(); clearStars(); } if(reduce?frame%6===0:(frame%2===0||boost>0||Math.abs(shownP-tgtP)>.001||Math.abs(tiltX)>.01||Math.abs(tiltY)>.01||tgtX||tgtY)) drawDisc(dt*(reduce?6:2)); }
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);

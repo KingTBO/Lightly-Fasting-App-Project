@@ -106,7 +106,7 @@ html:lang(zh-Hans) .group .k{text-transform:none}
 .ph .lt{font:700 34px/1.2 var(--font-d);letter-spacing:-.02em;margin:0}
 html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .ph .sub{font:400 15px var(--font);color:var(--ink-2);display:block;margin-top:-2px}
-.ph .chip{font:600 13px var(--font);padding:5px 10px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);margin-bottom:8px}
+.ph .chip{font:500 13px var(--font);padding:5px 10px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);margin-bottom:8px}
 .disc-wrap{display:flex;justify-content:center;margin-top:10px;height:236px;perspective:480px}
 #disc{cursor:grab;will-change:transform}
 .sw{position:relative;flex:none;width:51px;height:31px;border-radius:999px;border:0;background:var(--fill-2);cursor:pointer;transition:background .2s ease}
@@ -115,7 +115,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .row2{display:flex;align-items:center;justify-content:space-between;gap:12px}.row2 b{font-weight:500;font-size:16px;display:block}.row2 span{font-size:13px;color:var(--label-2)}
 #disc{width:236px;height:236px;overflow:visible;touch-action:none}
 .read{text-align:center;padding:0 24px}
-.read .k{font:600 15px var(--font);color:var(--ink-2);min-height:20px;display:block}
+.read .k{font:500 15px var(--font);color:var(--ink-2);min-height:20px;display:block}
 .read .big{font:600 56px/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:block}
 .read .big{font:300 min(58px,15vw)/1 var(--font-d);letter-spacing:-.045em}
 .read .big .co{font-style:normal;opacity:.4;display:inline-block;width:.26em;text-align:center;transform:translateY(-.08em)}
@@ -128,7 +128,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .track .ends b{color:var(--ink);font-weight:600}
 .streak{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 16px 0;padding:0 16px;min-height:46px;border-radius:14px;background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:inset 0 0 0 .5px var(--rim)}
 .streak .tx{display:flex;flex-direction:column;min-width:0}
-.streak .tx b{font:600 15px/1.25 var(--font);color:var(--ink);font-variant-numeric:tabular-nums}
+.streak .tx b{font:500 15px/1.25 var(--font);color:var(--ink);font-variant-numeric:tabular-nums}
 .streak .tx span{font:400 12px/1.25 var(--font);color:var(--ink-2);font-variant-numeric:tabular-nums}
 .streak .dots{display:flex;gap:6px;align-items:center;flex:none}
 .streak .dots i{width:10px;height:10px;border-radius:50%;box-sizing:border-box;background:var(--ink);opacity:.9;transition:background .35s ease,opacity .35s ease,box-shadow .35s ease}
@@ -143,7 +143,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .act.holding::before{transition:none}
 /* stars: only in dark skies, fade with the sky */
 .stars{position:absolute;left:0;right:0;top:0;width:100%;height:420px;z-index:-1;pointer-events:none;opacity:var(--stars,0);transition:opacity 1.2s ease}
-.stars circle{fill:#fff}
+.stars circle{fill:#fff;transition:opacity .6s ease}
 /* text that changes meaning fades up into place */
 @keyframes swap{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .swap{animation:swap .36s cubic-bezier(.16,1,.3,1)}
@@ -154,7 +154,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .tabs{position:absolute;left:16px;right:16px;bottom:24px;height:64px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
   box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--ink) 14%,transparent),inset 0 .5px 0 rgba(255,255,255,.45),0 8px 24px rgba(0,0,0,.12);display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding:0 6px}
 /* one tab = icon + label as a single unit, 1px apart (iOS 26 style) */
-.tabs>span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;height:52px;font:600 10px/1.1 var(--font);letter-spacing:.01em;color:var(--ink-2);border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .25s ease,color .25s ease}
+.tabs>span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;height:52px;font:500 10px/1.1 var(--font);letter-spacing:.01em;color:var(--ink-2);border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .25s ease,color .25s ease}
 .tabs>span>span{display:block}
 .tabs>span.sel{color:var(--tabsel)}
 .tabs>span{position:relative;z-index:1;transition:color .3s ease}
@@ -168,6 +168,11 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 @media (prefers-contrast:more){.tab-ind{background:var(--tabfill);box-shadow:inset 0 0 0 1.5px var(--tabsel)}}
 .tabs svg{width:24px;height:24px;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .tabs .sel svg{stroke-width:2.1}
+.tabs .ico-moon{display:none}
+.ph[data-sky="night"] .tabs .ico-sun,.ph[data-sky="first"] .tabs .ico-sun,.ph[data-sky="evening"] .tabs .ico-sun{display:none}
+.ph[data-sky="night"] .tabs .ico-moon,.ph[data-sky="first"] .tabs .ico-moon,.ph[data-sky="evening"] .tabs .ico-moon{display:block}
+@keyframes icoIn{from{opacity:0;transform:scale(.7) rotate(-25deg)}}
+@media (prefers-reduced-motion:no-preference){.tabs .ico-sun,.tabs .ico-moon{animation:icoIn .5s cubic-bezier(.16,1,.3,1) backwards}}
 .home{position:absolute;bottom:8px;left:50%;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--ink);opacity:.85}
 
 /* sheet (medium detent) */
@@ -178,7 +183,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 @media (prefers-reduced-transparency:reduce){.scrim,.scrim.on,#scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.4)}}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--card);color:var(--label);border-radius:34px 34px 0 0;padding:8px 16px 34px;transform:translateY(105%);will-change:transform}
 .sheet .grab{width:36px;height:5px;border-radius:3px;background:var(--label-3);margin:0 auto 18px}
-.sheet .k{font:600 15px var(--font);color:var(--label-2)}
+.sheet .k{font:500 15px var(--font);color:var(--label-2)}
 .sheet .big{display:block;font:600 48px/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:2px 0 16px}
 .sheet .big small{font-size:.5em;color:var(--label-2);margin:0 .12em 0 .04em}
 .sheet .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -271,14 +276,7 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-cta{margin-top:auto;width:100%;min-height:54px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out,opacity .2s}
 .ob-cta.quiet{margin-top:6px;background:transparent;color:var(--label-2);min-height:44px;font:500 15px var(--font)}.ob-sum select{border:0;background:transparent;color:var(--label);font:600 17px var(--font);text-align:right}
 .ob-skip{width:100%;min-height:50px;margin-top:8px;border:0;border-radius:999px;background:var(--fill);color:var(--label);font:600 17px var(--font);cursor:pointer}
-.imp3d{position:relative;height:150px;perspective:640px;perspective-origin:50% 40%;margin:14px 0 6px;transform-style:preserve-3d}
-.imp3d .t3{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:16px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,var(--c1),var(--c2));transform:translateX(calc(var(--x)*52px)) translateZ(calc(40px - (var(--x)*var(--x))*14px)) rotateY(calc(var(--x)*-16deg)) rotateX(8deg);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.55),inset 0 -4px 0 rgba(0,0,0,.16),0 2px 0 rgba(0,0,0,.12),0 18px 24px -10px rgba(20,20,60,.5)}
-.imp3d .t3::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(160deg,rgba(255,255,255,.4),rgba(255,255,255,0) 46%);pointer-events:none}
-.imp3d .t3 b{font:700 28px/1 var(--font);text-shadow:0 2px 3px rgba(0,0,0,.28)}
-.imp3d .t3[style*="--x:0"]{width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:20px;z-index:2}.imp3d .t3[style*="--x:0"] b{font-size:34px}
-.imp-names{text-align:center;font:600 13px var(--font);color:var(--label-2);margin:0 0 14px}
-@media (prefers-reduced-motion:no-preference){.imp3d .t3{animation:t3float 3.6s ease-in-out infinite;animation-delay:var(--d)}}
-@keyframes t3float{50%{translate:0 -7px}}
+.ob-hero.imp-glyph svg{width:72px;height:72px;fill:none;stroke:var(--label-2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .ob-cta:active{transform:scale(.97)}.ob-cta[disabled]{opacity:.35;cursor:not-allowed}
 .ob-hero{display:flex;justify-content:center;margin:26px 0 18px}.ob-hero svg{width:132px;height:132px}
 @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
@@ -711,7 +709,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <div class="ends"><span id="endA">8:30 PM</span><span id="endB"><b>12:30 PM</b></span></div>
       </div>
       <button type="button" class="streak" id="streak" aria-haspopup="dialog"><div class="tx"><b id="stA"></b><span id="stB"></span></div><div class="dots" id="stDots" role="img"><i></i><i></i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.3l1.45 3 3.25.4-2.4 2.25.62 3.25L6 8.55 3.08 10.2l.62-3.25-2.4-2.25 3.25-.4z"/></svg><i></i><i></i><i></i><i class="now"></i></div></button>
-      <button class="act" type="button" id="act"><span id="actLbl">Start Fast</span></button>
+      <button class="act" type="button" id="act"><span id="actLbl">Start fast</span></button>
       <div class="scrim" id="pScrim"></div>
       <div class="scrim" id="cScrim"></div>
       <div class="sheet psheet" id="cheatSheet" role="dialog" aria-modal="true" aria-labelledby="chTitle" aria-hidden="true">
@@ -774,7 +772,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       </div>
       <nav class="tabs" aria-label="App tabs">
         <i class="tab-ind" aria-hidden="true"></i>
-        <span class="sel"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg><span data-zh="今天">Today</span></span>
+        <span class="sel"><svg class="ico-moon" viewBox="0 0 24 24"><path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg><svg class="ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg><span data-zh="今天">Today</span></span>
         <span><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3.5"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span data-zh="日子">Days</span></span>
         <span><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8M17.5 14.2a6 6 0 0 1 3.5 5.3"/></svg><span data-zh="朋友">Friends</span></span>
         <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6.2 18.6a6.5 6.5 0 0 1 11.6 0"/></svg><span data-zh="我">Me</span></span>
@@ -1297,7 +1295,7 @@ window.LightlySphere=(function(){
   var sSwap=Spring(1,1,.45), sTrack=Spring(1,1,.4), sMk=Spring(0,.45,.35), sTx=Spring(0,1,.3), sTy=Spring(0,1,.3), sOx=Spring(0,.7,.35), sOy=Spring(0,.7,.35);
 
   function fmt(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60;
-    return a+'<small>'+L('h','小时')+'</small>'+String(b).padStart(2,'0')+'<small>'+L('m','分')+'</small>'; }
+    return a+'<small>'+L('h','小时')+'</small>'+(b?String(b).padStart(2,'0')+'<small>'+L('m','分')+'</small>':''); }
   /* the lit part of the disc: a wedge that fills counter-clockwise from 12 o'clock (and is taken away the same way while it wanes) */
   function wedgePath(p,r,wane){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; if(p>=.999) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z';
     var f=wane?(1-p):0, t=wane?1:p, a0=f*2*Math.PI, a1=t*2*Math.PI, sx=-r*Math.sin(a0), sy=-r*Math.cos(a0), ex=-r*Math.sin(a1), ey=-r*Math.cos(a1);
@@ -1335,13 +1333,13 @@ window.LightlySphere=(function(){
     var bodyName=b==='moon'?L('Moon until ','月亮，直到 ')+clock(SUN.rise):L('Sun until ','太阳，直到 ')+clock(SUN.set);
     put(sub,'sub',(lang==='zh'?sk[3]:sk[2])+' · '+(mode==='eat'?L('Eating window','进食窗口'):bodyName));
     var off=window.LIGHTLY_OFF, brk=!!off&&mode!=='fast';
-    if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); put(readTip,'t',L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。')); put(actLbl,'a',L('Start Fast','开始断食')); }
-    else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); put(readTip,'t',L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。')); put(actLbl,'a',L('Start Fast','开始断食')); }
+    if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); put(readTip,'t',L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。')); put(actLbl,'a',L('Start fast','开始断食')); }
+    else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); put(readTip,'t',L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。')); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(mode==='fast'||mode==='saved'){
       if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmtS(GOAL-h),1); var tp=tipFor(h,sk[1]); put(readTip,'t',tp[lang==='zh'?1:0]); }
-      else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L('+'+(oh?oh+' h ':'')+omm+' m over your goal','超出目标 '+(oh?oh+' 小时 ':'')+omm+' 分')); put(readBig,'b',fmt(h),1); put(readTip,'t',L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
-      if(!holding) put(actLbl,'a',L('Hold to End Fast','按住结束断食')); }
-    else if(mode==='eat'){ put(readK,'k',L('Eating window left','进食窗口还剩')); put(readBig,'b',fmtS(EAT-e),1); put(readTip,'t',L('Your next fast can start at ','下一次断食可以在 ')+clock(s+24)+L(', or whenever you’re ready.',' 开始，也可以随时提前。')); put(actLbl,'a',L('Start Next Fast','开始下一次断食')); }
+      else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L((oh?oh+' h':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' m':'')+' past your goal','超出目标 '+(oh?oh+' 小时':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' 分':''))); put(readBig,'b',fmt(h),1); put(readTip,'t',L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
+      if(!holding) put(actLbl,'a',L('Hold to end fast','按住结束断食')); }
+    else if(mode==='eat'){ put(readK,'k',L('Eating window left','进食窗口还剩')); put(readBig,'b',fmtS(EAT-e),1); put(readTip,'t',L('Your next fast can start at ','下一次断食可以在 ')+clock(s+24)+L(', or whenever you’re ready.',' 开始，也可以随时提前。')); put(actLbl,'a',L('Start next fast','开始下一次断食')); }
     var a0=mode==='eat'?s+GOAL:s, a1=mode==='eat'?s+GOAL+EAT:s+GOAL;
     put($('endA'),'ea',clock(a0)); put($('endB'),'eb','<b>'+clock(a1)+'</b>',1);
     var tr=$('track'); tr.setAttribute('aria-valuenow',(mode==='eat'?e:h).toFixed(1));
@@ -1693,7 +1691,7 @@ window.LightlySphere=(function(){
         var lab=planName(id)+(id===rec?'<span class="tag">'+L('Suggested','推荐')+'</span>':'')+(!ok?'<span class="lk">'+(risky()?L('Not offered','不提供'):L('Locked','未解锁'))+'</span>':'');
         var pl=api.plans.filter(function(x){return x.id===id;})[0], li=!ok?lockInfo(id):null, sub=li?(li[1]?li[1]+' \u00b7 ':'')+li[0]:(pl&&pl.grp!=='long'?L('Fast '+pl.fast+' hours','断食 '+pl.fast+' 小时'):L('Fast '+pl.fast+' hours','断食 '+pl.fast+' 小时'));
         return opt(id,lab,sub,st.plan===id,null,!ok); }).join('')+'</div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'; }
-    if(i===6) return '<div class="imp3d" aria-hidden="true">'+[['Zero','Z','#6C9BFF','#3562D6'],['Fastic','F','#FF9A6B','#E65A2E'],['Simple','S','#3FD1A5','#1F9F78'],['Life','L','#B98AFF','#7F4AE3'],['BodyFast','B','#FF7FAE','#DE3F7C']].map(function(t,k){ return '<span class="t3" style="--x:'+(k-2)+';--c1:'+t[2]+';--c2:'+t[3]+';--d:'+(k*-.45).toFixed(2)+'s"><b>'+t[1]+'</b></span>'; }).join('')+'</div><p class="imp-names" aria-hidden="true">Zero \u00b7 Fastic \u00b7 Simple \u00b7 Life \u00b7 BodyFast</p><h4 style="text-align:center">'+(st.imp?L('128 fasts added','已添加 128 次断食'):L('Bring your fasts with you','带上你的断食记录'))+'</h4><p class="sub" style="text-align:center">'+(st.imp?L('Sample result: nothing was added twice. In the app this reads your real file on the phone.','示例结果：没有任何重复。在应用里，这会在手机上读取你的真实文件。'):L('Using another fasting app? Import your history now so you never lose it. It\u2019s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我的”里导入。'))+'</p>'+(st.imp?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>':'<button type="button" class="ob-cta" data-imp>'+L('Choose a file (sample)','选择文件（示例）')+'</button><button type="button" class="ob-skip" data-next>'+L('Skip for now','暂时跳过')+'</button>');
+    if(i===6) return '<div class="ob-hero imp-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11.5v5M9.5 14l2.5 2.5 2.5-2.5"/></svg></div><h4 style="text-align:center">'+(st.imp?L('128 fasts added','已添加 128 次断食'):L('Bring your fasts with you','带上你的断食记录'))+'</h4><p class="sub" style="text-align:center">'+(st.imp?L('Sample result: nothing was added twice. In the app this reads your real file on the phone.','示例结果：没有任何重复。在应用里，这会在手机上读取你的真实文件。'):L('Using another fasting app? Import your history now so you never lose it. It\u2019s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我的”里导入。'))+'</p>'+(st.imp?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>':'<button type="button" class="ob-cta" data-imp>'+L('Choose a file (sample)','选择文件（示例）')+'</button><button type="button" class="ob-skip" data-next>'+L('Skip for now','暂时跳过')+'</button>');
     if(i===5) return '<h4>'+L('Make it yours','按你的习惯来')+'</h4><p class="sub">'+L('Since you\u2019ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default"><span>'+L('Usual start time','通常开始时间')+'</span><input class="tin" type="time" value="20:30" aria-label="'+L('Usual start time','通常开始时间')+'"></div><div class="ob-opt" style="cursor:default"><span>'+L('Remind me when I reach my goal','达成目标时提醒我')+'</span><span class="ck"></span></div></div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
     if(i===7){ var hereOn=st.loc==='here', cityOn=st.loc==='city', cn=function(k){ return CITIES[k][api.lang()==='zh'?'zh':'en']; };
       return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('Match the sky to your day','让天空跟着你的一天')+'</h4>'+(cityOn?'<div class="ob-sum"><div><span>'+L('Nearest city','最近的城市')+'</span><select data-obcity aria-label="'+L('Nearest city','最近的城市')+'">'+Object.keys(CITIES).map(function(k){ return '<option value="'+k+'"'+(st.city===k?' selected':'')+'>'+cn(k)+'</option>'; }).join('')+'</select></div></div>':hereOn?'<div class="ob-sum"><div><span>'+L('Using your location','正在使用你的位置')+'</span><b>\u2713</b></div></div>':'')+'<p class="ob-note">'+L('Lightly shows the moon and sun by your local sunrise and sunset. Your location is used on this phone only to work that out. It is never uploaded or shared.','轻伴按你当地的日出日落显示月亮和太阳。位置只在这台手机上用来计算，不会上传，也不会分享。')+'</p>'+
@@ -1808,8 +1806,8 @@ window.LightlySphere=(function(){
     var m=String(mm).padStart(2,'0');
     if(api.lang()==='zh'){ var p=hh<5?'凌晨':hh<11?'上午':hh<13?'中午':hh<18?'下午':'晚上'; return p+' '+(hh%12===0?12:hh%12)+':'+m; }
     return (hh%12===0?12:hh%12)+':'+m+' '+(hh<12?'AM':'PM'); }
-  function fmt(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60; return a+'<small>'+L('h','小时')+'</small>'+String(b).padStart(2,'0')+'<small>'+L('m','分')+'</small>'; }
-  function dur(hrs){ var m=Math.round(hrs*60); return L(Math.floor(m/60)+' h '+(m%60)+' min',Math.floor(m/60)+' 小时 '+(m%60)+' 分'); }
+  function fmt(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60; return a+'<small>'+L('h','小时')+'</small>'+(b?String(b).padStart(2,'0')+'<small>'+L('m','分')+'</small>':''); }
+  function dur(hrs){ var m=Math.round(hrs*60), a=Math.floor(m/60), b=m%60; return L((a||!b?a+' h':'')+(a&&b?' ':'')+(b?b+' min':''),(a||!b?a+' 小时':'')+(a&&b?' ':'')+(b?b+' 分':'')); }
   function dateTxt(d){ return d.toLocaleDateString(api.lang()==='zh'?'zh-CN':'en-US',{month:'short',day:'numeric'}); }
   function smooth(x){ x=Math.min(Math.max(x,0),1); return x*x*(3-2*x); }
   function moonAmt(h){ h=((h%24)+24)%24; var F=1/3; function dist(a,b){ var d=a-b; if(d>12)d-=24; if(d<-12)d+=24; return d; }
@@ -1949,7 +1947,7 @@ window.LightlySphere=(function(){
   function L(en,zh){ return api.lang()==='zh'?zh:en; }
   function P(id){ return api.plans.filter(function(p){ return p.id===id; })[0]; }
   function lbl(p){ return p.grp==='long'?p.fast+' h':p.fast+':'+p.eat; }
-  function dur(x){ var m=Math.round(x*60); return L(Math.floor(m/60)+' h '+(m%60)+' min',Math.floor(m/60)+' 小时 '+(m%60)+' 分'); }
+  function dur(x){ var m=Math.round(x*60), a=Math.floor(m/60), b=m%60; return L((a||!b?a+' h':'')+(a&&b?' ':'')+(b?b+' min':''),(a||!b?a+' 小时':'')+(a&&b?' ':'')+(b?b+' 分':'')); }
   function locked(id){ return ['24','36L'].indexOf(id)>=0||(api.lockedIds||[]).indexOf(id)>=0; } /* long fasts start locked for everyone */
   var LOCK='<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.5" width="8" height="5.5" rx="1.5" fill="currentColor"/><path d="M3.8 5.5V4a2.2 2.2 0 0 1 4.4 0v1.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
   function row(p,cur){ var lk=locked(p.id), bar='', span=24; if(p.grp!=='long'&&p.fast+p.eat<=24){ for(var i=0;i<24;i++) bar+='<i'+(i>=p.fast?' class="e"':'')+'></i>'; }
@@ -2218,6 +2216,14 @@ window.LightlySphere=(function(){
 
 <script>
 /* a shooting star now and then under the night sky of the demo phone, only while it is on screen */
+/* the moon hides the stars behind it, and none sit on the words (same as the app) */
+(function(){ var ph=document.getElementById('ph'), svg=ph&&ph.querySelector('.stars'), disc=document.getElementById('disc'); if(!svg||!disc) return; var ids=['sub','readK','readBig','readAlt','readTip','endA','endB'], sig='';
+  function clear(){ var dr=disc.getBoundingClientRect(); if(dr.width<2) return; var els=ids.map(function(i){ return document.getElementById(i); }).filter(Boolean);
+    var s=els.map(function(e){ return e.id==='readBig'?e.textContent.length:e.textContent; }).join('|')+'|'+dr.width.toFixed(0)+'|'+dr.left.toFixed(0)+'|'+dr.top.toFixed(0); if(s===sig) return; sig=s;
+    var zones=els.map(function(e){ var rg=document.createRange(); rg.selectNodeContents(e); var r=rg.getBoundingClientRect(); return r.width>1&&r.height>1?{l:r.left-10,r:r.right+10,t:r.top-6,b:r.bottom+6}:null; }).filter(Boolean), cx=dr.left+dr.width/2, cy=dr.top+dr.height/2, rad=dr.width*84/236+5;
+    Array.prototype.forEach.call(svg.querySelectorAll('circle'),function(c){ var r=c.getBoundingClientRect(), x=(r.left+r.right)/2, y=(r.top+r.bottom)/2;
+      var hid=(x-cx)*(x-cx)+(y-cy)*(y-cy)<rad*rad||zones.some(function(z){ return x>z.l&&x<z.r&&y>z.t&&y<z.b; }); if(hid) c.style.opacity='0'; else c.style.removeProperty('opacity'); }); }
+  setInterval(clear,1000); window.addEventListener('resize',function(){ sig=''; clear(); }); setTimeout(clear,300); })();
 (function(){ var NS='http://www.w3.org/2000/svg', ph=document.getElementById('ph'), svg=ph&&ph.querySelector('.stars'); if(!svg||!svg.animate) return;
   var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)');
   var defs=document.createElementNS(NS,'defs'); defs.innerHTML='<linearGradient id="shootG" gradientUnits="userSpaceOnUse" x1="-52" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".95"/></linearGradient>'; svg.insertBefore(defs,svg.firstChild);
