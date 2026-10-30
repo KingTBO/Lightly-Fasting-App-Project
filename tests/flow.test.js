@@ -84,9 +84,11 @@ const H=3600000,D=24*H;
  await q.context().close();await q2.context().close();ok('Days header, swipe, picker, no cheat row');}
  // appearance: the sheet stays open, the whole app switches, the sheet shows the new choice
  {const q=await fresh(seed({theme:'light'}));await q.click('#tabs [data-tab=me]');await q.click('#me [data-act=choice][data-k=theme]');await q.waitForTimeout(500);
+ await q.evaluate(()=>{window.__pick=()=>[...document.querySelectorAll('#me .group,#me .row,#me .row *,#sheet,#sheet *,.tabs,.tabs *,.scrim,.btn')].map(e=>getComputedStyle(e).backgroundColor+'|'+getComputedStyle(e).color);});
  const blur=()=>q.evaluate(()=>getComputedStyle(document.getElementById('scrim')).backdropFilter);const b0=await blur();assert.match(b0,/blur\(4px\)/,'blur is on before the switch');
- await q.click('#sheet [data-act=pick][data-v=dark]');const seen=[];for(const t of [40,110,200,320]){await q.waitForTimeout(t===40?40:t-[40,110,200,320][[40,110,200,320].indexOf(t)-1]);seen.push(await blur());}
+ await q.click('#sheet [data-act=pick][data-v=dark]');const early=await q.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r(window.__pick())))));const seen=[];for(const t of [40,110,200,320]){await q.waitForTimeout(t===40?40:t-[40,110,200,320][[40,110,200,320].indexOf(t)-1]);seen.push(await blur());}
  await q.waitForTimeout(700);seen.push(await blur());
+ const late=await q.evaluate(()=>window.__pick());assert.strictEqual(early.filter((v,i)=>v!==late[i]).length,0,'every element, text included, is in its final colours within two frames');
  assert(seen.every(v=>/blur\(4px\)/.test(v)),'blur stays at 4px through the whole colour switch: '+seen.join(' | '));
  assert.strictEqual(await q.evaluate(()=>document.documentElement.getAttribute('data-theme')),'dark');assert(await q.$('#sheet.open'),'sheet stays open after choosing');assert(await q.$('#sheet .plan.sel[data-v=dark]'),'sheet shows the new choice');
  assert.strictEqual(await q.evaluate(()=>getComputedStyle(document.body).getPropertyValue('color-scheme')||getComputedStyle(document.documentElement).colorScheme),'dark');

@@ -722,10 +722,10 @@ function renderMe(){
   $('me').innerHTML=h;
 }
 function sw(k,label,on,dis){ return '<div class="row"><span>'+label+'</span><button class="sw" role="switch" aria-checked="'+!!on+'" aria-label="'+esc(label)+'" data-act="sw" data-k="'+k+'"'+(dis?' disabled':'')+'></button></div>'; }
-/* Light / Dark / Auto: every colour fades over the same 0.45 s, so nothing is half themed, and the sheet's blur stays in place (a screen-snapshot cross-fade drops it). Instant under Reduce Motion. */
+/* Light / Dark / Auto: every colour changes in the same frame. Any per-element transition is switched off for that frame, so text never sits half-way between black and white; the sheet's blur is untouched. */
 function switchTheme(fn){
-  if(reduce){ fn(); return; }
-  var r=document.documentElement; r.classList.add('theme-fade'); fn(); setTimeout(function(){ r.classList.remove('theme-fade'); },520);
+  var r=document.documentElement; r.classList.add('theme-now'); fn(); void r.offsetHeight;
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ r.classList.remove('theme-now'); }); });
 }
 function applyTheme(){ var r=document.documentElement; if(S.theme==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',S.theme); }
 function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'; tabLabels(); document.title=S.lang==='zh'?'轻伴':'Lightly'; }
