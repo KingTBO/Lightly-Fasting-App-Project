@@ -126,6 +126,11 @@ var TIPS={night:['The long quiet stretch. Most of it passes while you sleep.','�
   early:['Last meal done. The first hours are the easy part.','最后一餐结束了，最初几个小时最轻松。'],mid:['Past halfway. Keep it light and keep sipping water.','已经过半了。保持轻松，记得喝水。'],
   late:['The last two hours. You have done the hard part.','最后两小时，最难的部分已经过去了。'],
   ram:['A quiet day. Nothing to count, nothing to prove.','平静的一天。无需计算，也无需证明什么。'],long:['A long fast: sip water, add a pinch of salt if you feel faint, and stop if you feel unwell.','长时间断食：多喝水，头晕时可加一点点盐，不舒服就停下。']};
+/* the hint speaks at moments (a new stage, each hour, opening the app) and then goes quiet; idle and break notes stay, since they carry facts */
+var tipEl=$('readTip'), tipUntil=0, tipTxt='', tipHr=-1;
+function tip(txt,always,hr){ var t=Date.now(); if(txt!==tipTxt){ tipTxt=txt; tipUntil=t+6000; }
+  if(hr!=null){ if(tipHr>=0&&hr>tipHr) tipUntil=t+6000; tipHr=hr; } else tipHr=-1;
+  put(tipEl,'t',txt); tipEl.classList.toggle('quiet',!always&&t>tipUntil); }
 function tipFor(el,goal,sk,moon,p){ if(p.id==='ramadan') return TIPS.ram; if(goal-el<=2) return TIPS.late; if(p.long) return TIPS.long; if(sk==='night'&&moon>=.5) return TIPS.night; if(sk==='first') return TIPS.first; return el<4?TIPS.early:TIPS.mid; }
 
 /* the quadratic timeline track */
@@ -162,18 +167,18 @@ function updateToday(){
   var ramadan=cur&&cur.planId==='ramadan';
   if(brk){ var dn=Math.min(C.offDayNo(offA),offA.days);
       put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Break','休息'):L('Rest','静养'));
-      put($('readTip'),'t',L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。')); put($('actLbl'),'a',L('Start fast','开始断食')); }
+      tip(L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(mode==='idle'){
     put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); setBigText(L('Ready','准备好了')); put(altEl,'alt','');
-    put($('readTip'),'t',ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。')); put($('actLbl'),'a',L('Start fast','开始断食'));
+    tip(ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。'),1); put($('actLbl'),'a',L('Start fast','开始断食'));
   }else if(mode==='fast'){
-    if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(el,goal,sk[1],moonV,ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); put($('readTip'),'t',tp[S.lang==='zh'?1:0]); }
-    else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); setBigTime(Math.floor(el*3600)); put(altEl,'alt',L('Goal ','目标 ')+Math.round(goal)+L(' h',' 小时')); put($('readTip'),'t',ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
+    if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(el,goal,sk[1],moonV,ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); tip(tp[S.lang==='zh'?1:0],0,Math.floor(el)); }
+    else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); setBigTime(Math.floor(el*3600)); put(altEl,'alt',L('Goal ','目标 ')+Math.round(goal)+L(' h',' 小时')); tip(ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
       if(!ramadan&&over>=2&&!cur.nudged){ cur.nudged=true; save(); toast(L('You’re well past your goal. Eat when you’re ready; extra time isn’t scored.','已经超过目标很久了。准备好就可以吃东西，超出的时间不计分。')); } }
     if(!holdOn) put($('actLbl'),'a',L('Hold to end fast','按住结束断食'));
   }else{
     put($('readK'),'k',L('Eating window left','进食窗口还剩')); setBigTime(Math.max(0,Math.ceil((eatLen-eatEl)*3600))); put(altEl,'alt','');
-    put($('readTip'),'t',L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start fast','开始断食'));
+    tip(L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start fast','开始断食'));
   }
   act.disabled=brk; act.setAttribute('aria-disabled',brk); $('track').style.visibility=brk?'hidden':'';
   /* timeline */
@@ -186,9 +191,8 @@ function updateToday(){
   var q=tPt(tt); $('marker').setAttribute('cx',q.x.toFixed(1)); $('marker').setAttribute('cy',q.y.toFixed(1)); $('marker').style.opacity=mode==='idle'?0:1;
   var done=mode==='idle'?0:Math.floor(tt*n+1e-6); tickEls.forEach(function(c,i){ c.style.fill=i<done?'var(--ink)':''; });
   /* streak card */
-  var st=curStreak(), left=S.flex.bank;
-  var label=st>0?L(st+(st===1?' day':' days')+' in a row',st+' 天连续'):L('No streak yet','还没有连续记录');
-  put($('streakTx'),'st','<span>'+label+'</span><small>'+L(left+' cheat day'+(left===1?'':'s')+' left',left+' 个弹性日')+'</small>',1);
+  var st=curStreak(); $('streakBtn').hidden=!streakFasts().length;
+  put($('streakTx'),'st','<span>'+(st>0?L(st+(st===1?' day':' days')+' in a row',st+' 天连续'):L('No streak running','目前没有连续记录'))+'</span>',1);
   var dots='', t0=today(), offK=C.offKeys(S.off); for(var i=6;i>=0;i--){ var k=C.addDays(t0,-i), s=C.dayStatus(k,streakFasts(),S.flex.used,offK); dots+='<i class="dot '+(s==='done'?'done':s==='flex'||s==='off'?'flex':'')+(i===0?' today':'')+'"></i>'; }
   put($('streakDots'),'sd',dots,1);
   $('disc').setAttribute('aria-label',L('Fast progress: ','断食进度：')+Math.round(tgtP*100)+'%');
@@ -332,7 +336,7 @@ function setNotify(on,done){
 /* ---------- tabs ---------- */
 var curTab='today';
 function showTab(t){
-  var prev=curTab, order=['today','days','me']; curTab=t; closeSheet(); ph.classList.remove('tabs-off');
+  var prev=curTab, order=['today','days','me']; curTab=t; if(t==='today') tipUntil=Date.now()+6000; closeSheet(); ph.classList.remove('tabs-off');
   /* Today has the sky behind it and the other tabs a plain background: the colours must swap instantly, not fade in over a second */
   if((prev==='today')!==(t==='today')){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); }
   order.forEach(function(k){ $(k).classList.remove('leaving'); });
@@ -1005,7 +1009,7 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-document.addEventListener('visibilitychange',function(){ if(!document.hidden){ var dk=today(); if(cloudOn()&&Date.now()-sync.at>60000) syncNow(true); flexTick(); if(curTab==='today'){ cache={}; updateToday(); } scheduleGoal(); } });
+document.addEventListener('visibilitychange',function(){ if(!document.hidden){ var dk=today(); if(cloudOn()&&Date.now()-sync.at>60000) syncNow(true); flexTick(); if(curTab==='today'){ tipUntil=Date.now()+6000; cache={}; updateToday(); } scheduleGoal(); } });
 if('serviceWorker' in navigator&&location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(function(){});
 window.__lightly={get state(){return S;},tick:updateToday,core:C};
 })();

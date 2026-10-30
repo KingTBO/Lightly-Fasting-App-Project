@@ -48,8 +48,10 @@ const H=3600000,D=24*H;
  await p.click('#days [data-act=edit]');await p.click('[data-act=fsdel]');await p.waitForTimeout(200);assert.strictEqual((await S()).fasts.length,0);ok('fasts can be added, deleted; a filled day offers edit');
  // cheat day: use today, then it is spent
  await p.evaluate(()=>{document.getElementById('days').scrollTop=0});await p.waitForTimeout(700);
- await p.click('#tabs [data-tab=today]');await p.click('#streakBtn');await p.click('#sheet [data-act=usecheat]');await p.waitForTimeout(300);s=await S();
- assert.strictEqual(s.flex.used.length,1);ok('cheat day used');
+ await p.click('#tabs [data-tab=today]');assert(await p.$eval('#streakBtn',e=>e.hidden),'no streak card before the first fast');
+ await p.click('#tabs [data-tab=days]');await p.click('#days .cal-g button.today');await p.waitForTimeout(450);await p.click('#dayFab');await p.click('[data-act=fssave]');await p.waitForTimeout(300);
+ await p.evaluate(()=>{document.getElementById('days').scrollTop=0});await p.waitForTimeout(700);
+ await p.click('#tabs [data-tab=today]');assert(!(await p.$eval('#streakBtn',e=>e.hidden)),'the streak card appears once a fast is saved');assert(!/cheat/i.test(await p.textContent('#streakBtn')),'cheat-day count lives in its sheet');await p.click('#tabs [data-tab=days]');await p.click('#days .cal-g button.today');await p.waitForTimeout(450);await p.click('#days [data-act=edit]');await p.click('[data-act=fsdel]');await p.waitForTimeout(200);await p.evaluate(()=>{document.getElementById('days').scrollTop=0});await p.waitForTimeout(700);
  // language
  await p.click('#tabs [data-tab=me]');await p.click('#me [data-act=choice][data-k=lang]');await p.click('#sheet [data-act=pick][data-v=zh]');await p.waitForTimeout(450);assert.match(await p.textContent('#me'),/断食/);assert(!(await p.$('#me .h-title')),'no big title');assert.strictEqual(await p.evaluate(()=>document.documentElement.lang),'zh-Hans');ok('language switch');
  // ramadan preview adds the plan
@@ -62,6 +64,9 @@ const H=3600000,D=24*H;
  await p.click('#tabs [data-tab=me]');await p.click('#me [data-act=timeoff]');await p.click('#sheet [data-act=offunwell]');await p.click('#sheet [data-act=offgo]');await p.waitForTimeout(300);s=await S();assert.strictEqual(s.off[1].kind,'unwell');assert.strictEqual(s.off[1].days,14);assert(s.unwell);ok('time off: unwell starts a 2-week break at once');
  // ---- plan ladder, experienced setup, overtime, editing the end of a finished fast, email-only sign-in
  const seed=(o)=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{fastedBefore:false,safety:false},planId:'13',customH:16,place:{key:'shanghai'},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},ramadanPreview:false,startedAt:Date.now()-30*D,mod:1,del:[]},o);
+ {const f0=Date.now()-2*D;const q=await fresh(seed({fasts:[{id:'a1',start:f0,end:f0+16*H,goalH:16,plan:'16'}]}));await q.waitForTimeout(400);
+  assert(!(await q.$eval('#streakBtn',e=>e.hidden)),'streak card shows once there is a fast');await q.click('#streakBtn');await q.click('#sheet [data-act=usecheat]');await q.waitForTimeout(300);
+  assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).flex.used.length,1);ok('streak card opens the cheat days sheet; one is used');}
  async function fresh(state){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));if(state)await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(state));await q.goto(url);await q.waitForTimeout(600);return q;}
  const fz=(n,h)=>Array.from({length:n},(_,i)=>({id:'f'+i+'-'+h,start:Date.now()-(i+2)*D,end:Date.now()-(i+2)*D+h*H,goalH:h,plan:String(h)}));
  // Days: milestone header, swipe between months, month picker, no cheat row
@@ -116,6 +121,10 @@ const H=3600000,D=24*H;
  // a safety flag at the end lowers an experienced plan to 13:11
  q=await fresh(null);await q.click('[data-act=obnext]');await q.waitForTimeout(1000);await q.click('[data-act=obopt][data-v=before]');await q.click('[data-act=obnext]');await q.waitForTimeout(1000);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(1000);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(1000);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('[data-act=obsafe][data-v=diab]');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);assert.match(await q.textContent('.ob-step.on'),/stays at 13:11/);await q.click('[data-act=obdone]');await q.waitForTimeout(600);{const s2=await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')));assert.strictEqual(s2.planId,'13');assert(s2.profile.safety);}ok('safety flag at the end lowers the plan to 13:11');
  // overtime: the disc stays full, the label says how far past the goal, one calm nudge, the timer keeps counting
+ q=await fresh(seed({cur:{start:Date.now()-5*H,goalH:13,planId:'13',reached:false}}));await q.waitForTimeout(500);
+ assert.match(await q.textContent('.kline'),/Time left\s*Elapsed 5:00:\d\d/,'the other value sits on the label line');
+ assert(!(await q.$eval('#readTip',e=>e.classList.contains('quiet'))),'the hint shows when the app opens');await q.waitForTimeout(6600);
+ assert(await q.$eval('#readTip',e=>e.classList.contains('quiet')),'the hint goes quiet after a few seconds');ok('readout: elapsed on the label line, hint at moments only');
  q=await fresh(seed({cur:{start:Date.now()-(13*H+80*60000),goalH:13,planId:'13',reached:true}}));
  assert.match(await q.textContent('#readK'),/1 h 20 m past your goal/);assert.match(await q.textContent('#readBig'),/14/);ok('overtime label and running timer');
  q=await fresh(seed({cur:{start:Date.now()-(16*H),goalH:13,planId:'13',reached:true}}));await q.waitForTimeout(400);assert.match(await q.textContent('#toast'),/past your goal/);assert((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).cur.nudged);ok('one calm nudge after two hours over');

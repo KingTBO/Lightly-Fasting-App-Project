@@ -115,12 +115,16 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .row2{display:flex;align-items:center;justify-content:space-between;gap:12px}.row2 b{font-weight:500;font-size:16px;display:block}.row2 span{font-size:13px;color:var(--label-2)}
 #disc{width:236px;height:236px;overflow:visible;touch-action:none}
 .read{text-align:center;padding:0 24px}
-.read .k{font:500 15px var(--font);color:var(--ink-2);min-height:20px;display:block}
+.read .kline{display:flex;justify-content:center;flex-wrap:wrap;column-gap:.4em;min-height:20px;font:500 15px/1.3 var(--font);color:var(--ink-2)}
+.read .k{display:block}
+.read .alt{display:block;font-variant-numeric:tabular-nums;opacity:.8}
+.read .alt:not(:empty)::before{content:"\00b7";margin-right:.4em}
 .read .big{font:600 56px/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:block}
 .read .big{font:300 min(58px,15vw)/1 var(--font-d);letter-spacing:-.045em}
 .read .big .co{font-style:normal;opacity:.4;display:inline-block;width:.26em;text-align:center;transform:translateY(-.08em)}
 .read .big small{font-size:.5em;font-weight:600;color:var(--ink-2);margin:0 .12em 0 .04em}
-.read .tip{font:400 15px/1.4 var(--font);color:var(--ink-2);margin:6px auto 0;max-width:30ch;min-height:42px}
+.read .tip{font:400 15px/1.4 var(--font);color:var(--ink-2);margin:6px auto 0;max-width:30ch;min-height:42px;transition:opacity .7s ease}
+.read .tip.quiet{opacity:0}
 .track{margin:14px 16px 0;position:relative;touch-action:none;cursor:grab}
 .track svg{display:block;width:100%;height:auto;overflow:visible}
 .track .ends #endA,.ends #endB{cursor:pointer}
@@ -695,7 +699,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         </svg>
       </div>
       <div class="read">
-        <span class="k" id="readK"></span>
+        <div class="kline"><span class="k" id="readK"></span><span class="alt" id="readAlt"></span></div>
         <span class="big" id="readBig" aria-live="polite"></span>
         <p class="tip" id="readTip"></p>
       </div>
@@ -1309,6 +1313,12 @@ window.LightlySphere=(function(){
     late:['The last two hours. You have done the hard part.','最后两小时，最难的部分已经过去了。']};
   function tipFor(hr,sk){ if(GOAL-hr<=2) return TIPS.late; if(sk==='night'&&body()==='moon') return TIPS.night; if(sk==='first') return TIPS.first; return hr<4?TIPS.early:TIPS.mid; }
 
+  /* the hint speaks at moments (a new stage, each hour, opening the screen) and then goes quiet; idle and break notes stay */
+  var tipUntil=0, tipTxt='', tipHr=-1;
+  function tip(txt,always,hr){ var t=Date.now(); if(txt!==tipTxt){ tipTxt=txt; tipUntil=t+6000; }
+    if(hr!=null){ if(tipHr>=0&&hr>tipHr) tipUntil=t+6000; tipHr=hr; } else tipHr=-1;
+    put(readTip,'t',txt); readTip.classList.toggle('quiet',!always&&t>tipUntil); }
+  function hmsS(hrs){ var t=Math.max(0,Math.floor(hrs*3600+1e-6)), p=function(n){return String(n).padStart(2,'0');}; return Math.floor(t/3600)+':'+p(Math.floor(t%3600/60))+':'+p(t%60); }
   var cache={};
   var SWAP={sub:1,k:1,t:1};
   function put(el,key,val,html){ if(cache[key]===val) return; var had=cache[key]!=null; cache[key]=val; if(html) el.innerHTML=val; else el.textContent=val;
@@ -1320,7 +1330,7 @@ window.LightlySphere=(function(){
     if(mode==='saved'||(mode==='fast'&&h>=GOAL)) todayDone=true;
     var n=ST0+(todayDone?1:0), t=FT0+(todayDone?1:0);
     put($('stA'),'stA',L(n+' day streak','连续 '+n+' 天'));
-    put($('stB'),'stB',L(t+' fasts · '+window.LIGHTLY_CHEAT.left+' cheat day'+(window.LIGHTLY_CHEAT.left===1?'':'s')+' left','共 '+t+' 次断食 · 弹性日剩 '+window.LIGHTLY_CHEAT.left+' 个'));
+    put($('stB'),'stB','');
     put($('shStreak'),'shS',String(n));
     var d=$('stDots'), nw=d.lastElementChild, ck=window.LIGHTLY_CHEAT; nw.classList.toggle('on',todayDone&&!ck.used); nw.classList.toggle('rest',ck.used);
     d.setAttribute('aria-label',L('Last 7 days. '+(ck.used?'Today is a cheat day.':todayDone?'Today is done.':'Today is not done yet.')+' One cheat day, kept in your streak.','最近 7 天。'+(ck.used?'今天是弹性日。':todayDone?'今天已完成。':'今天还没完成。')+'其中一天是弹性日，不影响连续天数。'));
@@ -1333,14 +1343,14 @@ window.LightlySphere=(function(){
     var nh=((nowHour()%24)+24)%24, sh=Math.floor(nh), sm=Math.floor((nh-sh)*60); put($('sbClock'),'sb',(sh%12===0?12:sh%12)+':'+String(sm).padStart(2,'0'));
     var bodyName=b==='moon'?L('Moon until ','月亮，直到 ')+clock(SUN.rise):L('Sun until ','太阳，直到 ')+clock(SUN.set);
     put(sub,'sub',(lang==='zh'?sk[3]:sk[2])+' · '+(mode==='eat'?L('Eating window','进食窗口'):bodyName));
-    var off=window.LIGHTLY_OFF, brk=!!off&&mode!=='fast';
-    if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); put(readTip,'t',L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。')); put(actLbl,'a',L('Start fast','开始断食')); }
-    else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); put(readTip,'t',L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。')); put(actLbl,'a',L('Start fast','开始断食')); }
+    var off=window.LIGHTLY_OFF, brk=!!off&&mode!=='fast'; if(brk||mode==='idle'||mode==='eat') put($('readAlt'),'alt','');
+    if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); tip(L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
+    else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); tip(L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(mode==='fast'||mode==='saved'){
-      if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmtS(GOAL-h),1); var tp=tipFor(h,sk[1]); put(readTip,'t',tp[lang==='zh'?1:0]); }
-      else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L((oh?oh+' h':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' m':'')+' past your goal','超出目标 '+(oh?oh+' 小时':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' 分':''))); put(readBig,'b',fmt(h),1); put(readTip,'t',L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
+      if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmtS(GOAL-h),1); put($('readAlt'),'alt',L('Elapsed ','已断食 ')+hmsS(h)); var tp=tipFor(h,sk[1]); tip(tp[lang==='zh'?1:0],0,Math.floor(h)); }
+      else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L((oh?oh+' h':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' m':'')+' past your goal','超出目标 '+(oh?oh+' 小时':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' 分':''))); put(readBig,'b',fmt(h),1); put($('readAlt'),'alt',L('Goal ','目标 ')+GOAL+L(' h',' 小时')); tip(L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
       if(!holding) put(actLbl,'a',L('Hold to end fast','按住结束断食')); }
-    else if(mode==='eat'){ put(readK,'k',L('Eating window left','进食窗口还剩')); put(readBig,'b',fmtS(EAT-e),1); put(readTip,'t',L('Your next fast can start at ','下一次断食可以在 ')+clock(s+24)+L(', or whenever you’re ready.',' 开始，也可以随时提前。')); put(actLbl,'a',L('Start next fast','开始下一次断食')); }
+    else if(mode==='eat'){ put(readK,'k',L('Eating window left','进食窗口还剩')); put(readBig,'b',fmtS(EAT-e),1); tip(L('Your next fast can start at ','下一次断食可以在 ')+clock(s+24)+L(', or whenever you’re ready.',' 开始，也可以随时提前。')); put(actLbl,'a',L('Start next fast','开始下一次断食')); }
     var a0=mode==='eat'?s+GOAL:s, a1=mode==='eat'?s+GOAL+EAT:s+GOAL;
     put($('endA'),'ea',clock(a0)); put($('endB'),'eb','<b>'+clock(a1)+'</b>',1);
     var tr=$('track'); tr.setAttribute('aria-valuenow',(mode==='eat'?e:h).toFixed(1));
