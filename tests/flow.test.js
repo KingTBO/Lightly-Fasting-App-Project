@@ -21,7 +21,7 @@ const H=3600000,D=24*H;
  // start, reload, still running
  await p.click('#act');await p.waitForTimeout(400);s=await S();assert(s.cur&&s.cur.goalH===13);
  await p.reload();await p.waitForTimeout(700);assert((await S()).cur,'fast survives reload');
- assert.match(await p.textContent('#actLbl'),/Hold to End/);ok('fast persists across reload');
+ assert.match(await p.textContent('#actLbl'),/Hold to end/);ok('fast persists across reload');
  // long fasts locked and shown with progress
  await p.click('#planBtn');await p.click('[data-act=more]');
  assert(await p.$('.plan[data-id="24"][disabled]'),'24h locked');assert(await p.$('.plan[data-id="36"][disabled]'));ok('24 h and 36 h locked for a newcomer');
@@ -117,7 +117,7 @@ const H=3600000,D=24*H;
  q=await fresh(null);await q.click('[data-act=obnext]');await q.waitForTimeout(1000);await q.click('[data-act=obopt][data-v=before]');await q.click('[data-act=obnext]');await q.waitForTimeout(1000);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(1000);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(1000);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('[data-act=obsafe][data-v=diab]');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);assert.match(await q.textContent('.ob-step.on'),/stays at 13:11/);await q.click('[data-act=obdone]');await q.waitForTimeout(600);{const s2=await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')));assert.strictEqual(s2.planId,'13');assert(s2.profile.safety);}ok('safety flag at the end lowers the plan to 13:11');
  // overtime: the disc stays full, the label says how far past the goal, one calm nudge, the timer keeps counting
  q=await fresh(seed({cur:{start:Date.now()-(13*H+80*60000),goalH:13,planId:'13',reached:true}}));
- assert.match(await q.textContent('#readK'),/\+1 h 20 m over your goal/);assert.match(await q.textContent('#readBig'),/14/);ok('overtime label and running timer');
+ assert.match(await q.textContent('#readK'),/1 h 20 m past your goal/);assert.match(await q.textContent('#readBig'),/14/);ok('overtime label and running timer');
  q=await fresh(seed({cur:{start:Date.now()-(16*H),goalH:13,planId:'13',reached:true}}));await q.waitForTimeout(400);assert.match(await q.textContent('#toast'),/past your goal/);assert((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).cur.nudged);ok('one calm nudge after two hours over');
  await q.click('#act',{timeout:500}).catch(()=>{});const bx=await q.locator('#act').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(2200);await q.mouse.up();await q.waitForTimeout(400);
  const sv=(await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).fasts[0];assert(sv&&(sv.end-sv.start)/H>15.9&&sv.goalH===13,'full duration logged against the plan goal');ok('overtime fast logs its full duration as completed');

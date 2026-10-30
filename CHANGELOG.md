@@ -4,6 +4,18 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.29.0
+Round 1 of the "feel premium" pass (colours, logo and type faces are unchanged).
+- **design** The moon now hides the stars behind it, and no star sits on the text on Today. Stars that would land there fade out and come back when the layout moves.
+- **design** One icon style: the edit mark next to the start time is a real icon (it was a text symbol), the tick on the location step is the same tick as everywhere else, chevrons and ticks share one line weight, and the Today tab shows a moon at night and a sun by day, following your real sky.
+- **design** Rows with a second line (for example "Use my location / Stays on your phone") get more room above and below, and the app now uses one spacing scale (4, 8, 12, 16, 24, 32). On Today, the moon, label and number sit closer together, with more space before the timeline and the streak card.
+- **design** Bold text is kept for the key item on each screen. The plan chip, the label above the timer, tab names, section headers, badges, weekday letters and secondary buttons are now medium weight.
+- **design** The import step in setup shows a plain file icon instead of five coloured tiles that imitated other apps.
+- **copy** "Start fast" and "Hold to end fast" are in sentence case like every other label.
+- **copy** Zero units are left out: "1 h past your goal" instead of "+1 h 0 m over your goal", "16 h" instead of "16 h 0 m", and a saved 16-hour fast reads "16h". The Chinese wording follows.
+- **copy** The Reminders note now says what you get: "You'll hear when you reach your goal, as long as Lightly was opened recently."
+- The concept page matches (copy, tab icon, stars, weights, import step).
+
 ## 0.28.9
 - **copy** The Time off descriptions are back in the pop-up sheet (Travel and I feel unwell), because the 0.28.8 change was on the wrong thing. The line under the Time off row in Me is removed instead. The concept page's Me row already had none.
 
