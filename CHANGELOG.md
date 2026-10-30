@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.28.5
+- **fix** The Appearance sheet has the soft 4 px blur behind it again, with the lighter dim, so it looks like the other sheets while you can still see the colours change. The concept page matches.
+
 ## 0.28.4
 - **fix** Switching between Today and the other tabs now changes the background colour at once. It used to fade over more than a second, because Today has the sky behind it and the other tabs a plain background. The screens still slide and fade as before.
 

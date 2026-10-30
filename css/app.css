@@ -460,10 +460,9 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 /* theme switch: cross-fade the whole screen; fallback fades the colours together */
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.5s;animation-timing-function:ease}
 .theme-fade,.theme-fade *{transition:background-color .45s ease,color .45s ease,border-color .45s ease,fill .45s ease,stroke .45s ease,box-shadow .45s ease!important}
-/* the Appearance sheet lets you see the change behind it: a lighter dim, no blur */
+/* the Appearance sheet lets you see the change behind it: a lighter dim, same soft blur */
 .scrim.peek{background:rgba(0,0,0,.12)}
 .sheet.open{box-shadow:0 -1px 0 var(--sep)}
-.scrim.peek.on{-webkit-backdrop-filter:none;backdrop-filter:none}
 .theme-now,.theme-now *,.theme-now *::before,.theme-now *::after{transition:none!important}
 /* switching between Today and the other tabs: colours change at once; movement keeps its animation */
 .ph.snap{transition:none!important}
