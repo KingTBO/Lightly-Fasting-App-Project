@@ -118,7 +118,6 @@ html:lang(zh-Hans) .h-title,html:lang(zh-Hans) .ob h1{letter-spacing:0}
 .row .stack{display:flex;flex-direction:column;min-width:0;padding:var(--row-pad) 0}
 .row .stack small{font:400 0.8125rem/1.3 var(--font);color:var(--label-2)}
 .row.red{color:var(--red)}
-.row select{margin-left:auto;max-width:60%;min-height:44px;border:0;background:transparent;color:var(--label-2);font:inherit;text-align:right;text-align-last:right;direction:ltr}
 .seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;gap:0}
 .seg button{flex:1;border:0;background:transparent;min-height:44px;border-radius:7px;font:500 0.875rem/1.2 var(--font);padding:0 10px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--label)}
 .seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);font-weight:600}
@@ -209,9 +208,9 @@ html:lang(zh-Hans) .h-title,html:lang(zh-Hans) .ob h1{letter-spacing:0}
 .pill{font:500 0.75rem var(--font);padding:3px 9px;border-radius:999px;background:var(--fill);color:var(--label-2);align-self:flex-start;margin-bottom:2px}
 .pill.tint{background:var(--tint);color:var(--on-tint);font-weight:600}
 .field{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 16px;position:relative}
-.field+.field::before{content:"";position:absolute;left:16px;right:0;top:0;border-top:.5px solid var(--sep)}
+.field+.field::before,.pk+.field::before,.pk+.row::before,.row+.pk::before,.pk+.pk::before{content:"";position:absolute;left:16px;right:0;top:0;border-top:.5px solid var(--sep)}
 .field label{flex:1}
-.field input[type=datetime-local],.field input[type=number]{border:0;background:var(--fill);color:var(--label);border-radius:8px;min-height:36px;padding:0 10px;font:inherit;font-size:1rem;color-scheme:inherit}
+.field input[type=number]{border:0;background:var(--fill);color:var(--label);border-radius:8px;min-height:36px;padding:0 10px;font:inherit;font-size:1rem;color-scheme:inherit}
 .field input[type=number]{width:80px;text-align:right}
 .check{display:flex;align-items:flex-start;gap:12px;min-height:44px;padding:var(--row-pad) 16px;width:100%;border:0;background:transparent;text-align:left;font:400 1.0625rem/1.3 var(--font);color:var(--label);position:relative}
 .check+.check::before{content:"";position:absolute;left:16px;right:0;top:0;border-top:.5px solid var(--sep)}
@@ -280,8 +279,6 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 
 .field input:focus-visible{outline-offset:1px;border-radius:8px}
 /* time fields: system look, same fill as the other inputs */
-input[type="time"].tin{font:inherit;font-size:1rem;font-variant-numeric:tabular-nums;color:var(--label);background:var(--fill);border:0;border-radius:8px;min-height:36px;padding:0 10px;text-align:right}
-input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 
 /* ---------- timer: h:mm:ss, three temporary styles (Me > Timer style) ---------- */
 .read .big{display:flex;justify-content:center;align-items:baseline;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;cursor:default;-webkit-user-select:none;user-select:none}
@@ -328,7 +325,6 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 #days.on,#me.on{animation:none}
 
 /* Me: a time field sits at the far right like any other value */
-.row .tin{margin-left:auto}
 .row>label{flex:1;min-width:0}
 .row>.chev:nth-child(2){margin-left:auto}
 
@@ -343,7 +339,7 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 /* very short screens (usable height 600px or less, after notch and home bar): the curve gives way so the disc, the time and the button all fit; start and end times stay */
 .ph.tight .track svg{display:none}.ph.tight .read .tip{min-height:0}.ph.tight .track{margin-top:10px}
 /* narrow phones: sheets never wider than the screen */
-@media (max-width:359px){.field input[type=datetime-local]{min-width:0;max-width:62vw;font-size:.9375rem;padding:0 6px}.field{gap:8px}}
+@media (max-width:359px){.field{gap:8px}}
 
 /* import step: the sheet sits above onboarding, and the step shows a plain file glyph */
 .ph.onb .sheet{z-index:10}.ph.onb .scrim{z-index:9}
@@ -474,3 +470,17 @@ input[type="time"].tin:focus-visible{outline:3px solid var(--ink);outline-offset
 @media (prefers-reduced-motion:no-preference){.tabs .ico-sun,.tabs .ico-moon{animation:icoIn .5s var(--spr) backwards}}
 .track .ends .ic-edit{display:inline-block;width:14px;height:14px;margin-left:5px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .row .v svg.ck{width:20px;height:20px;display:block;stroke:var(--blue);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- in-app wheel pickers (date, time, city) ---------- */
+.pk{position:relative}
+.pk-row .pk-v{margin-left:auto;background:var(--fill);color:var(--label);border-radius:8px;padding:6px 12px;font-size:1.0625rem;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;transition:background .2s}
+.pk.open .pk-v{background:var(--fill-2)}
+.pk-w{position:relative;display:flex;height:0;overflow:hidden;visibility:hidden;padding:0 8px;transition:height .4s var(--spring),visibility 0s .4s}
+.pk.open .pk-w{height:180px;visibility:visible;transition:height .4s var(--spring),visibility 0s}
+.pk-band{position:absolute;left:8px;right:8px;top:72px;height:36px;border-radius:9px;background:var(--fill);pointer-events:none}
+.pk-c{position:relative;flex:1;min-width:0;height:180px;box-sizing:border-box;padding:72px 0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;overscroll-behavior:contain;touch-action:pan-y;-webkit-mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent);mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent)}
+.pk-c::-webkit-scrollbar{display:none}
+.pk-c:focus-visible{outline:3px solid var(--ink);outline-offset:-3px;border-radius:9px}
+.pk-i{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;scroll-snap-stop:always;font:400 1.1875rem var(--font);font-variant-numeric:tabular-nums;color:var(--label-2);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
+.pk-i.sel{color:var(--label)}
+@media (prefers-reduced-motion:reduce){.pk-w,.pk.open .pk-w{transition:none}}

@@ -503,18 +503,76 @@ function renderDays(){
   }
   $('days').innerHTML=h; ringPlay=false; fabSync();
 }
-function toInput(ms){ var d=new Date(ms-new Date(ms).getTimezoneOffset()*60000); return d.toISOString().slice(0,16); }
+
+/* ---------- in-app wheel pickers: they replace the browser's date, time and select controls ----------
+   A row shows the value in a capsule and opens a wheel inline. Columns snap, scroll by touch, wheel or arrow keys. */
+var PKH=36, pkTimer=null;
+function pkPad(n){ return (n<10?'0':'')+n; }
+function pkDayStart(ms){ var d=new Date(ms); d.setHours(0,0,0,0); return d.getTime(); }
+function pkDayText(ms){ var t=pkDayStart(Date.now()), d=pkDayStart(ms), diff=Math.round((t-d)/D);
+  if(diff===0) return L('Today','今天'); if(diff===1) return L('Yesterday','昨天');
+  return dateLbl(ms,new Date(ms).getFullYear()===new Date().getFullYear()?{weekday:'short',month:'short',day:'numeric'}:{year:'numeric',month:'short',day:'numeric'}); }
+function pkText(kind,val){ if(kind==='dt') return pkDayText(+val)+(S.lang==='zh'?' ':', ')+clockMs(+val); if(kind==='t'){ var a=String(val).split(':'); return clockH((+a[0])+(+a[1])/60); } return String(val); }
+function pkCol(key,label,items,sel,flex){ return '<div class="pk-c" role="listbox" tabindex="0" data-c="'+key+'" data-sel="'+sel+'" aria-label="'+esc(label)+'" style="flex:'+flex+'">'+items.map(function(t,i){ return '<div class="pk-i'+(i===sel?' sel':'')+'" role="option" aria-selected="'+(i===sel)+'" data-i="'+i+'">'+t+'</div>'; }).join('')+'</div>'; }
+/* kind: 'dt' (ms), 't' ('HH:MM') or 'sel' (a key from opts: [[key,label],...]) */
+function pkField(id,label,val,kind,opts){
+  var cols='', d, hh, mm, a, hrs=[], mins=[], i;
+  if(kind==='sel'){ cols=pkCol('s',label,opts.map(function(o){ return esc(o[1]); }),Math.max(0,opts.map(function(o){ return o[0]; }).indexOf(val)),1); }
+  else{
+    if(kind==='dt'){ d=new Date(+val); } else { a=String(val).split(':'); d=new Date(); d.setHours(+a[0]||0,+a[1]||0,0,0); }
+    hh=d.getHours(); mm=d.getMinutes(); for(i=1;i<=12;i++) hrs.push(i); for(i=0;i<60;i++) mins.push(pkPad(i));
+    if(kind==='dt'){ var first=Math.min(pkDayStart(+val),pkDayStart(Date.now()-365*D)), last=Math.max(pkDayStart(+val),pkDayStart(Date.now())), days=[], x=new Date(first);
+      while(x.getTime()<=last){ days.push(pkDayText(x.getTime())); x.setDate(x.getDate()+1); }
+      cols+=pkCol('d',L('Day','日期'),days,Math.round((pkDayStart(+val)-first)/D),2.6); }
+    cols+=pkCol('h',L('Hour','小时'),hrs,(hh%12||12)-1,1)+pkCol('m',L('Minute','分钟'),mins,mm,1)+pkCol('p',L('AM or PM','上午或下午'),[L('AM','上午'),L('PM','下午')],hh<12?0:1,1.2);
+  }
+  return '<div class="pk" id="'+id+'" data-kind="'+kind+'" data-val="'+esc(String(val))+'"'+(kind==='dt'?' data-d0="'+Math.min(pkDayStart(+val),pkDayStart(Date.now()-365*D))+'"':'')+(kind==='sel'?' data-opts="'+esc(JSON.stringify(opts.map(function(o){return o[0];})))+'" data-labels="'+esc(JSON.stringify(opts.map(function(o){return o[1];})))+'"':'')+'>'+
+    '<button type="button" class="row pk-row" data-act="pktog" data-id="'+id+'" aria-expanded="false" aria-controls="'+id+'-w"><span>'+label+'</span><span class="pk-v">'+esc(kind==='sel'?(opts.filter(function(o){return o[0]===val;})[0]||opts[0])[1]:pkText(kind,val))+'</span></button>'+
+    '<div class="pk-w" id="'+id+'-w" role="group" aria-label="'+esc(label)+'"><i class="pk-band" aria-hidden="true"></i>'+cols+'</div></div>';
+}
+function pkVal(id){ return $(id).dataset.val; }
+function pkRead(pk){
+  var kind=pk.dataset.kind, c=function(k){ var e=pk.querySelector('[data-c="'+k+'"]'); return e?+e.dataset.sel:0; };
+  if(kind==='sel') return JSON.parse(pk.dataset.opts)[c('s')];
+  var hh=((c('h')+1)%12)+(c('p')?12:0), mm=c('m');
+  if(kind==='t') return pkPad(hh)+':'+pkPad(mm);
+  var d=new Date(+pk.dataset.d0); d.setDate(d.getDate()+c('d')); d.setHours(hh,mm,0,0); return String(d.getTime()); }
+function pkSet(col,i,smooth){ var n=col.children.length; i=Math.max(0,Math.min(n-1,i)); col.scrollTo({top:i*PKH,behavior:smooth?'smooth':'auto'}); }
+function pkTune(col){
+  var pk=col.closest('.pk'), i=Math.max(0,Math.min(col.children.length-1,Math.round(col.scrollTop/PKH)));
+  if(+col.dataset.sel===i) return; var old=col.children[+col.dataset.sel]; if(old){ old.classList.remove('sel'); old.setAttribute('aria-selected','false'); }
+  col.dataset.sel=i; col.children[i].classList.add('sel'); col.children[i].setAttribute('aria-selected','true'); buzz(3);
+  var v=pkRead(pk); pk.dataset.val=v; var kind=pk.dataset.kind;
+  pk.querySelector('.pk-v').textContent=kind==='sel'?JSON.parse(pk.dataset.labels)[col.dataset.sel]:pkText(kind,v);
+  pkChange(pk.id,v); }
+function pkChange(id,v){
+  if(id==='obStart') ob.start=v;
+  else if(id==='obCity') setPlace({key:v});
+  else if(id==='usualStart'){ clearTimeout(pkTimer); pkTimer=setTimeout(function(){ S.prefs.usualStart=v; save(); cache={}; updateToday(); },400); } }
+function pkToggle(id){
+  var pk=$(id), open=!pk.classList.contains('open');
+  Array.prototype.forEach.call(pk.parentNode.querySelectorAll('.pk.open'),function(o){ if(o!==pk){ o.classList.remove('open'); o.querySelector('.pk-row').setAttribute('aria-expanded','false'); } });
+  pk.classList.toggle('open',open); pk.querySelector('.pk-row').setAttribute('aria-expanded',String(open));
+  if(!open) return;
+  Array.prototype.forEach.call(pk.querySelectorAll('.pk-c'),function(c){
+    pkSet(c,+c.dataset.sel,false);
+    if(c._on) return; c._on=true;
+    c.addEventListener('scroll',function(){ pkTune(c); },{passive:true});
+    c.addEventListener('click',function(e){ var it=e.target.closest('.pk-i'); if(it) pkSet(c,+it.dataset.i,true); });
+    c.addEventListener('keydown',function(e){ var step={ArrowUp:-1,ArrowDown:1,PageUp:-5,PageDown:5}[e.key], i=Math.round(c.scrollTop/PKH);
+      if(e.key==='Home') step=-i; if(e.key==='End') step=c.children.length-1-i; if(step==null) return; e.preventDefault(); pkSet(c,i+step,true); }); });
+  setTimeout(function(){ try{ pk.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'}); }catch(x){} },60); }
 function fastSheet(f,addKey){
   var isNew=!f, now=Date.now(), end, start;
   if(isNew){ var base=C.keyToDate(addKey); end=addKey===today()?now:base.getTime()+12*H; if(end>now) end=now; start=end-plan().fast*H; }
   else{ start=f.start; end=f.end; }
   var goal=isNew?plan().fast:f.goalH;
   openSheet('<h3>'+(isNew?L('Add a fast','补记断食'):L('Edit fast','编辑断食'))+'</h3><p class="lede">'+L('Fix a start or end time, or add one you forgot to log.','修改开始或结束时间，或补上忘记记录的一次。')+'</p>'+
-   '<div class="group"><div class="field"><label for="fsS">'+L('Started','开始')+'</label><input id="fsS" type="datetime-local" value="'+toInput(start)+'" max="'+toInput(now)+'"></div><div class="field"><label for="fsE">'+L('Ended','结束')+'</label><input id="fsE" type="datetime-local" value="'+toInput(end)+'" max="'+toInput(now)+'"></div><div class="field"><label for="fsG">'+L('Goal (hours)','目标（小时）')+'</label><input id="fsG" type="number" min="1" max="36" step="1" inputmode="numeric" value="'+Math.round(goal)+'"></div></div>'+
+   '<div class="group">'+pkField('fsS',L('Started','开始'),start,'dt')+pkField('fsE',L('Ended','结束'),end,'dt')+'<div class="field"><label for="fsG">'+L('Goal (hours)','目标（小时）')+'</label><input id="fsG" type="number" min="1" max="36" step="1" inputmode="numeric" value="'+Math.round(goal)+'"></div></div>'+
    '<div class="btns"><button class="btn" data-act="fssave" data-id="'+(isNew?'':f.id)+'">'+L('Save','保存')+'</button>'+(isNew?'':'<button class="btn red" data-act="fsdel" data-id="'+f.id+'">'+L('Delete this fast','删除这次断食')+'</button>')+'<button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
 }
 function fastSave(id){
-  var s=new Date($('fsS').value).getTime(), e=new Date($('fsE').value).getTime(), g=Math.round(+$('fsG').value), now=Date.now();
+  var s=+pkVal('fsS'), e=+pkVal('fsE'), g=Math.round(+$('fsG').value), now=Date.now();
   if(!isFinite(s)||!isFinite(e)) return toast(L('Pick a start and an end.','请选择开始和结束时间。'));
   if(e<=s) return toast(L('The end has to be after the start.','结束时间必须晚于开始时间。'));
   if(e>now+60000) return toast(L('The end can’t be in the future.','结束时间不能在未来。'));
@@ -713,7 +771,7 @@ function renderMe(){
   var p=plan(), ls=S.cur?null:null;
   h+='<div class="gh">'+L('Fasting','断食')+'</div><div class="group">'+
    '<button class="row" data-act="place"><span>'+L('Sunrise and sunset','日出日落')+'</span><span class="v">'+esc(placeName())+'</span>'+CHEV+'</button>'+
-   (S.prefs.usualStart?'<div class="row"><label for="usualStart">'+L('Usual start time','通常开始时间')+'</label><input id="usualStart" class="tin" type="time" value="'+esc(S.prefs.usualStart)+'" data-chg="usual" aria-label="'+L('Usual start time','通常开始时间')+'"></div>':'<button class="row" data-act="usualset"><span>'+L('Usual start time','通常开始时间')+'</span><span class="v">'+L('Not set','未设置')+'</span>'+CHEV+'</button>')+
+   (S.prefs.usualStart?pkField('usualStart',L('Usual start time','通常开始时间'),S.prefs.usualStart,'t'):'<button class="row" data-act="usualset"><span>'+L('Usual start time','通常开始时间')+'</span><span class="v">'+L('Not set','未设置')+'</span>'+CHEV+'</button>')+
    '<button class="row" data-act="cheat"><span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button></div>';
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
    '<button class="row" data-act="choice" data-k="lang"><span>'+L('Language','语言')+'</span><span class="v">'+(S.lang==='zh'?'中文':'English')+'</span>'+CHEV+'</button>'+
@@ -780,13 +838,13 @@ function obHtml(i){
     body='<div class="grow"></div>'+IMP_GLYPH+'<h1 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h1><p class="lede" style="text-align:center">'+L('Using another fasting app? Import your history now so you never lose it. It’s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我”里导入。')+'</p><p class="gf" style="text-align:center">'+L('Zero: unzip your download and choose firestore.json. Other apps: a CSV or JSON file with start and end times. The file stays on this phone.','Zero：解压下载的文件，选择 firestore.json。其他应用：包含开始和结束时间的 CSV 或 JSON 文件。文件只留在这台手机上。')+'</p><div class="grow"></div><input id="obImpFile" type="file" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden>';
     cta='<label class="btn" for="obImpFile">'+L('Choose a file','选择文件')+'</label><button class="btn sec" data-act="obnext">'+L('Skip for now','暂时跳过')+'</button>';
   }else if(key==='custom'){
-    body='<h1>'+L('Make it yours','按你的习惯来')+'</h1><p class="lede">'+L('Since you’ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="group"><div class="field"><label for="obStart">'+L('Usual start time','通常开始时间')+'</label><input id="obStart" class="tin" type="time" value="'+esc(ob.start||'20:00')+'" data-chg="obstart"></div></div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
+    body='<h1>'+L('Make it yours','按你的习惯来')+'</h1><p class="lede">'+L('Since you’ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="group">'+pkField('obStart',L('Usual start time','通常开始时间'),ob.start||'20:00','t')+'</div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='set'){
     var hereOn=S.place.key==='here';
     body='<h1>'+L('Match the sky to your day','让天空跟着你的一天')+'</h1><p class="lede">'+L('Lightly shows the moon and sun by your local sunrise and sunset. Your location is used on this phone only to work that out. It is never uploaded or shared.','轻伴按你当地的日出日落显示月亮和太阳。位置只在这台手机上用来计算，不会上传，也不会分享。')+'</p>'+
      (hereOn?'<div class="group"><div class="row"><span class="stack"><span>'+L('Using your location','正在使用你的位置')+'</span><small>'+L('Stays on this phone','只留在这台手机上')+'</small></span><span class="v">'+CHECK+'</span></div></div>':'')+
-     (!hereOn&&ob.city?'<div class="group"><div class="row"><label for="obCity">'+L('Nearest city','最近的城市')+'</label><select id="obCity" data-chg="obcity" aria-label="'+L('Nearest city','最近的城市')+'">'+Object.keys(C.CITIES).map(function(k){ return '<option value="'+k+'"'+(S.place.key===k?' selected':'')+'>'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</option>'; }).join('')+'</select></div></div>':'')+
+     (!hereOn&&ob.city?'<div class="group">'+pkField('obCity',L('Nearest city','最近的城市'),S.place.key,'sel',Object.keys(C.CITIES).map(function(k){ return [k,C.CITIES[k][S.lang==='zh'?'zh':'en']]; }))+'</div>':'')+
      (flow.indexOf('custom')<0?'<div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>':'')+'<div class="grow"></div>';
     cta=hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn quiet" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
       :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn quiet" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
@@ -911,7 +969,8 @@ var A={
   export:function(){ try{ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-fasts-'+today()+'.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }catch(e){ toast(L('Couldn’t export.','导出失败。')); } },
   erase:function(){ openSheet('<h3>'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede">'+L('This deletes your fasts, streak and settings from this phone. It can’t be undone.','这会删除这台手机上的断食记录、连续天数和设置，无法撤销。')+'</p><div class="btns"><button class="btn red" data-act="eraseok">'+L('Erase everything','清除所有数据')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   eraseok:function(){ try{ localStorage.removeItem(KEY); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
-  usualset:function(){ S.prefs.usualStart='20:00'; save(); cache={}; updateToday(); renderMe(); var i=$('usualStart'); if(i) i.focus(); },
+  usualset:function(){ S.prefs.usualStart='20:00'; save(); cache={}; updateToday(); renderMe(); pkToggle('usualStart'); },
+  pktog:function(b){ pkToggle(b.dataset.id); },
   tstyle:function(b){ S.prefs.timerStyle=b.dataset.v; ph.dataset.ts=b.dataset.v; save(); renderMe(); cache={}; fitDisc(); },
   obnext:function(){ if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ if(ob.step>0){ ob.step--; obRender(-1); } },
@@ -925,9 +984,7 @@ var A={
 document.addEventListener('click',function(e){ var b=e.target.closest('[data-act]'); if(!b||!ph.contains(b)) return; var f=A[b.dataset.act]; if(f){ if(b.tagName==='BUTTON'&&b.disabled) return; f(b); } });
 document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!t.dataset.chg) return;
   if(t.dataset.chg==='custom'){ var v=Math.min(23,Math.max(12,Math.round(+t.value)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; } save(); cache={}; ticksKey=''; updateToday(); planSheet(); }
-  if(t.dataset.chg==='obcity'){ setPlace({key:t.value}); }
-  if(t.dataset.chg==='obstart'){ ob.start=t.value||'20:00'; }
-  if(t.dataset.chg==='usual'){ S.prefs.usualStart=t.value||''; save(); cache={}; updateToday(); } });
+  });
 /* the real viewport height, so a Home Screen launch fills the glass edge to edge on every phone (ignored while the keyboard is up) */
 (function(){ var sa=document.createElement('div'); sa.setAttribute('aria-hidden','true'); sa.style.cssText='position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding:var(--sat) 0 var(--sab)'; ph.appendChild(sa); function fit(){ var a=document.activeElement; if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
     ph.style.setProperty('--app-h',Math.round(window.innerHeight)+'px'); ph.classList.toggle('tight',window.innerHeight-sa.offsetHeight<=600); }
@@ -946,9 +1003,9 @@ $('planBtn').addEventListener('click',planSheet);
 $('endA').addEventListener('click',function(){ if(S.cur) startEdit(); else if(mode==='eat'&&lastFast()) fastSheet(lastFast()); });
 function startEdit(){
   var cur=S.cur, now=Date.now();
-  openSheet('<h3>'+L('When did you start?','你是什么时候开始的？')+'</h3><p class="lede">'+L('Forgot to press start? Set the real time.','忘了按开始？在这里改成真实时间。')+'</p><div class="group"><div class="field"><label for="stS">'+L('Started','开始')+'</label><input id="stS" type="datetime-local" value="'+toInput(cur.start)+'" max="'+toInput(now)+'"></div></div><div class="btns"><button class="btn" data-act="stsave">'+L('Save','保存')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
+  openSheet('<h3>'+L('When did you start?','你是什么时候开始的？')+'</h3><p class="lede">'+L('Forgot to press start? Set the real time.','忘了按开始？在这里改成真实时间。')+'</p><div class="group">'+pkField('stS',L('Started','开始'),cur.start,'dt')+'</div><div class="btns"><button class="btn" data-act="stsave">'+L('Save','保存')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
 }
-A.stsave=function(){ var s=new Date($('stS').value).getTime(), now=Date.now(); if(!isFinite(s)||s>now) return toast(L('The start can’t be in the future.','开始时间不能在未来。')); if(now-s>72*H) return toast(L('That’s more than 72 hours ago.','这超过了 72 小时。'));
+A.stsave=function(){ var s=+pkVal('stS'), now=Date.now(); if(!isFinite(s)||s>now) return toast(L('The start can’t be in the future.','开始时间不能在未来。')); if(now-s>72*H) return toast(L('That’s more than 72 hours ago.','这超过了 72 小时。'));
   var clash=S.fasts.some(function(f){ return s<f.end&&now>f.start; }); if(clash) return toast(L('That overlaps another fast.','和另一次断食时间重叠了。'));
   S.cur.start=s; S.cur.reached=(now-s)/H>=S.cur.goalH; save(); closeSheet(); cache={}; shownP=-1; updateToday(); scheduleGoal(); };
 /* the endA label doubles as a button */
