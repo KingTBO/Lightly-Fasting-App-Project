@@ -722,11 +722,9 @@ function renderMe(){
   $('me').innerHTML=h;
 }
 function sw(k,label,on,dis){ return '<div class="row"><span>'+label+'</span><button class="sw" role="switch" aria-checked="'+!!on+'" aria-label="'+esc(label)+'" data-act="sw" data-k="'+k+'"'+(dis?' disabled':'')+'></button></div>'; }
-/* Light / Dark / Auto: the browser snapshots the screen and cross-fades to the new look in one piece, so nothing is half themed. Without that API, colours fade together for a moment. Still instant under Reduce Motion. */
+/* Light / Dark / Auto: every colour fades over the same 0.45 s, so nothing is half themed, and the sheet's blur stays in place (a screen-snapshot cross-fade drops it). Instant under Reduce Motion. */
 function switchTheme(fn){
   if(reduce){ fn(); return; }
-  if(document.startViewTransition){ var r0=document.documentElement; r0.classList.add('theme-now'); /* no element animates on its own inside the cross-fade: the new look is complete from its first frame */
-    try{ var vt=document.startViewTransition(fn), done=function(){ r0.classList.remove('theme-now'); }; vt.finished.then(done,done); setTimeout(done,1500); return; }catch(e){ r0.classList.remove('theme-now'); } }
   var r=document.documentElement; r.classList.add('theme-fade'); fn(); setTimeout(function(){ r.classList.remove('theme-fade'); },520);
 }
 function applyTheme(){ var r=document.documentElement; if(S.theme==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',S.theme); }

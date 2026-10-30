@@ -481,9 +481,7 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .thm svg{width:22px;height:22px;fill:none;stroke:var(--tint);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;opacity:0}
 .thm .sel svg{opacity:1}
 #iScrim.peek{background:rgba(0,0,0,.12)}
-::view-transition-old(root),::view-transition-new(root){animation-duration:.5s;animation-timing-function:ease}
-.theme-now,.theme-now *,.theme-now *::before,.theme-now *::after{transition:none!important}
-.theme-fade,.theme-fade *{transition:background-color .45s ease,color .45s ease,border-color .45s ease,fill .45s ease,stroke .45s ease,box-shadow .45s ease!important}
+.theme-fade,.theme-fade *,.theme-fade *::before,.theme-fade *::after{transition:background-color .45s ease,color .45s ease,border-color .45s ease,fill .45s ease,stroke .45s ease,box-shadow .45s ease!important}
 /* Today to the other tabs: colours swap at once, movement keeps its animation */
 .ph.snap{transition:none!important}
 .ph.snap *,.ph.snap *::before,.ph.snap *::after{transition-property:transform,opacity,visibility!important}
@@ -2166,7 +2164,7 @@ window.LightlySphere=(function(){
   var thm=(function(){ try{ return localStorage.getItem('lightly-theme')||'auto'; }catch(e){ return 'auto'; } })();
   function applyThm(){ var r=document.documentElement; if(thm==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',thm); }
   function thmLabel(){ var zh=api.lang()==='zh'; return thm==='auto'?(zh?'自动':'Auto'):thm==='light'?(zh?'浅色':'Light'):(zh?'深色':'Dark'); }
-  function thmSwitch(fn){ if(reduce){ fn(); return; } var r=document.documentElement; if(document.startViewTransition){ r.classList.add('theme-now'); try{ var vt=document.startViewTransition(fn), done=function(){ r.classList.remove('theme-now'); }; vt.finished.then(done,done); setTimeout(done,1500); return; }catch(e){ r.classList.remove('theme-now'); } } r.classList.add('theme-fade'); fn(); setTimeout(function(){ r.classList.remove('theme-fade'); },520); }
+  function thmSwitch(fn){ if(reduce){ fn(); return; } var r=document.documentElement; r.classList.add('theme-fade'); fn(); setTimeout(function(){ r.classList.remove('theme-fade'); },520); }
   applyThm();
   function themeRender(){ var zh=api.lang()==='zh', o=[['auto',zh?'自动':'Auto',zh?'跟随手机':'Follows your phone'],['light',zh?'浅色':'Light',''],['dark',zh?'深色':'Dark','']];
     $('impTitle').textContent=zh?'外观':'Appearance'; $('impNote').textContent=''; $('impBody').innerHTML='<div class="thm" role="radiogroup">'+o.map(function(x){ return '<button type="button" role="radio" aria-checked="'+(thm===x[0])+'" class="'+(thm===x[0]?'sel':'')+'" data-t="'+x[0]+'"><span><b>'+x[1]+'</b>'+(x[2]?'<small>'+x[2]+'</small>':'')+'</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>'; }).join('')+'</div><button type="button" class="imp-go" id="thmOk">'+(zh?'完成':'Done')+'</button>';
