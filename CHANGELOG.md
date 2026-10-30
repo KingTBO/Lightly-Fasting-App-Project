@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.31.0
+Round 2 of the "feel premium" pass, second part: the browser's own date, time and list controls are gone.
+- **design** Start times (when you edit a running fast, or edit or add a past one), your usual start time and the nearest city in setup now use Lightly's own wheels. A row shows the value in a small capsule with tabular numerals; tap it and a wheel opens in place with a day, hour, minute and AM or PM column that snap, scroll by touch, mouse wheel or arrow keys, and follow the language. The same look on every phone and browser, with no system popup.
+- The concept page's setup steps use the same wheels, and the flow tests drive them by scrolling.
+
 ## 0.30.0
 Round 2 of the "feel premium" pass, first part: a calmer Today readout.
 - **design** On Today, the other timer value (Elapsed or Left) moves up onto the label line beside "Time left", so the number stands alone with one line above it instead of one above and one below.
