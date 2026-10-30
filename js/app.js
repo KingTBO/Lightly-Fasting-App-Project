@@ -360,8 +360,8 @@ function timeOffSheet(){
      '<div class="btns"><button class="btn" data-act="offend">'+L('I’m back, end the break','我回来了，结束休息')+'</button><button class="btn sec" data-act="close">'+L('Keep resting','继续休息')+'</button></div>');
   }
   openSheet('<h3>'+L('Time off','休息一下')+'</h3><p class="lede">'+L('Life comes first. Choose a break and your streak waits for you.','生活优先。选择休息，连续记录会等着你。')+'</p>'+
-   '<div class="offopts"><button class="offopt" data-act="offtravel"><span class="oi">'+offIco('travel')+'</span><span class="stack"><b>'+L('Travel','旅行')+'</b><small>'+L('Away from your routine. You choose how many days, up to 14.','暂时离开日常节奏。选择天数，最多 14 天。')+'</small></span>'+CHEV+'</button>'+
-   '<button class="offopt" data-act="offunwell"><span class="oi">'+offIco('unwell')+'</span><span class="stack"><b>'+L('I feel unwell','我感觉不舒服')+'</b><small>'+L('A two-week break starts right away. End it whenever you are ready.','立即开始两周休息，准备好了随时结束。')+'</small></span>'+CHEV+'</button></div>');
+   '<div class="offopts"><button class="offopt" data-act="offtravel"><span class="oi">'+offIco('travel')+'</span><span class="stack"><b>'+L('Travel','旅行')+'</b></span>'+CHEV+'</button>'+
+   '<button class="offopt" data-act="offunwell"><span class="oi">'+offIco('unwell')+'</span><span class="stack"><b>'+L('I feel unwell','我感觉不舒服')+'</b></span>'+CHEV+'</button></div>');
 }
 function offTravelSheet(){
   var d=offDays, end=C.keyToDate(C.addDays(today(),d)).getTime(), chips='';

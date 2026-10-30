@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.28.8
+- **copy** The Time off sheet is less packed: Travel and "I feel unwell" no longer have a description line under them, just the name and the arrow. The concept page matches.
+
 ## 0.28.7
 - **fix** Switching Appearance no longer flashes the text on the sheet. Some parts faded with their own delay, so text passed through grey between black and white. Now every colour changes in the same instant and the blur stays steady. The concept page matches.
 
