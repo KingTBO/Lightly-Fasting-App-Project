@@ -4,6 +4,12 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.21.0
+- **feature** New Time off sheet in Me, under Care (it replaces "I feel unwell"). Choose Travel and pick 1 to 14 days, or choose I feel unwell and a two-week break starts right away. A pill on Today shows which day of the break it is, and you can end the break early from there or from Me.
+- **feature** Break days keep your streak, like cheat days, without growing it. They show as dotted days in the calendar. A break for feeling unwell also keeps long fasts paused for the two weeks, even if you end it early.
+- **design** The big titles Today, Days and Me at the top of each tab are gone.
+- **chore** Removed the Plan row in Me (the plan is still changed from the chip on Today) and the Redo setup row.
+
 ## 0.20.0
 - **design** The app now has one accent: the sun yellow. The selected tab, links, back buttons, calendar arrows, check marks and tick boxes no longer use system blue. In light mode links and the selected tab use dark ink and a deep amber, because yellow text is too faint on white.
 - **design** On Today the stars no longer run through the time and the sentences under the moon, and they no longer show across the moon itself. Secondary text on the night sky is a little brighter.

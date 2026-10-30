@@ -16,6 +16,7 @@ function merge(a,b){
   var used={}; ((a.flex||{}).used||[]).concat((b.flex||{}).used||[]).forEach(function(d){used[d]=1;});
   out.flex=Object.assign({},n.flex||{}); out.flex.used=Object.keys(used).sort();
   var sa=[a.startedAt,b.startedAt].filter(Boolean); out.startedAt=sa.length?Math.min.apply(null,sa):null;
+  var os={}; (a.off||[]).concat(b.off||[]).forEach(function(o){ var x=os[o.id]; if(!x||(o.endedAt&&!x.endedAt)) os[o.id]=o; }); out.off=Object.keys(os).map(function(i){return os[i];}).sort(function(x,y){return x.start-y.start;});
   out.unwell=Math.max(a.unwell||0,b.unwell||0)||null;
   var un={}; [a.unlocked||{},b.unlocked||{}].forEach(function(u){ for(var x in u) un[x]=un[x]?Math.min(un[x],u[x]):u[x]; }); out.unlocked=un;
   out.mod=Math.max(a.mod||0,b.mod||0);

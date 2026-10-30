@@ -13,6 +13,16 @@ const fasts=[mk(1),mk(2),mk(4),mk(5)];
 assert.strictEqual(C.streak(fasts,[],now),2);
 assert.strictEqual(C.streak(fasts,[C.dayKey(new Date(2026,9,24).getTime())],now),4);
 assert.strictEqual(C.dayStatus(C.dayKey(fasts[0].end),fasts,[]),'done');
+// time off: break days keep the streak, ended early stops before the end day
+const o1={id:'o',kind:'travel',start:new Date(2026,9,24,9).getTime(),days:1};
+assert.deepStrictEqual(C.offKeys([o1]),['2026-10-24']);
+assert.strictEqual(C.streak(fasts,C.offKeys([o1]),now),4);
+assert.strictEqual(C.dayStatus('2026-10-24',fasts,[],C.offKeys([o1])),'off');
+const o2={id:'p',kind:'unwell',start:new Date(2026,9,20,9).getTime(),days:14,endedAt:new Date(2026,9,23,9).getTime()};
+assert.deepStrictEqual(C.offKeys([o2]),['2026-10-20','2026-10-21','2026-10-22']);
+assert.strictEqual(C.offActive([o2],now),null);
+const o3={id:'q',kind:'unwell',start:new Date(2026,9,25,9).getTime(),days:14};
+assert.strictEqual(C.offActive([o3],now).id,'q');assert.strictEqual(C.offDayNo(o3,now),3);
 // long fast unlock
 const prof={fastedBefore:true,safety:false};
 const st={fasts:[mk(1),mk(2)],unwell:null,unlocked:{}};

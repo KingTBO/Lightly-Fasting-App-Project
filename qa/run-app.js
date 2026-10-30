@@ -19,7 +19,7 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
  const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const all={};const add=(st,arr)=>arr.forEach(x=>{const k=x[0]+' | '+x[1];(all[k]=all[k]||{v:x[2],st:new Set()}).st.add(st);});
  const margin=()=>{const ph=document.getElementById('ph').getBoundingClientRect(),out=[];
-   document.querySelectorAll('#ph .on .group:not(.ob .group), #ph .on > .btn, #ph .on .act, #ph .on .streak, #ph .on .track, #ph .on .nav, #ph .on .h-title, #ph .tabs, #ph .sheet.open .group, #ph .sheet.open .btn, #ph .sheet.open .facts, #ph .sheet.open h3, #ph .ob-step.on .btn, #ph .ob-step.on .group, #ph .ob-step.on h1, #ph .ob-step.on .ob-top').forEach(e=>{
+   document.querySelectorAll('#ph .on .group:not(.ob .group), #ph .on > .btn, #ph .on .act, #ph .on .streak, #ph .on .track, #ph .on .nav, #ph .tabs, #ph .sheet.open .group, #ph .sheet.open .btn, #ph .sheet.open .facts, #ph .sheet.open h3, #ph .ob-step.on .btn, #ph .ob-step.on .group, #ph .ob-step.on h1, #ph .ob-step.on .ob-top').forEach(e=>{
      const r=e.getBoundingClientRect();if(r.width<2||r.height<2||getComputedStyle(e).visibility==='hidden')return;
      const cs=getComputedStyle(e),L=r.left-ph.left+(e.matches('.h-title,.nav,.sheet h3,.ob-step h1,.ob-top')?parseFloat(cs.paddingLeft)||0:0),R=ph.right-r.right+(e.matches('.h-title,.nav,.sheet h3,.ob-top')?parseFloat(cs.paddingRight)||0:0);
      if(e.matches('.ob-step h1')&&cs.textAlign==='center')return;
@@ -57,7 +57,7 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
     await T(p,'days');await A('days');await p.click('.cal-g button.done');await p.waitForTimeout(100);await p.click('[data-act=edit]');await A('edit-fast');await p.click('#sheet [data-act=close]');
     await p.click('[data-act=add]');await A('add-fast');await p.click('#sheet [data-act=close]');
     await T(p,'me');await A('me');await p.click('[data-act=place]');await A('place-sheet');await p.click('#sheet [data-act=close]');
-    await p.click('[data-act=unwell]');await A('unwell-sheet');await p.click('#sheet [data-act=close]');await p.click('[data-act=erase]');await A('erase-sheet');await p.click('#sheet [data-act=close]');
+    await p.click('#me [data-act=timeoff]');await A('timeoff-sheet');await p.click('#sheet [data-act=offtravel]');await A('travel-sheet');await p.evaluate(()=>document.getElementById('scrim').click());await p.waitForTimeout(500);await p.click('[data-act=erase]');await A('erase-sheet');await p.click('#sheet [data-act=close]');
     await T(p,'today');await p.click('#act');await p.waitForTimeout(500);await A('today-started');});
   await run('mid',async(p,A)=>{await A('today-mid');await p.click('#endA');await A('start-edit');});
   await run('goal',async(p,A)=>{await A('today-goal');});
