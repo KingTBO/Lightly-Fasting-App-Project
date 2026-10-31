@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.45.0
+- **design** The time, date and city wheels now move like the Apple Clock timer picker. A flick keeps its momentum and carries past many values instead of stopping on every number, and the wheel only glides to the nearest value once it has come to rest. Rows curve away from the centre: they fade, shrink and tilt as they leave the selected line. Touch and the mouse wheel both work, arrow keys still step one at a time, and the light haptic tick per value still follows the Vibration setting. With Reduce Motion on, rows only fade (no tilt or scale) and the wheel jumps to a value instead of gliding.
+- **design** In Days, when you edit a fast, the Goal (hours) box is now a compact field that fits its number (two digits) instead of a wide block, and the little up/down arrows are gone. The Fasting hours box for a custom plan uses the same size.
+- The concept page's wheel pickers (onboarding) match.
+
 ## 0.44.0
 - **design** Start fast during Time off now answers when you tap it, instead of doing nothing. It still looks unavailable (dimmed), but a tap gives a short, soft shake (the same "not now" gesture Apple uses), two light taps of haptic feedback, and a message at the top: "Ready to fast? Tap End break at the top first." The End break pill lights up for a moment so you can see where to go. With Reduce Motion on there is no shake; the message and the pill highlight still appear. The Chinese is 准备好断食了吗？先点上方的“结束休息”。
 - **fix** For people using a screen reader or a keyboard, Start fast during a break used to be hidden from them as a disabled button. It is now a normal button that says it is dimmed, and activating it reads out the same message.
