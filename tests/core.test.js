@@ -39,6 +39,10 @@ const state={fasts:[],flex:{bank:2,used:[]}};
 assert.strictEqual(C.flexBlock(C.dayKey(now),state,now),'');
 assert.strictEqual(C.flexBlock(C.dayKey(now-3*D),state,now),'window');
 state.flex.used=[C.dayKey(now-D),C.dayKey(now-2*D)];assert.strictEqual(C.flexBlock(C.dayKey(now),state,now),'week');
+// time off: no cheat day during a break, or on a break day
+{const offs=[{id:'a',kind:'travel',start:now-D,days:3}],bs={fasts:[],flex:{bank:2,used:[]},off:offs};
+assert.strictEqual(C.flexBlock(C.dayKey(now),bs,now),'break');assert.strictEqual(C.flexBlock(C.dayKey(now-D),bs,now),'break');
+bs.off=[{id:'a',kind:'travel',start:now-D,days:3,endedAt:now}];assert.strictEqual(C.flexBlock(C.dayKey(now),bs,now),'');}
 assert.strictEqual(C.guessCity('Asia/Shanghai'),'shanghai');
 // everyday plan ladder
 {const f=(h,g)=>({id:String(Math.random()),start:0,end:h*H,goalH:g==null?h:g}),first={fastedBefore:false,safety:false},exp={fastedBefore:true,safety:false},st=(id,pr,fs)=>C.planStatus(id,pr,{fasts:fs});

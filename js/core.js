@@ -205,11 +205,12 @@ function flexRefill(flex,startMs,now){
   while(flex.mon<mon&&guard++<600){ flex.mon=addDays(flex.mon,7); if(keyToDate(flex.mon).getTime()>=(startMs||now)+7*D) flex.bank=Math.min(2,flex.bank+1); }
   return flex;
 }
-/* can a cheat day be used for day k (today, or yesterday before noon)? returns reason code or '' */
+/* can a cheat day be used for day k (today, or yesterday before noon)? returns reason code or ''. Pass state.off to also block cheat days while a time-off break is on */
 function flexBlock(k,state,now){
   now=now||Date.now(); var today=dayKey(now), y=addDays(today,-1), hr=new Date(now).getHours();
   if(k!==today&&!(k===y&&hr<12)) return 'window';
   if(state.flex.used.indexOf(k)>=0) return 'used';
+  if(state.off&&(offActive(state.off,now)||offKeys(state.off).indexOf(k)>=0)) return 'break'; /* time off already holds the streak, so a cheat day is never spent during a break */
   if(dayStatus(k,state.fasts,[])==='done') return 'fasted';
   if(state.flex.bank<1) return 'bank';
   var recent=state.flex.used.filter(function(x){ var d=(keyToDate(k)-keyToDate(x))/D; return d>-7&&d<7; });

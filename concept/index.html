@@ -620,6 +620,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 #pScrim.on,#cScrim.on{opacity:1;pointer-events:auto}
 .streak{cursor:pointer;text-align:left;border:0;color:inherit;font:inherit;width:calc(100% - 32px)}
 .streak:focus-visible{outline:2px solid var(--tint);outline-offset:2px}
+.streak:disabled{cursor:default;color:inherit}.streak:disabled:active{transform:none}
 .cheat-moons{display:flex;gap:10px;align-items:center;margin:2px 0 12px}
 .cheat-moons i{width:28px;height:28px;border-radius:50%;box-sizing:border-box;box-shadow:inset 0 0 0 1.5px var(--label-3);display:block}
 .cheat-moons i.on{background:var(--label);box-shadow:none}
@@ -1333,7 +1334,8 @@ window.LightlySphere=(function(){
     put($('shStreak'),'shS',String(n));
     var d=$('stDots'), nw=d.lastElementChild, ck=window.LIGHTLY_CHEAT; nw.classList.toggle('on',todayDone&&!ck.used); nw.classList.toggle('rest',ck.used);
     d.setAttribute('aria-label',L('Last 7 days. '+(ck.used?'Today is a cheat day.':todayDone?'Today is done.':'Today is not done yet.')+' One cheat day, kept in your streak.','最近 7 天。'+(ck.used?'今天是弹性日。':todayDone?'今天已完成。':'今天还没完成。')+'其中一天是弹性日，不影响连续天数。'));
-    $('streak').setAttribute('aria-label',L(n+' day streak, '+ck.left+' of 2 cheat days left. Open cheat days.','连续 '+n+' 天，弹性日剩 '+ck.left+' 个（共 2 个）。打开弹性日。')); }
+    var brk=!!window.LIGHTLY_OFF; $('streak').disabled=brk; if(brk) $('streak').removeAttribute('aria-haspopup'); else $('streak').setAttribute('aria-haspopup','dialog');
+    $('streak').setAttribute('aria-label',brk?L(n+' day streak, on hold during time off.','连续 '+n+' 天，休息期间暂停。'):L(n+' day streak, '+ck.left+' of 2 cheat days left. Open cheat days.','连续 '+n+' 天，弹性日剩 '+ck.left+' 个（共 2 个）。打开弹性日。')); }
   window.refreshStreak=streakUI;
   function setText(){
     streakUI();
@@ -2125,13 +2127,13 @@ window.LightlySphere=(function(){
   $('meSignOut').addEventListener('click',function(){ signed=null; render(); });
   /* Time off: travel (1 to 14 days) or unwell (2 weeks), playable here */
   var off=null, offDays=3;
-  function offBar(){ var b=$('offBar'); b.hidden=!off; if(off) b.innerHTML=(off.kind==='travel'?L('Travelling · day 1 of '+off.days,'旅行中 · 第 1 天，共 '+off.days+' 天'):L('Resting · day 1 of '+off.days,'休养中 · 第 1 天，共 '+off.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>'; $('ph').classList.toggle('offon',!!off); window.LIGHTLY_OFF=off; if(window.refreshToday) window.refreshToday(!!off); }
+  function offBar(){ var b=$('offBar'); b.hidden=!off; if(off) b.innerHTML=(off.kind==='travel'?L('Travelling · day 1 of '+off.days,'旅行中 · 第 1 天，共 '+off.days+' 天'):L('Resting · day 1 of '+off.days,'休养中 · 第 1 天，共 '+off.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>'; $('ph').classList.toggle('offon',!!off); window.LIGHTLY_OFF=off; if(window.refreshToday) window.refreshToday(!!off); if(window.refreshStreak) window.refreshStreak(); }
   /* Me settings: the same rows as the app; Language, Timer style, Plan and Cheat days really work here */
   function meRows(){ var zh=api.lang()==='zh';
     function v(id,t){ var e=$(id+'V'); if(e) e.textContent=t; }
-    v('meUnwell',off?(off.kind==='travel'?(zh?'旅行中':'Travelling'):(zh?'休养中':'Resting')):''); v('meWhere',zh?'上海':'Shanghai'); v('meUsual','8:00 PM'); v('meCheat',zh?'还剩 1 个':'1 left');
+    v('meUnwell',off?(off.kind==='travel'?(zh?'旅行中':'Travelling'):(zh?'休养中':'Resting')):''); v('meWhere',zh?'上海':'Shanghai'); v('meUsual','8:00 PM'); v('meCheat',zh?'还剩 1 个':'1 left'); $('meCheat').hidden=!!off; /* no cheat days during time off */
     v('meLang',zh?'中文':'English'); v('meApp',thmLabel()); v('meTs',(ph.dataset.ts==='a')?(zh?'经典':'Classic'):(zh?'大字':'Hero')); v('meSnd',zh?'开':'On'); v('meRem',zh?'开':'On'); }
-  [['meCheat',function(){ $('streak').click(); }],['meLang',function(){ $(api.lang()==='zh'?'l-en':'l-zh').click(); }],
+  [['meCheat',function(){ if(!off) $('streak').click(); }],['meLang',function(){ $(api.lang()==='zh'?'l-en':'l-zh').click(); }],
    ['meApp',function(){ impFrom=$('meApp'); impOpen(true,8); }],['meTs',function(){ ph.dataset.ts=ph.dataset.ts==='a'?'b':'a'; meRows(); }]].forEach(function(r){ var e=$(r[0]); e.addEventListener('click',r[1]); e.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); r[1](); } }); });
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(meRows,0); }); });
   /* Days: a month of sample fasts */
@@ -2238,8 +2240,8 @@ window.LightlySphere=(function(){
   var infoT='', infoN=''; function info(t,n,from){ infoT=t; infoN=n; impFrom=from; impOpen(true,4); }
   $('meExp').addEventListener('click',function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$('meExp')); });
   $('meErase').addEventListener('click',function(){ info(L('Erase everything?','清除所有数据？'),L('In the app this deletes your fasts, streak and settings from the phone, after one more confirmation. Nothing happens in this demo.','在应用里，这会在再次确认后删除手机上的断食记录、连续天数和设置。这个演示里不会发生任何事。'),$('meErase')); });
-  $('meUnwell').addEventListener('click',function(){ impFrom=$('meUnwell'); impOpen(true,off?8:5); });
-  $('offBar').addEventListener('click',function(){ impFrom=$('offBar'); impOpen(true,8); });
+  $('meUnwell').addEventListener('click',function(){ impFrom=$('meUnwell'); impOpen(true,off?9:5); });
+  $('offBar').addEventListener('click',function(){ impFrom=$('offBar'); impOpen(true,9); });
   $('meImp').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); impOpen(true); } });
   $('impClose').addEventListener('click',function(){ impOpen(false); }); isc.addEventListener('click',function(){ impOpen(false); });
   imp.addEventListener('keydown',function(e){ if(e.key==='Escape') impOpen(false); });

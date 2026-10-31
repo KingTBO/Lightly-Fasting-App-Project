@@ -91,6 +91,7 @@ html:lang(zh-Hans) .ends .cap{font-size:.75rem;letter-spacing:.02em;text-transfo
 .streak{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:var(--s3) var(--m) 0;padding:0 16px;min-height:48px;border:0;width:calc(100% - 32px);text-align:left;border-radius:14px;background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);flex:none;color:var(--ink)}
 .streak .tx{display:flex;flex-direction:column;min-width:0;font:500 0.9375rem/1.25 var(--font)}
 .streak[hidden]{display:none}
+.streak:disabled{color:var(--ink);cursor:default}.streak:disabled:active{transform:none}
 .streak .tx small{font:400 0.8125rem var(--font);color:var(--ink-2)}
 .streak .dots{display:flex;gap:6px;align-items:center;flex:none}
 .dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--ink-2);flex:none}

@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.43.2
+- **fix** Cheat days are not offered while Time off is on. A break already holds your streak, so spending a cheat day then would only waste one. While you are travelling or resting, the Cheat days row is gone from Me, the streak card on Today still shows your streak and week but no longer opens the Cheat days sheet, and Days does not offer "Use a cheat day". Everything comes back when the break ends, and your cheat day count is untouched. The rule lives in `flexBlock` (it now returns `break`), with a unit test.
+- The concept page's Today and Me screens match: end the break in the demo and the row and the tap come back. Also fixed on the concept page: "End break" (and Me, Time off while on a break) opened the Appearance sheet instead of the break sheet, because both used the same sheet number.
+
 ## 0.43.1
 - **docs** Added `AGENTS.md` at the top of the repo, so other coding agents (such as Codex) follow the same rules as the Claude threads. It points to README.md and RELEASING.md instead of repeating them, and adds how much to test for each kind of change, the Apple look, English and Chinese copy, the product guardrails, and the merge rule. The app and the concept page did not change.
 
