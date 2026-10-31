@@ -168,7 +168,7 @@ function updateToday(){
   el=cur?(now-cur.start)/H:0;
   /* disc: new to full during the fast, then waning through the eating window */
   tgtP=mode==='fast'?C.discFill(el,goal):mode==='eat'?1-Math.min(eatEl/eatLen,1):0;
-  var turn=C.nextTurn(hp,sun), moonNow=moonV>=.5;
+  var moonNow=moonV>=.5;
   var skyName=S.lang==='zh'?sk[3]:sk[2];
   put($('sub'),'sub',skyName+' · '+(mode==='eat'?L('Eating window','进食窗口'):moonNow?L('Moon until ','月亮，直到 ')+clockH(sun.rise):L('Sun until ','太阳，直到 ')+clockH(sun.set)));
   var bar=$('offBar'); bar.hidden=!offA; if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
@@ -198,6 +198,11 @@ function updateToday(){
   put($('endB'),'eb','<b>'+clockMs(a1)+'</b>',1);
   $('tDone').style.strokeDasharray=(mode==='idle'?0:lenAt(tt))+' 9999';
   var q=tPt(tt); $('marker').setAttribute('cx',q.x.toFixed(1)); $('marker').setAttribute('cy',q.y.toFixed(1)); $('marker').style.opacity=mode==='idle'?0:1;
+  /* where the moon turns into the sun (or back) inside this window; Ramadan runs dawn to sunset, so it has none */
+  var wl=mode==='eat'?eatLen:goal, tn=mode==='idle'||ram||ramadan?null:C.nextTurn(C.placeHour(pi,a0),sun);
+  if(tn&&tn.inH<wl){ var eq=tPt(tn.inH/wl), ex=Math.min(Math.max(eq.x,34),308).toFixed(1);
+    $('evtL').setAttribute('x1',eq.x.toFixed(1)); $('evtL').setAttribute('x2',eq.x.toFixed(1)); $('evtL').setAttribute('y1',(eq.y-14).toFixed(1)); $('evtL').setAttribute('y2',(eq.y-6).toFixed(1));
+    $('evtT').setAttribute('x',ex); $('evtT').setAttribute('y',(eq.y-18).toFixed(1)); put($('evtT'),'ev',(tn.k==='rise'?L('Sunrise ','日出 '):L('Sunset ','日落 '))+clockH(tn.at)); $('evt').setAttribute('opacity','1'); } else $('evt').setAttribute('opacity','0');
   var done=mode==='idle'?0:Math.floor(tt*n+1e-6); tickEls.forEach(function(c,i){ c.style.fill=i<done?'var(--ink)':''; });
   /* streak card */
   var st=curStreak(); $('streakBtn').hidden=!streakFasts().length;
