@@ -188,7 +188,10 @@ function updateToday(){
   var turnAt=moonNow?sun.rise:sun.set, countDown=(mode==='fast'||mode==='eat')&&!(cur&&cur.planId==='ramadan')&&!(S.planId==='ramadan'), left=Math.max(1,Math.round((((turnAt-hp)%24+24)%24)*60));
   if(cache.skgs!==(moonNow?'m':'s')){ cache.skgs=moonNow?'m':'s'; $('skyG').innerHTML=skyGlyph(moonNow); $('skyG').className='sg '+(moonNow?'moon':'sun'); }
   put($('skyStage'),'sub',skyName);
-  put($('skyTx'),'skx',countDown?L(hmTxt(left)+' left','还剩 '+hmTxt(left)):L('until ','直到 ')+clockH(turnAt));
+  /* the pill always names the sky event, so it can't be read as your fast: "Sunrise 6:12 AM" before you start, "Sunrise in 1 h 22 m" while you fast or eat */
+  var evEn=moonNow?'Sunrise':'Sunset', evZh=moonNow?'日出':'日落', skyTxt=countDown?L(evEn+' in '+hmTxt(left),hmTxt(left)+'后'+evZh):L(evEn+' ',evZh+' ')+clockH(turnAt);
+  put($('skyTx'),'skx',skyTxt);
+  var skyAria=skyName+', '+skyTxt+'. '+L('Opens an explanation.','打开说明。'); if(cache.skal!==skyAria){ cache.skal=skyAria; $('sub').setAttribute('aria-label',skyAria); }
   var bar=$('offBar'); bar.hidden=!offA; if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
   put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):chipHours(cur?C.planById(cur.planId,cur.goalH):p));
   var ramadan=cur&&cur.planId==='ramadan';
@@ -764,6 +767,12 @@ function pickPlan(id){
 }
 
 /* ---------- sunrise and sunset: location, or a nearby city ---------- */
+/* the sky pill's explanation: one line and today's two times */
+function skySheet(){
+  var pol=!!sun.polar, rise=pol?'–':clockH(sun.rise), set=pol?'–':clockH(sun.set);
+  openSheet('<h3>'+L('Moon and sun','月亮和太阳')+'</h3><p class="lede">'+L('The pill counts to the next sunrise or sunset. It’s not your fast.','胶囊里是距离下一次日出或日落的时间，不是你的断食时间。')+'</p>'+
+   '<div class="group"><div class="row"><span>'+L('Sunrise','日出')+'</span><span class="v">'+rise+'</span></div><div class="row"><span>'+L('Sunset','日落')+'</span><span class="v">'+set+'</span></div></div>');
+}
 function placeSheet(){
   var h='<h3>'+L('Sunrise and sunset','日出日落')+'</h3><p class="lede">'+L('Lightly uses your location on this phone only to find your local sunrise and sunset. It is never uploaded or shared. Prefer not to share? Choose a nearby city.','轻伴只在这台手机上用你的位置来算当地的日出日落，不会上传，也不会分享。不想分享？选一个附近的城市就行。')+'</p>';
   h+='<div class="group"><button class="plan'+(S.place.key==='here'?' sel':'')+'" data-act="geo"><span class="pn"><b>'+L('Use my location','使用我的位置')+'</b><small>'+L('Most accurate. Stays on this phone.','最准确，只留在这台手机上。')+'</small></span>'+CHECK+'</button></div><div class="gh">'+L('Or choose a city','或选择城市')+'</div><div class="group">';
@@ -1022,7 +1031,7 @@ var A={
   pickplan:function(b){ pickPlan(b.dataset.id); },
   geo:function(){ geo(function(){ placeSheet(); }); },
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
-  plan:planSheet, place:placeSheet, cheat:cheatSheet,
+  plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet,
   google:function(b){ if(b.disabled) return; var soon=function(){ b.disabled=false; toast(L('Google sign-in is not switched on yet. Email works now.','Google 登录还没开启，现在可用邮箱。')); };
     if(!CL.ready()) return soon(); b.disabled=true;
     CL.providerOn('google').then(function(on){ if(!on) return soon(); location.assign(CL.oauthUrl('google',S)); }).catch(soon); },
