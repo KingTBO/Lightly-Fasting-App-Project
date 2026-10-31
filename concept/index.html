@@ -547,7 +547,12 @@ html:lang(zh-Hans) .me-h{text-transform:none}
 .stepper{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 12px!important}.stepper button{width:52px;height:52px;border-radius:50%;border:0;background:var(--fill);color:var(--label);display:flex;align-items:center;justify-content:center;cursor:pointer}.stepper button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}.stepper button:disabled{opacity:.3}.stepper .sv{min-width:96px;display:flex;flex-direction:column;align-items:center}.stepper .sv b{font:700 56px/1 var(--font);font-variant-numeric:tabular-nums}.stepper .sv span{font:500 15px var(--font);color:var(--label-2);margin-top:4px}
 .offchips{display:flex;position:relative;background:var(--fill);border-radius:9px;padding:2px;margin:4px 16px 14px}.offchips .thumb{position:absolute;top:2px;bottom:2px;left:2px;width:calc((100% - 4px)/4);border-radius:7px;background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12);transform:translateX(calc(var(--i,0)*100%));transition:transform .5s cubic-bezier(.2,1,.3,1),opacity .25s ease;pointer-events:none}@media (prefers-reduced-motion:reduce){.offchips .thumb{transition:opacity .01s}}.offchips button{flex:1;border:0;background:transparent;min-height:44px;border-radius:7px;font:500 15px var(--font);color:var(--label);cursor:pointer}.offchips button{position:relative;z-index:1}.offchips button[aria-pressed=true]{font-weight:600}
 .imp-sum .offchips{min-height:0;padding:2px;margin:4px 16px 14px;border-top:0}.imp-sum .stepper+.offchips{border-top:0}
-.act:disabled{background:color-mix(in srgb,var(--ink,#fff) 16%,transparent);color:var(--ink-2,#fff);pointer-events:none;box-shadow:none;cursor:default}
+.act[aria-disabled=true]{background:color-mix(in srgb,var(--ink,#fff) 16%,transparent);color:var(--ink-2,#fff);box-shadow:none;cursor:default}
+@media (forced-colors:active){.act[aria-disabled=true]{color:GrayText}}
+.offbar{transition:background .3s ease}.offbar.nudge{background:color-mix(in srgb,var(--ink,#fff) 24%,transparent)}
+.toast{position:absolute;left:16px;right:16px;top:14px;z-index:9;background:rgba(40,40,44,.92);color:#fff;border-radius:16px;padding:12px 16px;font:500 15px/1.35 var(--font);text-align:center;opacity:0;transform:translateY(-12px);transition:opacity .3s ease,transform .45s cubic-bezier(.16,1,.3,1);pointer-events:none}
+.toast.on{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.toast{transform:none;transition:opacity .25s ease}}
 .dy-cal button.off{box-shadow:inset 0 0 0 2px var(--label-2);border-radius:50%;outline:1.5px dotted var(--label-2);outline-offset:1px}
 .me-list div+div{border-top:.5px solid var(--sep)}
 .me-list small{font-size:17px;color:var(--label-2);display:flex;align-items:center;gap:10px}
@@ -698,6 +703,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <button type="button" class="pchip" id="planBtn" aria-haspopup="dialog" aria-label="Change plan"><span class="chip"><span id="planChip">16h</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></span></button>
       </div>
       <button type="button" class="offbar" id="offBar" hidden></button>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
       <div class="disc-wrap">
         <svg id="disc" viewBox="-118 -118 236 236" aria-hidden="true">
           <g id="rays" opacity="0"></g>
@@ -1362,7 +1368,7 @@ window.LightlySphere=(function(){
     put($('endB'),'eb','<span class="cap">'+(mode==='eat'?L('Next fast','下次断食'):L('Finish','完成'))+'</span><span class="trow">'+egl(a1)+'<span class="tm">'+clock(a1)+'</span></span>',1);
     var tr=$('track'); tr.setAttribute('aria-valuenow',(mode==='eat'?e:h).toFixed(1));
     tr.setAttribute('aria-valuemax',mode==='eat'?EAT:GOAL);
-    act.disabled=brk; act.setAttribute('aria-disabled',brk); tr.style.visibility=brk?'hidden':'';
+    act.setAttribute('aria-disabled',brk); tr.style.visibility=brk?'hidden':'';
   }
 
   window.refreshToday=function(forceIdle){ if(forceIdle&&mode==='fast'){ setMode('idle'); return; } cache={}; setText(); };
@@ -1490,12 +1496,21 @@ window.LightlySphere=(function(){
     (function hs(){ var p=Math.min((performance.now()-h0)/HOLD,1); act.style.setProperty('--hold',p);
       if(p<1&&holding) holdRaf=requestAnimationFrame(hs); else if(p>=1){ holding=false; act.classList.remove('holding'); act.style.setProperty('--hold',0); lapse=null; endFast(); } })(); }
 
-  act.addEventListener('pointerdown',function(ev){ cancelAuto(); act.classList.add('pressed'); buzz(6);
+  /* Start fast during time off: looks unavailable but a tap shakes it (no movement under Reduce Motion), taps twice lightly, and says to end the break first */
+  var nudgeT=0, nudgeBarT=0, nudgeA=null;
+  function onBreak(){ return !!window.LIGHTLY_OFF&&mode!=='fast'; }
+  function breakNudge(){ var t=$('toast'), bar=$('offBar'); buzz([8,70,8]);
+    t.textContent=L('Ready to fast? Tap End break at the top first.','准备好断食了吗？先点上方的“结束休息”。'); t.classList.add('on'); clearTimeout(nudgeT); nudgeT=setTimeout(function(){ t.classList.remove('on'); },3400);
+    bar.classList.add('nudge'); clearTimeout(nudgeBarT); nudgeBarT=setTimeout(function(){ bar.classList.remove('nudge'); },1400);
+    if(act.animate&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){ if(nudgeA) nudgeA.cancel();
+      nudgeA=act.animate([{transform:'translateX(0)'},{transform:'translateX(-9px)',offset:.16},{transform:'translateX(8px)',offset:.34},{transform:'translateX(-6px)',offset:.52},{transform:'translateX(4px)',offset:.7},{transform:'translateX(-2px)',offset:.86},{transform:'translateX(0)'}],{duration:480,easing:'cubic-bezier(.36,.07,.19,.97)'}); } }
+  act.addEventListener('pointerdown',function(ev){ cancelAuto(); if(onBreak()) return; act.classList.add('pressed'); buzz(6);
     if(mode==='fast'){ ev.preventDefault(); holdStart(); } });
   function up(){ act.classList.remove('pressed'); if(holding){ holding=false; act.classList.remove('holding'); cancelAnimationFrame(holdRaf); act.style.setProperty('--hold',0); cache.a=null; } }
-  act.addEventListener('pointerup',function(){ var was=mode; up(); if(was==='idle'||was==='eat') startFast(); });
+  act.addEventListener('pointerup',function(){ var was=mode; up(); if(onBreak()){ breakNudge(); return; } if(was==='idle'||was==='eat') startFast(); });
   act.addEventListener('pointerleave',up); act.addEventListener('pointercancel',up);
   act.addEventListener('keydown',function(ev){ if((ev.key===' '||ev.key==='Enter')&&!ev.repeat){ ev.preventDefault(); cancelAuto();
+    if(onBreak()){ breakNudge(); return; }
     if(mode==='idle'||mode==='eat'){ startFast(); return; } if(mode==='fast'){ act.classList.add('pressed'); holdStart(); } } });
   act.addEventListener('keyup',function(ev){ if(ev.key===' '||ev.key==='Enter') up(); });
   $('shDone').addEventListener('click',function(){ cancelAuto(); toEat(); lapseTo('e',2.5,3500); });
