@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.35.1
+- **fix** On the concept page, the small progress icons in "Jump to a moment" (Start the fast, Hour 5, Hour 9, Sunrise, Reach the goal, Finish and celebrate, End and eat, and the Ramadan list) still showed the old moon-phase shapes. They now show what the app shows: a wedge of light that fills counter-clockwise from the top, and unwinds the same way while eating. The wording changed from "crescent" and "thin sliver" to "the disc starts to fill from the top", in English and Chinese. The Ramadan phone preview and the "Fuller means closer" card, and the 3D notes, follow. The app itself did not change.
+
 ## 0.35.0
 - **design** The progress bar on Today now marks the moment the moon turns into the sun, or the sun into the moon, for example "Sunrise 6:08 AM" above the line at the right spot. This was on the concept page from the start but had never been added to the app. It shows during a fast and during the eating window when a sunrise or sunset falls inside it, and not before you start or in Ramadan, which runs dawn to sunset. The Chinese wording is 日出 and 日落.
 
