@@ -131,7 +131,7 @@ var CHECK='<svg class="ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12
 var CHEV='<svg class="chev" viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5 7 7l-5.5 5.5"/></svg>';
 
 /* ---------- Today ---------- */
-var ph=$('ph'), cache={}, mode='idle', el=0, tgtP=0, shownP=-1, moonV=1, fullS=0, boost=0, tiltX=0, tiltY=0, tgtX=0, tgtY=0, lastHour=-1, firstTick=true, nowMs=Date.now();
+var ph=$('ph'), cache={}, mode='idle', el=0, tgtP=0, endHold=null, shownP=-1, moonV=1, fullS=0, boost=0, tiltX=0, tiltY=0, tgtX=0, tgtY=0, lastHour=-1, firstTick=true, nowMs=Date.now();
 function put(node,key,val,html){ if(cache[key]===val) return; var had=cache[key]!=null; cache[key]=val; if(html) node.innerHTML=val; else node.textContent=val;
   if(had&&(key==='sub'||key==='k'||key==='t')){ node.classList.remove('swap'); void node.offsetWidth; node.classList.add('swap'); } }
 var TIPS={night:['The long quiet stretch. Most of it passes while you sleep.','最安静的一段，大部分在睡梦中度过。'],first:['Hunger often comes in waves and passes. Water helps.','饥饿感常常一阵一阵，会过去的。喝点水会好些。'],
@@ -171,6 +171,8 @@ function updateToday(){
   el=cur?(now-cur.start)/H:0;
   /* disc: new to full during the fast, then waning through the eating window */
   tgtP=mode==='fast'?C.discFill(el,goal):mode==='eat'?1-Math.min(eatEl/eatLen,1):0;
+  /* closing moment: the disc keeps the phase you reached for a beat after you end, before the summary opens */
+  if(endHold){ if(Date.now()<endHold.until) tgtP=endHold.p; else endHold=null; }
   var moonNow=moonV>=.5;
   var skyName=S.lang==='zh'?sk[3]:sk[2];
   put($('sub'),'sub',skyName+' · '+(mode==='eat'?L('Eating window','进食窗口'):moonNow?L('Moon until ','月亮，直到 ')+clockH(sun.rise):L('Sun until ','太阳，直到 ')+clockH(sun.set)));
@@ -304,16 +306,19 @@ function endFast(){
   if(hrs<1/6){ save(); cache={}; shownP=-1; updateToday(); toast(L('Under 10 minutes, so it wasn’t saved.','不到 10 分钟，没有保存。')); return; }
   var f={id:uid(),start:cur.start,end:now,goalH:cur.goalH,plan:cur.planId};
   S.fasts.push(f); save(); cancelGoal(); cache={}; updateToday(); checkUnlocks();
-  var done=C.isDone(f), st=curStreak(), news=['16','18','20','23'].filter(function(i){ return planOk(i)&&openBefore.indexOf(i)<0; }).map(function(i){ return C.planLabel(C.planById(i)); });
+  var done=C.isDone(f), st=curStreak(), beat=done?(reduce?300:850):(reduce?0:700); if(!done&&beat) endHold={p:Math.min(hrs/cur.goalH,1),until:now+beat}; var news=['16','18','20','23'].filter(function(i){ return planOk(i)&&openBefore.indexOf(i)<0; }).map(function(i){ return C.planLabel(C.planById(i)); });
   var ask=!S.prefs.backupAsked&&S.fasts.filter(C.isDone).length===1&&CL&&CL.ready()&&!CL.getAuth(); if(ask){ S.prefs.backupAsked=true; save(); }
   if(done) celebrate();
-  setTimeout(function(){ openSheet('<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span>'+
+  setTimeout(function(){ openSheet('<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span><span class="of">'+(done?L('Your '+durTxt(cur.goalH)+' goal, reached','你的 '+durTxt(cur.goalH).replace(' 小时','小时')+'目标，达成了'):L('of your '+durTxt(cur.goalH)+' goal','目标是 '+durTxt(cur.goalH).replace(' 小时','小时')))+'</span>'+
     '<div class="facts"><div><b>'+(f.plan==='ramadan'?'–':st)+'</b><span>'+L('day streak','天连续')+'</span></div><div><b>'+clockMs(now)+'</b><span>'+L('ended','结束时间')+'</span></div></div>'+
     '<p class="note">'+(done?L('You reached your goal. Eat gently and drink some water.','你达成了目标。慢慢吃，先喝点水。'):L('That still counts as a fast. Listening to your body is the point, and your streak is yours to keep going.','这也算一次断食。倾听身体才是重点，你的连续记录还可以继续。'))+'</p>'+
     (news.length?'<p class="note" style="color:var(--label)"><b>'+L(news.join(' and ')+' is now open.',news.join('、')+' 现已开放。')+'</b> '+L('Choose it from the plan button on Today.','在今天页面的计划按钮里选择。')+'</p>':'')+
     (ask?'<p class="note">'+L('Want to keep these fasts if you change phones? Back them up with your email. It’s optional, and everything works without it.','想在换手机时保留这些记录吗？可以用邮箱备份。这是可选的，不备份也能正常使用。')+'</p>':'')+
-    '<div class="btns"><button class="btn dark" data-act="close">'+L('Start Eating Window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); },done?(reduce?300:850):0);
+    '<div class="btns"><button class="btn dark" data-act="close">'+L('Start eating window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); countUp(document.querySelector('#sheet .big'),hrs); },beat);
 }
+
+/* the hours on the summary count up to their value, so the number lands instead of just appearing */
+function countUp(node,hrs){ if(!node||reduce) return; var t0=performance.now(); (function step(){ var k=Math.min((performance.now()-t0)/700,1); node.innerHTML=fmtH(hrs*(1-Math.pow(1-k,3))); if(k<1&&node.isConnected) requestAnimationFrame(step); })(); }
 
 /* ---------- finish celebration: the disc blooms into light, a check draws in, soft sparks drift out. Same for every fast that reaches its goal, however long. ---------- */
 function celebrate(){

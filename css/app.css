@@ -187,6 +187,7 @@ html:lang(zh-Hans) .h-title,html:lang(zh-Hans) .ob h1{letter-spacing:0}
 .sheet .k{font:500 0.9375rem var(--font);color:var(--label-2);padding:0 var(--m)}
 .sheet .big{display:block;font:600 3rem/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums;padding:2px var(--m) 14px}
 .sheet .big small{font-size:.5em;color:var(--label-2);margin:0 .12em 0 .04em}
+.sheet .of{display:block;font:500 0.9375rem var(--font);color:var(--label-2);padding:0 var(--m) 14px;margin-top:-8px}
 .sheet .btns{padding:0 var(--m)}
 .facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--m) 14px}
 .facts div{background:var(--card);border-radius:14px;padding:12px 14px}

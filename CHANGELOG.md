@@ -4,6 +4,12 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.38.0
+Round 3 of the "feel premium" pass: a quieter, clearer end of a fast.
+- **design** When you end a fast early, the moon now holds the phase you reached for a short beat before the summary opens, instead of jumping straight to the eating window. A fast that reached its goal keeps its celebration as before.
+- **design** The summary says what you did against what you aimed for: the hours count up to their value, with a line under them, "of your 16 h goal" when you ended early and "Your 16 h goal, reached" when you made it. The Chinese wording follows.
+- **design** "Start Eating Window" is now "Start eating window", and the concept page's summary sheet uses the same sentence case, the same line under the hours, and "Ended early" as its title.
+
 ## 0.37.0
 Round 3 of the "feel premium" pass: one haptic and sound vocabulary.
 - **design** Sound and vibration were already on by default; now they follow one fixed vocabulary so the same thing always feels the same. A tiny tick on every wheel detent. A light tap for touches (pressing the disc or the main button, switches, tab changes, Undo). A small tap when the hour turns. A medium tap when a fast starts or when a hold completes. A success pattern with a soft chime when you reach your goal. Nothing fires on routine saves.

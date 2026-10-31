@@ -190,6 +190,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .sheet .k{font:500 15px var(--font);color:var(--label-2)}
 .sheet .big{display:block;font:600 48px/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:2px 0 16px}
 .sheet .big small{font-size:.5em;color:var(--label-2);margin:0 .12em 0 .04em}
+.sheet .of{display:block;font:500 15px var(--font);color:var(--label-2);margin:-10px 0 16px}
 .sheet .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sheet .row div{background:var(--bg);border-radius:14px;padding:12px 14px}
 .sheet .row b{display:block;font:600 22px var(--font-r);font-variant-numeric:tabular-nums}
@@ -796,11 +797,12 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div class="scrim" id="scrim"></div>
       <div class="sheet" id="sheet" role="dialog" aria-label="Fast saved">
         <div class="grab"></div>
-        <span class="k" id="shK">Fast Saved</span>
+        <span class="k" id="shK">Fast saved</span>
         <span class="big" id="shBig"></span>
+        <span class="of" id="shOf"></span>
         <div class="row"><div><b id="shStreak">7</b><span data-zh="天连续">day streak</span></div><div><b id="shEnd"></b><span data-zh="结束时间">ended</span></div></div>
         <p id="shNote"></p>
-        <button class="done" type="button" id="shDone" data-zh="开始进食窗口">Start Eating Window</button>
+        <button class="done" type="button" id="shDone" data-zh="开始进食窗口">Start eating window</button>
       </div>
     </div>
 
@@ -1476,7 +1478,8 @@ window.LightlySphere=(function(){
   
   function endFast(){ var early=h<GOAL; if(!early){ celebrate(); setTimeout(finishSheet,reduce?300:850); } else finishSheet(); }
   function finishSheet(){ var early=h<GOAL; setMode('saved'); var s=START[startKey];
-    $('shK').textContent=early?L('Fast Saved, Ended Early','已保存，提前结束'):L('Fast Saved','已保存');
+    $('shK').textContent=early?L('Ended early','提前结束'):L('Fast saved','已保存');
+    $('shOf').textContent=early?L('of your '+GOAL+' h goal','目标是 '+GOAL+'小时'):L('Your '+GOAL+' h goal, reached','你的 '+GOAL+'小时目标，达成了');
     var fin=h, c0=performance.now(); (function cu(){ var k=reduce?1:Math.min((performance.now()-c0)/700,1); $('shBig').innerHTML=fmt(fin*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(cu); })(); $('shEnd').textContent=clock(s+h);
     $('shNote').textContent=early?L('Ending early still counts toward your streak. Nothing is lost.','提前结束也算进连续天数，什么都不会失去。'):L('Goal reached. Your next fast can start at ','目标达成。下一次断食可以在 ')+clock(s+24)+L('.',' 开始。');
     buzz(14); }
