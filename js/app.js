@@ -157,6 +157,9 @@ var orb=null, flat=true;
 function initOrb(){ try{ orb=window.LightlySphere?window.LightlySphere($('disc')):null; }catch(e){ orb=null; } if(orb) orb.set(!!S.prefs.d3); }
 function phasePath(p,r){ p=Math.min(Math.max(p,0),1); if(p<=0.001) return ''; var rx=r*Math.abs(1-2*p), s=p<0.5?0:1; return 'M0 '+(-r)+' A'+r+' '+r+' 0 0 1 0 '+r+' A'+rx.toFixed(2)+' '+r+' 0 0 '+s+' 0 '+(-r)+'Z'; }
 
+/* Some iPhones give a Home Screen app a page about 62 pt shorter than the screen, and nothing can be drawn below it. The home indicator is then below the page, so there is no bottom inset to keep clear of. */
+function shortPage(){ var root=document.documentElement, st=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode:standalone)').matches), gap=Math.max(screen.height||0,screen.width||0)-window.innerHeight;
+  if(st&&window.innerWidth<600&&window.innerHeight>window.innerWidth&&gap>20&&gap<140) root.style.setProperty('--sab','0px'); else root.style.removeProperty('--sab'); }
 function chrome(){ /* the colour behind the app (page background, status bar, home-indicator area) always matches the screen on top of it */
   var c=(curTab==='today'?getComputedStyle(ph).getPropertyValue('--sky'):getComputedStyle(document.documentElement).getPropertyValue('--bg')).trim()||'#0E1430';
   document.documentElement.style.backgroundColor=c; document.body.style.backgroundColor=c;
@@ -1092,8 +1095,8 @@ if(S.onboarded) normalisePlan();
 if(S.prefs.timerStyle==='c') S.prefs.timerStyle='b';
 ph.dataset.ts=S.prefs.timerStyle||'b';
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
-chrome();
-['resize','orientationchange','pageshow'].forEach(function(e){ window.addEventListener(e,chrome); });
+shortPage(); chrome();
+['resize','orientationchange','pageshow'].forEach(function(e){ window.addEventListener(e,function(){ shortPage(); chrome(); }); });
 if(window.matchMedia){ var mq=matchMedia('(prefers-color-scheme:dark)'); if(mq.addEventListener) mq.addEventListener('change',function(){ setTimeout(chrome,50); }); }
 var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash);
 if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }

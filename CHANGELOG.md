@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.41.1
+- **fix** iPhone Home Screen: your phone gives Lightly a page that ends about 62 pt above the bottom of the screen (the in-app check shows a 894 pt page on a 956 pt screen), and nothing can be drawn below it. The app now notices that and stops leaving room for the home indicator at the bottom, so the tab bar sits just above the end of the page instead of floating high, and the strip below is the same colour as the screen. The cause is still on iOS's side, so this is a workaround. The concept page did not change.
+
 ## 0.41.0
 - **design** The label at the top left of Today is now a frosted "sky pill" that pairs with the plan button: a small moon or sun, the part of the day in bold (Sunset, Night, First light), and one quiet detail. Before you start it says when the sky turns, for example "until 5:07 PM". While you fast or eat, the progress line already shows that time, so the pill counts down instead ("1 h 22 m left"), and it no longer repeats "Eating window" above a readout that says the same. The pill and the button now sit on the same line, where the old text hung about 12 pt lower. The Chinese wording is 日落 · 直到 下午 5:07 and 日落 · 还剩 1 小时 22 分. The concept page matches.
 
