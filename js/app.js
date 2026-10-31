@@ -599,7 +599,19 @@ function pkRead(pk){
   var hh=((c('h')+1)%12)+(c('p')?12:0), mm=c('m');
   if(kind==='t') return pkPad(hh)+':'+pkPad(mm);
   var d=new Date(+pk.dataset.d0); d.setDate(d.getDate()+c('d')); d.setHours(hh,mm,0,0); return String(d.getTime()); }
-function pkSet(col,i,smooth){ var n=col.children.length; i=Math.max(0,Math.min(n-1,i)); col.scrollTo({top:i*PKH,behavior:smooth?'smooth':'auto'}); }
+function pkSet(col,i,smooth){ var n=col.children.length; i=Math.max(0,Math.min(n-1,i)); col.scrollTo({top:i*PKH,behavior:smooth&&!reduce?'smooth':'auto'}); }
+/* the drum: rows within three of the centre fade, shrink and tilt away from it; the rest rest at the CSS values */
+function pkDrum(col){
+  var c=col.scrollTop/PKH, n=col.children.length, lo=Math.max(0,Math.floor(c)-3), hi=Math.min(n-1,Math.ceil(c)+3), i, o, a, el, prev=col._lit||[];
+  for(i=0;i<prev.length;i++){ if(prev[i]<lo||prev[i]>hi){ el=col.children[prev[i]]; if(el){ el.style.opacity=''; el.style.transform=''; } } }
+  for(i=lo;i<=hi;i++){ el=col.children[i]; o=i-c; a=Math.min(Math.abs(o),3);
+    el.style.opacity=(1-a*.24).toFixed(3);
+    if(!reduce) el.style.transform='perspective(260px) rotateX('+(-o*15).toFixed(2)+'deg) scale('+(1-a*.045).toFixed(3)+')'; }
+  col._lit=[]; for(i=lo;i<=hi;i++) col._lit.push(i); }
+/* after a scroll has settled, glide to the nearest row (only when the finger is up) */
+function pkSettle(col){ var i=Math.max(0,Math.min(col.children.length-1,Math.round(col.scrollTop/PKH)));
+  if(Math.abs(col.scrollTop-i*PKH)>.5) col.scrollTo({top:i*PKH,behavior:reduce?'auto':'smooth'}); }
+function pkArm(col){ clearTimeout(col._st); col._st=setTimeout(function(){ if(!col._down) pkSettle(col); },130); }
 function pkTune(col){
   var pk=col.closest('.pk'), i=Math.max(0,Math.min(col.children.length-1,Math.round(col.scrollTop/PKH)));
   if(+col.dataset.sel===i) return; var old=col.children[+col.dataset.sel]; if(old){ old.classList.remove('sel'); old.setAttribute('aria-selected','false'); }
@@ -617,9 +629,12 @@ function pkToggle(id){
   pk.classList.toggle('open',open); pk.querySelector('.pk-row').setAttribute('aria-expanded',String(open));
   if(!open) return;
   Array.prototype.forEach.call(pk.querySelectorAll('.pk-c'),function(c){
-    pkSet(c,+c.dataset.sel,false);
+    pkSet(c,+c.dataset.sel,false); pkDrum(c);
     if(c._on) return; c._on=true;
-    c.addEventListener('scroll',function(){ pkTune(c); },{passive:true});
+    c.addEventListener('scroll',function(){ pkTune(c); if(!c._raf) c._raf=requestAnimationFrame(function(){ c._raf=0; pkDrum(c); }); pkArm(c); },{passive:true});
+    c.addEventListener('touchstart',function(){ c._down=true; clearTimeout(c._st); },{passive:true});
+    c.addEventListener('touchend',function(){ c._down=false; pkArm(c); },{passive:true});
+    c.addEventListener('touchcancel',function(){ c._down=false; pkArm(c); },{passive:true});
     c.addEventListener('click',function(e){ var it=e.target.closest('.pk-i'); if(it) pkSet(c,+it.dataset.i,true); });
     c.addEventListener('keydown',function(e){ var step={ArrowUp:-1,ArrowDown:1,PageUp:-5,PageDown:5}[e.key], i=Math.round(c.scrollTop/PKH);
       if(e.key==='Home') step=-i; if(e.key==='End') step=c.children.length-1-i; if(step==null) return; e.preventDefault(); pkSet(c,i+step,true); }); });
