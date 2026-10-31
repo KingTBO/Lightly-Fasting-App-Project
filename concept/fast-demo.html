@@ -246,8 +246,8 @@ td:first-child{color:var(--label);font-weight:600}
       <div class="group">
         <span class="k" data-zh="开始时间">Start time</span>
         <div class="seg wide" role="group" aria-label="Start time">
-          <button type="button" id="st-night" aria-pressed="true"><span data-zh="今晚">Tonight</span><small id="st-night-t">8:30 PM</small></button>
-          <button type="button" id="st-day" aria-pressed="false"><span data-zh="今早">This morning</span><small id="st-day-t">7:00 AM</small></button>
+          <button type="button" id="st-night" aria-pressed="true"><span data-zh="今晚">Tonight</span><small id="st-night-t">20:30</small></button>
+          <button type="button" id="st-day" aria-pressed="false"><span data-zh="今早">This morning</span><small id="st-day-t">07:00</small></button>
         </div>
         <p class="why" id="why"></p>
         <div class="loc"><label for="city" data-zh="所在地">Where you are</label><select id="city"><option value="shanghai">Shanghai</option><option value="singapore">Singapore</option><option value="london">London</option><option value="newyork">New York</option></select><button type="button" id="geoBtn" data-zh="用我的位置">Use my location</button></div>
@@ -301,7 +301,7 @@ td:first-child{color:var(--label);font-weight:600}
           <g id="evt" opacity="0"><line id="evtL" y1="0" y2="0" stroke-width="1.5" stroke-linecap="round" style="stroke:var(--ink-2)"/><text id="evtT" text-anchor="middle" font-size="10.5" font-weight="600" style="fill:var(--ink-2);font-family:var(--font)"></text></g>
           <circle id="marker" r="9" stroke-width="3" style="stroke:var(--sky)"/>
         </svg>
-        <div class="ends"><span id="endA">8:30 PM</span><span id="endB"><b>12:30 PM</b></span></div>
+        <div class="ends"><span id="endA">20:30</span><span id="endB"><b>12:30</b></span></div>
       </div>
       <button class="act" type="button" id="act"><span id="actLbl">Start Fast</span></button>
       <nav class="tabs" aria-label="App tabs">
@@ -575,9 +575,7 @@ window.LightlySphere=(function(){
 
   /* ---------- clock + sky by local time ---------- */
   function clock(hDay){ hDay=((hDay%24)+24)%24; var hh=Math.floor(hDay), mm=Math.round((hDay-hh)*60); if(mm===60){mm=0;hh=(hh+1)%24;}
-    var m=String(mm).padStart(2,'0');
-    if(lang==='zh'){var p=hh<5?'凌晨':hh<11?'上午':hh<13?'中午':hh<18?'下午':'晚上';var h12=hh%12===0?12:hh%12;return p+' '+h12+':'+m;}
-    return (hh%12===0?12:hh%12)+':'+m+' '+(hh<12?'AM':'PM'); }
+    return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); }   /* 24-hour clock */
   var SKY=[[0,'night','Night','深夜'],[5,'first','First light','破晓'],[6,'dawn','Dawn','黎明'],[7.5,'morning','Morning','清晨'],[11,'day','Day','白天'],[17,'sunset','Sunset','日落'],[19,'evening','Evening','傍晚'],[21,'night','Night','深夜']];
   function skyAt(hDay){ hDay=((hDay%24)+24)%24; var r=SUN.rise, st=SUN.set, k;
     if(hDay>=r-1.2&&hDay<r-.3) k=1; else if(hDay>=r-.3&&hDay<r+.9) k=2; else if(hDay>=r+.9&&hDay<r+3.5) k=3; else if(hDay>=r+3.5&&hDay<st-1.4) k=4; else if(hDay>=st-1.4&&hDay<st+.35) k=5; else if(hDay>=st+.35&&hDay<st+1.6) k=6; else k=0;

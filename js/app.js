@@ -29,10 +29,9 @@ function L(en,zh){ return S.lang==='zh'?zh:en; }
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function loc(){ return S.lang==='zh'?'zh-CN':'en-US'; }
 function clockMs(ms){ var d=new Date(ms); return clockH(d.getHours()+d.getMinutes()/60); }
+/* 24-hour clock everywhere (08:30, 20:05), the same in English and Chinese: no AM/PM and no 上午/下午, which not everyone reads the same way */
 function clockH(h){ h=((h%24)+24)%24; var hh=Math.floor(h), mm=Math.round((h-hh)*60); if(mm===60){mm=0;hh=(hh+1)%24;}
-  var m=(mm<10?'0':'')+mm;
-  if(S.lang==='zh'){ var p=hh<5?'凌晨':hh<11?'上午':hh<13?'中午':hh<18?'下午':'晚上', h12=hh%12===0?12:hh%12; return p+' '+h12+':'+m; }
-  return (hh%12===0?12:hh%12)+':'+m+' '+(hh<12?'AM':'PM'); }
+  return (hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm; }
 function dateLbl(ms,o){ return new Intl.DateTimeFormat(loc(),o||{weekday:'short',month:'short',day:'numeric'}).format(new Date(ms)); }
 /* the big numerals: h:mm:ss, tabular digits that never shift the layout; only digits that changed roll in from below */
 var bigEl=$('readBig'), bigStr='', bigTime=false, altEl=$('readAlt');
@@ -91,7 +90,13 @@ function tone(f,dur,vol,type,at){ var c=actx(); if(!c) return; var t=c.currentTi
   o.type=type||'sine'; o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+.02); }
 function sChime(){ tone(1318.5,1.4,.06); tone(1975.5,1.6,.04,'sine',.09); tone(2637,1.2,.02,'sine',.18); }
-function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+/* Android and desktop Chrome can vibrate from the web. iPhone Safari cannot (no navigator.vibrate), but Safari 17.4+ plays a small tap when a hidden
+   <input type=checkbox switch> is toggled from a touch, so we borrow that as a best-effort tick. It only fires while a finger is on the screen. */
+var tapEl;
+function iosTap(){ if(tapEl===undefined){ tapEl=null; try{ if(window.CSS&&CSS.supports&&CSS.supports('-webkit-appearance','switch')){ var l=document.createElement('label'), i=document.createElement('input');
+  l.setAttribute('aria-hidden','true'); l.style.cssText='position:fixed;left:-60px;top:0;width:44px;height:44px;opacity:.01;pointer-events:none;overflow:hidden'; i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1; l.appendChild(i); document.body.appendChild(l); tapEl=l; } }catch(e){} } return tapEl; }
+function canTick(){ return !!navigator.vibrate||!!iosTap(); }
+function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); else{ var t=iosTap(); if(t) t.click(); } }catch(e){} }
 /* one fixed vocabulary, so the same thing always feels the same:
    select = a wheel detent, light = a touch or toggle, hour = the hour turns, medium = a fast starts or a hold completes,
    success = the goal is reached (the only sound in the app is its soft chime), nope = a gentle "not now" (two light taps, no sound). Nothing fires on routine saves. */
@@ -188,7 +193,7 @@ function updateToday(){
   var turnAt=moonNow?sun.rise:sun.set, countDown=(mode==='fast'||mode==='eat')&&!(cur&&cur.planId==='ramadan')&&!(S.planId==='ramadan'), left=Math.max(1,Math.round((((turnAt-hp)%24+24)%24)*60));
   if(cache.skgs!==(moonNow?'m':'s')){ cache.skgs=moonNow?'m':'s'; $('skyG').innerHTML=skyGlyph(moonNow); $('skyG').className='sg '+(moonNow?'moon':'sun'); }
   put($('skyStage'),'sub',skyName);
-  /* the pill always names the sky event, so it can't be read as your fast: "Sunrise 6:12 AM" before you start, "Sunrise in 1 h 22 m" while you fast or eat */
+  /* the pill always names the sky event, so it can't be read as your fast: "Sunrise 06:12" before you start, "Sunrise in 1 h 22 m" while you fast or eat */
   var evEn=moonNow?'Sunrise':'Sunset', evZh=moonNow?'日出':'日落', skyTxt=countDown?L(evEn+' in '+hmTxt(left),hmTxt(left)+'后'+evZh):L(evEn+' ',evZh+' ')+clockH(turnAt);
   put($('skyTx'),'skx',skyTxt);
   var skyAria=skyName+', '+skyTxt+'. '+L('Opens an explanation.','打开说明。'); if(cache.skal!==skyAria){ cache.skal=skyAria; $('sub').setAttribute('aria-label',skyAria); }
@@ -570,26 +575,36 @@ function renderDays(){
 }
 
 /* ---------- in-app wheel pickers: they replace the browser's date, time and select controls ----------
-   A row shows the value in a capsule and opens a wheel inline. Columns snap, scroll by touch, wheel or arrow keys. */
-var PKH=36, pkTimer=null;
+   A row shows the value in a capsule and opens a wheel inline. The wheel has its own physics, like the Apple Clock picker, so it feels the same on
+   every phone: it follows the finger, a flick carries on with momentum (and a long glide), and it only lines up with a row once it has nearly stopped.
+   Hours and minutes loop (23 is followed by 00). Mouse wheel, trackpad and arrow keys work too. */
+var PKH=36, pkTimer=null, pkTick=0;
+var PK_TAU=480, PK_GAIN=1.3, PK_VMAX=9, PK_REPS=7, PK_MID=3;   /* glide time constant (ms), flick gain, max speed (px/ms), copies of a looping list, middle copy */
 function pkPad(n){ return (n<10?'0':'')+n; }
+function pkClamp(v,a,b){ return v<a?a:v>b?b:v; }
 function pkDayStart(ms){ var d=new Date(ms); d.setHours(0,0,0,0); return d.getTime(); }
 function pkDayText(ms){ var t=pkDayStart(Date.now()), d=pkDayStart(ms), diff=Math.round((t-d)/D);
   if(diff===0) return L('Today','今天'); if(diff===1) return L('Yesterday','昨天');
   return dateLbl(ms,new Date(ms).getFullYear()===new Date().getFullYear()?{weekday:'short',month:'short',day:'numeric'}:{year:'numeric',month:'short',day:'numeric'}); }
 function pkText(kind,val){ if(kind==='dt') return pkDayText(+val)+(S.lang==='zh'?' ':', ')+clockMs(+val); if(kind==='t'){ var a=String(val).split(':'); return clockH((+a[0])+(+a[1])/60); } return String(val); }
-function pkCol(key,label,items,sel,flex){ return '<div class="pk-c" role="listbox" tabindex="0" data-c="'+key+'" data-sel="'+sel+'" aria-label="'+esc(label)+'" style="flex:'+flex+'">'+items.map(function(t,i){ return '<div class="pk-i'+(i===sel?' sel':'')+'" role="option" aria-selected="'+(i===sel)+'" data-i="'+i+'">'+t+'</div>'; }).join('')+'</div>'; }
+/* loop: the list is repeated PK_REPS times and the wheel rests in the middle copy, so it can be spun either way without reaching an end */
+function pkCol(key,label,items,sel,flex,loop){
+  var n=items.length, base=loop?n*PK_MID:0, rows=items, r;
+  if(loop){ rows=[]; for(r=0;r<PK_REPS;r++) rows=rows.concat(items); }
+  return '<div class="pk-c" role="listbox" tabindex="0" data-c="'+key+'" data-sel="'+sel+'"'+(loop?' data-loop="'+n+'"':'')+' aria-label="'+esc(label)+'" style="flex:'+flex+'">'+rows.map(function(t,i){
+    var on=i===sel+base, hid=loop&&(i<base||i>=base+n);
+    return '<div class="pk-i'+(on?' sel':'')+'" role="option" aria-selected="'+on+'"'+(hid?' aria-hidden="true"':'')+' data-i="'+i+'">'+t+'</div>'; }).join('')+'</div>'; }
 /* kind: 'dt' (ms), 't' ('HH:MM') or 'sel' (a key from opts: [[key,label],...]) */
 function pkField(id,label,val,kind,opts){
   var cols='', d, hh, mm, a, hrs=[], mins=[], i;
   if(kind==='sel'){ cols=pkCol('s',label,opts.map(function(o){ return esc(o[1]); }),Math.max(0,opts.map(function(o){ return o[0]; }).indexOf(val)),1); }
   else{
     if(kind==='dt'){ d=new Date(+val); } else { a=String(val).split(':'); d=new Date(); d.setHours(+a[0]||0,+a[1]||0,0,0); }
-    hh=d.getHours(); mm=d.getMinutes(); for(i=1;i<=12;i++) hrs.push(i); for(i=0;i<60;i++) mins.push(pkPad(i));
+    hh=d.getHours(); mm=d.getMinutes(); for(i=0;i<24;i++) hrs.push(pkPad(i)); for(i=0;i<60;i++) mins.push(pkPad(i));
     if(kind==='dt'){ var first=Math.min(pkDayStart(+val),pkDayStart(Date.now()-365*D)), last=Math.max(pkDayStart(+val),pkDayStart(Date.now())), days=[], x=new Date(first);
       while(x.getTime()<=last){ days.push(pkDayText(x.getTime())); x.setDate(x.getDate()+1); }
       cols+=pkCol('d',L('Day','日期'),days,Math.round((pkDayStart(+val)-first)/D),2.6); }
-    cols+=pkCol('h',L('Hour','小时'),hrs,(hh%12||12)-1,1)+pkCol('m',L('Minute','分钟'),mins,mm,1)+pkCol('p',L('AM or PM','上午或下午'),[L('AM','上午'),L('PM','下午')],hh<12?0:1,1.2);
+    cols+=pkCol('h',L('Hour','小时'),hrs,hh,1,true)+pkCol('m',L('Minute','分钟'),mins,mm,1,true);
   }
   return '<div class="pk" id="'+id+'" data-kind="'+kind+'" data-val="'+esc(String(val))+'"'+(kind==='dt'?' data-d0="'+Math.min(pkDayStart(+val),pkDayStart(Date.now()-365*D))+'"':'')+(kind==='sel'?' data-opts="'+esc(JSON.stringify(opts.map(function(o){return o[0];})))+'" data-labels="'+esc(JSON.stringify(opts.map(function(o){return o[1];})))+'"':'')+'>'+
     '<button type="button" class="row pk-row" data-act="pktog" data-id="'+id+'" aria-expanded="false" aria-controls="'+id+'-w"><span>'+label+'</span><span class="pk-v">'+esc(kind==='sel'?(opts.filter(function(o){return o[0]===val;})[0]||opts[0])[1]:pkText(kind,val))+'</span></button>'+
@@ -599,10 +614,32 @@ function pkVal(id){ return $(id).dataset.val; }
 function pkRead(pk){
   var kind=pk.dataset.kind, c=function(k){ var e=pk.querySelector('[data-c="'+k+'"]'); return e?+e.dataset.sel:0; };
   if(kind==='sel') return JSON.parse(pk.dataset.opts)[c('s')];
-  var hh=((c('h')+1)%12)+(c('p')?12:0), mm=c('m');
+  var hh=c('h'), mm=c('m');
   if(kind==='t') return pkPad(hh)+':'+pkPad(mm);
   var d=new Date(+pk.dataset.d0); d.setDate(d.getDate()+c('d')); d.setHours(hh,mm,0,0); return String(d.getTime()); }
-function pkSet(col,i,smooth){ var n=col.children.length; i=Math.max(0,Math.min(n-1,i)); col.scrollTo({top:i*PKH,behavior:smooth&&!reduce?'smooth':'auto'}); }
+/* --- the physics --- */
+function pkBase(col){ var n=+col.dataset.loop; return n?n*PK_MID:0; }
+function pkMaxY(col){ return (col.children.length-1)*PKH; }
+function pkPut(col,y){ y=pkClamp(y,0,pkMaxY(col)); col._y=y; col.scrollTop=y; }
+function pkStop(col){ if(col._ra){ cancelAnimationFrame(col._ra); col._ra=0; } col._tgt=null; }
+/* at rest (or when a finger lands), move a looping wheel back to its middle copy; the rows look identical, so nothing visibly moves */
+function pkCenter(col){ var n=+col.dataset.loop; if(!n) return; var y=col.scrollTop, k=Math.floor(y/PKH/n), s=(PK_MID-k)*n*PKH; if(s){ col.scrollTop=y+s; col._y=col.scrollTop; } }
+/* glide to a row with an ease-out that starts at the speed the finger left at (tau shorter = quicker stop) */
+function pkRun(col,tgt,tau){
+  pkStop(col); tgt=pkClamp(Math.round(tgt/PKH)*PKH,0,pkMaxY(col));
+  var y0=col.scrollTop, d=tgt-y0;
+  if(reduce||Math.abs(d)<.5){ pkPut(col,tgt); pkCenter(col); return; }
+  var t0=performance.now(); col._tgt=tgt;
+  function step(now){ var rem=d*Math.exp(-(now-t0)/tau);
+    if(Math.abs(rem)<1){ col._ra=0; col._tgt=null; pkPut(col,tgt); pkCenter(col); return; }
+    pkPut(col,tgt-rem); col._ra=requestAnimationFrame(step); }
+  col._ra=requestAnimationFrame(step); }
+/* let go at speed v (px per ms): coast for as long as the speed lasts, and end exactly on a row (no second "settle" step) */
+function pkFling(col,v){
+  var y=col.scrollTop, tgt=reduce?y:y+v*PK_TAU; tgt=pkClamp(Math.round(tgt/PKH)*PKH,0,pkMaxY(col));
+  var d=tgt-y, tau=(d*v>0)?pkClamp(d/v,110,PK_TAU*1.6):190;
+  pkRun(col,tgt,tau); }
+function pkSet(col,i,smooth){ i=pkClamp(i,0,col.children.length-1); if(smooth&&!reduce) pkRun(col,i*PKH,150); else{ pkStop(col); pkPut(col,i*PKH); } }
 /* the drum: rows within three of the centre fade, shrink and tilt away from it; the rest rest at the CSS values */
 function pkDrum(col){
   var c=col.scrollTop/PKH, n=col.children.length, lo=Math.max(0,Math.floor(c)-3), hi=Math.min(n-1,Math.ceil(c)+3), i, o, a, el, prev=col._lit||[];
@@ -611,14 +648,14 @@ function pkDrum(col){
     el.style.opacity=(1-a*.24).toFixed(3);
     if(!reduce) el.style.transform='perspective(260px) rotateX('+(-o*15).toFixed(2)+'deg) scale('+(1-a*.045).toFixed(3)+')'; }
   col._lit=[]; for(i=lo;i<=hi;i++) col._lit.push(i); }
-/* after a scroll has settled, glide to the nearest row (only when the finger is up) */
-function pkSettle(col){ var i=Math.max(0,Math.min(col.children.length-1,Math.round(col.scrollTop/PKH)));
-  if(Math.abs(col.scrollTop-i*PKH)>.5) col.scrollTo({top:i*PKH,behavior:reduce?'auto':'smooth'}); }
-function pkArm(col){ clearTimeout(col._st); col._st=setTimeout(function(){ if(!col._down) pkSettle(col); },130); }
+/* a new row is under the selection line: a haptic tick (follows the Vibration setting), and the value updates */
 function pkTune(col){
-  var pk=col.closest('.pk'), i=Math.max(0,Math.min(col.children.length-1,Math.round(col.scrollTop/PKH)));
-  if(+col.dataset.sel===i) return; var old=col.children[+col.dataset.sel]; if(old){ old.classList.remove('sel'); old.setAttribute('aria-selected','false'); }
-  col.dataset.sel=i; col.children[i].classList.add('sel'); col.children[i].setAttribute('aria-selected','true'); fx('select');
+  var pk=col.closest('.pk'), n=+col.dataset.loop||0, i=pkClamp(Math.round(col.scrollTop/PKH),0,col.children.length-1), s=n?i%n:i,
+      old=col.querySelector('.pk-i.sel');
+  if(old&&+old.dataset.i===i) return;
+  if(old){ old.classList.remove('sel'); old.setAttribute('aria-selected','false'); } col.children[i].classList.add('sel'); col.children[i].setAttribute('aria-selected','true');
+  if(+col.dataset.sel===s) return;   /* only the copy changed (the wheel re-centred): same value, no tick */
+  col.dataset.sel=s; var t=performance.now(); if(t-pkTick>22){ pkTick=t; fx('select'); }
   var v=pkRead(pk); pk.dataset.val=v; var kind=pk.dataset.kind;
   pk.querySelector('.pk-v').textContent=kind==='sel'?JSON.parse(pk.dataset.labels)[col.dataset.sel]:pkText(kind,v);
   pkChange(pk.id,v); }
@@ -626,21 +663,38 @@ function pkChange(id,v){
   if(id==='obStart'){ ob.start=v; var o=$('obPrev'); if(o){ var t=document.createElement('div'); t.innerHTML=obPrev(ob.plan||'16',v); o.querySelector('small').textContent=t.querySelector('small').textContent; } }
   else if(id==='obCity') setPlace({key:v});
   else if(id==='usualStart'){ clearTimeout(pkTimer); pkTimer=setTimeout(function(){ S.prefs.usualStart=v; save(); cache={}; updateToday(); },400); } }
+function pkBind(c){
+  c.addEventListener('scroll',function(){ pkTune(c); if(!c._raf) c._raf=requestAnimationFrame(function(){ c._raf=0; pkDrum(c); }); },{passive:true});
+  c.addEventListener('pointerdown',function(e){ if(c._pid!=null||(e.pointerType==='mouse'&&e.button!==0)) return;
+    pkStop(c); clearTimeout(c._wt); pkCenter(c); c._y=c.scrollTop; c._pid=e.pointerId; c._py=e.clientY; c._moved=0; c._s=[[e.timeStamp,e.clientY]]; c.classList.add('drag');
+    try{ c.setPointerCapture(e.pointerId); }catch(x){} });
+  c.addEventListener('pointermove',function(e){ if(c._pid!==e.pointerId) return;
+    var dy=e.clientY-c._py; c._py=e.clientY; c._moved+=Math.abs(dy); pkPut(c,c._y-dy);
+    var s=c._s; s.push([e.timeStamp,e.clientY]); while(s.length>2&&e.timeStamp-s[0][0]>90) s.shift(); });
+  function up(e){ if(c._pid!==e.pointerId) return; c._pid=null; c.classList.remove('drag');
+    if(c._moved<6){   /* a tap: glide to the row that was tapped */
+      var el=document.elementFromPoint(e.clientX,e.clientY), it=el&&el.closest&&el.closest('.pk-i'); if(it&&c.contains(it)&&e.type==='pointerup') pkSet(c,+it.dataset.i,true); else pkRun(c,c.scrollTop,190); return; }
+    var s=c._s, a=s[0], z=s[s.length-1], v=0;
+    if(e.type==='pointerup'&&s.length>1&&e.timeStamp-z[0]<70&&z[0]>a[0]) v=-(z[1]-a[1])/(z[0]-a[0]);   /* a finger that rested before lifting does not fling */
+    pkFling(c,pkClamp(v*PK_GAIN,-PK_VMAX,PK_VMAX)); }
+  c.addEventListener('pointerup',up); c.addEventListener('pointercancel',up);
+  c.addEventListener('wheel',function(e){ e.preventDefault();
+    var dy=e.deltaMode===1?e.deltaY*PKH:e.deltaMode===2?e.deltaY*PKH*5:e.deltaY;
+    if(Math.abs(dy)>=40){   /* a mouse-wheel notch: step a few rows */
+      var base=c._tgt!=null?c._tgt:Math.round(c.scrollTop/PKH)*PKH; pkRun(c,base+(dy<0?-1:1)*Math.max(1,Math.round(Math.abs(dy)/45))*PKH,150); }
+    else{ pkStop(c); pkCenter(c); pkPut(c,c.scrollTop+dy); clearTimeout(c._wt); c._wt=setTimeout(function(){ pkRun(c,c.scrollTop,190); },110); } },{passive:false});
+  c.addEventListener('keydown',function(e){ var step={ArrowUp:-1,ArrowDown:1,PageUp:-5,PageDown:5}[e.key]; if(step==null&&e.key!=='Home'&&e.key!=='End') return; e.preventDefault();
+    var n=+c.dataset.loop||0, base=pkBase(c), tgt=c._tgt; if(tgt==null){ pkCenter(c); tgt=Math.round(c.scrollTop/PKH)*PKH; }
+    var i=Math.round(tgt/PKH), lo=base, hi=base+(n||c.children.length)-1;
+    pkSet(c,e.key==='Home'?lo:e.key==='End'?hi:i+step,true); }); }
 function pkToggle(id){
   var pk=$(id), open=!pk.classList.contains('open');
   Array.prototype.forEach.call(pk.parentNode.querySelectorAll('.pk.open'),function(o){ if(o!==pk){ o.classList.remove('open'); o.querySelector('.pk-row').setAttribute('aria-expanded','false'); } });
   pk.classList.toggle('open',open); pk.querySelector('.pk-row').setAttribute('aria-expanded',String(open));
   if(!open) return;
   Array.prototype.forEach.call(pk.querySelectorAll('.pk-c'),function(c){
-    pkSet(c,+c.dataset.sel,false); pkDrum(c);
-    if(c._on) return; c._on=true;
-    c.addEventListener('scroll',function(){ pkTune(c); if(!c._raf) c._raf=requestAnimationFrame(function(){ c._raf=0; pkDrum(c); }); pkArm(c); },{passive:true});
-    c.addEventListener('touchstart',function(){ c._down=true; clearTimeout(c._st); },{passive:true});
-    c.addEventListener('touchend',function(){ c._down=false; pkArm(c); },{passive:true});
-    c.addEventListener('touchcancel',function(){ c._down=false; pkArm(c); },{passive:true});
-    c.addEventListener('click',function(e){ var it=e.target.closest('.pk-i'); if(it) pkSet(c,+it.dataset.i,true); });
-    c.addEventListener('keydown',function(e){ var step={ArrowUp:-1,ArrowDown:1,PageUp:-5,PageDown:5}[e.key], i=Math.round(c.scrollTop/PKH);
-      if(e.key==='Home') step=-i; if(e.key==='End') step=c.children.length-1-i; if(step==null) return; e.preventDefault(); pkSet(c,i+step,true); }); });
+    pkSet(c,pkBase(c)+(+c.dataset.sel),false); pkDrum(c);
+    if(c._on) return; c._on=true; pkBind(c); });
   setTimeout(function(){ try{ pk.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'}); }catch(x){} },60); }
 function fastSheet(f,addKey){
   var isNew=!f, now=Date.now(), end, start;
@@ -862,7 +916,7 @@ function renderMe(){
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
    '<button class="row" data-act="choice" data-k="lang"><span>'+L('Language','语言')+'</span><span class="v">'+(S.lang==='zh'?'中文':'English')+'</span>'+CHEV+'</button>'+
    '<button class="row" data-act="choice" data-k="theme"><span>'+L('Appearance','外观')+'</span><span class="v">'+choiceLabel('theme',S.theme)+'</span>'+CHEV+'</button>'+
-   sw('sound',L('Sound','声音'),S.prefs.sound)+(navigator.vibrate?sw('haptics',L('Vibration','振动'),S.prefs.haptics):'')+sw('d3',L('3D moon and sun','3D 月亮和太阳'),S.prefs.d3&&!!orb,!orb)+
+   sw('sound',L('Sound','声音'),S.prefs.sound)+(canTick()?sw('haptics',L('Vibration','振动'),S.prefs.haptics):'')+sw('d3',L('3D moon and sun','3D 月亮和太阳'),S.prefs.d3&&!!orb,!orb)+
    sw('notify',L('Reminders','提醒'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>';
   h+='<div class="gf">'+L('You’ll hear when you reach your goal, as long as Lightly was opened recently.','只要最近打开过轻伴，达成目标时就会提醒你。')+'</div>';
   h+='<div class="gh">'+L('Care','关怀')+'</div><div class="group"><button class="row" data-act="timeoff"><span class="stack"><span>'+L('Time off','休息一下')+'</span></span>'+(offNow()?'<span class="v">'+(offNow().kind==='travel'?L('Travelling','旅行中'):L('Resting','休养中'))+'</span>':'')+CHEV+'</button></div>';

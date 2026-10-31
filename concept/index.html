@@ -297,10 +297,11 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .pk-w{position:relative;display:flex;height:0;overflow:hidden;visibility:hidden;margin:0 -8px;padding:0 8px;transition:height .4s var(--spring),visibility 0s .4s}
 .pk.open .pk-w{height:180px;visibility:visible;transition:height .4s var(--spring),visibility 0s}
 .pk-band{position:absolute;left:8px;right:8px;top:72px;height:36px;border-radius:9px;background:var(--fill);pointer-events:none}
-.pk-c{position:relative;flex:1;min-width:0;height:180px;box-sizing:border-box;padding:72px 0;overflow-y:auto;scroll-snap-type:y proximity;scrollbar-width:none;overscroll-behavior:contain;touch-action:pan-y;-webkit-mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent);mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent)}
+.pk-c{position:relative;flex:1;min-width:0;height:180px;box-sizing:border-box;padding:72px 0;overflow:hidden;scrollbar-width:none;overscroll-behavior:contain;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent);mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent)}
 .pk-c::-webkit-scrollbar{display:none}
+.pk-c.drag{cursor:grabbing}
 .pk-c:focus-visible{outline:3px solid var(--ink);outline-offset:-3px;border-radius:9px}
-.pk-i{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font:400 19px var(--font);font-variant-numeric:tabular-nums;color:var(--label);opacity:.3;transform:perspective(260px) rotateX(0) scale(.86);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
+.pk-i{height:36px;display:flex;align-items:center;justify-content:center;font:400 19px var(--font);font-variant-numeric:tabular-nums;color:var(--label);opacity:.3;transform:perspective(260px) rotateX(0) scale(.86);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
 .pk-i.sel{color:var(--label)}
 @media (prefers-reduced-motion:reduce){.pk-w,.pk.open .pk-w{transition:none}.pk-i{transform:none}}
 .ob-opt .tag{font:600 11px var(--font);color:var(--on-tint);background:var(--tint);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;display:inline-flex;align-items:center;height:20px;line-height:1}
@@ -686,8 +687,8 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div class="group">
         <span class="k" data-zh="开始时间">Start time</span>
         <div class="seg wide" role="group" aria-label="Start time">
-          <button type="button" id="st-night" aria-pressed="true"><span data-zh="今晚">Tonight</span><small id="st-night-t">8:30 PM</small></button>
-          <button type="button" id="st-day" aria-pressed="false"><span data-zh="今早">This morning</span><small id="st-day-t">7:00 AM</small></button>
+          <button type="button" id="st-night" aria-pressed="true"><span data-zh="今晚">Tonight</span><small id="st-night-t">20:30</small></button>
+          <button type="button" id="st-day" aria-pressed="false"><span data-zh="今早">This morning</span><small id="st-day-t">07:00</small></button>
         </div>
         <p class="why" id="why"></p>
         <div class="loc"><label for="city" data-zh="日出日落地">Sunrise and sunset for</label><select id="city"><option value="shanghai">Shanghai</option><option value="singapore">Singapore</option><option value="london">London</option><option value="newyork">New York</option></select><button type="button" id="geoBtn" data-zh="用我的位置">Use my location</button></div>
@@ -700,9 +701,9 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 
     <div class="ph" id="ph" data-sky="night" aria-label="Lightly Today screen demo">
       <svg class="stars" viewBox="0 0 390 420" aria-hidden="true"><circle cx="177" cy="187" r="1.5" opacity="0.71"/><circle cx="49" cy="384" r="0.8" opacity="0.55"/><circle cx="41" cy="369" r="1.0" opacity="0.37"/><circle cx="234" cy="324" r="0.8" opacity="0.48"/><circle cx="294" cy="327" r="0.8" opacity="0.80"/><circle cx="75" cy="224" r="0.8" opacity="0.67"/><circle cx="215" cy="135" r="1.0" opacity="0.38"/><circle cx="80" cy="258" r="1.5" opacity="0.43"/><circle cx="72" cy="402" r="1.2" opacity="0.66"/><circle cx="361" cy="202" r="0.8" opacity="0.67"/><circle cx="339" cy="206" r="1.2" opacity="0.40"/><circle cx="376" cy="142" r="0.8" opacity="0.69"/><circle cx="266" cy="382" r="1.5" opacity="0.78"/><circle cx="250" cy="409" r="1.5" opacity="0.55"/><circle cx="139" cy="202" r="1.0" opacity="0.40"/><circle cx="165" cy="378" r="1.5" opacity="0.83"/><circle cx="241" cy="257" r="0.8" opacity="0.41"/><circle cx="226" cy="194" r="1.2" opacity="0.43"/><circle cx="262" cy="325" r="0.8" opacity="0.88"/><circle cx="51" cy="395" r="1.2" opacity="0.54"/><circle cx="191" cy="364" r="1.5" opacity="0.39"/><circle cx="59" cy="248" r="1.5" opacity="0.73"/></svg>
-      <div class="sb"><span id="sbClock">9:41</span><span class="ic"><b></b><b></b></span></div>
+      <div class="sb"><span id="sbClock">09:41</span><span class="ic"><b></b><b></b></span></div>
       <div class="nav">
-        <button type="button" class="skypill" id="sub" aria-haspopup="dialog"><span class="sg" id="skyG" aria-hidden="true"></span><b id="skyStage">Night</b><i aria-hidden="true"></i><span class="sx" id="skyTx">Sunrise 6:12 AM</span><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.2"/><circle cx="12" cy="7.9" r=".6" fill="currentColor"/></svg></button>
+        <button type="button" class="skypill" id="sub" aria-haspopup="dialog"><span class="sg" id="skyG" aria-hidden="true"></span><b id="skyStage">Night</b><i aria-hidden="true"></i><span class="sx" id="skyTx">Sunrise 06:12</span><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.2"/><circle cx="12" cy="7.9" r=".6" fill="currentColor"/></svg></button>
         <button type="button" class="pchip" id="planBtn" aria-haspopup="dialog" aria-label="Change plan"><span class="chip"><span id="planChip">16h</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></span></button>
       </div>
       <button type="button" class="offbar" id="offBar" hidden></button>
@@ -864,7 +865,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <p data-zh="四个问题，不到一分钟。答案决定推荐哪个计划、哪些计划先锁着，以及要不要先提醒你咨询医生。试着回答一下，右边会实时显示轻伴为你做了什么。">Four questions, under a minute. The answers decide which plan we suggest, which plans stay locked for now, and whether we suggest talking to a doctor first. Try it, and the panel on the right shows what Lightly set up for you.</p></div>
     <div class="ob-wrap">
       <div class="obph" id="obph" aria-label="Onboarding demo">
-        <div class="sb"><span>9:41</span><span class="ic"><b></b><b></b></span></div>
+        <div class="sb"><span>09:41</span><span class="ic"><b></b><b></b></span></div>
         <div class="ob-top"><button type="button" class="ob-back" id="obBack" aria-label="Back"><svg viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8"/></svg><span data-zh="返回">Back</span></button><div class="ob-dots" id="obDots"></div><span style="width:64px"></span></div>
         <div class="ob-stage" id="obStage"></div>
       </div>
@@ -933,7 +934,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       </div>
 
       <div class="ph" id="rph" data-sky="day" aria-label="Lightly in Ramadan mode, demo">
-        <div class="sb"><span id="rClock">9:41</span><span class="ic"><b></b><b></b></span></div>
+        <div class="sb"><span id="rClock">09:41</span><span class="ic"><b></b><b></b></span></div>
         <div class="rlayer" id="rOn" aria-hidden="true">
           <div class="rtoast" id="rToast" aria-live="polite"><span class="av"><i style="background:#B35C00">M</i><i style="background:#5856D6">A</i><i style="background:#1E7A38">+2</i></span><div><b id="rToastB"></b><span id="rToastS"></span></div></div>
           <div class="nav">
@@ -1056,9 +1057,9 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
     <div class="sec-head"><h2 class="h2" id="p-h" data-zh="不打开应用也能看到">See it without opening the app</h2>
       <p data-zh="一套跨平台应用，先上安卓。安卓用常驻通知和桌面小组件，iPhone 随后用实时活动。中国大陆没有 Google Play，所以中文版要上架华为、小米等本地应用商店。">One cross-platform app, Android first: an ongoing notification and a home-screen widget, then a Live Activity on iPhone. Google Play isn't in mainland China, so the Chinese launch needs Huawei, Xiaomi and other local stores.</p></div>
     <div class="plat">
-      <figure><div class="mock"><div class="t1">Lightly · <span data-zh="现在">now</span></div><div class="r" style="margin-top:6px"><svg viewBox="-12 -12 24 24" data-p=".91"></svg><div><div class="t2" data-zh="还剩 1:28">1:28 left</div><div class="t3" data-zh="上午 10:30 结束">Ends 10:30 AM</div></div></div><div class="pb"><i></i></div><div class="acts"><span data-zh="结束断食">End fast</span><span data-zh="打开">Open</span></div></div>
+      <figure><div class="mock"><div class="t1">Lightly · <span data-zh="现在">now</span></div><div class="r" style="margin-top:6px"><svg viewBox="-12 -12 24 24" data-p=".91"></svg><div><div class="t2" data-zh="还剩 1:28">1:28 left</div><div class="t3" data-zh="10:30 结束">Ends 10:30</div></div></div><div class="pb"><i></i></div><div class="acts"><span data-zh="结束断食">End fast</span><span data-zh="打开">Open</span></div></div>
         <figcaption><b data-zh="安卓常驻通知">Android ongoing notification</b><span data-zh="进度一直在通知栏里。">Progress stays in the notification shade.</span></figcaption></figure>
-      <figure><div class="mock"><div class="r"><svg viewBox="-12 -12 24 24" data-p=".91"></svg><div><div class="t2">1:28</div><div class="t3" data-zh="剩余 · 黎明">left · Dawn</div></div></div><div class="t3" style="margin-top:10px" data-zh="日出 上午 6:04 · 上午 10:30 结束">Sunrise 6:04 AM · ends 10:30 AM</div></div>
+      <figure><div class="mock"><div class="r"><svg viewBox="-12 -12 24 24" data-p=".91"></svg><div><div class="t2">1:28</div><div class="t3" data-zh="剩余 · 黎明">left · Dawn</div></div></div><div class="t3" style="margin-top:10px" data-zh="日出 06:04 · 10:30 结束">Sunrise 06:04 · ends 10:30</div></div>
         <figcaption><b data-zh="桌面小组件">Home-screen widget</b><span data-zh="Zero 在 iOS 上最受好评的就是小组件，我们第一天就在安卓上做好它。">Zero's best-loved feature on iOS. Lightly ships it on Android from day one.</span></figcaption></figure>
       <figure><div class="mock dark"><div class="r"><svg viewBox="-12 -12 24 24" data-p=".6" data-moon="1"></svg><div><div class="t1" data-zh="月亮 · 深夜">Moon · Night</div><div class="t2" data-zh="还剩 6:24">6:24 left</div></div></div></div>
         <figcaption><b data-zh="iPhone 实时活动">iPhone Live Activity</b><span data-zh="随后上线，锁屏和灵动岛上都能看到你的月亮或太阳。">Coming after Android: your moon or sun on the Lock Screen and Dynamic Island.</span></figcaption></figure>
@@ -1265,9 +1266,7 @@ window.LightlySphere=(function(){
 
   /* ---------- clock + sky by local time ---------- */
   function clock(hDay){ hDay=((hDay%24)+24)%24; var hh=Math.floor(hDay), mm=Math.round((hDay-hh)*60); if(mm===60){mm=0;hh=(hh+1)%24;}
-    var m=String(mm).padStart(2,'0');
-    if(lang==='zh'){var p=hh<5?'凌晨':hh<11?'上午':hh<13?'中午':hh<18?'下午':'晚上';var h12=hh%12===0?12:hh%12;return p+' '+h12+':'+m;}
-    return (hh%12===0?12:hh%12)+':'+m+' '+(hh<12?'AM':'PM'); }
+    return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); }   /* 24-hour clock, the same in both languages */
   var SKY=[[0,'night','Night','深夜'],[5,'first','First light','破晓'],[6,'dawn','Dawn','黎明'],[7.5,'morning','Morning','清晨'],[11,'day','Day','白天'],[17,'sunset','Sunset','日落'],[19,'evening','Evening','傍晚'],[21,'night','Night','深夜']];
   function skyAt(hDay){ hDay=((hDay%24)+24)%24; var r=SUN.rise, st=SUN.set, k;
     if(hDay>=r-1.2&&hDay<r-.3) k=1; else if(hDay>=r-.3&&hDay<r+.9) k=2; else if(hDay>=r+.9&&hDay<r+3.5) k=3; else if(hDay>=r+3.5&&hDay<st-1.4) k=4; else if(hDay>=st-1.4&&hDay<st+.35) k=5; else if(hDay>=st+.35&&hDay<st+1.6) k=6; else k=0;
@@ -1350,7 +1349,7 @@ window.LightlySphere=(function(){
     streakUI();
     var s=START[startKey], sk=skyAt(nowHour()), b=body();
     if(ph.getAttribute('data-sky')!==sk[1]) ph.setAttribute('data-sky',sk[1]);
-    var nh=((nowHour()%24)+24)%24, sh=Math.floor(nh), sm=Math.floor((nh-sh)*60); put($('sbClock'),'sb',(sh%12===0?12:sh%12)+':'+String(sm).padStart(2,'0'));
+    var nh=((nowHour()%24)+24)%24, sh=Math.floor(nh), sm=Math.floor((nh-sh)*60); put($('sbClock'),'sb',String(sh).padStart(2,'0')+':'+String(sm).padStart(2,'0'));
     /* sky pill: stage + what the sky does next; while fasting or eating the progress line already shows the turn's clock time, so the pill counts down */
     var turnAt=b==='moon'?SUN.rise:SUN.set, cd=mode==='fast'||mode==='saved'||mode==='eat', lm=Math.max(1,Math.round((((turnAt-nowHour())%24+24)%24)*60)), lt=(function(){ var a=Math.floor(lm/60), r=lm%60, o=[]; if(a||!r) o.push(a+L(' h',' 小时')); if(r) o.push(r+L(' m',' 分')); return o.join(' '); })();
     if(cache.skgs!==b){ cache.skgs=b; $('skyG').className='sg '+(b==='moon'?'moon':'sun'); $('skyG').innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="url(#'+(b==='moon'?'gMoon':'gSun')+')" stroke="var(--rim)" stroke-width=".8"/>'+(b==='moon'?'<circle cx="8.6" cy="9.4" r="2.1" fill="rgba(60,50,30,.10)"/><circle cx="14.6" cy="14.6" r="2.8" fill="rgba(60,50,30,.09)"/><circle cx="14" cy="7.4" r="1.2" fill="rgba(60,50,30,.08)"/>':'')+'</svg>'; }
@@ -1680,7 +1679,7 @@ window.LightlySphere=(function(){
     return 'M0 0 L0 '+(-r)+' A'+r+' '+r+' 0 '+(a>Math.PI?1:0)+' 0 '+(-r*Math.sin(a)).toFixed(2)+' '+(-r*Math.cos(a)).toFixed(2)+'Z'; }
   function disc(p,col){ return '<svg viewBox="-70 -70 140 140" aria-hidden="true"><circle r="60" fill="rgba(142,142,147,.34)" stroke="rgba(142,142,147,.6)" stroke-width="2"/><path d="'+wedge(p,60)+'" fill="#F4EFE2" stroke="#B9AF96" stroke-width="2" stroke-linejoin="round"/></svg>'; }
   /* a small moon that previews the plan: the lit wedge is the share of the day you fast, with when a fast would end */
-  function fmtClock(h){ h=((h%24)+24)%24; var hh=Math.floor(h), mm=Math.round((h-hh)*60); if(mm===60){ mm=0; hh=(hh+1)%24; } var m=(mm<10?'0':'')+mm; if(api.lang()==='zh'){ var pre=hh<5?'凌晨':hh<11?'上午':hh<13?'中午':hh<18?'下午':'晚上', h12=hh%12===0?12:hh%12; return pre+' '+h12+':'+m; } return (hh%12===0?12:hh%12)+':'+m+' '+(hh<12?'AM':'PM'); }
+  function fmtClock(h){ h=((h%24)+24)%24; var hh=Math.floor(h), mm=Math.round((h-hh)*60); if(mm===60){ mm=0; hh=(hh+1)%24; } return (hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm; }
   function obPrev(pid,startStr){ var pl=api.plans.filter(function(x){return x.id===pid;})[0]; if(!pl) return ''; var line;
     if(startStr){ var uh=+startStr.split(':')[0]+ +startStr.split(':')[1]/60, eh=(uh+pl.fast)%24; line=L('From '+fmtClock(uh)+', a '+pl.fast+' h fast ends at '+fmtClock(eh)+'.','从 '+fmtClock(uh)+' 开始，'+pl.fast+' 小时后在 '+fmtClock(eh)+' 结束。'); }
     else { var d=new Date(Date.now()+pl.fast*36e5); line=L('Start now and you finish at ','现在开始，')+fmtClock(d.getHours()+d.getMinutes()/60)+L('.',' 结束。'); }
@@ -1738,7 +1737,7 @@ window.LightlySphere=(function(){
         (hereOn||cityOn?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'+(cityOn?'<button type="button" class="ob-cta quiet" data-loc="here">'+L('Use my location instead','改用我的位置')+'</button>':'')
           :'<button type="button" class="ob-cta" data-loc="here">'+L('Use my location','使用我的位置')+'</button><button type="button" class="ob-cta quiet" data-loc="city">'+L('Choose a city instead','改选城市')+'</button>'); }
     if(i===4){ var rk=risky(), pid=rk?'13':st.plan, usual=st.exp==='some'&&!rk;
-      return '<div class="ob-hero">'+disc((api.plans.filter(function(x){return x.id===pid;})[0]||{fast:13}).fast/24)+'</div><h4>'+L('You\u2019re set','准备好了')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(pid)+'</b></div><div><span>'+L('Sunrise and sunset','日出日落')+'</span><b>'+(st.loc==='here'?L('Your location','当前位置'):CITIES[st.city][api.lang()==='zh'?'zh':'en'])+'</b></div><div><span>'+L('First fast','第一次断食')+'</span><b>'+(usual?L('Tonight, 8:30 PM','今晚 8:30'):L('When you\u2019re ready','准备好时'))+'</b></div></div><p class="ob-note">'+(rk?L('Your plan stays at 13:11 and longer fasts stay off. Please talk to your doctor before changing that.','你的计划保持在 13:11，长时间断食保持关闭。要调整前请先咨询医生。'):L('Everything here can be changed later in Me.','这里的一切都可以之后在“我的”里修改。'))+'</p><button type="button" class="ob-cta" data-done>'+L('Open Lightly','打开 Lightly')+'</button>'; }
+      return '<div class="ob-hero">'+disc((api.plans.filter(function(x){return x.id===pid;})[0]||{fast:13}).fast/24)+'</div><h4>'+L('You\u2019re set','准备好了')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(pid)+'</b></div><div><span>'+L('Sunrise and sunset','日出日落')+'</span><b>'+(st.loc==='here'?L('Your location','当前位置'):CITIES[st.city][api.lang()==='zh'?'zh':'en'])+'</b></div><div><span>'+L('First fast','第一次断食')+'</span><b>'+(usual?L('Tonight, 20:30','今晚 20:30'):L('When you\u2019re ready','准备好时'))+'</b></div></div><p class="ob-note">'+(rk?L('Your plan stays at 13:11 and longer fasts stay off. Please talk to your doctor before changing that.','你的计划保持在 13:11，长时间断食保持关闭。要调整前请先咨询医生。'):L('Everything here can be changed later in Me.','这里的一切都可以之后在“我的”里修改。'))+'</p><button type="button" class="ob-cta" data-done>'+L('Open Lightly','打开 Lightly')+'</button>'; }
   }
   var cur=null;
   function show(i,dir){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(flow()[i]); stage.appendChild(el); bind(el); if(i===0) heroInit(el);
@@ -1770,39 +1769,62 @@ window.LightlySphere=(function(){
     if(t.hasAttribute('data-done')) api.setPlan(risky()?'13':st.plan);
     else if(t.hasAttribute('data-loc')){ st.loc=t.dataset.loc; rerender(); }
     else if(!t.disabled) show(st.step+1,1); });
-  /* in-app wheel picker (same component as the app): time of day and a short list */
-  function pkCol(key,label,items,sel,flex){ return '<div class="pk-c" role="listbox" tabindex="0" data-c="'+key+'" data-sel="'+sel+'" aria-label="'+label+'" style="flex:'+flex+'">'+items.map(function(t,i){ return '<div class="pk-i'+(i===sel?' sel':'')+'" role="option" aria-selected="'+(i===sel)+'" data-i="'+i+'">'+t+'</div>'; }).join('')+'</div>'; }
-  function pkClock(v){ var a=v.split(':'), hh=+a[0], mm=+a[1]; return (hh%12||12)+':'+(mm<10?'0':'')+mm+' '+(api.lang()==='zh'?(hh<12?'上午':'下午'):(hh<12?'AM':'PM')); }
+  /* in-app wheel picker (same component and physics as the app): follows the finger, a flick glides with momentum, it lines up with a row only as it comes to rest; hours and minutes loop */
+  var PKH=36, PK_TAU=480, PK_GAIN=1.3, PK_VMAX=9, PK_REPS=7, PK_MID=3, pkTickAt=0, rmo=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function pad2(n){ return (n<10?'0':'')+n; }
+  function clamp(v,a,b){ return v<a?a:v>b?b:v; }
+  var tapEl;   /* iPhone Safari cannot vibrate from the web; Safari 17.4+ taps when a hidden switch is toggled from a touch, so borrow that */
+  function tick(){ try{ if(navigator.vibrate){ navigator.vibrate(3); return; } if(tapEl===undefined){ tapEl=null; if(window.CSS&&CSS.supports&&CSS.supports('-webkit-appearance','switch')){ var l=document.createElement('label'), i=document.createElement('input'); l.setAttribute('aria-hidden','true'); l.style.cssText='position:fixed;left:-60px;top:0;width:44px;height:44px;opacity:.01;pointer-events:none;overflow:hidden'; i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1; l.appendChild(i); document.body.appendChild(l); tapEl=l; } } if(tapEl) tapEl.click(); }catch(e){} }
+  function pkCol(key,label,items,sel,flex,loop){ var n=items.length, base=loop?n*PK_MID:0, rows=items, r;
+    if(loop){ rows=[]; for(r=0;r<PK_REPS;r++) rows=rows.concat(items); }
+    return '<div class="pk-c" role="listbox" tabindex="0" data-c="'+key+'" data-sel="'+sel+'"'+(loop?' data-loop="'+n+'"':'')+' aria-label="'+label+'" style="flex:'+flex+'">'+rows.map(function(t,i){ var on=i===sel+base, hid=loop&&(i<base||i>=base+n); return '<div class="pk-i'+(on?' sel':'')+'" role="option" aria-selected="'+on+'"'+(hid?' aria-hidden="true"':'')+' data-i="'+i+'">'+t+'</div>'; }).join('')+'</div>'; }
+  function pkClock(v){ var a=v.split(':'); return pad2(+a[0])+':'+pad2(+a[1]); }
   function pkField(id,label,val,kind,opts){ var cols, i, hrs=[], mins=[], hh, mm;
     if(kind==='sel') cols=pkCol('s',label,opts.map(function(o){return o[1];}),Math.max(0,opts.map(function(o){return o[0];}).indexOf(val)),1);
-    else{ var a=val.split(':'); hh=+a[0]; mm=+a[1]; for(i=1;i<=12;i++) hrs.push(i); for(i=0;i<60;i++) mins.push((i<10?'0':'')+i);
-      cols=pkCol('h',L('Hour','小时'),hrs,(hh%12||12)-1,1)+pkCol('m',L('Minute','分钟'),mins,mm,1)+pkCol('p',L('AM or PM','上午或下午'),[L('AM','上午'),L('PM','下午')],hh<12?0:1,1.2); }
+    else{ var a=val.split(':'); hh=+a[0]; mm=+a[1]; for(i=0;i<24;i++) hrs.push(pad2(i)); for(i=0;i<60;i++) mins.push(pad2(i));
+      cols=pkCol('h',L('Hour','小时'),hrs,hh,1,true)+pkCol('m',L('Minute','分钟'),mins,mm,1,true); }
     return '<div class="pk" data-id="'+id+'" data-kind="'+kind+'" data-val="'+val+'"><button type="button" class="pk-row" aria-expanded="false"><span>'+label+'</span><span class="pk-v">'+(kind==='sel'?(opts.filter(function(o){return o[0]===val;})[0]||opts[0])[1]:pkClock(val))+'</span></button><div class="pk-w" role="group" aria-label="'+label+'"><i class="pk-band" aria-hidden="true"></i>'+cols+'</div></div>'; }
+  function pkWheel(c,tune){
+    var rows=function(){ return c.children.length; }, maxY=function(){ return (rows()-1)*PKH; }, loopN=function(){ return +c.dataset.loop||0; };
+    function put(y){ y=clamp(y,0,maxY()); c._y=y; c.scrollTop=y; }
+    function stop(){ if(c._ra){ cancelAnimationFrame(c._ra); c._ra=0; } c._tgt=null; }
+    function center(){ var n=loopN(); if(!n) return; var y=c.scrollTop, k=Math.floor(y/PKH/n), s=(PK_MID-k)*n*PKH; if(s){ c.scrollTop=y+s; c._y=c.scrollTop; } }
+    function run(tgt,tau){ stop(); tgt=clamp(Math.round(tgt/PKH)*PKH,0,maxY()); var y0=c.scrollTop, d=tgt-y0;
+      if(rmo||Math.abs(d)<.5){ put(tgt); center(); return; }
+      var t0=performance.now(); c._tgt=tgt;
+      function step(now){ var rem=d*Math.exp(-(now-t0)/tau); if(Math.abs(rem)<1){ c._ra=0; c._tgt=null; put(tgt); center(); return; } put(tgt-rem); c._ra=requestAnimationFrame(step); }
+      c._ra=requestAnimationFrame(step); }
+    function fling(v){ var y=c.scrollTop, tgt=rmo?y:y+v*PK_TAU; tgt=clamp(Math.round(tgt/PKH)*PKH,0,maxY()); var d=tgt-y; run(tgt,(d*v>0)?clamp(d/v,110,PK_TAU*1.6):190); }
+    function go(i,sm){ i=clamp(i,0,rows()-1); if(sm&&!rmo) run(i*PKH,150); else{ stop(); put(i*PKH); } }
+    function base(){ return loopN()*PK_MID; }
+    c._go=function(){ go(base()+(+c.dataset.sel),false); drum(); };
+    /* the drum: rows near the centre fade, shrink and tilt away from it */
+    var lit=[], raf=0;
+    function drum(){ var q=c.scrollTop/PKH, lo=Math.max(0,Math.floor(q)-3), hi=Math.min(rows()-1,Math.ceil(q)+3), i, o, a, el;
+      lit.forEach(function(k){ if(k<lo||k>hi){ el=c.children[k]; if(el){ el.style.opacity=''; el.style.transform=''; } } }); lit=[];
+      for(i=lo;i<=hi;i++){ el=c.children[i]; o=i-q; a=Math.min(Math.abs(o),3); el.style.opacity=(1-a*.24).toFixed(3); if(!rmo) el.style.transform='perspective(260px) rotateX('+(-o*15).toFixed(2)+'deg) scale('+(1-a*.045).toFixed(3)+')'; lit.push(i); } }
+    c.addEventListener('scroll',function(){ if(!raf) raf=requestAnimationFrame(function(){ raf=0; drum(); });
+      var n=loopN(), i=clamp(Math.round(c.scrollTop/PKH),0,rows()-1), s=n?i%n:i, old=c.querySelector('.pk-i.sel'); if(old&&+old.dataset.i===i) return;
+      if(old){ old.classList.remove('sel'); old.setAttribute('aria-selected','false'); } c.children[i].classList.add('sel'); c.children[i].setAttribute('aria-selected','true');
+      if(+c.dataset.sel===s) return; c.dataset.sel=s; var t=performance.now(); if(t-pkTickAt>22){ pkTickAt=t; tick(); } tune(); },{passive:true});
+    c.addEventListener('pointerdown',function(e){ if(c._pid!=null||(e.pointerType==='mouse'&&e.button!==0)) return; stop(); clearTimeout(c._wt); center(); c._y=c.scrollTop; c._pid=e.pointerId; c._py=e.clientY; c._moved=0; c._s=[[e.timeStamp,e.clientY]]; c.classList.add('drag'); try{ c.setPointerCapture(e.pointerId); }catch(x){} });
+    c.addEventListener('pointermove',function(e){ if(c._pid!==e.pointerId) return; var dy=e.clientY-c._py; c._py=e.clientY; c._moved+=Math.abs(dy); put(c._y-dy); var s=c._s; s.push([e.timeStamp,e.clientY]); while(s.length>2&&e.timeStamp-s[0][0]>90) s.shift(); });
+    function up(e){ if(c._pid!==e.pointerId) return; c._pid=null; c.classList.remove('drag');
+      if(c._moved<6){ var el=document.elementFromPoint(e.clientX,e.clientY), it=el&&el.closest&&el.closest('.pk-i'); if(it&&c.contains(it)&&e.type==='pointerup') go(+it.dataset.i,true); else run(c.scrollTop,190); return; }
+      var s=c._s, a=s[0], z=s[s.length-1], v=0; if(e.type==='pointerup'&&s.length>1&&e.timeStamp-z[0]<70&&z[0]>a[0]) v=-(z[1]-a[1])/(z[0]-a[0]);
+      fling(clamp(v*PK_GAIN,-PK_VMAX,PK_VMAX)); }
+    c.addEventListener('pointerup',up); c.addEventListener('pointercancel',up);
+    c.addEventListener('wheel',function(e){ e.preventDefault(); var dy=e.deltaMode===1?e.deltaY*PKH:e.deltaMode===2?e.deltaY*PKH*5:e.deltaY;
+      if(Math.abs(dy)>=40){ var b=c._tgt!=null?c._tgt:Math.round(c.scrollTop/PKH)*PKH; run(b+(dy<0?-1:1)*Math.max(1,Math.round(Math.abs(dy)/45))*PKH,150); }
+      else{ stop(); center(); put(c.scrollTop+dy); clearTimeout(c._wt); c._wt=setTimeout(function(){ run(c.scrollTop,190); },110); } },{passive:false});
+    c.addEventListener('keydown',function(e){ var step={ArrowUp:-1,ArrowDown:1,PageUp:-5,PageDown:5}[e.key]; if(step==null&&e.key!=='Home'&&e.key!=='End') return; e.preventDefault();
+      var tgt=c._tgt; if(tgt==null){ center(); tgt=Math.round(c.scrollTop/PKH)*PKH; } var i=Math.round(tgt/PKH), lo=base(), hi=lo+(loopN()||rows())-1; go(e.key==='Home'?lo:e.key==='End'?hi:i+step,true); }); }
   function pkBind(pk,onchange){ if(pk._b) return; pk._b=1; var row=pk.querySelector('.pk-row'), kind=pk.dataset.kind;
     function rd(k){ var e=pk.querySelector('[data-c="'+k+'"]'); return e?+e.dataset.sel:0; }
-    pk.querySelectorAll('.pk-c').forEach(function(c){
-      var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches, lit=[], raf=0, st=0, down=false;
-      function go(i,sm){ i=Math.max(0,Math.min(c.children.length-1,i)); c.scrollTo({top:i*36,behavior:sm&&!rm?'smooth':'auto'}); }
-      c._go=go;
-      /* the drum: rows near the centre fade, shrink and tilt away from it */
-      function drum(){ var q=c.scrollTop/36, lo=Math.max(0,Math.floor(q)-3), hi=Math.min(c.children.length-1,Math.ceil(q)+3), i, o, a, el;
-        lit.forEach(function(k){ if(k<lo||k>hi){ el=c.children[k]; if(el){ el.style.opacity=''; el.style.transform=''; } } }); lit=[];
-        for(i=lo;i<=hi;i++){ el=c.children[i]; o=i-q; a=Math.min(Math.abs(o),3); el.style.opacity=(1-a*.24).toFixed(3); if(!rm) el.style.transform='perspective(260px) rotateX('+(-o*15).toFixed(2)+'deg) scale('+(1-a*.045).toFixed(3)+')'; lit.push(i); } }
-      c._drum=drum;
-      /* once the scroll settles, glide to the nearest row (only with the finger up) */
-      function arm(){ clearTimeout(st); st=setTimeout(function(){ if(down) return; var i=Math.max(0,Math.min(c.children.length-1,Math.round(c.scrollTop/36))); if(Math.abs(c.scrollTop-i*36)>.5) c.scrollTo({top:i*36,behavior:rm?'auto':'smooth'}); },130); }
-      c.addEventListener('touchstart',function(){ down=true; clearTimeout(st); },{passive:true});
-      c.addEventListener('touchend',function(){ down=false; arm(); },{passive:true});
-      c.addEventListener('touchcancel',function(){ down=false; arm(); },{passive:true});
-      c.addEventListener('scroll',function(){ if(!raf) raf=requestAnimationFrame(function(){ raf=0; drum(); }); arm(); },{passive:true});
-      c.addEventListener('scroll',function(){ var i=Math.max(0,Math.min(c.children.length-1,Math.round(c.scrollTop/36))); if(+c.dataset.sel===i) return;
-        c.children[+c.dataset.sel].classList.remove('sel'); c.children[+c.dataset.sel].setAttribute('aria-selected','false'); c.dataset.sel=i; c.children[i].classList.add('sel'); c.children[i].setAttribute('aria-selected','true');
-        try{ if(navigator.vibrate) navigator.vibrate(3); }catch(e){}
-        var v; if(kind==='sel') v=pk._opts[rd('s')][0]; else { var hh=((rd('h')+1)%12)+(rd('p')?12:0), mm=rd('m'); v=(hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm; }
-        pk.dataset.val=v; pk.querySelector('.pk-v').textContent=kind==='sel'?pk._opts[rd('s')][1]:pkClock(v); onchange(v); },{passive:true});
-      c.addEventListener('click',function(e){ var it=e.target.closest('.pk-i'); if(it) go(+it.dataset.i,true); });
-      c.addEventListener('keydown',function(e){ var step={ArrowUp:-1,ArrowDown:1,PageUp:-5,PageDown:5}[e.key], i=Math.round(c.scrollTop/36); if(e.key==='Home') step=-i; if(e.key==='End') step=c.children.length-1-i; if(step==null) return; e.preventDefault(); go(i+step,true); }); });
-    row.addEventListener('click',function(){ var open=!pk.classList.contains('open'); pk.classList.toggle('open',open); row.setAttribute('aria-expanded',String(open)); if(open) pk.querySelectorAll('.pk-c').forEach(function(c){ c._go(+c.dataset.sel,false); c._drum(); }); }); }
+    function tune(){ var v; if(kind==='sel') v=pk._opts[rd('s')][0]; else { var hh=rd('h'), mm=rd('m'); v=pad2(hh)+':'+pad2(mm); }
+      pk.dataset.val=v; pk.querySelector('.pk-v').textContent=kind==='sel'?pk._opts[rd('s')][1]:pkClock(v); onchange(v); }
+    pk.querySelectorAll('.pk-c').forEach(function(c){ pkWheel(c,tune); });
+    row.addEventListener('click',function(){ var open=!pk.classList.contains('open'); pk.classList.toggle('open',open); row.setAttribute('aria-expanded',String(open)); if(open) pk.querySelectorAll('.pk-c').forEach(function(c){ c._go(); }); }); }
   function bind(el){
     el.querySelectorAll('.pk').forEach(function(pk){ if(pk.dataset.kind==='sel') pk._opts=Object.keys(CITIES).map(function(k){ return [k,CITIES[k][api.lang()==='zh'?'zh':'en']]; }); pkBind(pk,function(v){ if(pk.dataset.id==='city') st.city=v; else { st.start=v; var pv=el.querySelector('.ob-prev small'); if(pv){ var t=document.createElement('div'); t.innerHTML=obPrev(st.plan||'16',v); pv.textContent=t.querySelector('small').textContent; } } }); });
     el.querySelectorAll('.ob-opt').forEach(function(b){ if(b._b) return; b._b=1; b.addEventListener('click',function(){ var q=b.closest('.ob-list').dataset.q, v=b.dataset.v;
@@ -1876,9 +1898,7 @@ window.LightlySphere=(function(){
 
   /* ---------- helpers ---------- */
   function clock(hDay){ hDay=((hDay%24)+24)%24; var hh=Math.floor(hDay), mm=Math.round((hDay-hh)*60); if(mm===60){mm=0;hh=(hh+1)%24;}
-    var m=String(mm).padStart(2,'0');
-    if(api.lang()==='zh'){ var p=hh<5?'凌晨':hh<11?'上午':hh<13?'中午':hh<18?'下午':'晚上'; return p+' '+(hh%12===0?12:hh%12)+':'+m; }
-    return (hh%12===0?12:hh%12)+':'+m+' '+(hh<12?'AM':'PM'); }
+    return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); }   /* 24-hour clock, the same in both languages */
   function fmt(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=m%60; return a+'<small>'+L('h','小时')+'</small>'+(b?String(b).padStart(2,'0')+'<small>'+L('m','分')+'</small>':''); }
   function dur(hrs){ var m=Math.round(hrs*60), a=Math.floor(m/60), b=m%60; return L((a||!b?a+' h':'')+(a&&b?' ':'')+(b?b+' min':''),(a||!b?a+' 小时':'')+(a&&b?' ':'')+(b?b+' 分':'')); }
   function dateTxt(d){ return d.toLocaleDateString(api.lang()==='zh'?'zh-CN':'en-US',{month:'short',day:'numeric'}); }
@@ -1917,7 +1937,7 @@ window.LightlySphere=(function(){
   function put(id,v,html){ if(cache[id]===v) return; cache[id]=v; var el=$(id); if(html) el.innerHTML=v; else el.textContent=v; }
 
   function text(){ var s=stateAt(t), n=dayNum(), ex=S.excused&&(s.m==='fast'||s.m==='iftar');
-    put('rClock',clock(t).replace(/ ?[AP]M$/,'').replace(/^\S+ /,''));
+    put('rClock',clock(t));
     put('rSub',L('Ramadan · Day '+n,'斋月 · 第 '+n+' 天'));
     var k,big,tip,a,glass=true;
     if(s.m==='suhoor'){ k=L('Suhoor ends in','封斋饭还剩'); big=fmt(T.f-t); tip=L('Eat and drink well now. Water helps the whole day.','现在好好吃、好好喝。多喝水，一整天都会轻松些。'); a=S.remind?L('Suhoor Reminder · ','封斋饭提醒 · ')+clock(T.f-.5):L('Remind Me Before Dawn','黎明前提醒我'); }
@@ -2162,7 +2182,7 @@ window.LightlySphere=(function(){
   /* Me settings: the same rows as the app; Language, Timer style, Plan and Cheat days really work here */
   function meRows(){ var zh=api.lang()==='zh';
     function v(id,t){ var e=$(id+'V'); if(e) e.textContent=t; }
-    v('meUnwell',off?(off.kind==='travel'?(zh?'旅行中':'Travelling'):(zh?'休养中':'Resting')):''); v('meWhere',zh?'上海':'Shanghai'); v('meUsual','8:00 PM'); v('meCheat',zh?'还剩 1 个':'1 left'); $('meCheat').hidden=!!off; /* no cheat days during time off */
+    v('meUnwell',off?(off.kind==='travel'?(zh?'旅行中':'Travelling'):(zh?'休养中':'Resting')):''); v('meWhere',zh?'上海':'Shanghai'); v('meUsual','20:00'); v('meCheat',zh?'还剩 1 个':'1 left'); $('meCheat').hidden=!!off; /* no cheat days during time off */
     v('meLang',zh?'中文':'English'); v('meApp',thmLabel()); v('meTs',(ph.dataset.ts==='a')?(zh?'经典':'Classic'):(zh?'大字':'Hero')); v('meSnd',zh?'开':'On'); v('meRem',zh?'开':'On'); }
   [['meCheat',function(){ if(!off) $('streak').click(); }],['meLang',function(){ $(api.lang()==='zh'?'l-en':'l-zh').click(); }],
    ['meApp',function(){ impFrom=$('meApp'); impOpen(true,8); }],['meTs',function(){ ph.dataset.ts=ph.dataset.ts==='a'?'b':'a'; meRows(); }]].forEach(function(r){ var e=$(r[0]); e.addEventListener('click',r[1]); e.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); r[1](); } }); });
@@ -2212,7 +2232,7 @@ window.LightlySphere=(function(){
     function end(){ if(!on) return; on=false; if(!live) return; live=false; dyGone=performance.now(); var tgt=dyOff+(dx>0?1:-1), go=(Math.abs(dx)>60||Math.abs(vx)>.45)&&tgt>=0&&tgt<=DY_BACK; cal.style.transition=''; cal.style.transform=''; cal.style.opacity=''; if(go) dyGo(tgt,dx>0?-1:1,dx); else if(!reduce&&cal.animate) cal.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'}); }
     cal.addEventListener('pointerup',end); cal.addEventListener('pointercancel',end); })();
   /* a shared sheet for Import and Edit times */
-  function editHtml(){ var zh=api.lang()==='zh'; return '<div class="imp-sum"><div><span>'+(zh?'开始':'Started')+'</span><small>8:30 PM</small></div><div><span>'+(zh?'结束':'Ended')+'</span><small>12:30 PM</small></div><div><span>'+(zh?'目标（小时）':'Goal (hours)')+'</span><small>16</small></div></div><button type="button" class="imp-go" id="edSave">'+(zh?'保存':'Save')+'</button>'; }
+  function editHtml(){ var zh=api.lang()==='zh'; return '<div class="imp-sum"><div><span>'+(zh?'开始':'Started')+'</span><small>20:30</small></div><div><span>'+(zh?'结束':'Ended')+'</span><small>12:30</small></div><div><span>'+(zh?'目标（小时）':'Goal (hours)')+'</span><small>16</small></div></div><button type="button" class="imp-go" id="edSave">'+(zh?'保存':'Save')+'</button>'; }
   /* ---------- import from another app: the real app reads the file on the phone; here the preview is a sample ---------- */
   var imp=$('impSheet'), isc=$('iScrim'), impStep=0;
   function offSync(){ var zh=api.lang()==='zh', picks=[3,7,10,14], i=picks.indexOf(offDays), th=document.querySelector('#offChips .thumb'), x=new Date(); x.setDate(x.getDate()+offDays);
@@ -2249,7 +2269,7 @@ window.LightlySphere=(function(){
     [].forEach.call($('impBody').querySelectorAll('.thm button'),function(bn){ bn.onclick=function(){ thm=bn.dataset.t; try{ localStorage.setItem('lightly-theme',thm); }catch(e){} thmSwitch(function(){ applyThm(); [].forEach.call($('impBody').querySelectorAll('.thm button'),function(x){ var on=x.dataset.t===thm; x.classList.toggle('sel',on); x.setAttribute('aria-checked',on); }); meRows(); }); }; });
     $('thmOk').onclick=function(){ impOpen(false); }; isc.classList.add('peek'); }
   /* the sky pill's explanation: one line and today's two times */
-  function skyRender(){ var t=window.LIGHTLY_SUNTXT||{rise:'6:12 AM',set:'5:07 PM'};
+  function skyRender(){ var t=window.LIGHTLY_SUNTXT||{rise:'06:12',set:'17:07'};
     $('impTitle').textContent=L('Moon and sun','月亮和太阳'); $('impNote').textContent=L('The pill counts to the next sunrise or sunset. It’s not your fast.','胶囊里是距离下一次日出或日落的时间，不是你的断食时间。');
     $('impBody').innerHTML='<div class="imp-sum"><div><span>'+L('Sunrise','日出')+'</span><small>'+t.rise+'</small></div><div><span>'+L('Sunset','日落')+'</span><small>'+t.set+'</small></div></div>'; isc.classList.remove('peek'); }
   function impRender(){

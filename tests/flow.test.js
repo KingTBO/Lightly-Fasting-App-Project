@@ -6,7 +6,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
 const H=3600000,D=24*H;
 (async()=>{await new Promise(r=>srv.listen(0,r));const url='http://localhost:'+srv.address().port+'/';
  const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
- const ctx=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});
+ const ctx=await b.newContext({viewport:{width:390,height:844},timezoneId:process.env.TEST_TZ||'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});
  const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
  const S=()=>p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')||'null'));
  const ok=n=>console.log('ok -',n);
@@ -14,7 +14,7 @@ const H=3600000,D=24*H;
  const pick=async(pg,sel,v)=>{await pg.click(sel+' .pk-row');await pg.waitForTimeout(450);await pg.evaluate(([sel,v])=>{const pk=document.querySelector(sel),go=(k,i)=>{const c=pk.querySelector('[data-c='+k+']');if(c)c.scrollTo({top:i*36})},kind=pk.dataset.kind;
    if(kind==='sel'){go('s',JSON.parse(pk.dataset.opts).indexOf(v));return;}
    let d,hh,mm;if(kind==='dt'){d=new Date(v);const a=new Date(d);a.setHours(0,0,0,0);go('d',Math.round((a-new Date(+pk.dataset.d0))/864e5));hh=d.getHours();mm=d.getMinutes();}else{const a=v.split(':');hh=+a[0];mm=+a[1];}
-   go('h',(hh%12||12)-1);go('m',mm);go('p',hh<12?0:1);},[sel,v]);await pg.waitForTimeout(500);};
+   go('h',hh);go('m',mm);},[sel,v]);await pg.waitForTimeout(500);};
  await p.goto(url);await p.waitForTimeout(500);
  // onboarding: first time + no safety flags -> Sunrise 13:11 suggested
  await p.click('[data-act=obnext]');await p.waitForTimeout(600);
@@ -34,7 +34,7 @@ const H=3600000,D=24*H;
  assert(await p.$('.plan[data-id="24"][disabled]'),'24h locked');assert(await p.$('.plan[data-id="36"][disabled]'));ok('24 h and 36 h locked for a newcomer');
  await p.click('#sheet [data-act=close]');
  // edit start time to 3 hours ago
- await p.click('#endA');await pick(p,'#stS',Date.now()-3*3600000);assert.match(await p.textContent('#stS .pk-v'),/Today, \d+:\d\d [AP]M/,'the row shows the picked time');await p.click('[data-act=stsave]');await p.waitForTimeout(300);s=await S();assert(Math.abs((Date.now()-s.cur.start)/H-3)<.05);ok('start time editable');
+ await p.click('#endA');await pick(p,'#stS',Date.now()-3*3600000);assert.match(await p.textContent('#stS .pk-v'),/Today, \d\d:\d\d$/,'the row shows the picked time');await p.click('[data-act=stsave]');await p.waitForTimeout(300);s=await S();assert(Math.abs((Date.now()-s.cur.start)/H-3)<.05);ok('start time editable');
  // hold to end: short press does nothing, long press saves and does not restart
  const box=await p.locator('#act').boundingBox();await p.mouse.move(box.x+box.width/2,box.y+box.height/2);
  await p.mouse.down();await p.waitForTimeout(300);await p.mouse.up();assert((await S()).cur,'short press keeps fasting');
@@ -87,7 +87,7 @@ const H=3600000,D=24*H;
   const yk=await q.evaluate(()=>{const d=new Date(Date.now()-24*36e5);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')});
   const cell=await q.$('#days .cal-g button[data-k="'+yk+'"]');if(cell){await cell.click();await q.waitForTimeout(500);assert.match(await q.textContent('#days .nolog'),/Nothing logged/);assert(await q.$('#days [data-act=addday]'),'add a fast row');
    await q.click('#days [data-act=addday]');await q.waitForTimeout(500);assert(await q.$('#sheet #fsS'),'add sheet opens for that day');ok('Days empty day: Nothing logged with an add row');}else{ok('Days empty day (no cell hook, skipped)');}}
- async function fresh(state){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));if(state)await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(state));await q.goto(url);await q.waitForTimeout(600);return q;}
+ async function fresh(state){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:process.env.TEST_TZ||'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));if(state)await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(state));await q.goto(url);await q.waitForTimeout(600);return q;}
  const fz=(n,h)=>Array.from({length:n},(_,i)=>({id:'f'+i+'-'+h,start:Date.now()-(i+2)*D,end:Date.now()-(i+2)*D+h*H,goalH:h,plan:String(h)}));
  // Days: milestone header, swipe between months, month picker, no cheat row
  {const old=Date.now()-75*D;const fl=Array.from({length:6},(_,i)=>({id:'dd'+i,start:Date.now()-(i+1)*D-16*H,end:Date.now()-(i+1)*D,goalH:16,plan:'16'})).concat([{id:'dold',start:old-16*H,end:old,goalH:16,plan:'16'}]);
@@ -134,7 +134,7 @@ const H=3600000,D=24*H;
  // experienced onboarding has the extra step and keeps the start time
  q=await fresh(null);await q.click('[data-act=obnext]');await q.waitForTimeout(1000);await q.click('[data-act=obopt][data-v=before]');await q.click('[data-act=obnext]');await q.waitForTimeout(1000);
  assert(await q.$('.ob-step.on .plan[data-id="20"]:not([disabled])'),'all plans open');assert(await q.$('.ob-step.on .plan.sel[data-id="16"]'),'16:8 default');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(1000);
- assert(await q.$('#obStart'),'customise step');await pick(q,'#obStart','21:30');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);assert(await q.$('.ob-step.on #obImpFile'),'import step for people who fasted before');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(1000);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('[data-act=obsafe][data-v=none]');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('[data-act=obdone]');await q.waitForTimeout(600);
+ assert(await q.$('#obStart'),'customise step');await pick(q,'#obStart','21:30');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);assert(await q.waitForSelector('.ob-step.on #obImpFile',{state:'attached',timeout:8000}).catch(()=>null),'import step for people who fasted before');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(1000);await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('[data-act=obsafe][data-v=none]');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(600);await q.click('[data-act=obdone]');await q.waitForTimeout(600);
  assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).prefs.usualStart,'21:30');ok('experienced onboarding: customise step saves the usual start');
  q=await fresh(null);await q.click('[data-act=obnext]');await q.waitForTimeout(1000);await q.click('[data-act=obopt][data-v=first]');await q.click('[data-act=obnext]');await q.waitForTimeout(1000);
  assert(await q.$('.ob-step.on .plan[data-id="16"][disabled]'),'16:8 locked in onboarding');await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(1000);assert(!(await q.$('#obStart')),'no customise step for first timers');ok('first-timer onboarding shows locks and skips the customise step');

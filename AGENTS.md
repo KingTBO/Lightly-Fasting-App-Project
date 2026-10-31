@@ -26,6 +26,7 @@ A real, installable web app (PWA) at the repo root, deployed by GitHub Pages fro
 python3 -m http.server 8000                                   # open http://localhost:8000
 node tests/core.test.js                                       # unit tests for the rules
 node tests/import.test.js
+NODE_PATH=$(npm root -g) node tests/wheel.test.js             # wheel pickers: momentum, snap at rest, looping, 24-hour columns, haptic ticks (about 1 minute)
 NODE_PATH=$(npm root -g) node tests/cloud.test.js --e2e       # only if cloud or sign-in code changed
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright
 NODE_PATH=$(npm root -g) node qa/run-app.js --screens=idle    # alignment check for one scenario (idle, mid, goal, eat, empty, ob)
@@ -36,7 +37,7 @@ How much to test is set by the size of the change (RELEASING.md, step 5):
 
 - **Every change:** the unit tests, the flow test, and a quick look at the screens you touched (a screenshot, or `qa/run-app.js --screens=...` for one scenario).
 - **Full sweep (`--full`, 10 to 15 minutes):** only for big layout or design changes (a new or redesigned screen, new spacing rules) and before a bigger release. Do not run it for routine changes; the owner has said full sweeps are too slow.
-- The flow test's onboarding steps sometimes flake on slow sandboxes, also on `main`. Rerun it, and say in the PR that it flaked and then passed. It also depends on the time of day: the test runs in Asia/Shanghai time, and in the first hours after midnight there the edit-start-time step shows "Yesterday" instead of "Today" and fails on `main` too. If that is the only failure, say so in the PR. Never skip or delete a test to get green.
+- The flow test's onboarding steps sometimes flake on slow sandboxes, also on `main`. Rerun it, and say in the PR that it flaked and then passed. It also depends on the time of day: the test runs in Asia/Shanghai time (set `TEST_TZ=<zone>` to use another one, though some steps are timing-sensitive on a slow sandbox and can flake in any zone), and in the first hours after midnight there the edit-start-time step shows "Yesterday" instead of "Today" and fails on `main` too. If that is the only failure, say so in the PR. Never skip or delete a test to get green.
 
 ## Release rules (every change, no exceptions)
 
