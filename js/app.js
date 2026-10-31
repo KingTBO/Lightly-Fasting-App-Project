@@ -94,8 +94,8 @@ function sChime(){ tone(1318.5,1.4,.06); tone(1975.5,1.6,.04,'sine',.09); tone(2
 function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 /* one fixed vocabulary, so the same thing always feels the same:
    select = a wheel detent, light = a touch or toggle, hour = the hour turns, medium = a fast starts or a hold completes,
-   success = the goal is reached (the only sound in the app is its soft chime). Nothing fires on routine saves. */
-var FX={select:3,light:6,hour:8,medium:14,success:[30,60,30]};
+   success = the goal is reached (the only sound in the app is its soft chime), nope = a gentle "not now" (two light taps, no sound). Nothing fires on routine saves. */
+var FX={select:3,light:6,hour:8,medium:14,success:[30,60,30],nope:[8,70,8]};
 function fx(k){ buzz(FX[k]); if(k==='success') sChime(); }
 
 /* ---------- toast, sheet ---------- */
@@ -207,7 +207,7 @@ function updateToday(){
     put($('readK'),'k',L('Eating window left','进食窗口还剩')); setBigTime(Math.max(0,Math.ceil((eatLen-eatEl)*3600))); put(altEl,'alt','');
     tip(L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start fast','开始断食'));
   }
-  act.disabled=brk; act.setAttribute('aria-disabled',brk); $('track').style.visibility=brk?'hidden':'';
+  act.setAttribute('aria-disabled',brk); /* stays tappable during a break: a tap shakes it and says why (see breakNudge) */ $('track').style.visibility=brk?'hidden':'';
   /* timeline */
   var a0=mode==='eat'?le.end:mode==='fast'?cur.start:now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:ram?placeMs(sun.set,now):now+p.fast*H;
   var n=Math.min(Math.round(mode==='eat'?eatLen:ram?13:goal),36)||1; buildTicks(n);
@@ -274,11 +274,19 @@ var act=$('act'), holdT0=0, holdRaf=0, HOLD_MS=1200, swallow=false;
 function holdStep(){ if(!holdOn) return; var f=Math.min((performance.now()-holdT0)/HOLD_MS,1); act.style.setProperty('--hold',f); if(f>=1){ holdEnd(false); swallow=true; fx('medium'); endFast(); return; } holdRaf=requestAnimationFrame(holdStep); }
 function holdBegin(){ if(!S.cur||holdOn) return; holdOn=true; holdT0=performance.now(); act.classList.add('holding','pressed'); put($('actLbl'),'a',L('Keep holding…','继续按住…')); fx('light'); holdRaf=requestAnimationFrame(holdStep); }
 function holdEnd(cancel){ if(!holdOn) return; holdOn=false; cancelAnimationFrame(holdRaf); act.classList.remove('holding','pressed'); act.style.setProperty('--hold',0); if(cancel) cache.a=null; }
-act.addEventListener('pointerdown',function(e){ if(S.cur){ e.preventDefault(); try{ act.setPointerCapture(e.pointerId); }catch(x){} holdBegin(); } else act.classList.add('pressed'); });
+act.addEventListener('pointerdown',function(e){ if(S.cur){ e.preventDefault(); try{ act.setPointerCapture(e.pointerId); }catch(x){} holdBegin(); } else if(!offNow()) act.classList.add('pressed'); });
 ['pointerup','pointercancel','pointerleave'].forEach(function(n){ act.addEventListener(n,function(){ holdEnd(true); act.classList.remove('pressed'); if(S.cur) updateToday(); if(swallow) setTimeout(function(){ swallow=false; },80); }); });
 act.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&S.cur){ e.preventDefault(); if(!e.repeat) holdBegin(); } });
 act.addEventListener('keyup',function(e){ if((e.key==='Enter'||e.key===' ')&&S.cur){ holdEnd(true); updateToday(); } if(swallow) setTimeout(function(){ swallow=false; },80); });
-act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } if(!S.cur) startFlow(); });
+/* Start fast during time off: the button looks unavailable but is still a real control. A tap gives a short Apple-style shake (still under Reduce Motion: no movement, just the words), two light haptic taps, and says what to do; the End break pill lights up so the eye goes there. */
+function breakMsg(){ return L('Ready to fast? Tap End break at the top first.','准备好断食了吗？先点上方的“结束休息”。'); }
+function breakNudge(){
+  fx('nope'); toast(breakMsg());
+  var bar=$('offBar'); bar.classList.add('nudge'); clearTimeout(breakNudge.t); breakNudge.t=setTimeout(function(){ bar.classList.remove('nudge'); },1400);
+  if(act.animate&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){ if(breakNudge.a) breakNudge.a.cancel();
+    breakNudge.a=act.animate([{transform:'translateX(0)'},{transform:'translateX(-9px)',offset:.16},{transform:'translateX(8px)',offset:.34},{transform:'translateX(-6px)',offset:.52},{transform:'translateX(4px)',offset:.7},{transform:'translateX(-2px)',offset:.86},{transform:'translateX(0)'}],{duration:480,easing:'cubic-bezier(.36,.07,.19,.97)'}); }
+}
+act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } if(!S.cur){ if(offNow()) breakNudge(); else startFlow(); } });
 
 /* a button in a sheet that must be held to confirm, the same press-and-hold as ending a fast */
 var HB=null;
@@ -292,7 +300,7 @@ document.addEventListener('keyup',function(e){ if(e.key==='Enter'||e.key===' ') 
 
 /* ---------- start and end ---------- */
 function startFlow(planId){
-  if(offNow()){ toast(L('You’re on a break. End it first to start a fast.','你正在休息中。先结束休息才能开始断食。')); return; }
+  if(offNow()){ breakNudge(); return; }
   var id=planId||S.planId, p=C.planById(id,S.customH);
   if(id==='ramadan'){ return startRamadan(); }
   if(!p.long&&!planOk(id)){ normalisePlan(); p=plan(); toast(L('That plan opens later. Starting '+C.planLabel(p)+' instead.','那个计划稍后开放，先用 '+C.planLabel(p)+'。')); }
@@ -307,11 +315,12 @@ function longSafety(p){
    '<div class="btns"><button class="btn" id="lsGo" data-act="lsgo" data-p="'+p.id+'" disabled>'+L('Start '+p.fast+'-hour fast','开始 '+p.fast+' 小时断食')+'</button><button class="btn sec" data-act="close">'+L('Not now','以后再说')+'</button></div>');
 }
 function beginFast(p,start,extra){
+  if(offNow()) return; /* a break holds the streak; no fast starts until it ends */
   S.cur=Object.assign({start:start,goalH:p.fast,planId:p.id,reached:false},extra||{}); save(); closeSheet(); fx('medium'); lastHour=-1; shownP=-1; cache={}; updateToday(); scheduleGoal();
   toast(L('Fast started. Hold the button when you want to end it.','断食开始了。想结束时按住按钮。'));
 }
 function startRamadan(){
-  if(offNow()){ toast(L('You’re on a break. End it first to start a fast.','你正在休息中。先结束休息才能开始断食。')); return; }
+  if(offNow()){ breakNudge(); return; }
   var now=Date.now(), f=C.fajrHour(pi,now); if(f==null){ toast(L('Dawn can’t be worked out at this latitude yet.','这个纬度暂时算不出黎明时间。')); return; }
   var s=placeMs(f,now), e=placeMs(sun.set,now);
   if(now>=e){ toast(L('The fast has already ended for today. Come back before dawn.','今天的斋戒已经结束，黎明前再来。')); return; }

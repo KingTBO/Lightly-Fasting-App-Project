@@ -4,6 +4,12 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.44.0
+- **design** Start fast during Time off now answers when you tap it, instead of doing nothing. It still looks unavailable (dimmed), but a tap gives a short, soft shake (the same "not now" gesture Apple uses), two light taps of haptic feedback, and a message at the top: "Ready to fast? Tap End break at the top first." The End break pill lights up for a moment so you can see where to go. With Reduce Motion on there is no shake; the message and the pill highlight still appear. The Chinese is 准备好断食了吗？先点上方的“结束休息”。
+- **fix** For people using a screen reader or a keyboard, Start fast during a break used to be hidden from them as a disabled button. It is now a normal button that says it is dimmed, and activating it reads out the same message.
+- A fast can no longer start during a break by any route (a safety check inside the start itself, as well as the button).
+- The concept page's Today demo behaves the same: tap Start fast while a break is on.
+
 ## 0.43.2
 - **fix** Cheat days are not offered while Time off is on. A break already holds your streak, so spending a cheat day then would only waste one. While you are travelling or resting, the Cheat days row is gone from Me, the streak card on Today still shows your streak and week but no longer opens the Cheat days sheet, and Days does not offer "Use a cheat day". Everything comes back when the break ends, and your cheat day count is untouched. The rule lives in `flexBlock` (it now returns `break`), with a unit test.
 - The concept page's Today and Me screens match: end the break in the demo and the row and the tap come back. Also fixed on the concept page: "End break" (and Me, Time off while on a break) opened the Appearance sheet instead of the break sheet, because both used the same sheet number.
