@@ -79,7 +79,7 @@ html:lang(zh-Hans) .lt{letter-spacing:0}
 .track{margin:var(--s3) var(--m) 0;position:relative;flex:none}
 .track svg{display:block;width:100%;height:auto;overflow:visible}
 .track .ends{display:flex;justify-content:space-between;font:500 0.8125rem var(--font);color:var(--ink-2);font-variant-numeric:tabular-nums;margin-top:2px}
-.track .ends b{color:var(--ink);font-weight:600}
+.track .ends b{font-weight:inherit;color:inherit} /* both times look the same */
 .tick{fill:var(--rim)}
 .streak{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:var(--s3) var(--m) 0;padding:0 16px;min-height:48px;border:0;width:calc(100% - 32px);text-align:left;border-radius:14px;background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);flex:none;color:var(--ink)}
 .streak .tx{display:flex;flex-direction:column;min-width:0;font:500 0.9375rem/1.25 var(--font)}
@@ -95,7 +95,9 @@ html:lang(zh-Hans) .lt{letter-spacing:0}
 .act::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.16);transform-origin:left;transform:scaleX(var(--hold,0));z-index:-1;transition:transform .35s var(--spring)}
 .act.holding::before{transition:none}
 .scr#today{padding-bottom:calc(88px + var(--sab))}
-.gap{flex:1 1 0;min-height:14px}
+.sp{flex:1 1 0;min-height:0}
+.sp.mid{flex-grow:.5}
+.gap{flex:1.5 1 0;min-height:14px} /* spare height on tall phones is shared 2 : 1 : 3 (above the moon, under it, above the button), so the moon and its readout stay together */
 @keyframes swap{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .swap{animation:swap .36s var(--spring)}
 
