@@ -586,7 +586,7 @@ function pkTune(col){
   pk.querySelector('.pk-v').textContent=kind==='sel'?JSON.parse(pk.dataset.labels)[col.dataset.sel]:pkText(kind,v);
   pkChange(pk.id,v); }
 function pkChange(id,v){
-  if(id==='obStart') ob.start=v;
+  if(id==='obStart'){ ob.start=v; var o=$('obPrev'); if(o){ var t=document.createElement('div'); t.innerHTML=obPrev(ob.plan||'16',v); o.querySelector('small').textContent=t.querySelector('small').textContent; } }
   else if(id==='obCity') setPlace({key:v});
   else if(id==='usualStart'){ clearTimeout(pkTimer); pkTimer=setTimeout(function(){ S.prefs.usualStart=v; save(); cache={}; updateToday(); },400); } }
 function pkToggle(id){
@@ -847,6 +847,15 @@ function obRisky(){ return !!(ob.safe.length&&ob.safe.indexOf('none')<0); }
 function obFlow(){ var f=['welcome','fasted','plan']; if(ob.fasted==='before'){ f.push('custom'); f.push('import'); } f.push('set','safety','summary'); return f; }
 /* the import step shows a plain file glyph, not look-alike tiles of other apps */
 var IMP_GLYPH='<div class="ob-hero imp-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11.5v5M9.5 14l2.5 2.5 2.5-2.5"/></svg></div>';
+/* a small moon that previews the plan: the lit wedge is the share of the day you fast, with when a fast would end */
+function obPrev(pid,startStr){
+  var p=C.planById(pid,S.customH), fr=p.fast/24, line;
+  if(startStr){ var uh=+startStr.split(':')[0]+ +startStr.split(':')[1]/60, eh=(uh+p.fast)%24; line=L('From '+clockH(uh)+', a '+p.fast+' h fast ends at '+clockH(eh)+'.','从 '+clockH(uh)+' 开始，'+p.fast+' 小时后在 '+clockH(eh)+' 结束。'); }
+  else line=L('Start now and you finish at ','现在开始，')+clockMs(Date.now()+p.fast*H)+L('.',' 结束。');
+  return '<div class="ob-prev" id="obPrev" data-p="'+fr.toFixed(3)+'"><svg viewBox="-70 -70 140 140" aria-hidden="true"><circle r="60" fill="rgba(142,142,147,.34)" stroke="rgba(142,142,147,.6)" stroke-width="2"/><path id="obPrevLit" d="'+wedgePath(fr,60)+'" fill="#F4EFE2" stroke="#B9AF96" stroke-width="2" stroke-linejoin="round"/></svg>'+
+    '<span class="tx"><b>'+(p.fast>=24?L(p.fast+' h of fasting',p.fast+' 小时断食'):L(p.fast+' h of fasting, '+(24-p.fast)+' h to eat',p.fast+' 小时断食，'+(24-p.fast)+' 小时进食'))+'</b><small>'+line+'</small></span></div>'; }
+function obPrevAnim(from){ var el=$('obPrev'), lit=$('obPrevLit'); if(!el||!lit||from==null) return; var to=+el.dataset.p; if(reduce||from===to) return;
+  var t0=performance.now(); (function step(){ var k=Math.min((performance.now()-t0)/420,1), e=1-Math.pow(1-k,3); if(!lit.isConnected) return; lit.setAttribute('d',wedgePath(from+(to-from)*e,60)); if(k<1) requestAnimationFrame(step); })(); }
 function obHtml(i){
   var back=i>0?'<button class="ob-back" data-act="obback"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg>'+L('Back','返回')+'</button>':'<span></span>';
   var flow=obFlow(), key=flow[i]; var dots='<span class="ob-dots" aria-hidden="true">'+flow.map(function(j){return '<i'+(j===i?' class="on"':'')+'></i>';}).join('')+'</span>';
@@ -871,13 +880,13 @@ function obHtml(i){
     var risky=obRisky(), sug=risky||ob.fasted==='first'?'13':'16', prof={fastedBefore:ob.fasted==='before',safety:risky}; if(!ob.plan||C.planStatus(ob.plan,prof,{fasts:[]}).st!=='ok') ob.plan=sug;
     body='<h1>'+L('Pick your plan','选择你的计划')+'</h1><p class="lede">'+(risky||ob.fasted==='first'?L('Everyone starts at 13:11. The next plan opens after three completed fasts.','大家都从 13:11 开始，完成三次后开放下一个计划。'):L('Every everyday plan is open. You can change it any time.','所有日常计划都已开放，随时可以更改。'))+'</p><div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ var lk=C.planStatus(p.id,prof,{fasts:[]}).st!=='ok';
         return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"'+(lk?' disabled':'')+'><span class="pn"><span class="pt"><b>'+pName(p)+'</b>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+(lk?'<span class="pill">'+L('Locked','未解锁')+'</span>':'')+'</span><small>'+(lk?L('After 3 fasts','完成 3 次后'):fastSub(p))+'</small></span>'+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
-      '<p class="gf" style="padding:0 4px">'+(risky?L('Longer fasts stay off for you.','长时间断食对你保持关闭。'):L('A 24-hour fast unlocks later, as you build up.','24 小时断食会在你逐步适应后解锁。'))+'</p><div class="grow"></div>';
+      '<p class="gf" style="padding:0 4px">'+(risky?L('Longer fasts stay off for you.','长时间断食对你保持关闭。'):L('A 24-hour fast unlocks later, as you build up.','24 小时断食会在你逐步适应后解锁。'))+'</p><div class="grow"></div>'+obPrev(ob.plan);
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='import'){
     body='<div class="grow"></div>'+IMP_GLYPH+'<h1 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h1><p class="lede" style="text-align:center">'+L('Using another fasting app? Import your history now so you never lose it. It’s optional, and you can do it later in Me.','正在用别的断食应用？现在导入历史记录，就不会丢失。这是可选的，以后也可以在“我”里导入。')+'</p><p class="gf" style="text-align:center">'+L('Zero: unzip your download and choose firestore.json. Other apps: a CSV or JSON file with start and end times. The file stays on this phone.','Zero：解压下载的文件，选择 firestore.json。其他应用：包含开始和结束时间的 CSV 或 JSON 文件。文件只留在这台手机上。')+'</p><div class="grow"></div><input id="obImpFile" type="file" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden>';
     cta='<label class="btn" for="obImpFile">'+L('Choose a file','选择文件')+'</label><button class="btn sec" data-act="obnext">'+L('Skip for now','暂时跳过')+'</button>';
   }else if(key==='custom'){
-    body='<h1>'+L('Make it yours','按你的习惯来')+'</h1><p class="lede">'+L('Since you’ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="group">'+pkField('obStart',L('Usual start time','通常开始时间'),ob.start||'20:00','t')+'</div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
+    body='<h1>'+L('Make it yours','按你的习惯来')+'</h1><p class="lede">'+L('Since you’ve fasted before, tell us how your day usually runs. You can change both later in Me.','你以前断食过，告诉我们你一天通常怎么过。这两项以后都能在“我的”里修改。')+'</p><div class="group">'+pkField('obStart',L('Usual start time','通常开始时间'),ob.start||'20:00','t')+'</div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>'+obPrev(ob.plan||'16',ob.start||'20:00');
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='set'){
     var hereOn=S.place.key==='here';
@@ -889,7 +898,7 @@ function obHtml(i){
       :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn quiet" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
   }else if(key==='summary'){
     var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.fasted==='before'&&!rk&&ob.start?ob.start:'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
-    body='<div class="ob-hero"><svg viewBox="-70 -70 140 140" aria-hidden="true"><circle r="60" fill="rgba(142,142,147,.16)" stroke="rgba(142,142,147,.5)"/><path d="'+phasePath(.12,60)+'" fill="#E9E3D3"/></svg></div><h1>'+L('You’re set','准备好了')+'</h1>'+
+    body='<div class="ob-hero"><svg viewBox="-70 -70 140 140" aria-hidden="true"><circle r="60" fill="rgba(142,142,147,.34)" stroke="rgba(142,142,147,.6)" stroke-width="2"/><path d="'+wedgePath(C.planById(pid,S.customH).fast/24,60)+'" fill="#F4EFE2" stroke="#B9AF96" stroke-width="2" stroke-linejoin="round"/></svg></div><h1>'+L('You’re set','准备好了')+'</h1>'+
       '<div class="group"><div class="row"><span>'+L('Plan','计划')+'</span><b>'+esc(C.planLabel(C.planById(pid,S.customH)))+'</b></div><div class="row"><span>'+L('Sunrise and sunset','日出日落')+'</span><b>'+esc(placeName())+'</b></div><div class="row"><span>'+L('First fast','第一次断食')+'</span><b>'+(uh!=null?L('Tonight, ','今晚 ')+clockH(uh):L('When you’re ready','准备好时'))+'</b></div></div>'+
       '<p class="gf" style="padding:0 4px">'+(rk?L('Your plan stays at 13:11 and longer fasts stay off. Please talk to your doctor before changing that.','你的计划保持在 13:11，长时间断食保持关闭。要调整前请先咨询医生。'):L('Everything here can be changed later in Me.','这里的一切都可以之后在“我的”里修改。'))+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obdone">'+L('Open Lightly','打开 Lightly')+'</button>';
@@ -1020,7 +1029,7 @@ var A={
   obback:function(){ if(ob.step>0){ ob.step--; obRender(-1); } },
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
   obsafe:function(b){ var v=b.dataset.v, i=ob.safe.indexOf(v); if(v==='none') ob.safe=i>=0?[]:['none']; else{ ob.safe=ob.safe.filter(function(x){return x!=='none';}); if(i>=0) ob.safe.splice(ob.safe.indexOf(v),1); else ob.safe.push(v); } obRefresh(); },
-  obplan:function(b){ if(b.disabled) return; ob.plan=b.dataset.id; obRefresh(); },
+  obplan:function(b){ if(b.disabled) return; var pv=$('obPrev'), from=pv?+pv.dataset.p:null; ob.plan=b.dataset.id; obRefresh(); obPrevAnim(from); },
   obgeo:function(){ geo(function(ok){ if(!ok) ob.city=true; obRefresh(); }); },
   obcityshow:function(){ ob.city=true; obRefresh(); },
   obdone:obFinish
