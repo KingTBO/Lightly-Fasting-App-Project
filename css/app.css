@@ -78,8 +78,15 @@ html:lang(zh-Hans) .lt{letter-spacing:0}
 .read .tip.quiet{opacity:0}
 .track{margin:var(--s3) var(--m) 0;position:relative;flex:none}
 .track svg{display:block;width:100%;height:auto;overflow:visible}
-.track .ends{display:flex;justify-content:space-between;font:500 0.8125rem var(--font);color:var(--ink-2);font-variant-numeric:tabular-nums;margin-top:2px}
-.track .ends b{font-weight:inherit;color:inherit} /* both times look the same */
+.track .ends{display:flex;justify-content:space-between;align-items:flex-start;margin-top:2px;font-variant-numeric:tabular-nums}
+.track .ends>span{display:flex;flex-direction:column;gap:3px;min-height:44px;padding:4px 2px 0}
+.track #endB{align-items:flex-end}
+.track #endA[role=button]{cursor:pointer}
+.ends .cap{font:600 .65625rem/1.2 var(--font);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+html:lang(zh-Hans) .ends .cap{font-size:.75rem;letter-spacing:.02em;text-transform:none}
+.ends .trow{display:flex;align-items:center;gap:7px}
+.ends .eg{width:14px;height:14px;flex:none;display:block}.ends .eg svg{display:block;width:100%;height:100%}
+.ends .tm{font:600 1.125rem/1.2 var(--font);color:var(--ink);letter-spacing:-.01em}
 .tick{fill:var(--rim)}
 .streak{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:var(--s3) var(--m) 0;padding:0 16px;min-height:48px;border:0;width:calc(100% - 32px);text-align:left;border-radius:14px;background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);flex:none;color:var(--ink)}
 .streak .tx{display:flex;flex-direction:column;min-width:0;font:500 0.9375rem/1.25 var(--font)}
@@ -482,7 +489,7 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .ph[data-sky="night"] .tabs .ico-moon,.ph[data-sky="first"] .tabs .ico-moon,.ph[data-sky="evening"] .tabs .ico-moon{display:block}
 @keyframes icoIn{from{opacity:0;transform:scale(.7) rotate(-25deg)}}
 @media (prefers-reduced-motion:no-preference){.tabs .ico-sun,.tabs .ico-moon{animation:icoIn .5s var(--spr) backwards}}
-.track .ends .ic-edit{display:inline-block;width:14px;height:14px;margin-left:5px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.track .ends .ic-edit{display:inline-block;width:14px;height:14px;margin-left:2px;color:var(--ink-2);flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .row .v svg.ck{width:20px;height:20px;display:block;stroke:var(--blue);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- in-app wheel pickers (date, time, city) ---------- */
