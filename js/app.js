@@ -161,9 +161,6 @@ function chrome(){ /* the colour behind the app (page background, status bar, ho
   var c=(curTab==='today'?getComputedStyle(ph).getPropertyValue('--sky'):getComputedStyle(document.documentElement).getPropertyValue('--bg')).trim()||'#0E1430';
   document.documentElement.style.backgroundColor=c; document.body.style.backgroundColor=c;
   var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',c); }
-/* iOS home-screen apps sometimes lay the page out shorter than the screen (a band shows under the tab bar). Stretch the frame to the real screen height when that happens. */
-function fitScreen(){ var root=document.documentElement, st=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode:standalone)').matches), sh=Math.max(screen.height||0,screen.width||0), ih=window.innerHeight, short=sh-ih;
-  if(st&&window.innerWidth<600&&window.innerHeight>window.innerWidth&&short>2&&short<140) root.style.setProperty('--fill-h',sh+'px'); else root.style.removeProperty('--fill-h'); }
 function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-sky',k); chrome(); } }
 
 function updateToday(){
@@ -1080,8 +1077,8 @@ if(S.onboarded) normalisePlan();
 if(S.prefs.timerStyle==='c') S.prefs.timerStyle='b';
 ph.dataset.ts=S.prefs.timerStyle||'b';
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
-chrome(); fitScreen();
-['resize','orientationchange','pageshow'].forEach(function(e){ window.addEventListener(e,function(){ fitScreen(); chrome(); }); });
+chrome();
+['resize','orientationchange','pageshow'].forEach(function(e){ window.addEventListener(e,chrome); });
 if(window.matchMedia){ var mq=matchMedia('(prefers-color-scheme:dark)'); if(mq.addEventListener) mq.addEventListener('change',function(){ setTimeout(chrome,50); }); }
 var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash);
 if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }
