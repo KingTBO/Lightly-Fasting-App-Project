@@ -1087,7 +1087,7 @@ function clearStars(){ var svg=$('stars'), dr=$('disc').getBoundingClientRect();
     if(hid) c.style.opacity='0'; else c.style.removeProperty('opacity'); }); }
 var dsNow=1;
 /* the disc gives way first: it shrinks until the streak card and the button both fit above the tab bar */
-function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) return; var free=$('gap').offsetHeight-14, over=t.scrollHeight-t.clientHeight, d=(free>0?free:0)-(over>0?over:0);
+function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) return; var free=[].reduce.call(t.querySelectorAll('.sp'),function(a,e){ return a+e.offsetHeight; },0)-14, over=t.scrollHeight-t.clientHeight, d=(free>0?free:0)-(over>0?over:0);
   if(Math.abs(d)<2) return; var n=Math.max(ph.classList.contains('tight')?.3:.4,Math.min(1,dsNow+d/236)); if(Math.abs(n-dsNow)<.004) return; dsNow=n; $('discWrap').style.setProperty('--ds',n.toFixed(3)); }
 window.addEventListener('resize',fitDisc);
 if(S.onboarded) normalisePlan();

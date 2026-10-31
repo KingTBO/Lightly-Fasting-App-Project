@@ -4,6 +4,12 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.42.0
+Today audit, first open.
+- **design** The big empty block between the progress line and Start fast is gone. On taller phones the spare height is now shared around the moon (a little above it, a little below it, and the most above the button), so the screen looks balanced before your first fast. It was empty because the streak card is hidden until your first fast (by design since 0.30.0, so a new person doesn't see "No streak running" and empty dots), and nothing used that space.
+- **fix** The two times under the progress line now look the same. The finish time was bold and "Now" (or your start time) was regular. Both use the same size, weight and colour.
+- The concept page's time labels match.
+
 ## 0.41.1
 - **fix** iPhone Home Screen: your phone gives Lightly a page that ends about 62 pt above the bottom of the screen (the in-app check shows a 894 pt page on a 956 pt screen), and nothing can be drawn below it. The app now notices that and stops leaving room for the home indicator at the bottom, so the tab bar sits just above the end of the page instead of floating high, and the strip below is the same colour as the screen. The cause is still on iOS's side, so this is a workaround. The concept page did not change.
 
