@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.36.0
+- **design** The plan button at the top right of Today now shows the fasting hours, for example "13h", "16h", "18h" or "24h" (16小时 in Chinese), because testers said "16:8" and "13:11" look like a clock. A custom plan shows its own hours ("17h"), and Ramadan still says Ramadan. The plan sheet keeps the 16:8 style names, with the eating hours, since it is a list of plans and not a time. The concept page matches.
+
 ## 0.35.1
 - **fix** On the concept page, the small progress icons in "Jump to a moment" (Start the fast, Hour 5, Hour 9, Sunrise, Reach the goal, Finish and celebrate, End and eat, and the Ramadan list) still showed the old moon-phase shapes. They now show what the app shows: a wedge of light that fills counter-clockwise from the top, and unwinds the same way while eating. The wording changed from "crescent" and "thin sliver" to "the disc starts to fill from the top", in English and Chinese. The Ramadan phone preview and the "Fuller means closer" card, and the 3D notes, follow. The app itself did not change.
 

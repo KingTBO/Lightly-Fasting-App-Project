@@ -51,6 +51,8 @@ function fmtH(hrs){ var m=Math.max(0,Math.round(hrs*60)), a=Math.floor(m/60), b=
 /* hours and minutes, leaving out a zero part: "16 h", "45 m", "1 h 20 m" */
 function hmTxt(m){ var a=Math.floor(m/60), b=m%60, zh=S.lang==='zh', o=[]; if(a||!b) o.push(a+(zh?' 小时':' h')); if(b) o.push(b+(zh?' 分':' m')); return o.join(' '); }
 function durTxt(hrs){ return hmTxt(Math.max(0,Math.round(hrs*60))); }
+/* the plan button on Today shows the fasting hours (16h), because 16:8 reads like a clock */
+function chipHours(p){ return p.fast+L('h','小时'); }
 function pName(p){ return S.lang==='zh'?p.zh:p.name; }
 
 /* ---------- place and sun ---------- */
@@ -172,7 +174,7 @@ function updateToday(){
   var skyName=S.lang==='zh'?sk[3]:sk[2];
   put($('sub'),'sub',skyName+' · '+(mode==='eat'?L('Eating window','进食窗口'):moonNow?L('Moon until ','月亮，直到 ')+clockH(sun.rise):L('Sun until ','太阳，直到 ')+clockH(sun.set)));
   var bar=$('offBar'); bar.hidden=!offA; if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
-  put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):C.planLabel(cur?C.planById(cur.planId,cur.goalH):p));
+  put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):chipHours(cur?C.planById(cur.planId,cur.goalH):p));
   var ramadan=cur&&cur.planId==='ramadan';
   if(brk){ var dn=Math.min(C.offDayNo(offA),offA.days);
       put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Break','休息'):L('Rest','静养'));
