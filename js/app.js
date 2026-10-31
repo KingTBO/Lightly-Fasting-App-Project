@@ -157,7 +157,14 @@ var orb=null, flat=true;
 function initOrb(){ try{ orb=window.LightlySphere?window.LightlySphere($('disc')):null; }catch(e){ orb=null; } if(orb) orb.set(!!S.prefs.d3); }
 function phasePath(p,r){ p=Math.min(Math.max(p,0),1); if(p<=0.001) return ''; var rx=r*Math.abs(1-2*p), s=p<0.5?0:1; return 'M0 '+(-r)+' A'+r+' '+r+' 0 0 1 0 '+r+' A'+rx.toFixed(2)+' '+r+' 0 0 '+s+' 0 '+(-r)+'Z'; }
 
-function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-sky',k); if(curTab==='today') document.documentElement.style.background=getComputedStyle(ph).getPropertyValue('--sky').trim(); var m=document.querySelector('meta[name=theme-color]'); if(m&&curTab==='today') m.setAttribute('content',getComputedStyle(ph).getPropertyValue('--sky').trim()||'#0E1430'); } }
+function chrome(){ /* the colour behind the app (page background, status bar, home-indicator area) always matches the screen on top of it */
+  var c=(curTab==='today'?getComputedStyle(ph).getPropertyValue('--sky'):getComputedStyle(document.documentElement).getPropertyValue('--bg')).trim()||'#0E1430';
+  document.documentElement.style.backgroundColor=c; document.body.style.backgroundColor=c;
+  var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',c); }
+/* iOS home-screen apps sometimes lay the page out shorter than the screen (a band shows under the tab bar). Stretch the frame to the real screen height when that happens. */
+function fitScreen(){ var root=document.documentElement, st=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode:standalone)').matches), sh=Math.max(screen.height||0,screen.width||0), ih=window.innerHeight, short=sh-ih;
+  if(st&&window.innerWidth<600&&window.innerHeight>window.innerWidth&&short>2&&short<140) root.style.setProperty('--fill-h',sh+'px'); else root.style.removeProperty('--fill-h'); }
+function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-sky',k); chrome(); } }
 
 function updateToday(){
   nowMs=Date.now(); var now=nowMs; refreshSun(now);
@@ -376,9 +383,8 @@ function showTab(t){
   ph.style.setProperty('--ti',order.indexOf(t));
   document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('sel',b.dataset.tab===t); b.setAttribute('aria-current',b.dataset.tab===t?'page':'false'); });
   ph.classList.toggle('sys',t!=='today');
-  var m=document.querySelector('meta[name=theme-color]');
   if(t==='days'){ ringPlay=true; fabOn=false; selDay=null; } if(t==='days') renderDays(); if(t==='me') renderMe(); fabSync(); if(t==='today') updateToday();
-  if(m) m.setAttribute('content',t==='today'?getComputedStyle(ph).getPropertyValue('--sky').trim():getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+  chrome();
   $(t).scrollTop=0;
 }
 function tabLabels(){ $('tabT').textContent=L('Today','今天'); $('tabD').textContent=L('Days','日子'); $('tabM').textContent=L('Me','我的'); }
@@ -1000,7 +1006,7 @@ var A={
   choice:function(b){ choiceSheet(b.dataset.k); },
   pick:function(b){ var f=A[b.dataset.k]; if(f) f(b); if(b.dataset.k!=='theme') setTimeout(closeSheet,180); /* appearance stays open so you can see the change behind it */ },
   theme:function(b){ S.theme=b.dataset.v; save(); switchTheme(function(){ applyTheme(); renderMe(); [].forEach.call(sheetEl.querySelectorAll('[data-act=pick][data-k=theme]'),function(x){ x.classList.toggle('sel',x.dataset.v===S.theme); });
-    var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',curTab==='today'?getComputedStyle(ph).getPropertyValue('--sky').trim():getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()); }); },
+    chrome(); }); },
   sw:function(b){ var k=b.dataset.k, on=b.getAttribute('aria-checked')!=='true';
     if(k==='notify') return setNotify(on,function(){ if(!$('ob').hidden) obRefresh(); else renderMe(); });
     if(k==='ram'){ S.ramadanPreview=on; save(); return renderMe(); }
@@ -1083,6 +1089,9 @@ if(S.onboarded) normalisePlan();
 if(S.prefs.timerStyle==='c') S.prefs.timerStyle='b';
 ph.dataset.ts=S.prefs.timerStyle||'b';
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
+chrome(); fitScreen();
+['resize','orientationchange','pageshow'].forEach(function(e){ window.addEventListener(e,function(){ fitScreen(); chrome(); }); });
+if(window.matchMedia){ var mq=matchMedia('(prefers-color-scheme:dark)'); if(mq.addEventListener) mq.addEventListener('change',function(){ setTimeout(chrome,50); }); }
 var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash);
 if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }
 /* coming back through a sign-in link: let the account restore first, so onboarding never flashes for someone who already did it */
