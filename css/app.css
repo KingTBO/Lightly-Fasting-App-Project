@@ -54,14 +54,16 @@ h1,h2,h3,p{margin:0}
 .nav{padding:4px var(--m) 0;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .lt{font:700 2.125rem/1.2 var(--font-d);letter-spacing:-.02em}
 html:lang(zh-Hans) .lt{letter-spacing:0}
-.skypill{display:inline-flex;align-items:center;gap:8px;min-height:44px;min-width:0;max-width:100%;padding:0 14px 0 11px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--ink)}
+.skypill{display:inline-flex;align-items:center;gap:8px;min-height:44px;min-width:0;max-width:100%;padding:0 12px 0 11px;border:0;font:inherit;text-align:left;cursor:pointer;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--ink)}
 .skypill .sg{width:22px;height:22px;flex:none;display:block}
 .skypill .sg svg{width:22px;height:22px;display:block}
 .skypill .sg.sun svg{filter:drop-shadow(0 0 5px rgba(255,190,0,.45))}
 .skypill b{font:600 0.9375rem/1.2 var(--font);color:var(--ink);white-space:nowrap}
 .skypill i{width:3px;height:3px;border-radius:50%;background:var(--ink-2);flex:none}
+.skypill .si{width:16px;height:16px;flex:none;display:block;color:var(--ink-2);margin-left:-2px}
 .skypill .sx{font:400 0.8125rem/1.2 var(--font);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-@media (max-width:340px){.skypill{gap:6px;padding:0 10px 0 8px}.skypill .sx{font-size:.75rem}}
+@media (max-width:360px){.skypill i{display:none}}
+@media (max-width:340px){.skypill{gap:6px;padding:0 8px 0 8px}.skypill .sx{font-size:.75rem}}
 .chip{font:500 0.8125rem var(--font);padding:0 14px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:0;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--ink)}
 
 /* ---------- Today ---------- */
@@ -146,9 +148,9 @@ html:lang(zh-Hans) .h-title,html:lang(zh-Hans) .ob h1{letter-spacing:0}
 .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 1.0625rem var(--font);transition:transform .1s ease-out}
 .btn:active{transform:scale(.97);transition-duration:.1s}
 .row:active,.plan:active,.check:active{background:var(--fill);transition:background .1s}
-.chip:active,.streak:active{transform:scale(.97);transition:transform .1s ease-out}
+.chip:active,.streak:active,.skypill:active{transform:scale(.97);transition:transform .1s ease-out}
 .tabs>button:active{background:color-mix(in srgb,var(--ink) 8%,transparent)}
-.chip,.streak{transition:transform .35s var(--spring)}
+.chip,.streak,.skypill{transition:transform .35s var(--spring)}
 .btn.sec{background:var(--fill);color:var(--label);font-weight:500}
 .btn.dark{background:var(--label);color:var(--card)}
 .btn.red{background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--red)}

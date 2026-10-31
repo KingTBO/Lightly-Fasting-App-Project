@@ -4,6 +4,12 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.46.0
+- **design** The sky pill at the top left of Today now says what it counts to (TEEBO picked option C). Before, it read "Night · 1 h 22 m left" while you fasted, which looked like a second timer next to "Time left". Now it names the event: "Sunrise 6:12 AM" before you start, and "Sunrise in 1 h 22 m" while you fast or eat. The Chinese is 日出 上午 6:12 and 1 小时 22 分后日出.
+- **design** The pill is now a button with a small info mark. Tapping it opens a short sheet, "Moon and sun": "The pill counts to the next sunrise or sunset. It's not your fast." with today's sunrise and sunset. It is the same sheet as the others (round X, the background dims and blurs).
+- **fix** For screen readers the pill is now a button that reads, for example, "Night, Sunrise in 7 hours 42 minutes. Opens an explanation."
+- The concept page's Today demo matches, including the sheet.
+
 ## 0.45.0
 - **design** The time, date and city wheels now move like the Apple Clock timer picker. A flick keeps its momentum and carries past many values instead of stopping on every number, and the wheel only glides to the nearest value once it has come to rest. Rows curve away from the centre: they fade, shrink and tilt as they leave the selected line. Touch and the mouse wheel both work, arrow keys still step one at a time, and the light haptic tick per value still follows the Vibration setting. With Reduce Motion on, rows only fade (no tilt or scale) and the wheel jumps to a value instead of gliding.
 - **design** In Days, when you edit a fast, the Goal (hours) box is now a compact field that fits its number (two digits) instead of a wide block, and the little up/down arrows are gone. The Fasting hours box for a custom plan uses the same size.
