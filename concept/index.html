@@ -683,7 +683,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div class="sb"><span id="sbClock">9:41</span><span class="ic"><b></b><b></b></span></div>
       <div class="nav">
         <div><span class="sub" id="sub">Night · Moon fast</span></div>
-        <button type="button" class="pchip" id="planBtn" aria-haspopup="dialog" aria-label="Change plan"><span class="chip"><span id="planChip">16:8</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></span></button>
+        <button type="button" class="pchip" id="planBtn" aria-haspopup="dialog" aria-label="Change plan"><span class="chip"><span id="planChip">16h</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></span></button>
       </div>
       <button type="button" class="offbar" id="offBar" hidden></button>
       <div class="disc-wrap">
@@ -1546,7 +1546,8 @@ window.LightlySphere=(function(){
   $('sndSw').addEventListener('click',function(){ snd=$('sndSw').getAttribute('aria-checked')!=='true'; $('sndSw').setAttribute('aria-checked',snd); if(snd) sBoop(); });
 
   /* ---------- plans ---------- */
-  function planLbl(p){ return p.grp==='long'?p.fast+' h':p.fast+':'+p.eat; }
+  /* the plan button shows the fasting hours (16h), because 16:8 reads like a clock */
+  function planLbl(p){ return p.fast+L('h','小时'); }
   var GRP=[['daily','Daily','每日'],['weekly','Weekly','每周'],['long','Longer fasts, by choice','更长的断食（自愿开启）']];
   var FEAT=PLANS.filter(function(p){return p.feat;});
   $('planSeg').innerHTML=FEAT.map(function(p){return '<button type="button" data-plan="'+p.id+'" aria-pressed="false">'+p.fast+':'+p.eat+'</button>';}).join('');
