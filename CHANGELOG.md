@@ -4,6 +4,12 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.39.0
+Round 3 of the "feel premium" pass: onboarding steps that show the product.
+- **design** The plan step now has a small moon in the empty space above Continue. The lit wedge is the share of the day you would fast, so 16:8 lights two thirds, with a line under it, for example "16 h of fasting, 8 h to eat. Start now and you finish at 8:12 AM." Pick another plan and the wedge slides to match and the time updates.
+- **design** For people who have fasted before, the "Make it yours" step shows the same preview and updates live as you turn the start-time wheel: "From 8:00 PM, a 16 h fast ends at 12:00 PM." The "You're set" step now draws your plan's wedge, filling counter-clockwise like the real disc, instead of an old moon-phase shape.
+- The safety and "have you fasted before" steps stay plain on purpose. The concept page's setup steps match, including the wedge.
+
 ## 0.38.1
 - **fix** On iPhone, a dark navy band sometimes showed under the tab bar when Lightly was opened from the Home Screen, so the app did not fill the screen. Two changes: the colour behind the app (and the status bar) now always follows the screen you are on (sunrise, sunset, night, and the Days and Me tabs in light or dark), so even a gap would not show a different colour; and when the phone lays the page out shorter than the screen, the app now stretches to the full screen height, so the tab bar sits above the home indicator as designed. If the band is still there, tapping the version line at the bottom of Me shows the screen numbers. The concept page did not change.
 
