@@ -227,7 +227,7 @@ function updateToday(){
     $('evtT').setAttribute('x',ex); $('evtT').setAttribute('y',(eq.y-18).toFixed(1)); put($('evtT'),'ev',(tn.k==='rise'?L('Sunrise ','日出 '):L('Sunset ','日落 '))+clockH(tn.at)); $('evt').setAttribute('opacity','1'); } else $('evt').setAttribute('opacity','0');
   var done=mode==='idle'?0:Math.floor(tt*n+1e-6); tickEls.forEach(function(c,i){ c.style.fill=i<done?'var(--ink)':''; });
   /* streak card */
-  var st=curStreak(); $('streakBtn').hidden=!streakFasts().length;
+  var st=curStreak(); $('streakBtn').hidden=!streakFasts().length; $('streakBtn').disabled=!!offA; /* during time off the card only shows the streak; cheat days are not offered */
   put($('streakTx'),'st','<span>'+(st>0?L(st+(st===1?' day':' days')+' in a row',st+' 天连续'):L('No streak running','目前没有连续记录'))+'</span>',1);
   var dots='', t0=today(), offK=C.offKeys(S.off); for(var i=6;i>=0;i--){ var k=C.addDays(t0,-i), s=C.dayStatus(k,streakFasts(),S.flex.used,offK); dots+='<i class="dot '+(s==='done'?'done':s==='flex'||s==='off'?'flex':'')+(i===0?' today':'')+'"></i>'; }
   put($('streakDots'),'sd',dots,1);
@@ -549,7 +549,7 @@ function renderDays(){
   var list=C.fastDays(all)[selDay]||[], fl=S.flex.used.indexOf(selDay)>=0;
   h+='<div class="gh">'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</div><div class="group">';
   if(!list.length&&!fl){ if(selDay>t) h+='<div class="empty">'+L('Nothing here yet.','这天还没有记录。')+'</div>';
-    else h+='<div class="row nolog"><span>'+L('Nothing logged','没有记录')+'</span></div><button class="row" data-act="addday">'+IC_PLUS+'<span>'+L('Add a fast','补记断食')+'</span></button>'+(C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex})?'':'<button class="row" data-act="cheatday" data-k="'+selDay+'">'+IC_MOON+'<span>'+L('Use a cheat day','使用弹性日')+'</span></button>'); }
+    else h+='<div class="row nolog"><span>'+L('Nothing logged','没有记录')+'</span></div><button class="row" data-act="addday">'+IC_PLUS+'<span>'+L('Add a fast','补记断食')+'</span></button>'+(C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex,off:S.off})?'':'<button class="row" data-act="cheatday" data-k="'+selDay+'">'+IC_MOON+'<span>'+L('Use a cheat day','使用弹性日')+'</span></button>'); }
   list.sort(function(a,b){return a.end-b.end;}).forEach(function(f){ h+='<button class="row fast-row" data-act="edit" data-id="'+f.id+'"><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(C.isDone(f)?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+'</small></span>'+CHEV.replace('class="chev"','class="chev" style="margin-left:auto"')+'</button>'; });
   if(fl) h+='<div class="row"><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
   h+='</div>';
@@ -687,7 +687,8 @@ document.addEventListener('change',function(e){
 /* ---------- cheat days (弹性日) ---------- */
 function flexTick(){ C.flexRefill(S.flex,S.startedAt||Date.now()); }
 function cheatSheet(day){
-  flexTick(); var k=typeof day==='string'?day:today(), used=S.flex.used.indexOf(k)>=0, blk=C.flexBlock(k,{fasts:S.fasts,flex:S.flex}), b=S.flex.bank;
+  if(offNow()) return; /* no cheat days during time off: the break already holds the streak */
+  flexTick(); var k=typeof day==='string'?day:today(), used=S.flex.used.indexOf(k)>=0, blk=C.flexBlock(k,{fasts:S.fasts,flex:S.flex,off:S.off}), b=S.flex.bank;
   var moons=''; for(var i=0;i<2;i++) moons+='<svg width="30" height="30" viewBox="-15 -15 30 30" style="margin-right:6px" aria-hidden="true"><circle r="12" style="fill:'+(i<b?'var(--moon)':'none')+';stroke:'+(i<b?'var(--moon-edge)':'var(--label-2)')+'" stroke-width="1.5"/></svg>';
   var why={used:'',fasted:L('You fasted today, so you don’t need one.','今天你已经断食了，不需要使用。'),bank:L('None left. A new one arrives every Monday.','已经用完。每周一会补一个。'),week:L('Two in a week is the limit, so you still fast at least five days.','一周最多两个，这样每周至少断食五天。'),window:''}[blk]||'';
   openSheet('<h3>'+L('Cheat days','弹性日')+'</h3><p class="lede">'+L('A day off that keeps your streak going.','休息一天，连续记录不会断。')+'</p>'+
@@ -695,7 +696,7 @@ function cheatSheet(day){
     '<p class="note">'+(why||L('A new one arrives every Monday. You can keep two.','每周一补充一个，最多存两个。'))+'</p>'+
     '<div class="btns">'+(used?'<button class="btn sec" data-act="undocheat" data-k="'+k+'">'+(k===today()?L('Take today’s cheat day back','收回今天的弹性日'):L('Take this cheat day back','收回这天的弹性日'))+'</button>':'<button class="btn hold" data-hold="usecheat" data-k="'+k+'"'+(blk?' disabled':'')+'><span class="hl">'+L('Hold to use a cheat day','按住使用弹性日')+'</span></button>')+'<button class="btn sec" data-act="close">'+L('Close','关闭')+'</button></div>');
 }
-function useCheat(k){ flexTick(); var b=C.flexBlock(k,{fasts:S.fasts,flex:S.flex}); if(b) return toast(L('A cheat day can’t be used for that day.','这天不能使用弹性日。')); S.flex.used.push(k); S.flex.bank--; save(); closeSheet(); cache={}; updateToday(); if(curTab==='days') renderDays(); toast(L('Cheat day used. Your streak holds.','已使用弹性日，连续记录保持。')); }
+function useCheat(k){ flexTick(); var b=C.flexBlock(k,{fasts:S.fasts,flex:S.flex,off:S.off}); if(b) return toast(L('A cheat day can’t be used for that day.','这天不能使用弹性日。')); S.flex.used.push(k); S.flex.bank--; save(); closeSheet(); cache={}; updateToday(); if(curTab==='days') renderDays(); toast(L('Cheat day used. Your streak holds.','已使用弹性日，连续记录保持。')); }
 
 /* ---------- plan sheet ---------- */
 var moreOpen=false;
@@ -824,7 +825,7 @@ function renderMe(){
   h+='<div class="gh">'+L('Fasting','断食')+'</div><div class="group">'+
    '<button class="row" data-act="place"><span>'+L('Sunrise and sunset','日出日落')+'</span><span class="v">'+esc(placeName())+'</span>'+CHEV+'</button>'+
    (S.prefs.usualStart?pkField('usualStart',L('Usual start time','通常开始时间'),S.prefs.usualStart,'t'):'<button class="row" data-act="usualset"><span>'+L('Usual start time','通常开始时间')+'</span><span class="v">'+L('Not set','未设置')+'</span>'+CHEV+'</button>')+
-   '<button class="row" data-act="cheat"><span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button></div>';
+   (offNow()?'':'<button class="row" data-act="cheat"><span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button>')+'</div>';
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
    '<button class="row" data-act="choice" data-k="lang"><span>'+L('Language','语言')+'</span><span class="v">'+(S.lang==='zh'?'中文':'English')+'</span>'+CHEV+'</button>'+
    '<button class="row" data-act="choice" data-k="theme"><span>'+L('Appearance','外观')+'</span><span class="v">'+choiceLabel('theme',S.theme)+'</span>'+CHEV+'</button>'+
