@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.35.0
+- **design** The progress bar on Today now marks the moment the moon turns into the sun, or the sun into the moon, for example "Sunrise 6:08 AM" above the line at the right spot. This was on the concept page from the start but had never been added to the app. It shows during a fast and during the eating window when a sunrise or sunset falls inside it, and not before you start or in Ramadan, which runs dawn to sunset. The Chinese wording is 日出 and 日落.
+
 ## 0.34.0
 Round 2 of the "feel premium" pass: Days.
 - **design** The two stat tiles ("Longest streak" and "Fasts completed") are replaced by one quiet line under the streak ring, for example "7 fasts this month · longest streak 3 days". The milestone chips stay.
