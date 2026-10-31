@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.43.0
+- **design** The two times under the progress line are redesigned (TEEBO picked option D). Each now has a small caption (Start and Finish, or Ended and Next fast while you eat), the moon or sun the sky will show at that moment, and the time at a larger size, so they read as part of the progress line instead of floating at the corners. Before your first fast the start says "Now". The Chinese captions are 开始, 完成, 结束于 and 下次断食.
+- **fix** Before a fast has started, the start time is plain text. It used to be announced as a button although it did nothing. It becomes a button (tap to edit the start time) once a fast is running or you are in the eating window.
+- The concept page's Today phone matches, with the streak card and moon slightly tighter to make room.
+
 ## 0.42.0
 Today audit, first open.
 - **design** The big empty block between the progress line and Start fast is gone. On taller phones the spare height is now shared around the moon (a little above it, a little below it, and the most above the button), so the screen looks balanced before your first fast. It was empty because the streak card is hidden until your first fast (by design since 0.30.0, so a new person doesn't see "No streak running" and empty dots), and nothing used that space.

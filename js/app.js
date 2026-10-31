@@ -212,8 +212,12 @@ function updateToday(){
   var a0=mode==='eat'?le.end:mode==='fast'?cur.start:now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:ram?placeMs(sun.set,now):now+p.fast*H;
   var n=Math.min(Math.round(mode==='eat'?eatLen:ram?13:goal),36)||1; buildTicks(n);
   var tt=mode==='fast'?Math.min(el/goal,1):mode==='eat'?Math.min(eatEl/eatLen,1):0;
-  put($('endA'),'ea',mode==='fast'||mode==='eat'?clockMs(a0)+'<svg class="ic-edit" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>':mode==='idle'?L('Now','现在'):clockMs(a0),1);
-  put($('endB'),'eb','<b>'+clockMs(a1)+'</b>',1);
+  /* the two times: a caption, the sky at that moment (moon or sun), then the clock time. Only the start is tappable, and only once a fast exists */
+  var capA=mode==='eat'?L('Ended','结束于'):L('Start','开始'), capB=mode==='eat'?L('Next fast','下次断食'):L('Finish','完成'),
+      gA=skyGlyph(C.moonAmt(C.placeHour(pi,a0),sun)>=.5), gB=skyGlyph(C.moonAmt(C.placeHour(pi,a1),sun)>=.5), edA=mode==='fast'||mode==='eat';
+  put($('endA'),'ea','<span class="cap">'+capA+'</span><span class="trow"><span class="eg">'+gA+'</span><span class="tm">'+(edA?clockMs(a0):L('Now','现在'))+'</span>'+(edA?'<svg class="ic-edit" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>':'')+'</span>',1);
+  put($('endB'),'eb','<span class="cap">'+capB+'</span><span class="trow"><span class="eg">'+gB+'</span><span class="tm">'+clockMs(a1)+'</span></span>',1);
+  if($('endA').dataset.ed!==String(edA)){ $('endA').dataset.ed=edA; if(edA){ $('endA').setAttribute('role','button'); $('endA').tabIndex=0; } else { $('endA').removeAttribute('role'); $('endA').removeAttribute('tabindex'); } }
   $('tDone').style.strokeDasharray=(mode==='idle'?0:lenAt(tt))+' 9999';
   var q=tPt(tt); $('marker').setAttribute('cx',q.x.toFixed(1)); $('marker').setAttribute('cy',q.y.toFixed(1)); $('marker').style.opacity=mode==='idle'?0:1;
   /* where the moon turns into the sun (or back) inside this window; Ramadan runs dawn to sunset, so it has none */
@@ -1071,8 +1075,7 @@ A.stsave=function(){ var s=+pkVal('stS'), now=Date.now(); if(!isFinite(s)||s>now
   var clash=S.fasts.some(function(f){ return s<f.end&&now>f.start; }); if(clash) return toast(L('That overlaps another fast.','和另一次断食时间重叠了。'));
   S.cur.start=s; S.cur.reached=(now-s)/H>=S.cur.goalH; save(); closeSheet(); cache={}; shownP=-1; updateToday(); scheduleGoal(); };
 /* the endA label doubles as a button */
-(function(){ var a=$('endA'); a.setAttribute('role','button'); a.tabIndex=0; a.style.cssText='display:inline-flex;align-items:center;min-height:44px;cursor:pointer'; a.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); if(S.cur) startEdit(); else if(mode==='eat'&&lastFast()) fastSheet(lastFast()); } });
-  $('endB').style.cssText='display:inline-flex;align-items:center;min-height:44px'; })();
+(function(){ var a=$('endA'); a.addEventListener('keydown',function(e){ if(a.getAttribute('role')==='button'&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); if(S.cur) startEdit(); else if(mode==='eat'&&lastFast()) fastSheet(lastFast()); } }); })();
 
 /* ---------- boot ---------- */
 (function stars(){ var o='', s=7; function r(){ s=(s*9301+49297)%233280; return s/233280; } for(var i=0;i<70;i++) o+='<circle cx="'+(r()*390).toFixed(0)+'" cy="'+(r()*400).toFixed(0)+'" r="'+(0.6+r()*1.1).toFixed(1)+'" opacity="'+(0.3+r()*0.6).toFixed(2)+'"/>'; $('stars').innerHTML=o; })();
