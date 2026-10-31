@@ -222,6 +222,9 @@ html:lang(zh-Hans) .h-title,html:lang(zh-Hans) .ob h1{letter-spacing:0}
 /* toast */
 .toast{position:absolute;left:var(--m);right:var(--m);top:calc(max(var(--sat),14px) + 6px);z-index:9;background:rgba(40,40,44,.92);color:#fff;border-radius:16px;padding:12px 16px;font:500 0.9375rem/1.35 var(--font);text-align:center;opacity:0;transform:translateY(-12px);transition:opacity .3s ease,transform .45s var(--spring);pointer-events:none}
 .toast.on{opacity:1;transform:none}
+.toast.has-undo{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left}
+.toast.on .tundo{pointer-events:auto}
+.toast .tundo{border:0;background:none;color:var(--tint);font:600 0.9375rem var(--font);min-height:44px;min-width:44px;margin:-12px -8px -12px 0;padding:0 8px}
 
 /* onboarding */
 .ob{position:absolute;inset:0;z-index:8;background:var(--bg);color:var(--label);overflow:hidden;--ink:var(--label);--ink-2:var(--label-2)}
@@ -412,10 +415,7 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .rec{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px 4px 8px;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 0.75rem var(--font);animation:recPop .6s var(--spr) .5s both}
 .rec svg{width:13px;height:13px;fill:currentColor}
 @keyframes recPop{from{transform:scale(.6);opacity:0}}
-.mrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 16px 4px}
-.mrow div{background:var(--fill);border-radius:14px;padding:10px 12px}
-.mrow b{display:block;font:700 1.5rem/1.1 var(--font-r);font-variant-numeric:tabular-nums}
-.mrow span{font:500 0.8125rem var(--font);color:var(--label-2)}
+.mline{font:500 0.875rem/1.35 var(--font);color:var(--label-2);font-variant-numeric:tabular-nums;padding:6px 16px 10px}
 .mchips{display:flex;gap:8px;padding:10px 16px 16px}
 .mchip{flex:1;min-height:32px;border-radius:999px;display:grid;place-items:center;font:600 0.8125rem var(--font-r);border:1.5px dashed var(--label-3);color:var(--label-2)}
 .mchip.on{background:var(--tint);color:var(--on-tint);border-color:transparent}
@@ -484,3 +484,22 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .pk-i{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;scroll-snap-stop:always;font:400 1.1875rem var(--font);font-variant-numeric:tabular-nums;color:var(--label-2);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
 .pk-i.sel{color:var(--label)}
 @media (prefers-reduced-motion:reduce){.pk-w,.pk.open .pk-w{transition:none}}
+
+/* hold-to-confirm button in a sheet */
+.btn.hold{position:relative;overflow:hidden;isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.btn.hold::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.16);transform-origin:left;transform:scaleX(var(--hold,0));z-index:-1;transition:transform .35s var(--spring)}
+.btn.hold.holding::before{transition:none}
+
+/* sheet pattern: the title row carries the dismiss */
+.sh-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:var(--m)}
+.sh-h h3{flex:1;min-width:0;padding-right:0}
+.sh-h .x{position:relative;flex:none;border:0;background:none;color:var(--label-2);width:44px;height:44px;margin:-8px -8px -6px 0;display:grid;place-items:center}
+.sh-h .x::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--fill)}
+.sh-h .x svg{position:relative;width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+
+/* Days: first use and empty days */
+.firstuse{padding:18px 16px 16px;text-align:center}
+.firstuse p{font:400 0.9375rem/1.4 var(--font);color:var(--label-2);margin:0 auto 14px;max-width:28ch}
+.group.dim .cal{opacity:.5}
+.row .ri{width:22px;height:22px;flex:none;fill:none;stroke:var(--label-2);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.row.nolog{min-height:44px;color:var(--label-2);font-size:0.9375rem}

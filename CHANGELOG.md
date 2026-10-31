@@ -4,6 +4,23 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.34.0
+Round 2 of the "feel premium" pass: Days.
+- **design** The two stat tiles ("Longest streak" and "Fasts completed") are replaced by one quiet line under the streak ring, for example "7 fasts this month · longest streak 3 days". The milestone chips stay.
+- **design** Before your first fast, Days shows no zeros. You see one line ("Fasts you finish show up here as filled days.") and one button, "Start a fast", with the calendar greyed out and no legend.
+- **design** A past day with nothing on it says "Nothing logged" and offers two rows with icons: "Add a fast" and, when it is allowed, "Use a cheat day" (hold to confirm, like on Today). A future day still says "Nothing here yet."
+- The concept page's Days screen is a static picture of a busy month, so it did not change.
+
+## 0.33.0
+Round 2 of the "feel premium" pass: one sheet pattern.
+- **design** Every sheet now closes from its title row with a round X (the same as on the concept page) instead of a Cancel, Close or Done pill at the bottom. A sheet keeps one primary button: Save, Choose a file, Send sign-in link and so on. Sheets that only show information or choices have no bottom button at all. The grabber and swipe still work. Sign out and Erase everything keep their Cancel because they are questions you must answer.
+- **design** Editing a fast no longer ends in three stacked pills. Delete this fast is a red row inside the form, and deleting shows a toast with Undo for about five seconds that brings the fast back, including on your other devices.
+- The concept page's sheets already close from their title row, so it needed no change.
+
+## 0.32.0
+- **design** The cheat days sheet is much shorter. It says what a cheat day is in one line, shows how many you have left, and gives the Monday refill in one short sentence. The four rule lines that repeated each other are gone, and the reason a cheat day can't be used today still shows when it applies. The Chinese wording follows.
+- **design** Using a cheat day now takes a press and hold, the same gesture as ending a fast, so a stray tap can't spend one. The button fills as you hold and says "Hold to use a cheat day". A short press does nothing. The concept page matches.
+
 ## 0.31.0
 Round 2 of the "feel premium" pass, second part: the browser's own date, time and list controls are gone.
 - **design** Start times (when you edit a running fast, or edit or add a past one), your usual start time and the nearest city in setup now use Lightly's own wheels. A row shows the value in a small capsule with tabular numerals; tap it and a wheel opens in place with a day, hour, minute and AM or PM column that snap, scroll by touch, mouse wheel or arrow keys, and follow the language. The same look on every phone and browser, with no system popup.
