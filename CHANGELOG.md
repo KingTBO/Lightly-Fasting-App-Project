@@ -4,6 +4,12 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.37.0
+Round 3 of the "feel premium" pass: one haptic and sound vocabulary.
+- **design** Sound and vibration were already on by default; now they follow one fixed vocabulary so the same thing always feels the same. A tiny tick on every wheel detent. A light tap for touches (pressing the disc or the main button, switches, tab changes, Undo). A small tap when the hour turns. A medium tap when a fast starts or when a hold completes. A success pattern with a soft chime when you reach your goal. Nothing fires on routine saves.
+- **design** The only sound in the app is now that one soft chime. The hourly tick, the start tone, the save tone and the drag blip are gone. Turning Sound on plays the chime once so you know what you chose. Phones that can't vibrate, such as iPhones in the browser, simply stay silent and still. The Me switch for Vibration only appears where the phone supports it.
+- The concept page matches: one chime, the same taps, and the Sound note now says "One soft chime when you reach your goal".
+
 ## 0.36.0
 - **design** The plan button at the top right of Today now shows the fasting hours, for example "13h", "16h", "18h" or "24h" (16小时 in Chinese), because testers said "16:8" and "13:11" look like a clock. A custom plan shows its own hours ("17h"), and Ramadan still says Ramadan. The plan sheet keeps the 16:8 style names, with the eating hours, since it is a list of plans and not a time. The concept page matches.
 

@@ -90,12 +90,13 @@ function actx(){ if(!S.prefs.sound) return null; try{ if(!ac){ var A=window.Audi
 function tone(f,dur,vol,type,at){ var c=actx(); if(!c) return; var t=c.currentTime+(at||0), o=c.createOscillator(), g=c.createGain();
   o.type=type||'sine'; o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+.02); }
-function sTick(){ tone(1320*(0.94+Math.random()*0.12),.07,.05,'triangle'); }
 function sChime(){ tone(1318.5,1.4,.06); tone(1975.5,1.6,.04,'sine',.09); tone(2637,1.2,.02,'sine',.18); }
-function sStart(){ tone(520,.12,.05); tone(780,.16,.04,'sine',.06); }
-function sSave(){ tone(988,.5,.05); tone(1318.5,.7,.04,'sine',.1); }
-function sBoop(){ tone(660*(0.95+Math.random()*0.1),.09,.045); }
 function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+/* one fixed vocabulary, so the same thing always feels the same:
+   select = a wheel detent, light = a touch or toggle, hour = the hour turns, medium = a fast starts or a hold completes,
+   success = the goal is reached (the only sound in the app is its soft chime). Nothing fires on routine saves. */
+var FX={select:3,light:6,hour:8,medium:14,success:[30,60,30]};
+function fx(k){ buzz(FX[k]); if(k==='success') sChime(); }
 
 /* ---------- toast, sheet ---------- */
 var toastT=0;
@@ -215,9 +216,9 @@ function updateToday(){
   /* hour tick + goal moment */
   if(mode==='fast'){
     var hr=Math.floor(el);
-    if(lastHour>=0&&hr>lastHour&&el<goal&&!ramadan){ sTick(); buzz(8); }
+    if(lastHour>=0&&hr>lastHour&&el<goal&&!ramadan){ fx('hour'); }
     lastHour=hr;
-    if(el>=goal&&!cur.reached){ cur.reached=true; save(); if(!firstTick||el-goal<.02){ sChime(); buzz([30,60,30]); boost=1; } }
+    if(el>=goal&&!cur.reached){ cur.reached=true; save(); if(!firstTick||el-goal<.02){ fx('success'); boost=1; } }
   }else lastHour=-1;
   firstTick=false;
   fullS+=(((mode==='fast'&&el>=goal)?1:0)-fullS)*.12;
@@ -244,15 +245,15 @@ function flatShow(v){ if(flat===v) return; flat=v; $('unlit').style.display=$('l
 /* touch the disc: it tilts toward your finger and springs back */
 (function(){ var d=$('disc'), down=false;
   function pos(e){ var r=d.getBoundingClientRect(); tgtX=Math.max(-1,Math.min(1,((e.clientX-r.left)/r.width-.5)*2))*14; tgtY=Math.max(-1,Math.min(1,((e.clientY-r.top)/r.height-.5)*2))*-14; }
-  d.addEventListener('pointerdown',function(e){ down=true; try{ d.setPointerCapture(e.pointerId); }catch(x){} pos(e); sBoop(); buzz(6); });
+  d.addEventListener('pointerdown',function(e){ down=true; try{ d.setPointerCapture(e.pointerId); }catch(x){} pos(e); fx('light'); });
   d.addEventListener('pointermove',function(e){ if(down&&!reduce) pos(e); });
   function up(){ down=false; tgtX=tgtY=0; } d.addEventListener('pointerup',up); d.addEventListener('pointercancel',up);
 })();
 
 /* ---------- hold to end ---------- */
 var act=$('act'), holdT0=0, holdRaf=0, HOLD_MS=1200, swallow=false;
-function holdStep(){ if(!holdOn) return; var f=Math.min((performance.now()-holdT0)/HOLD_MS,1); act.style.setProperty('--hold',f); if(f>=1){ holdEnd(false); swallow=true; endFast(); return; } holdRaf=requestAnimationFrame(holdStep); }
-function holdBegin(){ if(!S.cur||holdOn) return; holdOn=true; holdT0=performance.now(); act.classList.add('holding','pressed'); put($('actLbl'),'a',L('Keep holding…','继续按住…')); buzz(6); holdRaf=requestAnimationFrame(holdStep); }
+function holdStep(){ if(!holdOn) return; var f=Math.min((performance.now()-holdT0)/HOLD_MS,1); act.style.setProperty('--hold',f); if(f>=1){ holdEnd(false); swallow=true; fx('medium'); endFast(); return; } holdRaf=requestAnimationFrame(holdStep); }
+function holdBegin(){ if(!S.cur||holdOn) return; holdOn=true; holdT0=performance.now(); act.classList.add('holding','pressed'); put($('actLbl'),'a',L('Keep holding…','继续按住…')); fx('light'); holdRaf=requestAnimationFrame(holdStep); }
 function holdEnd(cancel){ if(!holdOn) return; holdOn=false; cancelAnimationFrame(holdRaf); act.classList.remove('holding','pressed'); act.style.setProperty('--hold',0); if(cancel) cache.a=null; }
 act.addEventListener('pointerdown',function(e){ if(S.cur){ e.preventDefault(); try{ act.setPointerCapture(e.pointerId); }catch(x){} holdBegin(); } else act.classList.add('pressed'); });
 ['pointerup','pointercancel','pointerleave'].forEach(function(n){ act.addEventListener(n,function(){ holdEnd(true); act.classList.remove('pressed'); if(S.cur) updateToday(); if(swallow) setTimeout(function(){ swallow=false; },80); }); });
@@ -263,8 +264,8 @@ act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } i
 /* a button in a sheet that must be held to confirm, the same press-and-hold as ending a fast */
 var HB=null;
 function hbEnd(){ if(!HB) return; var x=HB; HB=null; cancelAnimationFrame(x.raf); x.b.classList.remove('holding'); x.b.style.setProperty('--hold',0); x.lbl.textContent=x.orig; }
-function hbBegin(b){ if(HB||b.disabled) return; var lbl=b.querySelector('.hl'), t0=performance.now(); HB={b:b,lbl:lbl,orig:lbl.textContent,raf:0}; b.classList.add('holding'); lbl.textContent=L('Keep holding…','继续按住…'); buzz(6);
-  (function step(){ if(!HB||HB.b!==b) return; var f=Math.min((performance.now()-t0)/HOLD_MS,1); b.style.setProperty('--hold',f); if(f>=1){ hbEnd(); A[b.dataset.hold](b); return; } HB.raf=requestAnimationFrame(step); })(); }
+function hbBegin(b){ if(HB||b.disabled) return; var lbl=b.querySelector('.hl'), t0=performance.now(); HB={b:b,lbl:lbl,orig:lbl.textContent,raf:0}; b.classList.add('holding'); lbl.textContent=L('Keep holding…','继续按住…'); fx('light');
+  (function step(){ if(!HB||HB.b!==b) return; var f=Math.min((performance.now()-t0)/HOLD_MS,1); b.style.setProperty('--hold',f); if(f>=1){ hbEnd(); fx('medium'); A[b.dataset.hold](b); return; } HB.raf=requestAnimationFrame(step); })(); }
 document.addEventListener('pointerdown',function(e){ var b=e.target.closest&&e.target.closest('.btn[data-hold]'); if(!b||!ph.contains(b)) return; e.preventDefault(); try{ b.setPointerCapture(e.pointerId); }catch(x){} hbBegin(b); });
 ['pointerup','pointercancel'].forEach(function(n){ document.addEventListener(n,hbEnd); });
 document.addEventListener('keydown',function(e){ var b=e.target.closest&&e.target.closest('.btn[data-hold]'); if(b&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); if(!e.repeat) hbBegin(b); } });
@@ -287,7 +288,7 @@ function longSafety(p){
    '<div class="btns"><button class="btn" id="lsGo" data-act="lsgo" data-p="'+p.id+'" disabled>'+L('Start '+p.fast+'-hour fast','开始 '+p.fast+' 小时断食')+'</button><button class="btn sec" data-act="close">'+L('Not now','以后再说')+'</button></div>');
 }
 function beginFast(p,start,extra){
-  S.cur=Object.assign({start:start,goalH:p.fast,planId:p.id,reached:false},extra||{}); save(); closeSheet(); sStart(); buzz(12); lastHour=-1; shownP=-1; cache={}; updateToday(); scheduleGoal();
+  S.cur=Object.assign({start:start,goalH:p.fast,planId:p.id,reached:false},extra||{}); save(); closeSheet(); fx('medium'); lastHour=-1; shownP=-1; cache={}; updateToday(); scheduleGoal();
   toast(L('Fast started. Hold the button when you want to end it.','断食开始了。想结束时按住按钮。'));
 }
 function startRamadan(){
@@ -302,7 +303,7 @@ function endFast(){
   S.cur=null;
   if(hrs<1/6){ save(); cache={}; shownP=-1; updateToday(); toast(L('Under 10 minutes, so it wasn’t saved.','不到 10 分钟，没有保存。')); return; }
   var f={id:uid(),start:cur.start,end:now,goalH:cur.goalH,plan:cur.planId};
-  S.fasts.push(f); save(); cancelGoal(); sSave(); buzz([20,40,20]); cache={}; updateToday(); checkUnlocks();
+  S.fasts.push(f); save(); cancelGoal(); cache={}; updateToday(); checkUnlocks();
   var done=C.isDone(f), st=curStreak(), news=['16','18','20','23'].filter(function(i){ return planOk(i)&&openBefore.indexOf(i)<0; }).map(function(i){ return C.planLabel(C.planById(i)); });
   var ask=!S.prefs.backupAsked&&S.fasts.filter(C.isDone).length===1&&CL&&CL.ready()&&!CL.getAuth(); if(ask){ S.prefs.backupAsked=true; save(); }
   if(done) celebrate();
@@ -572,7 +573,7 @@ function pkSet(col,i,smooth){ var n=col.children.length; i=Math.max(0,Math.min(n
 function pkTune(col){
   var pk=col.closest('.pk'), i=Math.max(0,Math.min(col.children.length-1,Math.round(col.scrollTop/PKH)));
   if(+col.dataset.sel===i) return; var old=col.children[+col.dataset.sel]; if(old){ old.classList.remove('sel'); old.setAttribute('aria-selected','false'); }
-  col.dataset.sel=i; col.children[i].classList.add('sel'); col.children[i].setAttribute('aria-selected','true'); buzz(3);
+  col.dataset.sel=i; col.children[i].classList.add('sel'); col.children[i].setAttribute('aria-selected','true'); fx('select');
   var v=pkRead(pk); pk.dataset.val=v; var kind=pk.dataset.kind;
   pk.querySelector('.pk-v').textContent=kind==='sel'?JSON.parse(pk.dataset.labels)[col.dataset.sel]:pkText(kind,v);
   pkChange(pk.id,v); }
@@ -922,7 +923,7 @@ function hq(id){ var st=$('ob').lastElementChild; return st&&st.querySelector('#
 function heroStart(keep){
   var sv=hq('obHero'); if(!sv) return;
   if(!sv.dataset.on){ sv.dataset.on='1'; sv.style.touchAction='none'; sv.style.cursor='grab';
-    sv.addEventListener('pointerdown',function(e){ hero.drag=true; hero.x0=e.clientX; try{ sv.setPointerCapture(e.pointerId); }catch(x){} sv.style.cursor='grabbing'; sBoop(); buzz(6); });
+    sv.addEventListener('pointerdown',function(e){ hero.drag=true; hero.x0=e.clientX; try{ sv.setPointerCapture(e.pointerId); }catch(x){} sv.style.cursor='grabbing'; fx('light'); });
     sv.addEventListener('pointermove',function(e){ if(hero.drag&&!reduce) hero.pull=(e.clientX-hero.x0)/sv.getBoundingClientRect().width; });
     var up=function(){ hero.drag=false; hero.pull=0; sv.style.cursor='grab'; }; sv.addEventListener('pointerup',up); sv.addEventListener('pointercancel',up); }
   if(reduce){ hero.p=.3; hq('obLit').setAttribute('d',phasePath(.3,40)); return; }
@@ -934,7 +935,7 @@ function heroFrame(t){
   var breathe=hero.drag?0:Math.sin(t/1000*.9)*.035, target=hero.drag?Math.min(1,Math.max(.04,.3+hero.pull*1.6)):.3+breathe;
   hero.p+=(target-hero.p)*(1-Math.exp(-dt*(hero.drag?18:5)));            /* critically damped: no overshoot */
   lit.setAttribute('d',phasePath(hero.p,40));
-  var full=hero.p>.93; if(full&&!hero.full){ hero.pulse=1; buzz([14,40,14]); sChime(); } hero.full=full; hero.pulse=Math.max(0,hero.pulse-dt/1.4);
+  var full=hero.p>.93; if(full&&!hero.full){ hero.pulse=1; fx('success'); } hero.full=full; hero.pulse=Math.max(0,hero.pulse-dt/1.4);
   var h=hq('obHalo'); h.setAttribute('r',(46+14*(1-hero.pulse)).toFixed(1)); h.setAttribute('opacity',(hero.pulse*.8).toFixed(2));
   requestAnimationFrame(heroFrame);
 }
@@ -959,7 +960,7 @@ var A={
   fssave:function(b){ fastSave(b.dataset.id); },
   fsdel:function(b){ var id=b.dataset.id, gone=S.fasts.filter(function(x){return x.id===id;})[0]; S.fasts=S.fasts.filter(function(x){return x.id!==id;}); (S.del=S.del||[]).push(id); save(); closeSheet(); renderDays(); cache={}; updateToday();
     toast(L('Fast deleted.','已删除这次断食。'),gone?function(){ S.del=(S.del||[]).filter(function(x){return x!==id;}); S.fasts.push(gone); save(); cache={}; updateToday(); if(curTab==='days') renderDays(); }:null); },
-  toastundo:function(){ var f=toastFn; if(!f) return; toastFn=null; $('toast').classList.remove('on'); f(); buzz(6); },
+  toastundo:function(){ var f=toastFn; if(!f) return; toastFn=null; $('toast').classList.remove('on'); f(); fx('light'); },
   usecheat:function(b){ useCheat(b.dataset.k||today()); },
   undocheat:function(b){ var k=(b&&b.dataset.k)||today(), i=S.flex.used.indexOf(k); if(i>=0){ S.flex.used.splice(i,1); S.flex.bank=Math.min(2,S.flex.bank+1); save(); closeSheet(); cache={}; updateToday(); if(curTab==='me') renderMe(); } },
   more:function(){ moreOpen=!moreOpen; planSheet(); },
@@ -989,7 +990,7 @@ var A={
   sw:function(b){ var k=b.dataset.k, on=b.getAttribute('aria-checked')!=='true';
     if(k==='notify') return setNotify(on,function(){ if(!$('ob').hidden) obRefresh(); else renderMe(); });
     if(k==='ram'){ S.ramadanPreview=on; save(); return renderMe(); }
-    S.prefs[k]=on; save(); if(k==='d3'&&orb) orb.set(on); b.setAttribute('aria-checked',on); },
+    S.prefs[k]=on; save(); if(k==='d3'&&orb) orb.set(on); b.setAttribute('aria-checked',on); if(k==='sound'&&on) sChime(); else fx('light'); },
   timeoff:timeOffSheet,
   offtravel:function(){ offDays=offDays||3; offTravelSheet(); },
   offdays:function(b){ offDays=Math.max(1,Math.min(C.OFF_MAX,offDays+(+b.dataset.d))); offTravelSync(); },
@@ -1031,10 +1032,10 @@ document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!
       if(y<24){ ph.classList.remove('tabs-off'); acc[id]=0; return; }
       if((d>0)!==(acc[id]>0)) acc[id]=0; acc[id]+=d;
       if(acc[id]>28) ph.classList.add('tabs-off'); else if(acc[id]<-12) ph.classList.remove('tabs-off'); },{passive:true}); }); })();
-$('tabs').addEventListener('click',function(e){ var b=e.target.closest('button[data-tab]'); if(b) showTab(b.dataset.tab); });
+$('tabs').addEventListener('click',function(e){ var b=e.target.closest('button[data-tab]'); if(b){ if(b.dataset.tab!==curTab) fx('light'); showTab(b.dataset.tab); } });
 $('streakBtn').addEventListener('click',cheatSheet);
 $('planBtn').addEventListener('click',planSheet);
-(function(){ var b=$('readBig'); b.addEventListener('click',function(){ if(!S.cur||(Date.now()-S.cur.start)/H>=S.cur.goalH) return; S.prefs.showElapsed=!S.prefs.showElapsed; save(); cache={}; bigStr=''; updateToday(); buzz(6); }); })();
+(function(){ var b=$('readBig'); b.addEventListener('click',function(){ if(!S.cur||(Date.now()-S.cur.start)/H>=S.cur.goalH) return; S.prefs.showElapsed=!S.prefs.showElapsed; save(); cache={}; bigStr=''; updateToday(); fx('light'); }); })();
 $('endA').addEventListener('click',function(){ if(S.cur) startEdit(); else if(mode==='eat'&&lastFast()) fastSheet(lastFast()); });
 function startEdit(){
   var cur=S.cur, now=Date.now();
