@@ -4,6 +4,12 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.39.0
+Round 3 of the "feel premium" pass: onboarding steps that show the product.
+- **design** The plan step now has a small moon in the empty space above Continue. The lit wedge is the share of the day you would fast, so 16:8 lights two thirds, with a line under it, for example "16 h of fasting, 8 h to eat. Start now and you finish at 8:12 AM." Pick another plan and the wedge slides to match and the time updates.
+- **design** For people who have fasted before, the "Make it yours" step shows the same preview and updates live as you turn the start-time wheel: "From 8:00 PM, a 16 h fast ends at 12:00 PM." The "You're set" step now draws your plan's wedge, filling counter-clockwise like the real disc, instead of an old moon-phase shape.
+- The safety and "have you fasted before" steps stay plain on purpose. The concept page's setup steps match, including the wedge.
+
 ## 0.38.0
 Round 3 of the "feel premium" pass: a quieter, clearer end of a fast.
 - **design** When you end a fast early, the moon now holds the phase you reached for a short beat before the summary opens, instead of jumping straight to the eating window. A fast that reached its goal keeps its celebration as before.
