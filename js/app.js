@@ -163,6 +163,8 @@ function chrome(){ /* the colour behind the app (page background, status bar, ho
   var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',c); }
 function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-sky',k); chrome(); } }
 
+/* the small moon or sun beside the stage name, drawn with the same gradients as the disc */
+function skyGlyph(moon){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="url(#'+(moon?'gMoon':'gSun')+')" stroke="var(--rim)" stroke-width=".8"/>'+(moon?'<circle cx="8.6" cy="9.4" r="2.1" fill="rgba(60,50,30,.10)"/><circle cx="14.6" cy="14.6" r="2.8" fill="rgba(60,50,30,.09)"/><circle cx="14" cy="7.4" r="1.2" fill="rgba(60,50,30,.08)"/>':'')+'</svg>'; }
 function updateToday(){
   nowMs=Date.now(); var now=nowMs; refreshSun(now);
   var hp=C.placeHour(pi,now), sk=C.skyAt(hp,sun), p=plan(), cur=S.cur, le=lastFast();
@@ -179,7 +181,11 @@ function updateToday(){
   if(endHold){ if(Date.now()<endHold.until) tgtP=endHold.p; else endHold=null; }
   var moonNow=moonV>=.5;
   var skyName=S.lang==='zh'?sk[3]:sk[2];
-  put($('sub'),'sub',skyName+' · '+(mode==='eat'?L('Eating window','进食窗口'):moonNow?L('Moon until ','月亮，直到 ')+clockH(sun.rise):L('Sun until ','太阳，直到 ')+clockH(sun.set)));
+  /* sky pill: the stage and what the sky does next. While you fast or eat the progress line already shows the turn's clock time (not in Ramadan), so the pill counts down instead */
+  var turnAt=moonNow?sun.rise:sun.set, countDown=(mode==='fast'||mode==='eat')&&!(cur&&cur.planId==='ramadan')&&!(S.planId==='ramadan'), left=Math.max(1,Math.round((((turnAt-hp)%24+24)%24)*60));
+  if(cache.skgs!==(moonNow?'m':'s')){ cache.skgs=moonNow?'m':'s'; $('skyG').innerHTML=skyGlyph(moonNow); $('skyG').className='sg '+(moonNow?'moon':'sun'); }
+  put($('skyStage'),'sub',skyName);
+  put($('skyTx'),'skx',countDown?L(hmTxt(left)+' left','还剩 '+hmTxt(left)):L('until ','直到 ')+clockH(turnAt));
   var bar=$('offBar'); bar.hidden=!offA; if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
   put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):chipHours(cur?C.planById(cur.planId,cur.goalH):p));
   var ramadan=cur&&cur.planId==='ramadan';
