@@ -156,7 +156,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .sheet.open .row{opacity:1;transform:none;transition-delay:.08s}.sheet.open p{opacity:1;transform:none;transition-delay:.14s}.sheet.open .done{opacity:1;transform:none;transition-delay:.2s}
 #lit{transition:fill .5s ease}
 .tabs{position:absolute;left:16px;right:16px;bottom:24px;height:64px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
-  box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--ink) 14%,transparent),inset 0 .5px 0 rgba(255,255,255,.45),0 8px 24px rgba(0,0,0,.12);display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding:0 6px}
+  box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--ink) 14%,transparent),inset 0 .5px 0 rgba(255,255,255,.45),0 8px 24px rgba(0,0,0,.12);display:grid;grid-template-columns:repeat(3,1fr);align-items:center;padding:0 6px}
 /* one tab = icon + label as a single unit, 1px apart (iOS 26 style) */
 .tabs>span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;height:52px;font:500 10px/1.1 var(--font);letter-spacing:.01em;color:var(--ink-2);border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .25s ease,color .25s ease}
 .tabs>span>span{display:block}
@@ -166,7 +166,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:var(--tint)}
 .ph[data-sky="dawn"],.ph[data-sky="morning"],.ph[data-sky="day"],.ph[data-sky="sunset"]{--tabsel:#1C1C1E;--tabfill:rgba(255,255,255,.55)}
 .ph[data-me]{--tabsel:var(--label);--tabfill:color-mix(in srgb,var(--tint) 40%,transparent)}
-.tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/4);border-radius:999px;background:var(--tabfill);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s cubic-bezier(.2,1,.3,1),background .3s ease;will-change:transform;pointer-events:none}
+.tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/3);border-radius:999px;background:var(--tabfill);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s cubic-bezier(.2,1,.3,1),background .3s ease;will-change:transform;pointer-events:none}
 @supports (transition-timing-function:linear(0,1)){.tab-ind{transition-timing-function:linear(0,.18 6%,.52 13%,.82 21%,1.03 30%,1.07 38%,1.04 46%,1.01 56%,.995 70%,1),ease}}
 @media (prefers-reduced-motion:reduce){.tab-ind{transition:background .2s}}
 @media (prefers-contrast:more){.tab-ind{background:var(--tabfill);box-shadow:inset 0 0 0 1.5px var(--tabsel)}}
@@ -205,24 +205,21 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .tick.pop{animation:pop .45s cubic-bezier(.16,1,.3,1)}
 
 /* reading guide */
-.guide{margin-top:clamp(80px,10vw,140px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:clamp(24px,5vw,72px)}
+.guide{margin-top:clamp(80px,10vw,140px);display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:clamp(32px,6vw,88px);align-items:center}
 .h2{font:700 clamp(30px,3.6vw,48px)/1.08 var(--font-d);letter-spacing:-.03em;margin:0;text-wrap:balance}
 html:lang(zh-Hans) .h2{letter-spacing:0;line-height:1.2}
-.reads{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.reads div{background:var(--card);border-radius:20px;padding:20px}
-.reads svg{width:56px;height:56px;display:block;margin-bottom:12px}
-.reads h3{font:600 19px/1.25 var(--font-d);letter-spacing:-.02em;margin:0 0 6px}
-.reads p{margin:0;color:var(--label-2);font-size:15px;line-height:1.45}
+.shot{position:relative;margin:0;justify-self:center;width:100%;max-width:300px;border-radius:38px;overflow:hidden;box-shadow:0 0 0 1px color-mix(in srgb,var(--label) 12%,transparent),0 24px 60px rgba(0,0,0,.22)}
+.shot img{display:block;width:100%;height:auto}
+.shot i{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:var(--tint);color:var(--on-tint);font:700 13px/24px var(--font-r,var(--font));text-align:center;font-style:normal;box-shadow:0 0 0 2px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.35)}
+.reads{list-style:none;margin:28px 0 0;padding:0;counter-reset:rd}
+.reads li{position:relative;padding:20px 0 20px 48px;border-top:.5px solid var(--sep);counter-increment:rd}
+.reads li:last-child{border-bottom:.5px solid var(--sep)}
+.reads li::before{content:counter(rd);position:absolute;left:0;top:20px;width:28px;height:28px;border-radius:50%;background:var(--tint);color:var(--on-tint);font:700 14px/28px var(--font-r,var(--font));text-align:center}
+.reads h3{font:600 19px/1.25 var(--font-d);letter-spacing:-.02em;margin:3px 0 6px}
+.reads p{margin:0;color:var(--label-2);font-size:15px;line-height:1.45;max-width:52ch}
 .take{margin-top:clamp(80px,10vw,140px);background:var(--card);border-radius:28px;padding:clamp(24px,5vw,56px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(24px,5vw,64px)}
 .take p{margin:0 0 14px;color:var(--label-2);font-size:17px;max-width:56ch}
 .take p b{color:var(--label);font-weight:600}
-.notes{margin:clamp(80px,10vw,140px) 0 clamp(64px,8vw,120px)}
-.tw{overflow-x:auto;margin-top:24px;background:var(--card);border-radius:20px}
-table{width:100%;border-collapse:collapse;min-width:640px;font-size:15px}
-th{text-align:left;font:600 13px var(--font);color:var(--label-2);padding:14px 16px;text-transform:uppercase;letter-spacing:.02em}
-html:lang(zh-Hans) th{text-transform:none}
-td{padding:13px 16px;border-top:.5px solid var(--sep);vertical-align:top;color:var(--label-2)}
-td:first-child{color:var(--label);font-weight:600}
 
 /* Reduce Motion: nothing travels or bounces; color, sky and text still cross-fade so state changes stay legible */
 .seg.plans button{padding:8px 4px;font-size:15px;font-variant-numeric:tabular-nums}
@@ -327,10 +324,11 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .plan-card .bar24 i{flex:1;height:8px;border-radius:2px;background:var(--fill-2)}
 .plan-card .bar24 i.e{background:var(--tint)}
 .note{margin:16px 0 0;font-size:14px;color:var(--label-2);max-width:80ch}
-.kind{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.kind div{background:var(--card);border-radius:20px;padding:20px}
-.kind b{display:block;font:600 17px/1.3 var(--font-d);margin-bottom:6px}
-.kind p{margin:0;font-size:15px;color:var(--label-2);line-height:1.45}
+.kind{border-top:.5px solid var(--sep)}
+.kind>div{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:6px clamp(20px,4vw,56px);padding:20px 0;border-bottom:.5px solid var(--sep);align-items:baseline}
+.kind b{display:block;font:600 17px/1.3 var(--font-d)}
+.kind p{margin:0;font-size:15px;color:var(--label-2);line-height:1.5;max-width:60ch}
+.kind .try{grid-column:2;justify-self:start;margin-top:8px}
 .friends{background:var(--card);border-radius:28px;padding:clamp(22px,4vw,44px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,4vw,56px);align-items:center}
 .friends h2{font:700 clamp(24px,2.6vw,34px)/1.12 var(--font-d);letter-spacing:-.025em;margin:0 0 10px}
 .friends p{margin:0 0 10px;color:var(--label-2);font-size:16px;max-width:48ch}
@@ -352,11 +350,11 @@ html:lang(zh-Hans) .friends .tag{text-transform:none}
 .mock .pb{height:5px;border-radius:3px;background:rgba(28,28,30,.12);margin-top:10px;overflow:hidden}.mock .pb i{display:block;height:100%;width:91%;background:#FFCC00;border-radius:3px}
 .mock .acts{display:flex;gap:18px;margin-top:10px;font:600 13px var(--font);color:#004A9F}
 .mock.dark .acts{color:#7DB8FF}
-.foot{margin:clamp(80px,10vw,140px) 0 64px;padding-top:28px;border-top:.5px solid var(--sep);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;font-size:14px;color:var(--label-2)}
+.foot{margin:clamp(80px,10vw,140px) 0 64px;padding-top:28px;border-top:.5px solid var(--sep);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;font-size:14px;color:var(--label-2)}
 .foot b{display:block;color:var(--label);font-weight:600;margin-bottom:4px}
-@media (max-width:1080px){.plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kind{grid-template-columns:1fr 1fr}}
+@media (max-width:1080px){.plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:860px){.sec-head,.friends{grid-template-columns:1fr}.plat,.foot{grid-template-columns:1fr}}
-@media (max-width:560px){.plan-grid{grid-template-columns:1fr 1fr}.kind{grid-template-columns:1fr}}
+@media (max-width:560px){.plan-grid{grid-template-columns:1fr 1fr}.kind>div{grid-template-columns:1fr}.kind .try{grid-column:1}}
 @media (prefers-reduced-motion:reduce){
   .tick.pop{animation:none}
   .swap{animation:fade .25s ease}
@@ -375,7 +373,7 @@ html:lang(zh-Hans) .friends .tag{text-transform:none}
   .demo,.intro,.guide,.take{grid-template-columns:1fr}
   .ph{order:-1}
 }
-@media (max-width:560px){.reads{grid-template-columns:1fr}.bar-r a{display:none}.bar-r a.cta{display:inline-flex}.word small{display:none}.bar-r{gap:10px}.ph{border-radius:40px}}
+@media (max-width:560px){.guide{gap:28px}.bar-r a{display:none}.bar-r a.cta{display:inline-flex}.word small{display:none}.bar-r{gap:10px}.ph{border-radius:40px}}
 
 /* ---------- Ramadan mode (sacred fasts) ---------- */
 .eyebrow{display:inline-block;font:600 12px var(--font);color:var(--label-2);background:var(--fill);border-radius:999px;padding:4px 10px;margin-bottom:14px;text-transform:uppercase;letter-spacing:.03em}
@@ -625,9 +623,6 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 
 /* ---------- before / after ---------- */
 .polish{margin-top:clamp(80px,10vw,140px)}
-.polish .kind{grid-template-columns:repeat(4,minmax(0,1fr))}
-@media (max-width:1080px){.polish .kind{grid-template-columns:1fr 1fr}}
-@media (max-width:560px){.polish .kind{grid-template-columns:1fr}}
 .ba{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .ba figure{margin:0;background:var(--card);border-radius:20px;padding:16px}
 .ba .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -791,7 +786,6 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <i class="tab-ind" aria-hidden="true"></i>
         <span class="sel"><svg class="ico-moon" viewBox="0 0 24 24"><path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg><svg class="ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg><span data-zh="今天">Today</span></span>
         <span><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3.5"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span data-zh="日子">Days</span></span>
-        <span><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8M17.5 14.2a6 6 0 0 1 3.5 5.3"/></svg><span data-zh="朋友">Friends</span></span>
         <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6.2 18.6a6.5 6.5 0 0 1 11.6 0"/></svg><span data-zh="我">Me</span></span>
       </nav>
       <span class="home"></span>
@@ -822,12 +816,15 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
   </section>
 
   <section class="guide" aria-labelledby="g-h">
-    <h2 class="h2" id="g-h" data-zh="一眼看懂">How it reads at a glance</h2>
-    <div class="reads">
-      <div><svg viewBox="-28 -28 56 56" data-p=".62" data-big="1"></svg><h3 data-zh="越满，越接近目标">Fuller means closer</h3><p data-zh="光从顶部出发，逆时针一圈圈补满，满了就是你的目标。一眼就能看懂。">The light starts at the top and fills counter-clockwise, and full is your goal. You can read it at a glance.</p></div>
-      <div><svg viewBox="-28 -28 56 56"><circle r="12" cx="-8" fill="#F4EFE2" stroke="#8E8E93" stroke-width="1"/><circle r="12" cx="10" fill="#FFCC00"/></svg><h3 data-zh="月亮还是太阳，跟着你的天空">Moon or sun follows your sky</h3><p data-zh="用你所在地今天真实的日出日落。日出时月亮渐渐变成太阳，日落时变回月亮，满的程度不变。时间轴上也标着这一刻。">It uses today's real sunrise and sunset where you are. At sunrise the moon fades into the sun, at sunset it fades back, and the fill stays the same. The moment is marked on the timeline too.</p></div>
-      <div><svg viewBox="0 0 56 56"><path d="M4 40 Q28 24 52 40" fill="none" stroke="#8E8E93" stroke-width="3" stroke-linecap="round"/><path d="M4 40 Q16 32 26 31" fill="none" stroke="#FFCC00" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="31" r="5" fill="#FFCC00"/></svg><h3 data-zh="下面的线是时间">The line below is time</h3><p data-zh="一条又低又平的弧线，每个小点代表计划里的一个小时，两端写着几点开始、几点结束。可以直接拖动。">A low, flat arc with one dot per hour of your plan, and your start and end times at each end. You can drag along it.</p></div>
-      <div><svg viewBox="0 0 56 56"><rect x="6" y="16" width="44" height="24" rx="7" fill="#8E8E93" opacity=".25"/><rect x="12" y="23" width="26" height="10" rx="3" fill="#8E8E93"/></svg><h3 data-zh="大数字是剩余时间">The big number is time left</h3><p data-zh="大家最常问的是“还要多久才能吃”，所以它字号最大。超过目标后，多出来的时间不计分。">"How long until I can eat?" is what people ask most, so it gets the biggest type. Time past your goal isn't scored.</p></div>
+    <figure class="shot"><img src="today-shot.jpg" width="390" height="844" alt="Lightly's Today screen during a 16 hour fast, with four numbered points: the disc, the moon-or-sun line, the timeline and the big number" loading="lazy"><i style="left:64%;top:15%" aria-hidden="true">1</i><i style="left:58%;top:6.4%" aria-hidden="true">2</i><i style="left:38%;top:61%" aria-hidden="true">3</i><i style="left:86%;top:42.5%" aria-hidden="true">4</i></figure>
+    <div>
+      <h2 class="h2" id="g-h" data-zh="一眼看懂">How it reads at a glance</h2>
+      <ol class="reads">
+      <li><h3 data-zh="越满，越接近目标">Fuller means closer</h3><p data-zh="光从顶部出发，逆时针一圈圈补满，满了就是你的目标。一眼就能看懂。">The light starts at the top and fills counter-clockwise, and full is your goal. You can read it at a glance.</p></li>
+      <li><h3 data-zh="月亮还是太阳，跟着你的天空">Moon or sun follows your sky</h3><p data-zh="用你所在地今天真实的日出日落。日出时月亮渐渐变成太阳，日落时变回月亮，满的程度不变。时间轴上也标着这一刻。">It uses today's real sunrise and sunset where you are. At sunrise the moon fades into the sun, at sunset it fades back, and the fill stays the same. The moment is marked on the timeline too.</p></li>
+      <li><h3 data-zh="下面的线是时间">The line below is time</h3><p data-zh="一条又低又平的弧线，每个小点代表计划里的一个小时，两端写着几点开始、几点结束。可以直接拖动。">A low, flat arc with one dot per hour of your plan, and your start and end times at each end. You can drag along it.</p></li>
+      <li><h3 data-zh="大数字是剩余时间">The big number is time left</h3><p data-zh="大家最常问的是“还要多久才能吃”，所以它字号最大。">"How long until I can eat?" is what people ask most, so it gets the biggest type.</p></li>
+      </ol>
     </div>
   </section>
 
@@ -971,7 +968,6 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <i class="tab-ind" aria-hidden="true"></i>
         <span class="sel"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg><span data-zh="今天">Today</span></span>
         <span><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3.5"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span data-zh="日子">Days</span></span>
-        <span><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8M17.5 14.2a6 6 0 0 1 3.5 5.3"/></svg><span data-zh="朋友">Friends</span></span>
         <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6.2 18.6a6.5 6.5 0 0 1 11.6 0"/></svg><span data-zh="我">Me</span></span>
       </nav>
         <div class="home"></div>
@@ -1019,10 +1015,10 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
   <section class="sec" id="friends" aria-labelledby="f-h">
     <div class="friends">
       <div>
-        <span class="tag" data-zh="可选">Optional</span>
+        <span class="tag" data-zh="之后上线，可选">Coming later · optional</span>
         <h2 id="f-h" data-zh="想要人陪时，叫上朋友">Fast with friends, when you want company</h2>
-        <p data-zh="一个人断食就是完整的体验，“今天”页面从不催你邀请别人。想要人陪时，在“朋友”页发一个链接就行。">A solo fast is the whole app, and the Today screen never asks you to invite anyone. When you want company, send one link from the Friends tab.</p>
-        <p data-zh="朋友只能看到你在断食、进食还是弹性日，以及连续天数。看不到你用了几个弹性日，也永远看不到体重，更不能改你的计划。">Friends see whether you're fasting, eating or on a cheat day, and your streak. Never how many cheat days you've used, never your weight, and they can't change your plan.</p>
+        <p data-zh="一个人断食就是完整的体验，“今天”页面从不催你邀请别人。想要人陪时，给朋友发一个链接就行。">A solo fast is the whole app, and the Today screen never asks you to invite anyone. When you want company, you will be able to send a friend one link.</p>
+        <p data-zh="朋友只会看到你在断食、进食还是弹性日，以及连续天数。看不到你用了几个弹性日，也永远看不到体重，更不能改你的计划。">Friends will see whether you're fasting, eating or on a cheat day, and your streak. Never how many cheat days you've used, never your weight, and they can't change your plan.</p>
       </div>
       <ul class="flist" aria-label="Friends example">
         <li><svg viewBox="-12 -12 24 24" data-p=".85"></svg><div><b>Mei</b><span data-zh="18:6 · 断食中">18:6 · Fasting</span></div><span class="ch2" data-zh="加油">Cheer</span></li>
@@ -1060,30 +1056,9 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
     </div>
   </section>
 
-
-  <section class="notes" aria-labelledby="n-h">
-    <h2 class="h2" id="n-h" data-zh="苹果的样子，安卓先上线">Apple's look, Android first</h2>
-    <div class="tw"><table>
-      <thead><tr><th data-zh="部分">Part</th><th data-zh="长什么样（按苹果设计规范）">How it looks (Apple HIG)</th><th data-zh="安卓上怎么做">How it's built on Android</th></tr></thead>
-      <tbody>
-        <tr><td data-zh="标题">Title</td><td data-zh="大标题，SF Pro 34 号粗体">Large title, SF Pro 34 pt bold</td><td data-zh="同样的字号和字重，用系统字体或 Inter">Same size and weight in the system font or Inter</td></tr>
-        <tr><td data-zh="字体">Type</td><td data-zh="系统字体；数字用 SF Rounded 等宽数字；支持动态字体">System font, SF Rounded tabular numbers, Dynamic Type</td><td data-zh="跟随系统字体缩放">Follows the system font scale</td></tr>
-        <tr><td data-zh="颜色">Color</td><td data-zh="系统色（systemYellow 等），浅色和深色两套">System colors such as systemYellow, in light and dark</td><td data-zh="同一套颜色，不用 Material You 动态取色">The same colors, with Material You dynamic color turned off</td></tr>
-        <tr><td data-zh="开始时间">Start time</td><td data-zh="分段控件">Segmented control</td><td data-zh="画成同样的分段控件">Drawn as the same segmented control</td></tr>
-        <tr><td data-zh="主按钮">Main button</td><td data-zh="胶囊按钮；结束要按住 1.2 秒；按下就有轻触反馈">Capsule button; hold 1.2 s to end; a light tap the moment you press</td><td data-zh="同样的样子，安卓震动反馈">Same look, with Android haptics</td></tr>
-        <tr><td data-zh="总结">Summary</td><td data-zh="带拖动条的底部表单，从下往上弹出">Sheet with a grabber, springs up from the bottom</td><td data-zh="同样的表单；返回手势可以关掉它">Same sheet; the back gesture closes it</td></tr>
-        <tr><td data-zh="标签栏">Tab bar</td><td data-zh="悬浮的玻璃标签栏">Floating glass tab bar</td><td data-zh="同样的样子；系统三键导航时自动留出空间">Same look; it leaves room for three-button navigation</td></tr>
-        <tr><td data-zh="动效">Motion</td><td data-zh="弹簧动画（阻尼 1.0，响应 0.4 秒），随时可以打断；到达目标时才有回弹">Springs (damping 1.0, response 0.4 s) you can interrupt at any time; bounce only at the goal</td><td data-zh="同样的参数，用 Compose 的 spring()">The same values with Compose spring()</td></tr>
-        <tr><td data-zh="月亮和太阳">Moon and sun</td><td data-zh="一个被照亮的 3D 球体，被点亮的扇形决定进度">A lit 3D sphere; the lit wedge sets the progress</td><td data-zh="Compose 里用 AGSL 着色器（安卓 13 以上）或 OpenGL ES；老手机和省电模式用平面版">An AGSL shader in Compose (Android 13+) or OpenGL ES; the flat version on older phones and in battery saver</td></tr>
-        <tr><td data-zh="减少动态效果">Reduce motion</td><td data-zh="只换颜色和文字，没有移动，月亮也不再转动">Only color and text change. Nothing moves, and the moon stops turning</td><td data-zh="跟随“移除动画”设置">Follows the Remove animations setting</td></tr>
-      </tbody>
-    </table></div>
-  </section>
-
   <footer class="foot">
     <div><b data-zh="示例内容">Sample content</b><span data-zh="界面里的人名、时间和数字都是示例数据。日出日落是按所选城市今天的真实时间算的。">Names, times and numbers in the screens are sample data. Sunrise and sunset are calculated for the chosen city today.</span></div>
-    <div><b data-zh="名称">The name</b><span data-zh="还没有做商标和域名检查。已有一款叫 Litely 的断食应用，读音相近。">Not trademark- or domain-checked yet. An existing fasting app called Litely sounds similar.</span></div>
-    <div><b data-zh="版本">Version</b><span data-zh="设计概念 v0.5：计时器优先，苹果的外观，安卓先上线，斋月模式，3D 月亮和太阳。">Design concept v0.5: timer first, Apple's look, Android first, Ramadan mode, and a 3D moon and sun.</span></div>
+    <div><b data-zh="给设计和开发的说明">For design and build</b><span><a href="notes/" data-zh="苹果外观如何在安卓上实现，以及名称和版本说明 →">How Apple's look is built on Android, plus the name and version notes →</a></span></div>
   </footer>
 </div>
 
@@ -2254,11 +2229,11 @@ window.LightlySphere=(function(){
   /* try-it buttons in the New section */
   (function(){ var ph=document.getElementById('ph'); function view(){ var d=document.getElementById('ph'); if(d&&d.scrollIntoView) d.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'}); }
     document.getElementById('tryFin').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(1)'); if(t) t.click(); setTimeout(function(){ var b=document.querySelector('#moments [data-go=finish]'); if(b) b.click(); },500); });
-    document.getElementById('tryImp').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(4)'); if(t) t.click(); setTimeout(function(){ var m=document.getElementById('meImp'); if(m) m.click(); },500); }); })();
+    document.getElementById('tryImp').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(3)'); if(t) t.click(); setTimeout(function(){ var m=document.getElementById('meImp'); if(m) m.click(); },500); }); })();
   function select(i){ ph.style.setProperty('--ti',i); tabs.forEach(function(t,k){ t.classList.toggle('sel',k===i); t.setAttribute('aria-selected',k===i); });
-    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ dyPlay=true; daysRender(); dsc.scrollTop=0; } else { dySel=null; fabSync(); } var open=i===3; me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(ph.hasAttribute('data-me')!==!!(open||dopen)){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); } if(open||dopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
-  tabs.forEach(function(t,i){ t.setAttribute('role','tab'); t.tabIndex=0; if(i===2) t.title=L('Not in this demo','这个演示里没有');
-    t.addEventListener('click',function(){ if(i===0||i===1||i===3) select(i); });
+    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ dyPlay=true; daysRender(); dsc.scrollTop=0; } else { dySel=null; fabSync(); } var open=i===2; me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(ph.hasAttribute('data-me')!==!!(open||dopen)){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); } if(open||dopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
+  tabs.forEach(function(t,i){ t.setAttribute('role','tab'); t.tabIndex=0;
+    t.addEventListener('click',function(){ select(i); });
     t.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); t.click(); } }); });
   ph.querySelector('.tabs').setAttribute('role','tablist');
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(render,0); }); });

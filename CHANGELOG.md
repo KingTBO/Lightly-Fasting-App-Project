@@ -4,6 +4,13 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.40.0
+Round 3 of the "feel premium" pass: the concept page reads like a product page, not a spec sheet. The app itself is unchanged.
+- **design** "How it reads at a glance" is now a real screenshot of the Today screen with four numbered points on it (the disc, the moon-or-sun line, the timeline, the big number), and a numbered list beside it, instead of four equal cards.
+- **design** The remaining card grids ("Playful, never pushy", "New in the app", and the notes on the moon and sun) are now one running list with a hairline between rows, so the lines can be as long or short as the idea needs. The "Try the import" and "Watch it" buttons stay with their rows.
+- **design** The "Apple's look, Android first" table and the name and version notes moved off the page to their own page at /concept/notes/, since only people building the product need them. The page keeps a short "Sample content" note and a link there.
+- **design** The phone demos now show the same three tabs as the app (Today, Days, Me). The Friends tab is gone from the mocks, and the Friends section says the feature is coming later instead of pointing to a tab that does not exist.
+
 ## 0.39.0
 Round 3 of the "feel premium" pass: onboarding steps that show the product.
 - **design** The plan step now has a small moon in the empty space above Continue. The lit wedge is the share of the day you would fast, so 16:8 lights two thirds, with a line under it, for example "16 h of fasting, 8 h to eat. Start now and you finish at 8:12 AM." Pick another plan and the wedge slides to match and the time updates.

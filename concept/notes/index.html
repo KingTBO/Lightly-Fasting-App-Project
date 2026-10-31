@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lightly build notes</title>
+<meta name="robots" content="noindex">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F2F2F7; --card:#FFFFFF; --label:#000000; --label-2:rgba(60,60,67,.8); --label-3:rgba(60,60,67,.3);
+  --sep:rgba(60,60,67,.29); --fill:rgba(120,120,128,.12); --fill-2:rgba(120,120,128,.2);
+  --tint:#FFCC00; --on-tint:#000000; --indigo:#5856D6; --blue:#0062D9; --red:#C70012; --orange:#C93400;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
+  --font-d:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
+  --font-r:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,'Inter','PingFang SC','Noto Sans SC',sans-serif;
+  --gutter:max(16px,4vw);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --bg:#000000; --card:#1C1C1E; --label:#FFFFFF; --label-2:rgba(235,235,245,.68); --label-3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --indigo:#5E5CE6; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#000000; --card:#1C1C1E; --label:#FFFFFF; --label-2:rgba(235,235,245,.68); --label-3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --indigo:#5E5CE6; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A}
+
+/* local-time skies (screen only). Ink pairs follow HIG label / secondary label. */
+[data-sky="night"]  {--stars:1;--sky:#0E1430;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.78);--unlit:rgba(255,255,255,.10);--rim:rgba(255,255,255,.28);--glass:rgba(40,44,70,.55);--moon:#F4EFE2}
+[data-sky="first"]  {--stars:0.45;--sky:#33406E;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.12);--rim:rgba(255,255,255,.3);--glass:rgba(60,68,110,.5);--moon:#F4EFE2}
+[data-sky="dawn"]   {--sky:#F0B48C;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.7);--moon:#FFFFFF}
+[data-sky="morning"]{--sky:#A8D5F0;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.09);--rim:rgba(28,28,30,.24);--glass:rgba(255,255,255,.72);--moon:#FFFFFF}
+[data-sky="day"]    {--sky:#CDE6F6;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.08);--rim:rgba(28,28,30,.22);--glass:rgba(255,255,255,.74);--moon:#FFFFFF}
+[data-sky="sunset"] {--sky:#F3C58E;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.7);--moon:#FFFFFF}
+[data-sky="evening"]{--stars:0.7;--sky:#2C3762;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.11);--rim:rgba(255,255,255,.3);--glass:rgba(56,64,104,.5);--moon:#F4EFE2}
+
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--label);font:400 17px/1.47 var(--font);letter-spacing:-.022em;-webkit-font-smoothing:antialiased}
+html:lang(zh-Hans) body{letter-spacing:0}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:8px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 var(--gutter) 64px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0}
+.top a{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;font-size:15px}
+.seg{display:inline-flex;background:var(--fill);border-radius:9px;padding:2px}
+.seg button{min-width:48px;min-height:32px;border:0;border-radius:7px;background:transparent;font:600 13px var(--font);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+h1{font:700 clamp(32px,4.4vw,48px)/1.08 var(--font-d);letter-spacing:-.03em;margin:28px 0 12px;text-wrap:balance}
+html:lang(zh-Hans) h1{letter-spacing:0;line-height:1.2}
+h2{font:700 24px/1.2 var(--font-d);letter-spacing:-.02em;margin:48px 0 8px}
+.lede{margin:0;color:var(--label-2);max-width:60ch}
+.tw{overflow-x:auto;margin-top:24px;background:var(--card);border-radius:20px}
+table{width:100%;border-collapse:collapse;min-width:640px;font-size:15px}
+th{text-align:left;font:600 13px var(--font);color:var(--label-2);padding:14px 16px;text-transform:uppercase;letter-spacing:.02em}
+html:lang(zh-Hans) th{text-transform:none}
+td{padding:13px 16px;border-top:.5px solid var(--sep);vertical-align:top;color:var(--label-2)}
+td:first-child{color:var(--label);font-weight:600}
+dl{margin:16px 0 0;border-top:.5px solid var(--sep)}
+dl>div{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:6px 32px;padding:18px 0;border-bottom:.5px solid var(--sep)}
+dt{font-weight:600}
+dd{margin:0;color:var(--label-2);font-size:15px;max-width:60ch}
+@media (max-width:560px){dl>div{grid-template-columns:1fr}}
+</style></head><body>
+<div class="wrap">
+  <div class="top"><a href="../" data-zh="← 返回概念页">← Back to the concept</a><div class="seg" role="group" aria-label="Language"><button type="button" id="l-en" aria-pressed="true">EN</button><button type="button" id="l-zh" aria-pressed="false">中文</button></div></div>
+  <h1 data-zh="给设计和开发的说明">Notes for design and build</h1>
+  <p class="lede" data-zh="这些是做产品的人才需要的细节，所以从概念页里挪到了这里。">The details only the people making the product need, moved off the concept page.</p>
+
+  <h2 id="n-h" data-zh="苹果的样子，安卓先上线">Apple's look, Android first</h2>
+  <div class="tw"><table>
+      <thead><tr><th data-zh="部分">Part</th><th data-zh="长什么样（按苹果设计规范）">How it looks (Apple HIG)</th><th data-zh="安卓上怎么做">How it's built on Android</th></tr></thead>
+      <tbody>
+        <tr><td data-zh="标题">Title</td><td data-zh="大标题，SF Pro 34 号粗体">Large title, SF Pro 34 pt bold</td><td data-zh="同样的字号和字重，用系统字体或 Inter">Same size and weight in the system font or Inter</td></tr>
+        <tr><td data-zh="字体">Type</td><td data-zh="系统字体；数字用 SF Rounded 等宽数字；支持动态字体">System font, SF Rounded tabular numbers, Dynamic Type</td><td data-zh="跟随系统字体缩放">Follows the system font scale</td></tr>
+        <tr><td data-zh="颜色">Color</td><td data-zh="系统色（systemYellow 等），浅色和深色两套">System colors such as systemYellow, in light and dark</td><td data-zh="同一套颜色，不用 Material You 动态取色">The same colors, with Material You dynamic color turned off</td></tr>
+        <tr><td data-zh="开始时间">Start time</td><td data-zh="分段控件">Segmented control</td><td data-zh="画成同样的分段控件">Drawn as the same segmented control</td></tr>
+        <tr><td data-zh="主按钮">Main button</td><td data-zh="胶囊按钮；结束要按住 1.2 秒；按下就有轻触反馈">Capsule button; hold 1.2 s to end; a light tap the moment you press</td><td data-zh="同样的样子，安卓震动反馈">Same look, with Android haptics</td></tr>
+        <tr><td data-zh="总结">Summary</td><td data-zh="带拖动条的底部表单，从下往上弹出">Sheet with a grabber, springs up from the bottom</td><td data-zh="同样的表单；返回手势可以关掉它">Same sheet; the back gesture closes it</td></tr>
+        <tr><td data-zh="标签栏">Tab bar</td><td data-zh="悬浮的玻璃标签栏">Floating glass tab bar</td><td data-zh="同样的样子；系统三键导航时自动留出空间">Same look; it leaves room for three-button navigation</td></tr>
+        <tr><td data-zh="动效">Motion</td><td data-zh="弹簧动画（阻尼 1.0，响应 0.4 秒），随时可以打断；到达目标时才有回弹">Springs (damping 1.0, response 0.4 s) you can interrupt at any time; bounce only at the goal</td><td data-zh="同样的参数，用 Compose 的 spring()">The same values with Compose spring()</td></tr>
+        <tr><td data-zh="月亮和太阳">Moon and sun</td><td data-zh="一个被照亮的 3D 球体，被点亮的扇形决定进度">A lit 3D sphere; the lit wedge sets the progress</td><td data-zh="Compose 里用 AGSL 着色器（安卓 13 以上）或 OpenGL ES；老手机和省电模式用平面版">An AGSL shader in Compose (Android 13+) or OpenGL ES; the flat version on older phones and in battery saver</td></tr>
+        <tr><td data-zh="减少动态效果">Reduce motion</td><td data-zh="只换颜色和文字，没有移动，月亮也不再转动">Only color and text change. Nothing moves, and the moon stops turning</td><td data-zh="跟随“移除动画”设置">Follows the Remove animations setting</td></tr>
+      </tbody>
+    </table></div>
+
+  <h2 data-zh="名称和版本">Name and version</h2>
+  <dl>
+    <div><dt data-zh="名称">The name</dt><dd data-zh="还没有做商标和域名检查。已有一款叫 Litely 的断食应用，读音相近。">Not trademark- or domain-checked yet. An existing fasting app called Litely sounds similar.</dd></div>
+    <div><dt data-zh="版本">Version</dt><dd data-zh="设计概念 v0.5：计时器优先，苹果的外观，安卓先上线，斋月模式，3D 月亮和太阳。">Design concept v0.5: timer first, Apple's look, Android first, Ramadan mode, and a 3D moon and sun.</dd></div>
+  </dl>
+</div>
+<script>
+(function(){
+  var tr=[].slice.call(document.querySelectorAll('[data-zh]'));
+  tr.forEach(function(el){ el.dataset.en=el.innerHTML; });
+  function set(l){ document.documentElement.lang=l==='zh'?'zh-Hans':'en';
+    tr.forEach(function(el){ if(l==='zh') el.textContent=el.dataset.zh; else el.innerHTML=el.dataset.en; });
+    document.getElementById('l-en').setAttribute('aria-pressed',l==='en'); document.getElementById('l-zh').setAttribute('aria-pressed',l==='zh');
+    try{ localStorage.setItem('lightly-lang',l); }catch(e){} }
+  document.getElementById('l-en').onclick=function(){ set('en'); };
+  document.getElementById('l-zh').onclick=function(){ set('zh'); };
+  var l=null; try{ l=localStorage.getItem('lightly-lang'); }catch(e){}
+  if(l==='zh') set('zh');
+})();
+</script>
+</body></html>
