@@ -47,7 +47,7 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
  const T=async(p,t)=>{await p.evaluate(()=>{['today','days','me'].forEach(i=>{document.getElementById(i).scrollTop=0})});await p.waitForTimeout(80);await p.click('#tabs [data-tab='+t+']');};
  const tasks=[];
  for(const {w,h,scheme,lng,notch} of configs){
-  const runNow=async(kind,steps)=>{const ctx=await b.newContext({viewport:{width:w,height:h},colorScheme:scheme,timezoneId:'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});
+  const runNow=async(kind,steps)=>{const ctx=await b.newContext({viewport:{width:w,height:h},colorScheme:scheme,timezoneId:process.env.TEST_TZ||'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});
    const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
    if(notch) await p.addInitScript(()=>{ document.addEventListener('DOMContentLoaded',()=>{ const t=document.createElement('style'); t.textContent=':root{--sat:47px!important;--sab:34px!important}'; document.head.appendChild(t); }); });
    await p.addInitScript(([k,v])=>{ if(!sessionStorage.getItem('seeded')){localStorage.setItem(k,v);sessionStorage.setItem('seeded','1');} },['lightly:v1',JSON.stringify(seed(kind,lng))]);

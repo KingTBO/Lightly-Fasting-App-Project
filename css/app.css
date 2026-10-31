@@ -504,12 +504,13 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .pk-w{position:relative;display:flex;height:0;overflow:hidden;visibility:hidden;padding:0 8px;transition:height .4s var(--spring),visibility 0s .4s}
 .pk.open .pk-w{height:180px;visibility:visible;transition:height .4s var(--spring),visibility 0s}
 .pk-band{position:absolute;left:8px;right:8px;top:72px;height:36px;border-radius:9px;background:var(--fill);pointer-events:none}
-.pk-c{position:relative;flex:1;min-width:0;height:180px;box-sizing:border-box;padding:72px 0;overflow-y:auto;scroll-snap-type:y proximity;scrollbar-width:none;overscroll-behavior:contain;touch-action:pan-y;-webkit-mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent);mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent)}
+.pk-c{position:relative;flex:1;min-width:0;height:180px;box-sizing:border-box;padding:72px 0;overflow:hidden;scrollbar-width:none;overscroll-behavior:contain;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent);mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent)}
 .pk-c::-webkit-scrollbar{display:none}
+.pk-c.drag{cursor:grabbing}
 .pk-c:focus-visible{outline:3px solid var(--ink);outline-offset:-3px;border-radius:9px}
 /* Rows are a drum: they fade, shrink and tilt away from the centre. JS sets opacity and transform on the few rows near the centre; the rest keep these resting values.
-   There is no scroll-snap-stop, so a flick carries on with momentum, and the snap is only a gentle settle at the end (CSS "proximity" plus a JS settle). */
-.pk-i{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font:400 1.1875rem var(--font);font-variant-numeric:tabular-nums;color:var(--label);opacity:.3;transform:perspective(260px) rotateX(0) scale(.86);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
+   The wheel is driven by JS (pkBind in app.js): no scroll-snap, so a flick carries on with its momentum and only lines up with a row as it comes to rest. */
+.pk-i{height:36px;display:flex;align-items:center;justify-content:center;font:400 1.1875rem var(--font);font-variant-numeric:tabular-nums;color:var(--label);opacity:.3;transform:perspective(260px) rotateX(0) scale(.86);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
 .pk-i.sel{color:var(--label)}
 @media (prefers-reduced-motion:reduce){.pk-w,.pk.open .pk-w{transition:none}.pk-i{transform:none}}
 
