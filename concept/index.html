@@ -105,7 +105,15 @@ html:lang(zh-Hans) .group .k{text-transform:none}
 .ph .nav{padding:4px 16px 0;display:flex;align-items:flex-end;justify-content:space-between}
 .ph .lt{font:700 34px/1.2 var(--font-d);letter-spacing:-.02em;margin:0}
 html:lang(zh-Hans) .ph .lt{letter-spacing:0}
-.ph .sub{font:400 15px var(--font);color:var(--ink-2);display:block;margin-top:-2px}
+.ph .skypill{display:inline-flex;align-items:center;gap:8px;min-height:44px;min-width:0;max-width:100%;padding:0 14px 0 11px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--ink)}
+.ph .skypill .sg{width:22px;height:22px;flex:none;display:block}.ph .skypill .sg svg{width:22px;height:22px;display:block}
+.ph .skypill .sg.sun svg{filter:drop-shadow(0 0 5px rgba(255,190,0,.45))}
+.ph .skypill b{font:600 15px/1.2 var(--font);color:var(--ink);white-space:nowrap}
+.ph .skypill i{width:3px;height:3px;border-radius:50%;background:var(--ink-2);flex:none}
+.ph .skypill .sx{font:400 13px/1.2 var(--font);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#ph .nav{align-items:center}
+@media (max-width:340px){.ph .skypill{gap:6px;padding:0 10px 0 8px}.ph .skypill .sx{font-size:12px}}
+#ph .nav .chip{min-height:44px;padding:0 14px;display:inline-flex;align-items:center;margin-bottom:0}
 .ph .chip{font:500 13px var(--font);padding:5px 10px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);margin-bottom:8px}
 .disc-wrap{display:flex;justify-content:center;margin-top:10px;height:236px;perspective:480px}
 #disc{cursor:grab;will-change:transform}
@@ -364,7 +372,7 @@ html:lang(zh-Hans) .friends .tag{text-transform:none}
   .act,.play,.sheet .done{transition:none}
 }
 /* solid fallback stays close to the sky so labels keep their contrast */
-@media (prefers-reduced-transparency:reduce){.tabs,.ph .chip{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--sky) 86%,var(--ink) 14%)}}
+@media (prefers-reduced-transparency:reduce){.tabs,.ph .chip,.ph .skypill{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--sky) 86%,var(--ink) 14%)}}
 @media (max-width:1180px){
   .demo{grid-template-columns:minmax(0,1fr) 390px}
   .moments{grid-column:1 / -1}
@@ -679,7 +687,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <svg class="stars" viewBox="0 0 390 420" aria-hidden="true"><circle cx="177" cy="187" r="1.5" opacity="0.71"/><circle cx="49" cy="384" r="0.8" opacity="0.55"/><circle cx="41" cy="369" r="1.0" opacity="0.37"/><circle cx="234" cy="324" r="0.8" opacity="0.48"/><circle cx="294" cy="327" r="0.8" opacity="0.80"/><circle cx="75" cy="224" r="0.8" opacity="0.67"/><circle cx="215" cy="135" r="1.0" opacity="0.38"/><circle cx="80" cy="258" r="1.5" opacity="0.43"/><circle cx="72" cy="402" r="1.2" opacity="0.66"/><circle cx="361" cy="202" r="0.8" opacity="0.67"/><circle cx="339" cy="206" r="1.2" opacity="0.40"/><circle cx="376" cy="142" r="0.8" opacity="0.69"/><circle cx="266" cy="382" r="1.5" opacity="0.78"/><circle cx="250" cy="409" r="1.5" opacity="0.55"/><circle cx="139" cy="202" r="1.0" opacity="0.40"/><circle cx="165" cy="378" r="1.5" opacity="0.83"/><circle cx="241" cy="257" r="0.8" opacity="0.41"/><circle cx="226" cy="194" r="1.2" opacity="0.43"/><circle cx="262" cy="325" r="0.8" opacity="0.88"/><circle cx="51" cy="395" r="1.2" opacity="0.54"/><circle cx="191" cy="364" r="1.5" opacity="0.39"/><circle cx="59" cy="248" r="1.5" opacity="0.73"/></svg>
       <div class="sb"><span id="sbClock">9:41</span><span class="ic"><b></b><b></b></span></div>
       <div class="nav">
-        <div><span class="sub" id="sub">Night · Moon fast</span></div>
+        <div class="skypill" id="sub"><span class="sg" id="skyG" aria-hidden="true"></span><b id="skyStage">Night</b><i aria-hidden="true"></i><span class="sx" id="skyTx">until 6:12 AM</span></div>
         <button type="button" class="pchip" id="planBtn" aria-haspopup="dialog" aria-label="Change plan"><span class="chip"><span id="planChip">16h</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></span></button>
       </div>
       <button type="button" class="offbar" id="offBar" hidden></button>
@@ -1326,8 +1334,11 @@ window.LightlySphere=(function(){
     var s=START[startKey], sk=skyAt(nowHour()), b=body();
     if(ph.getAttribute('data-sky')!==sk[1]) ph.setAttribute('data-sky',sk[1]);
     var nh=((nowHour()%24)+24)%24, sh=Math.floor(nh), sm=Math.floor((nh-sh)*60); put($('sbClock'),'sb',(sh%12===0?12:sh%12)+':'+String(sm).padStart(2,'0'));
-    var bodyName=b==='moon'?L('Moon until ','月亮，直到 ')+clock(SUN.rise):L('Sun until ','太阳，直到 ')+clock(SUN.set);
-    put(sub,'sub',(lang==='zh'?sk[3]:sk[2])+' · '+(mode==='eat'?L('Eating window','进食窗口'):bodyName));
+    /* sky pill: stage + what the sky does next; while fasting or eating the progress line already shows the turn's clock time, so the pill counts down */
+    var turnAt=b==='moon'?SUN.rise:SUN.set, cd=mode==='fast'||mode==='saved'||mode==='eat', lm=Math.max(1,Math.round((((turnAt-nowHour())%24+24)%24)*60)), lt=(function(){ var a=Math.floor(lm/60), r=lm%60, o=[]; if(a||!r) o.push(a+L(' h',' 小时')); if(r) o.push(r+L(' m',' 分')); return o.join(' '); })();
+    if(cache.skgs!==b){ cache.skgs=b; $('skyG').className='sg '+(b==='moon'?'moon':'sun'); $('skyG').innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="url(#'+(b==='moon'?'gMoon':'gSun')+')" stroke="var(--rim)" stroke-width=".8"/>'+(b==='moon'?'<circle cx="8.6" cy="9.4" r="2.1" fill="rgba(60,50,30,.10)"/><circle cx="14.6" cy="14.6" r="2.8" fill="rgba(60,50,30,.09)"/><circle cx="14" cy="7.4" r="1.2" fill="rgba(60,50,30,.08)"/>':'')+'</svg>'; }
+    put($('skyStage'),'sub',lang==='zh'?sk[3]:sk[2]);
+    put($('skyTx'),'skx',cd?L(lt+' left','还剩 '+lt):L('until ','直到 ')+clock(turnAt));
     var off=window.LIGHTLY_OFF, brk=!!off&&mode!=='fast'; if(brk||mode==='idle'||mode==='eat') put($('readAlt'),'alt','');
     if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); tip(L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); tip(L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
