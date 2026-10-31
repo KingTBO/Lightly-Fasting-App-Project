@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.38.1
+- **fix** On iPhone, a dark navy band sometimes showed under the tab bar when Lightly was opened from the Home Screen, so the app did not fill the screen. Two changes: the colour behind the app (and the status bar) now always follows the screen you are on (sunrise, sunset, night, and the Days and Me tabs in light or dark), so even a gap would not show a different colour; and when the phone lays the page out shorter than the screen, the app now stretches to the full screen height, so the tab bar sits above the home indicator as designed. If the band is still there, tapping the version line at the bottom of Me shows the screen numbers. The concept page did not change.
+
 ## 0.38.0
 Round 3 of the "feel premium" pass: a quieter, clearer end of a fast.
 - **design** When you end a fast early, the moon now holds the phase you reached for a short beat before the summary opens, instead of jumping straight to the eating window. A fast that reached its goal keeps its celebration as before.
