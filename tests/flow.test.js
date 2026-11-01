@@ -190,9 +190,17 @@ const H=3600000,D=24*H;
    await p.click('#sheet [data-act=close]');await p.waitForTimeout(400);
    await p.click('[data-act=import]');await p.setInputFiles('#impFile',zip([[['zero-export/biodata.json','{"fast_data":[]}'],['zero-export/firestore.json',fs1]]]));await p.waitForSelector('[data-act=impdo]');
    assert.match(await p.textContent('#sheet'),/From Zero/);assert.match(await p.textContent('#sheet'),/Add 3 fasts|添加 3 次断食/);assert.strictEqual((await S()).fasts.length,before,'a zip preview adds nothing');
+   // Zero's real export has a password (in the email): the sheet asks for it, a wrong one says so, the right one opens the preview, and nothing is added until confirmed
    await p.click('#sheet [data-act=close]');await p.waitForTimeout(400);
-   await p.click('[data-act=import]');await p.setInputFiles('#impFile',zip([[['firestore.json',fs1]],{encrypt:true}]));await p.waitForSelector('.note.err');assert.match(await p.textContent('.note.err'),/password|有密码/);ok('a zip imports directly, and a password-protected zip is explained');}
-  await p.click('#sheet [data-act=close]');}
+   for(const n of ['zero-zipcrypto.zip','zero-aes256.zip']){
+    await p.click('[data-act=import]');await p.setInputFiles('#impFile',{name:n,mimeType:'application/zip',buffer:require('fs').readFileSync(path.join(__dirname,'fixtures',n))});await p.waitForSelector('#zipPw');
+    assert.match(await p.textContent('#sheet'),/Enter the password|输入密码/);
+    await p.fill('#zipPw','nope');await p.click('#zipGo');await p.waitForSelector('.note.err');assert.match(await p.textContent('.note.err'),/didn’t work|不对/);
+    await p.fill('#zipPw','lightly-test');await p.press('#zipPw','Enter');await p.waitForSelector('[data-act=impdo]');assert.match(await p.textContent('#sheet'),/From Zero/);assert.strictEqual((await S()).fasts.length,before,'a zip preview adds nothing');
+    await p.click('#sheet [data-act=close]');await p.waitForTimeout(400);}
+   await p.click('[data-act=import]');await p.setInputFiles('#impFile',{name:'zero.zip',mimeType:'application/zip',buffer:require('fs').readFileSync(path.join(__dirname,'fixtures','zero-aes128.zip'))});await p.waitForSelector('#zipPw');await p.click('#sheet [data-act=close]');await p.waitForTimeout(400);assert(!(await p.$('#sheet.open #zipPw')),'Cancel closes the password sheet');
+   ok('a zip imports directly, and a password-protected zip asks for its password');}
+  }
  await p.evaluate(()=>{document.getElementById('me').scrollTop=0;});await p.click('[data-act=erase]');await p.waitForSelector('#eraseGo[disabled]');assert.match(await p.textContent('#sheet'),/can’t be undone|can't be undone|无法撤销/);await p.waitForSelector('#eraseGo:not([disabled])',{timeout:6000});
  {const bx=await p.locator('#eraseGo').boundingBox();await p.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await p.mouse.down();await p.waitForTimeout(800);await p.mouse.up();await p.waitForTimeout(300);assert((await S()).onboarded,'a short press does not erase');await p.mouse.down();await p.waitForTimeout(2400);await p.mouse.up();}await p.waitForTimeout(1200);assert.strictEqual(await p.evaluate(()=>(JSON.parse(localStorage.getItem('lightly:v1'))||{}).onboarded||false),false);ok('erase resets');
  assert.deepStrictEqual(errs,[]);console.log('all flows ok');await b.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});

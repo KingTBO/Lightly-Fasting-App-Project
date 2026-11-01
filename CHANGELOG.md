@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.55.0
+- **feature** Zero's zip has a password (Zero emails it with the download), so Lightly now asks for it. Choose the zip, type the password in a small sheet (“It’s in the email with your download.”), and Lightly unlocks it, finds the right file and shows the usual preview. A wrong password says so and lets you try again. It opens both common kinds of zip password, and the password is used only on the phone and never stored or sent. This makes the 0.54.0 zip import work with a real Zero export, which it did not before. Same on the concept page.
+
 ## 0.54.0
 - **feature** Importing from Zero is now two steps: choose the zip you downloaded and Lightly opens it for you. No more unzipping and hunting for firestore.json. It finds the right file inside, ignores the rest, and still shows the preview before anything is added. A password-protected zip gets a clear message asking to unzip it first. Plain CSV and JSON files still work, and CSV or JSON inside a zip works too. Same on the concept page. Everything is still read on the phone and never uploaded.
 
