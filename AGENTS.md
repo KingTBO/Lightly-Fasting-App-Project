@@ -71,7 +71,7 @@ These protect people who fast, and they are not up for trade-off:
 - **No food logging and no AI coach.** They were left out on purpose. Do not add them.
 - **No health or weight gamification.** No fat-burn stages, no body or scale imagery. Rewards are for consistency, never for longer fasts.
 - **Long fasts stay gated.** The 24 h and 36 h plans unlock with progress, and a safety flag means they are never offered. The rules live in `js/core.js` and are described in the CHANGELOG; do not loosen them.
-- **Solo first.** Fasting alone is the main experience. Friends and groups are a small optional extra and are not built yet.
+- **Solo first.** Fasting alone is the main experience. Friends and groups are a small optional extra and are not built yet; the brief for building them is [docs/friends/friends-feature-brief.md](docs/friends/friends-feature-brief.md).
 - **Privacy.** Location is used on the phone only, never uploaded or shared. Never say "where you are". Ramadan and other sacred fasts are free, calm, dry-fast aware, and the app never presents itself as a religious authority.
 
 ## Do not
