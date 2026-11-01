@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<title>Lightly haptic test</title>
+<style>
+:root{color-scheme:light dark}body{font:16px/1.4 -apple-system,system-ui,sans-serif;margin:0;padding:16px;max-width:520px}
+h1{font-size:22px;margin:0 0 4px}p{margin:6px 0 14px;color:#666}
+button,.pad{display:block;width:100%;box-sizing:border-box;margin:8px 0;padding:14px;border-radius:12px;border:0;background:#0a84ff;color:#fff;font:600 16px system-ui}
+.pad{background:#8883;color:inherit;text-align:center;height:120px;touch-action:none;user-select:none;-webkit-user-select:none}
+.row{display:flex;align-items:center;justify-content:space-between;margin:10px 0}
+#log{white-space:pre-wrap;font:13px ui-monospace,monospace;background:#8882;border-radius:10px;padding:10px;min-height:80px}
+</style></head><body>
+<h1>Haptic test</h1>
+<p>Open this on an iPhone (Safari, and also from the Home Screen). Try each row and note which ones you FEEL. Needs iOS 17.4+ and Settings &gt; Sounds &amp; Haptics &gt; System Haptics on.</p>
+<div class="row"><span>0. A real switch (the control)</span><label><input type="checkbox" switch id="real"></label></div>
+<button id="a">A. Tap: fresh hidden switch, label.click() in the tap</button>
+<button id="b">B. Tap: one reused hidden switch</button>
+<button id="c">C. Tap, then 3 ticks from setTimeout (300 ms apart)</button>
+<div class="pad" id="d">D. Drag here: tick every 30 px (pointermove)</div>
+<div class="pad" id="e">E. Drag here: tick every 30 px (touchmove)</div>
+<div class="pad" id="f">F. Flick here: ticks continue while it coasts (timer)</div>
+<div id="log">ready</div>
+<script>
+var log=document.getElementById('log'),n=0;function say(s){log.textContent=(++n)+' '+s+'\n'+log.textContent.slice(0,600);}
+say(navigator.userAgent.replace(/\).*/,')')+' | vibrate: '+!!navigator.vibrate+' | standalone: '+(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches));
+function fresh(){var l=document.createElement('label'),i=document.createElement('input');l.setAttribute('aria-hidden','true');l.style.cssText='position:fixed;left:0;top:0;width:44px;height:26px;opacity:.01;pointer-events:none;z-index:-1';i.type='checkbox';i.setAttribute('switch','');i.tabIndex=-1;l.appendChild(i);document.body.appendChild(l);l.click();setTimeout(function(){l.remove();},150);}
+var keep=document.createElement('label'),ki=document.createElement('input');keep.style.cssText='position:fixed;left:0;top:0;width:44px;height:26px;opacity:.01;pointer-events:none;z-index:-1';ki.type='checkbox';ki.setAttribute('switch','');keep.appendChild(ki);document.body.appendChild(keep);
+document.getElementById('real').addEventListener('change',function(){say('real switch toggled');});
+document.getElementById('a').onclick=function(){fresh();say('A fired');};
+document.getElementById('b').onclick=function(){keep.click();say('B fired');};
+document.getElementById('c').onclick=function(){var k=0;(function t(){fresh();say('C tick '+(k+1)+' (timer)');if(++k<3)setTimeout(t,300);})();};
+function drag(el,ev,tag){var y0=0,acc=0,on=false;
+ el.addEventListener(ev[0],function(e){on=true;y0=(e.touches?e.touches[0]:e).clientY;acc=0;},{passive:true});
+ el.addEventListener(ev[1],function(e){if(!on)return;var y=(e.touches?e.touches[0]:e).clientY;acc+=Math.abs(y-y0);y0=y;if(acc>=30){acc=0;fresh();say(tag+' tick');}},{passive:true});
+ el.addEventListener(ev[2],function(){on=false;},{passive:true});}
+drag(document.getElementById('d'),['pointerdown','pointermove','pointerup'],'D pointermove');
+drag(document.getElementById('e'),['touchstart','touchmove','touchend'],'E touchmove');
+(function(){var el=document.getElementById('f'),y0=0,t0=0,v=0,on=false;
+ el.addEventListener('pointerdown',function(e){on=true;y0=e.clientY;t0=e.timeStamp;v=0;});
+ el.addEventListener('pointermove',function(e){if(on){var dt=e.timeStamp-t0;if(dt>0)v=Math.abs(e.clientY-y0)/dt;y0=e.clientY;t0=e.timeStamp;}});
+ el.addEventListener('pointerup',function(){on=false;var k=0,end=performance.now()+1500;say('F released, coasting');(function s(){if(performance.now()>end)return;if(++k%6===0){fresh();say('F coast tick (rAF)');}requestAnimationFrame(s);})();});})();
+</script></body></html>

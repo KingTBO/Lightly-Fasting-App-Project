@@ -65,4 +65,16 @@ const ok=n=>console.log('ok -',n);
   const box=await (await p.$('#obStart [data-c=m]')).boundingBox(), x=box.x+box.width/2, y0=box.y+box.height/2;
   await p.mouse.move(x,y0+50);await p.mouse.down();await p.mouse.move(x,y0-50,{steps:5});await p.mouse.up();await p.waitForTimeout(100);
   const t=await p.evaluate(()=>document.querySelector('#obStart [data-c=m]').scrollTop);assert.strictEqual(t%36,0,'Reduce Motion: lands on a row at once');ok('Reduce Motion: no gliding');await ctx.close();}
+ // iPhone: no navigator.vibrate, so each value tap goes through a fresh hidden switch, clicked inside the finger's own pointermove
+ {const ctx=await b.newContext({viewport:{width:390,height:844},userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'});const p=await ctx.newPage();
+  await p.addInitScript(()=>{try{Object.defineProperty(Navigator.prototype,'vibrate',{value:undefined,configurable:true});}catch(e){}window.__c=[];const o=HTMLLabelElement.prototype.click;HTMLLabelElement.prototype.click=function(){window.__c.push({sw:!!this.querySelector('input[switch]'),inMove:window.__inMove===true});return o.call(this);};
+   addEventListener('pointermove',()=>{window.__inMove=true;setTimeout(()=>{window.__inMove=false;},0);},true);});
+  await p.goto(base);await p.waitForTimeout(600);
+  await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('.ob-step.on [data-act=obnext]');await p.waitForTimeout(900);await p.click('#obStart .pk-row');await p.waitForTimeout(700);
+  const box=await (await p.$('#obStart [data-c=m]')).boundingBox(), x=box.x+box.width/2, y0=box.y+box.height/2;
+  await p.mouse.move(x,y0+50);await p.mouse.down();for(let k=1;k<=10;k++){await p.mouse.move(x,y0+50-k*8);await p.waitForTimeout(25);}await p.mouse.up();
+  const c=await p.evaluate(()=>window.__c);const live=await p.evaluate(()=>document.querySelectorAll('label input[switch]').length);
+  assert(c.length>=2,'iPhone: a switch tap per value while dragging, got '+c.length);assert(c.every(e=>e.sw),'iPhone: each tap clicks a switch label');assert(c.some(e=>e.inMove),'iPhone: ticks happen inside the pointermove event');
+  await p.waitForTimeout(500);assert.strictEqual(await p.evaluate(()=>document.querySelectorAll('label input[switch]').length),0,'iPhone: temporary switches are removed');
+  ok('iPhone: '+c.length+' switch taps, '+c.filter(e=>e.inMove).length+' inside pointermove, cleaned up');await ctx.close();}
  await b.close();srv.close();console.log('wheel tests ok');})().catch(e=>{console.error(e);process.exit(1);});

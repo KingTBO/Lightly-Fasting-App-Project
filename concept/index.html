@@ -1773,8 +1773,9 @@ window.LightlySphere=(function(){
   var PKH=36, PK_TAU=480, PK_GAIN=1.3, PK_VMAX=9, PK_REPS=7, PK_MID=3, pkTickAt=0, rmo=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   function pad2(n){ return (n<10?'0':'')+n; }
   function clamp(v,a,b){ return v<a?a:v>b?b:v; }
-  var tapEl;   /* iPhone Safari cannot vibrate from the web; Safari 17.4+ taps when a hidden switch is toggled from a touch, so borrow that */
-  function tick(){ try{ if(navigator.vibrate){ navigator.vibrate(3); return; } if(tapEl===undefined){ tapEl=null; if(window.CSS&&CSS.supports&&CSS.supports('-webkit-appearance','switch')){ var l=document.createElement('label'), i=document.createElement('input'); l.setAttribute('aria-hidden','true'); l.style.cssText='position:fixed;left:-60px;top:0;width:44px;height:44px;opacity:.01;pointer-events:none;overflow:hidden'; i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1; l.appendChild(i); document.body.appendChild(l); tapEl=l; } } if(tapEl) tapEl.click(); }catch(e){} }
+  var IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  /* iPhone Safari cannot vibrate from the web; Safari 17.4+ taps when an <input switch> is toggled, so toggle a fresh invisible one (works from a real touch event only) */
+  function tick(){ try{ if(navigator.vibrate){ navigator.vibrate(3); return; } if(!IOS) return; var l=document.createElement('label'), i=document.createElement('input'); l.setAttribute('aria-hidden','true'); l.style.cssText='position:fixed;left:0;top:0;width:44px;height:26px;opacity:.01;pointer-events:none;z-index:-1'; i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1; l.appendChild(i); document.body.appendChild(l); l.click(); setTimeout(function(){ if(l.parentNode) l.parentNode.removeChild(l); },150); }catch(e){} }
   function pkCol(key,label,items,sel,flex,loop){ var n=items.length, base=loop?n*PK_MID:0, rows=items, r;
     if(loop){ rows=[]; for(r=0;r<PK_REPS;r++) rows=rows.concat(items); }
     return '<div class="pk-c" role="listbox" tabindex="0" data-c="'+key+'" data-sel="'+sel+'"'+(loop?' data-loop="'+n+'"':'')+' aria-label="'+label+'" style="flex:'+flex+'">'+rows.map(function(t,i){ var on=i===sel+base, hid=loop&&(i<base||i>=base+n); return '<div class="pk-i'+(on?' sel':'')+'" role="option" aria-selected="'+on+'"'+(hid?' aria-hidden="true"':'')+' data-i="'+i+'">'+t+'</div>'; }).join('')+'</div>'; }
@@ -1803,12 +1804,12 @@ window.LightlySphere=(function(){
     function drum(){ var q=c.scrollTop/PKH, lo=Math.max(0,Math.floor(q)-3), hi=Math.min(rows()-1,Math.ceil(q)+3), i, o, a, el;
       lit.forEach(function(k){ if(k<lo||k>hi){ el=c.children[k]; if(el){ el.style.opacity=''; el.style.transform=''; } } }); lit=[];
       for(i=lo;i<=hi;i++){ el=c.children[i]; o=i-q; a=Math.min(Math.abs(o),3); el.style.opacity=(1-a*.24).toFixed(3); if(!rmo) el.style.transform='perspective(260px) rotateX('+(-o*15).toFixed(2)+'deg) scale('+(1-a*.045).toFixed(3)+')'; lit.push(i); } }
-    c.addEventListener('scroll',function(){ if(!raf) raf=requestAnimationFrame(function(){ raf=0; drum(); });
-      var n=loopN(), i=clamp(Math.round(c.scrollTop/PKH),0,rows()-1), s=n?i%n:i, old=c.querySelector('.pk-i.sel'); if(old&&+old.dataset.i===i) return;
+    function sync(){ var n=loopN(), i=clamp(Math.round(c.scrollTop/PKH),0,rows()-1), s=n?i%n:i, old=c.querySelector('.pk-i.sel'); if(old&&+old.dataset.i===i) return;
       if(old){ old.classList.remove('sel'); old.setAttribute('aria-selected','false'); } c.children[i].classList.add('sel'); c.children[i].setAttribute('aria-selected','true');
-      if(+c.dataset.sel===s) return; c.dataset.sel=s; var t=performance.now(); if(t-pkTickAt>22){ pkTickAt=t; tick(); } tune(); },{passive:true});
+      if(+c.dataset.sel===s) return; c.dataset.sel=s; var t=performance.now(); if(t-pkTickAt>22){ pkTickAt=t; tick(); } tune(); }
+    c.addEventListener('scroll',function(){ if(!raf) raf=requestAnimationFrame(function(){ raf=0; drum(); }); sync(); },{passive:true});
     c.addEventListener('pointerdown',function(e){ if(c._pid!=null||(e.pointerType==='mouse'&&e.button!==0)) return; stop(); clearTimeout(c._wt); center(); c._y=c.scrollTop; c._pid=e.pointerId; c._py=e.clientY; c._moved=0; c._s=[[e.timeStamp,e.clientY]]; c.classList.add('drag'); try{ c.setPointerCapture(e.pointerId); }catch(x){} });
-    c.addEventListener('pointermove',function(e){ if(c._pid!==e.pointerId) return; var dy=e.clientY-c._py; c._py=e.clientY; c._moved+=Math.abs(dy); put(c._y-dy); var s=c._s; s.push([e.timeStamp,e.clientY]); while(s.length>2&&e.timeStamp-s[0][0]>90) s.shift(); });
+    c.addEventListener('pointermove',function(e){ if(c._pid!==e.pointerId) return; var dy=e.clientY-c._py; c._py=e.clientY; c._moved+=Math.abs(dy); put(c._y-dy); sync(); var s=c._s; s.push([e.timeStamp,e.clientY]); while(s.length>2&&e.timeStamp-s[0][0]>90) s.shift(); });
     function up(e){ if(c._pid!==e.pointerId) return; c._pid=null; c.classList.remove('drag');
       if(c._moved<6){ var el=document.elementFromPoint(e.clientX,e.clientY), it=el&&el.closest&&el.closest('.pk-i'); if(it&&c.contains(it)&&e.type==='pointerup') go(+it.dataset.i,true); else run(c.scrollTop,190); return; }
       var s=c._s, a=s[0], z=s[s.length-1], v=0; if(e.type==='pointerup'&&s.length>1&&e.timeStamp-z[0]<70&&z[0]>a[0]) v=-(z[1]-a[1])/(z[0]-a[0]);

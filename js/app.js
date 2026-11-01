@@ -90,13 +90,16 @@ function tone(f,dur,vol,type,at){ var c=actx(); if(!c) return; var t=c.currentTi
   o.type=type||'sine'; o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+.02); }
 function sChime(){ tone(1318.5,1.4,.06); tone(1975.5,1.6,.04,'sine',.09); tone(2637,1.2,.02,'sine',.18); }
-/* Android and desktop Chrome can vibrate from the web. iPhone Safari cannot (no navigator.vibrate), but Safari 17.4+ plays a small tap when a hidden
-   <input type=checkbox switch> is toggled from a touch, so we borrow that as a best-effort tick. It only fires while a finger is on the screen. */
-var tapEl;
-function iosTap(){ if(tapEl===undefined){ tapEl=null; try{ if(window.CSS&&CSS.supports&&CSS.supports('-webkit-appearance','switch')){ var l=document.createElement('label'), i=document.createElement('input');
-  l.setAttribute('aria-hidden','true'); l.style.cssText='position:fixed;left:-60px;top:0;width:44px;height:44px;opacity:.01;pointer-events:none;overflow:hidden'; i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1; l.appendChild(i); document.body.appendChild(l); tapEl=l; } }catch(e){} } return tapEl; }
-function canTick(){ return !!navigator.vibrate||!!iosTap(); }
-function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); else{ var t=iosTap(); if(t) t.click(); } }catch(e){} }
+/* Android and desktop Chrome can vibrate from the web. iPhone Safari cannot (no navigator.vibrate and no haptics API at all), but Safari 17.4+ plays a small tap
+   when an <input type=checkbox switch> is toggled, so on iPhone we toggle a fresh, invisible one with a label click. It is a hack: it has only been seen to work
+   inside a real touch event (so the wheel ticks from the pointermove handler, while the finger is down), not from timers, and not while the wheel coasts. */
+var IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function iosTap(){ if(!IOS||navigator.vibrate) return false;
+  try{ var l=document.createElement('label'), i=document.createElement('input'); l.setAttribute('aria-hidden','true');
+    l.style.cssText='position:fixed;left:0;top:0;width:44px;height:26px;opacity:.01;pointer-events:none;z-index:-1'; i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1; l.appendChild(i);
+    document.body.appendChild(l); l.click(); setTimeout(function(){ if(l.parentNode) l.parentNode.removeChild(l); },150); return true; }catch(e){ return false; } }
+function canTick(){ return !!navigator.vibrate||IOS; }
+function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); else iosTap(); }catch(e){} }
 /* one fixed vocabulary, so the same thing always feels the same:
    select = a wheel detent, light = a touch or toggle, hour = the hour turns, medium = a fast starts or a hold completes,
    success = the goal is reached (the only sound in the app is its soft chime), nope = a gentle "not now" (two light taps, no sound). Nothing fires on routine saves. */
@@ -669,7 +672,7 @@ function pkBind(c){
     pkStop(c); clearTimeout(c._wt); pkCenter(c); c._y=c.scrollTop; c._pid=e.pointerId; c._py=e.clientY; c._moved=0; c._s=[[e.timeStamp,e.clientY]]; c.classList.add('drag');
     try{ c.setPointerCapture(e.pointerId); }catch(x){} });
   c.addEventListener('pointermove',function(e){ if(c._pid!==e.pointerId) return;
-    var dy=e.clientY-c._py; c._py=e.clientY; c._moved+=Math.abs(dy); pkPut(c,c._y-dy);
+    var dy=e.clientY-c._py; c._py=e.clientY; c._moved+=Math.abs(dy); pkPut(c,c._y-dy); pkTune(c);   /* tick inside the touch event itself: iPhone only plays its tap from a real touch */
     var s=c._s; s.push([e.timeStamp,e.clientY]); while(s.length>2&&e.timeStamp-s[0][0]>90) s.shift(); });
   function up(e){ if(c._pid!==e.pointerId) return; c._pid=null; c.classList.remove('drag');
     if(c._moved<6){   /* a tap: glide to the row that was tapped */
