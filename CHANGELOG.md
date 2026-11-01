@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.48.0
+- **feature** The time wheels now make a very quiet tick as each value passes, on Android and iPhone (and the concept page). It is a very short, soft click, much quieter than the goal chime, and it follows the Sound setting: turn Sound off in Me and the wheels are silent. It is also kept to one tick every 40 milliseconds, so a fast flick sounds like a roll of ticks instead of a buzz.
+- On Android the wheel's vibration is unchanged (a light 3 ms tick per value, still following the Vibration setting), but it is now kept to one per 40 milliseconds, so a fast flick is a gentle roll instead of a continuous buzz.
+- The iPhone vibration trick from 0.47.1 stays in the code but is no longer a goal for now: TEEBO decided real iPhone haptics will come with the iOS app.
+
 ## 0.47.1
 - **fix** The wheel's tick on iPhone. In 0.47.0 the iPhone workaround never fired: it checked for a feature that Safari does not report, so it switched itself off. It now runs on every iPhone and iPad, and it taps from inside the finger's own touch movement (the only place the iPhone trick has been seen to work), one fresh invisible switch per value. iPhone has no vibration API for web pages at all, so this stays a best-effort hack: it can only tick while a finger is moving on the wheel (not while the wheel coasts after you let go), and it needs iOS 17.4 or newer with System Haptics on. The Vibration setting now shows on iPhone and turns it off. The concept page matches.
 - **chore** Added a small test page for trying the iPhone tap in different situations (`tests/haptic.html`, not linked from the app).

@@ -89,6 +89,8 @@ function actx(){ if(!S.prefs.sound) return null; try{ if(!ac){ var A=window.Audi
 function tone(f,dur,vol,type,at){ var c=actx(); if(!c) return; var t=c.currentTime+(at||0), o=c.createOscillator(), g=c.createGain();
   o.type=type||'sine'; o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+.02); }
+/* the wheel's tick: a very short, soft click (about 25 ms), quieter than the chime; it follows the Sound setting like every sound */
+function sTick(){ tone(1700,.028,.05,'sine'); tone(3400,.012,.012,'sine'); }
 function sChime(){ tone(1318.5,1.4,.06); tone(1975.5,1.6,.04,'sine',.09); tone(2637,1.2,.02,'sine',.18); }
 /* Android and desktop Chrome can vibrate from the web. iPhone Safari cannot (no navigator.vibrate and no haptics API at all), but Safari 17.4+ plays a small tap
    when an <input type=checkbox switch> is toggled, so on iPhone we toggle a fresh, invisible one with a label click. It is a hack: it has only been seen to work
@@ -102,9 +104,9 @@ function canTick(){ return !!navigator.vibrate||IOS; }
 function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); else iosTap(); }catch(e){} }
 /* one fixed vocabulary, so the same thing always feels the same:
    select = a wheel detent, light = a touch or toggle, hour = the hour turns, medium = a fast starts or a hold completes,
-   success = the goal is reached (the only sound in the app is its soft chime), nope = a gentle "not now" (two light taps, no sound). Nothing fires on routine saves. */
+   success = the goal is reached (its soft chime is the biggest sound; the wheels also make a very quiet tick, see sTick), nope = a gentle "not now" (two light taps, no sound). Nothing fires on routine saves. */
 var FX={select:3,light:6,hour:8,medium:14,success:[30,60,30],nope:[8,70,8]};
-function fx(k){ buzz(FX[k]); if(k==='success') sChime(); }
+function fx(k){ buzz(FX[k]); if(k==='success') sChime(); else if(k==='select') sTick(); }
 
 /* ---------- toast, sheet ---------- */
 var toastT=0;
@@ -658,7 +660,7 @@ function pkTune(col){
   if(old&&+old.dataset.i===i) return;
   if(old){ old.classList.remove('sel'); old.setAttribute('aria-selected','false'); } col.children[i].classList.add('sel'); col.children[i].setAttribute('aria-selected','true');
   if(+col.dataset.sel===s) return;   /* only the copy changed (the wheel re-centred): same value, no tick */
-  col.dataset.sel=s; var t=performance.now(); if(t-pkTick>22){ pkTick=t; fx('select'); }
+  col.dataset.sel=s; var t=performance.now(); if(t-pkTick>38){ pkTick=t; fx('select'); }
   var v=pkRead(pk); pk.dataset.val=v; var kind=pk.dataset.kind;
   pk.querySelector('.pk-v').textContent=kind==='sel'?JSON.parse(pk.dataset.labels)[col.dataset.sel]:pkText(kind,v);
   pkChange(pk.id,v); }
@@ -669,7 +671,7 @@ function pkChange(id,v){
 function pkBind(c){
   c.addEventListener('scroll',function(){ pkTune(c); if(!c._raf) c._raf=requestAnimationFrame(function(){ c._raf=0; pkDrum(c); }); },{passive:true});
   c.addEventListener('pointerdown',function(e){ if(c._pid!=null||(e.pointerType==='mouse'&&e.button!==0)) return;
-    pkStop(c); clearTimeout(c._wt); pkCenter(c); c._y=c.scrollTop; c._pid=e.pointerId; c._py=e.clientY; c._moved=0; c._s=[[e.timeStamp,e.clientY]]; c.classList.add('drag');
+    actx(); pkStop(c); clearTimeout(c._wt); pkCenter(c); c._y=c.scrollTop; c._pid=e.pointerId; c._py=e.clientY; c._moved=0; c._s=[[e.timeStamp,e.clientY]]; c.classList.add('drag');
     try{ c.setPointerCapture(e.pointerId); }catch(x){} });
   c.addEventListener('pointermove',function(e){ if(c._pid!==e.pointerId) return;
     var dy=e.clientY-c._py; c._py=e.clientY; c._moved+=Math.abs(dy); pkPut(c,c._y-dy); pkTune(c);   /* tick inside the touch event itself: iPhone only plays its tap from a real touch */
@@ -694,7 +696,7 @@ function pkToggle(id){
   var pk=$(id), open=!pk.classList.contains('open');
   Array.prototype.forEach.call(pk.parentNode.querySelectorAll('.pk.open'),function(o){ if(o!==pk){ o.classList.remove('open'); o.querySelector('.pk-row').setAttribute('aria-expanded','false'); } });
   pk.classList.toggle('open',open); pk.querySelector('.pk-row').setAttribute('aria-expanded',String(open));
-  if(!open) return;
+  if(!open) return; actx();   /* a real tap: lets the wheel's tick sound start on iPhone */
   Array.prototype.forEach.call(pk.querySelectorAll('.pk-c'),function(c){
     pkSet(c,pkBase(c)+(+c.dataset.sel),false); pkDrum(c);
     if(c._on) return; c._on=true; pkBind(c); });
