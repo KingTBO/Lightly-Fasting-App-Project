@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.50.0
+- **feature** When an import finishes and fasts were added, the app now plays the same soft chime as reaching a goal, with the same success vibration (three short pulses). It plays once per import, follows the Sound and Vibration switches in Me (turn Sound off and it is silent, turn Vibration off and it does not buzz), and stays silent when the file can't be read, has no fasts in it, or there is nothing new to add. The same happens when you import during setup. The concept page's import demo (in Me and in setup) does the same, and its Sound description now mentions it.
+
 ## 0.49.1
 - **design** The wheel's tick is now the stock Android click (the open-source "Effect_Tick" sound from the Android Open Source Project, Apache 2.0 licence), chosen by TEEBO after hearing it, instead of the lookalike made in code. It is a short 94 millisecond clip, about as quiet as before, and still follows the Sound setting. It loads the first time you open a wheel and works offline; until it has loaded, the old click stands in. The concept page matches. The licence note is in sounds/README.md.
 
