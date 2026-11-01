@@ -313,8 +313,8 @@ act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } i
 /* a button in a sheet that must be held to confirm, the same press-and-hold as ending a fast */
 var HB=null;
 function hbEnd(){ if(!HB) return; var x=HB; HB=null; cancelAnimationFrame(x.raf); x.b.classList.remove('holding'); x.b.style.setProperty('--hold',0); x.lbl.textContent=x.orig; }
-function hbBegin(b){ if(HB||b.disabled) return; var lbl=b.querySelector('.hl'), t0=performance.now(); HB={b:b,lbl:lbl,orig:lbl.textContent,raf:0}; b.classList.add('holding'); lbl.textContent=L('Keep holding…','继续按住…'); fx('light');
-  (function step(){ if(!HB||HB.b!==b) return; var f=Math.min((performance.now()-t0)/HOLD_MS,1); b.style.setProperty('--hold',f); if(f>=1){ hbEnd(); fx('medium'); A[b.dataset.hold](b); return; } HB.raf=requestAnimationFrame(step); })(); }
+function hbBegin(b){ if(HB||b.disabled) return; var lbl=b.querySelector('.hl'), t0=performance.now(), ms=+b.dataset.ms||HOLD_MS; HB={b:b,lbl:lbl,orig:lbl.textContent,raf:0}; b.classList.add('holding'); lbl.textContent=L('Keep holding…','继续按住…'); fx('light');
+  (function step(){ if(!HB||HB.b!==b) return; var f=Math.min((performance.now()-t0)/ms,1); b.style.setProperty('--hold',f); if(f>=1){ hbEnd(); fx('medium'); A[b.dataset.hold](b); return; } HB.raf=requestAnimationFrame(step); })(); }
 document.addEventListener('pointerdown',function(e){ var b=e.target.closest&&e.target.closest('.btn[data-hold]'); if(!b||!ph.contains(b)) return; e.preventDefault(); try{ b.setPointerCapture(e.pointerId); }catch(x){} hbBegin(b); });
 ['pointerup','pointercancel'].forEach(function(n){ document.addEventListener(n,hbEnd); });
 document.addEventListener('keydown',function(e){ var b=e.target.closest&&e.target.closest('.btn[data-hold]'); if(b&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); if(!e.repeat) hbBegin(b); } });
@@ -1161,7 +1161,18 @@ var A={
   import:function(){ importSheet(); },
   impdo:function(){ importDo(); },
   export:function(){ try{ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-fasts-'+today()+'.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }catch(e){ toast(L('Couldn’t export.','导出失败。')); } },
-  erase:function(){ openSheet('<!--keep--><h3>'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede">'+L('This deletes your fasts, streak and settings from this phone. It can’t be undone.','这会删除这台手机上的断食记录、连续天数和设置，无法撤销。')+'</p><div class="btns"><button class="btn red" data-act="eraseok">'+L('Erase everything','清除所有数据')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
+  /* Erase everything: the one step that can't be undone. A red warning mark and a plain list of what goes, Cancel as the main button, and the erase button
+     is locked for 3 seconds (counting down), then must be held for 2 seconds. An export is one tap away. */
+  erase:function(){
+    var WARN='<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17" /><circle class="dot" cx="28" cy="40" r="2.6"/></svg>';
+    openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede ctr">'+L('This permanently deletes everything on this phone. It can’t be undone.','这会永久删除这台手机上的所有内容，无法撤销。')+'</p>'+
+      '<div class="group"><div class="row"><span>'+L('All your fasts, your streak and cheat days','你所有的断食记录、连续天数和弹性日')+'</span></div><div class="row"><span>'+L('Your plan, setup and unlocked plans','你的计划、初始设置和已解锁的计划')+'</span></div><div class="row"><span>'+L('Time off and every setting','休息记录和所有设置')+'</span></div></div>'+
+      '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button><button class="btn red solid hold" id="eraseGo" data-hold="eraseok" data-ms="2000" disabled aria-label="'+L('Erase everything, available in 3 seconds','清除所有数据，3 秒后可用')+'"><span class="hl">'+L('Erase everything · 3','清除所有数据 · 3')+'</span></button><button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
+    var go=$('eraseGo'), lbl=go.querySelector('.hl'), n=3, iv=setInterval(function(){
+      if(!go.isConnected){ clearInterval(iv); return; }
+      n--; if(n>0){ lbl.textContent=L('Erase everything · '+n,'清除所有数据 · '+n); return; }
+      clearInterval(iv); go.disabled=false; lbl.textContent=L('Hold to erase everything','按住清除所有数据'); go.setAttribute('aria-label',L('Hold to erase everything','按住清除所有数据')); fx('light'); },1000);
+  },
   eraseok:function(){ try{ localStorage.removeItem(KEY); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
   usualset:function(){ S.prefs.usualStart='20:00'; save(); cache={}; updateToday(); renderMe(); pkToggle('usualStart'); },
   pktog:function(b){ pkToggle(b.dataset.id); },

@@ -553,6 +553,12 @@ html:lang(zh-Hans) .me-h{text-transform:none}
 .imp-res .note{font:400 15px/1.4 var(--font);color:var(--label-2);padding-bottom:14px;margin:0}
 .imp-res .stg{opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .55s cubic-bezier(.16,1,.3,1)}.imp-res .stg.on{opacity:1;transform:none}.imp-res .btns.lock{pointer-events:none}
 @media (prefers-reduced-motion:reduce){.imp-res .ring,.imp-res .tick{stroke-dashoffset:0}.imp-res .disc{opacity:1;transform:none}.imp-res.go .ring,.imp-res.go .disc,.imp-res.go .tick{animation:none}.imp-res .stg{transform:none}}
+/* erase everything */
+.imp-wrn .warn-ico{width:56px;height:56px;margin:6px auto 12px}.imp-wrn .warn-ico svg{display:block;width:100%;height:100%}.imp-wrn .warn-ico circle:first-child{fill:#C70012}.imp-wrn .warn-ico path{stroke:#fff;stroke-width:5;stroke-linecap:round;fill:none}.imp-wrn .warn-ico .dot{fill:#fff}
+.imp-wrn .wh{font:700 22px/1.2 var(--font-d);text-align:center;margin:0 0 4px}.imp-wrn .wl{font:400 15px/1.4 var(--font);color:var(--label-2);text-align:center;margin:0 0 14px}
+.imp-wrn .imp-go.dk{background:var(--label);color:var(--card)}.imp-wrn .imp-go.erase{background:#C70012;color:#fff;position:relative;overflow:hidden;isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none}.imp-wrn .imp-go.erase:disabled{background:var(--fill);color:var(--label-2);opacity:1}
+.imp-wrn .imp-go.erase::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.28);transform-origin:left;transform:scaleX(var(--hold,0));z-index:-1;transition:transform .35s cubic-bezier(.16,1,.3,1)}.imp-wrn .imp-go.erase.holding::before{transition:none}
+.imp-wrn .imp-go.q{background:transparent;color:var(--label-2);min-height:44px;font:500 15px var(--font)}
 .imp-go{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint,#fff);font:600 17px var(--font);cursor:pointer}.imp-go+.imp-go{margin-top:10px;background:var(--fill);color:var(--label)}.imp-go:disabled{opacity:.4}
 .me-list div[role=button]{cursor:pointer}
 .me{padding-top:62px}
@@ -2147,6 +2153,7 @@ window.LightlySphere=(function(){
   function L(en,zh){ return api.lang()==='zh'?zh:en; }
   /* a finished import plays the same soft chime as reaching a goal, with the success haptic; it follows the Sound switch and plays once per import */
   var dctx=null;
+  function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
   function doneChime(){ var sw=$('sndSw'); try{ if(navigator.vibrate) navigator.vibrate([30,60,30]); }catch(e){}
     if(sw&&sw.getAttribute('aria-checked')!=='true') return;
     try{ if(!dctx){ var A=window.AudioContext||window.webkitAudioContext; if(!A) return; dctx=new A(); } if(dctx.state==='suspended') dctx.resume();
@@ -2315,7 +2322,22 @@ window.LightlySphere=(function(){
       resT.push(setTimeout(doneChime,land));
       T(land,function(){ st[0].classList.add('on'); big.classList.add('on'); if(!rmo){ var c0=performance.now(); (function step(){ var k=Math.min((performance.now()-c0)/600,1); big.textContent=Math.round(128*(1-Math.pow(1-k,3))); if(k<1&&root.isConnected) requestAnimationFrame(step); })(); } });
       T(land+150,function(){ st[2].classList.add('on'); st[3].classList.add('on'); }); T(land+280,function(){ st[4].classList.add('on'); }); T(land+400,function(){ st[5].classList.add('on'); st[5].classList.remove('lock'); }); },rmo?250:380)); }
+  /* Erase everything: a red warning, a plain list, Cancel as the main button; the erase button is locked for 3 seconds (counting down), then must be held for 2 seconds */
+  var erT=0, erRaf=0;
+  function eraseRender(){ clearInterval(erT); cancelAnimationFrame(erRaf); var zh=api.lang()==='zh';
+    $('impTitle').textContent=L('Erase everything?','清除所有数据？'); $('impNote').textContent='';
+    $('impBody').innerHTML='<div class="imp-wrn"><div class="warn-ico"><svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17"/><circle class="dot" cx="28" cy="40" r="2.6"/></svg></div><h4 class="wh" aria-hidden="true">'+L('Erase everything?','清除所有数据？')+'</h4><p class="wl">'+L('This permanently deletes everything on this phone. It can’t be undone.','这会永久删除这台手机上的所有内容，无法撤销。')+'</p><div class="imp-sum"><div><span>'+L('All your fasts, your streak and cheat days','你所有的断食记录、连续天数和弹性日')+'</span></div><div><span>'+L('Your plan, setup and unlocked plans','你的计划、初始设置和已解锁的计划')+'</span></div><div><span>'+L('Time off and every setting','休息记录和所有设置')+'</span></div></div><button type="button" class="imp-go dk" id="erCancel">'+L('Cancel','取消')+'</button><button type="button" class="imp-go erase" id="erGo" disabled><span>'+L('Erase everything · 3','清除所有数据 · 3')+'</span></button><button type="button" class="imp-go q" id="erExp">'+L('Export my fasts first','先导出我的记录')+'</button></div>';
+    var go=$('erGo'), lb=go.firstChild, n=3, hold=0, fin=0;
+    $('erCancel').onclick=function(){ impOpen(false); }; $('erExp').onclick=function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$('meErase')); };
+    erT=setInterval(function(){ if(!go.isConnected){ clearInterval(erT); return; } n--; if(n>0){ lb.textContent=L('Erase everything · '+n,'清除所有数据 · '+n); return; } clearInterval(erT); go.disabled=false; lb.textContent=L('Hold to erase everything','按住清除所有数据'); buzz(6); },1000);
+    function stop(){ if(!hold) return; hold=0; clearTimeout(fin); cancelAnimationFrame(erRaf); go.classList.remove('holding'); go.style.setProperty('--hold',0); if(!go.dataset.done) lb.textContent=L('Hold to erase everything','按住清除所有数据'); }
+    function start(e){ if(go.disabled||hold) return; e.preventDefault(); hold=performance.now(); go.classList.add('holding'); lb.textContent=L('Keep holding…','继续按住…'); buzz(6); var t0=hold;
+      function finish(){ if(!hold) return; hold=0; cancelAnimationFrame(erRaf); go.style.setProperty('--hold',1); go.dataset.done=1; go.classList.remove('holding'); buzz(14); lb.textContent=L('Nothing erased: this is a demo','没有删除任何内容：这只是演示'); setTimeout(function(){ impOpen(false); },1500); }
+      fin=setTimeout(finish,2000); (function step(){ if(!hold) return; go.style.setProperty('--hold',Math.min((performance.now()-t0)/2000,1)); erRaf=requestAnimationFrame(step); })(); }
+    go.addEventListener('pointerdown',start); ['pointerup','pointercancel','pointerleave'].forEach(function(n2){ go.addEventListener(n2,stop); });
+    go.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&!e.repeat) start(e); }); go.addEventListener('keyup',stop); }
   function impRender(){
+    if(impStep===11){ imp.classList.add('res'); eraseRender(); return; }
     if(impStep===10){ skyRender(); return; }
     if(impStep===8){ themeRender(); return; }
     if(impStep>=5){ offRender(); return; }
@@ -2334,12 +2356,12 @@ window.LightlySphere=(function(){
     if((b=$('impBack'))) b.onclick=function(){ impStep=0; impRender(); };
     if((b=$('impDone'))) b.onclick=function(){ impOpen(false); };
     if((b=$('impDays'))) b.onclick=function(){ impOpen(false); select(1); }; }
-  function impOpen(v,step){ if(!v) resT.forEach(clearTimeout); isc.classList.remove('peek'); if(v){ impStep=step||0; impRender(); } imp.classList.toggle('open',v); imp.setAttribute('aria-hidden',!v); isc.classList.toggle('on',v); if(v) $('impClose').focus({preventScroll:true}); else if(impFrom) impFrom.focus({preventScroll:true}); }
+  function impOpen(v,step){ if(!v){ resT.forEach(clearTimeout); clearInterval(erT); cancelAnimationFrame(erRaf); }  isc.classList.remove('peek'); if(v){ impStep=step||0; impRender(); } imp.classList.toggle('open',v); imp.setAttribute('aria-hidden',!v); isc.classList.toggle('on',v); if(v) $('impClose').focus({preventScroll:true}); else if(impFrom) impFrom.focus({preventScroll:true}); }
   var impFrom=null; $('meImp').addEventListener('click',function(){ impFrom=$('meImp'); impOpen(true); });
   $('ph').addEventListener('click',function(ev){ var e=document.elementsFromPoint(ev.clientX,ev.clientY).filter(function(x){ return x.id==='endA'||x.id==='endB'; })[0]; if(e&&!imp.classList.contains('open')){ impFrom=e; impOpen(true,3); } });
   var infoT='', infoN=''; function info(t,n,from){ infoT=t; infoN=n; impFrom=from; impOpen(true,4); }
   $('meExp').addEventListener('click',function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$('meExp')); });
-  $('meErase').addEventListener('click',function(){ info(L('Erase everything?','清除所有数据？'),L('In the app this deletes your fasts, streak and settings from the phone, after one more confirmation. Nothing happens in this demo.','在应用里，这会在再次确认后删除手机上的断食记录、连续天数和设置。这个演示里不会发生任何事。'),$('meErase')); });
+  $('meErase').addEventListener('click',function(){ impFrom=$('meErase'); impOpen(true,11); });
   $('meUnwell').addEventListener('click',function(){ impFrom=$('meUnwell'); impOpen(true,off?9:5); });
   $('offBar').addEventListener('click',function(){ impFrom=$('offBar'); impOpen(true,9); });
   $('sub').addEventListener('click',function(){ impFrom=$('sub'); impOpen(true,10); });
