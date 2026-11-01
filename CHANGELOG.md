@@ -4,8 +4,14 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
-## 0.53.4
+## 0.53.6
 - **docs** Added a brief for handing the Friends feature to another AI agent (for example Codex) to design and build: docs/friends/friends-feature-brief.md. It covers the product goal and guardrails, which of the six design decisions TEEBO has and has not answered, user stories, screens and flows, the status and disc rules, a Supabase schema with privacy and access rules, notifications, edge cases, English and Chinese copy, acceptance criteria, tests and the release rules. The Friends design mock and screenshots sit next to it. AGENTS.md now points to it. The app and the concept page did not change.
+
+## 0.53.5
+- **fix** Closing the Erase everything sheet before the 3 second countdown ends now stops the countdown. Before, it kept running in the background and the phone still vibrated when it finished.
+
+## 0.53.4
+- **copy** The Erase everything warning now asks "Are you sure?" and names what the person would lose with their own numbers, for example "You’ll lose all 128 fasts, your 12-day streak, your plan and settings. This can’t be undone." The streak is left out when there is none, and so are the fasts when there are none. Same on the concept page.
 
 ## 0.53.3
 - **copy** The Erase everything sheet is shorter: the title and one line ("Everything on this phone is deleted for good: fasts, streak, plan and settings.") instead of a warning sentence plus three similar rows. The red warning mark, 3 second lock and 2 second hold are unchanged. Same on the concept page.

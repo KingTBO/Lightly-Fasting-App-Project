@@ -1097,6 +1097,15 @@ function heroFrame(t){
   requestAnimationFrame(heroFrame);
 }
 /* ---------- click routing ---------- */
+/* the erase warning names what the person would lose, with their own numbers, so it lands */
+function eraseLine(n,st){
+  var en=['all '+n+(n===1?' fast':' fasts')], zh=['全部 '+n+' 次断食记录'];
+  if(!n){ en=[]; zh=[]; }
+  if(st>0){ en.push('your '+st+'-day streak'); zh.push(st+' 天连续记录'); }
+  en.push('your plan and settings'); zh.push('计划和设置');
+  var e=en.join(', ');
+  return L('You’ll lose '+e+'. This can’t be undone.','你将失去'+zh.join('、')+'。此操作无法撤销。');
+}
 var A={
   close:closeSheet,
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
@@ -1165,10 +1174,10 @@ var A={
      is locked for 3 seconds (counting down), then must be held for 2 seconds. An export is one tap away. */
   erase:function(){
     var WARN='<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17" /><circle class="dot" cx="28" cy="40" r="2.6"/></svg>';
-    openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede ctr">'+L('Everything on this phone is deleted for good: fasts, streak, plan and settings.','这台手机上的所有内容都会被永久删除：断食记录、连续天数、计划和设置。')+'</p>'+
+    openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Are you sure?','你确定吗？')+'</h3><p class="lede ctr">'+eraseLine(S.fasts.length,curStreak())+'</p>'+
       '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button><button class="btn red solid hold" id="eraseGo" data-hold="eraseok" data-ms="2000" disabled aria-label="'+L('Erase everything, available in 3 seconds','清除所有数据，3 秒后可用')+'"><span class="hl">'+L('Erase everything · 3','清除所有数据 · 3')+'</span></button><button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
     var go=$('eraseGo'), lbl=go.querySelector('.hl'), n=3, iv=setInterval(function(){
-      if(!go.isConnected){ clearInterval(iv); return; }
+      if(!go.isConnected||!sheetOpen){ clearInterval(iv); return; } /* closed early: the countdown stops, with no buzz */
       n--; if(n>0){ lbl.textContent=L('Erase everything · '+n,'清除所有数据 · '+n); return; }
       clearInterval(iv); go.disabled=false; lbl.textContent=L('Hold to erase everything','按住清除所有数据'); go.setAttribute('aria-label',L('Hold to erase everything','按住清除所有数据')); fx('light'); },1000);
   },
