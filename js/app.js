@@ -1177,7 +1177,7 @@ var A={
     openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Are you sure?','你确定吗？')+'</h3><p class="lede ctr">'+eraseLine(S.fasts.length,curStreak())+'</p>'+
       '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button><button class="btn red solid hold" id="eraseGo" data-hold="eraseok" data-ms="2000" disabled aria-label="'+L('Erase everything, available in 3 seconds','清除所有数据，3 秒后可用')+'"><span class="hl">'+L('Erase everything · 3','清除所有数据 · 3')+'</span></button><button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
     var go=$('eraseGo'), lbl=go.querySelector('.hl'), n=3, iv=setInterval(function(){
-      if(!go.isConnected){ clearInterval(iv); return; }
+      if(!go.isConnected||!sheetOpen){ clearInterval(iv); return; } /* closed early: the countdown stops, with no buzz */
       n--; if(n>0){ lbl.textContent=L('Erase everything · '+n,'清除所有数据 · '+n); return; }
       clearInterval(iv); go.disabled=false; lbl.textContent=L('Hold to erase everything','按住清除所有数据'); go.setAttribute('aria-label',L('Hold to erase everything','按住清除所有数据')); fx('light'); },1000);
   },
