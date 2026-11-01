@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.49.0
+- **design** The wheel's tick sound is now a dry, short mechanical click, closer to the iPhone Clock picker, instead of the soft musical blip from 0.48.0 (which sounded odd). It is a 9 millisecond burst of filtered noise with a tiny low knock under it, still quiet, still following the Sound setting, still one per 40 milliseconds. Apple's own picker sound can't be copied into the app, so this is a lookalike made in code. The concept page matches. A preview recording is in the project files (fasting-app/sounds/wheel-click-preview.wav).
+
 ## 0.48.0
 - **feature** The time wheels now make a very quiet tick as each value passes, on Android and iPhone (and the concept page). It is a very short, soft click, much quieter than the goal chime, and it follows the Sound setting: turn Sound off in Me and the wheels are silent. It is also kept to one tick every 40 milliseconds, so a fast flick sounds like a roll of ticks instead of a buzz.
 - On Android the wheel's vibration is unchanged (a light 3 ms tick per value, still following the Vibration setting), but it is now kept to one per 40 milliseconds, so a fast flick is a gentle roll instead of a continuous buzz.
