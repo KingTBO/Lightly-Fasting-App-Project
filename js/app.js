@@ -133,7 +133,7 @@ function shChrome(html){ if(html.indexOf('<h3>')!==0) return html; var i=html.in
 function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
 var sheetHold=false; /* true for the short pause before the import result rises: taps on the dim must not close it (a double tap on Add lands there) */
-function closeSheet(){ if(!sheetOpen||sheetHold) return; sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
+function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
 /* drag the grabber: 1:1 with the finger, then project where the flick was going and dismiss or spring back */
 (function(){ var y0=0,dy=0,vy=0,lt=0,ly=0,drag=false;
   sheetEl.addEventListener('pointerdown',function(e){ if(reduce||!e.target.closest('.grab')) return; drag=true; y0=e.clientY; ly=e.clientY; lt=performance.now(); vy=0; dy=0; sheetEl.style.transition='none'; try{ sheetEl.setPointerCapture(e.pointerId); }catch(x){} });
@@ -735,17 +735,24 @@ function fastSave(id){
 }
 
 /* ---------- import from other apps ---------- */
-var impPlan=null;
+var impPlan=null, impZip=null; /* impZip: the zip the person chose, kept in memory only while they type its password */
 function importSheet(err){
-  impPlan=null;
+  impPlan=null; impZip=null;
   openSheet('<h3>'+L('Import from another app','从其他应用导入')+'</h3><p class="lede">'+L('Bring your past fasts with you. The file is read on this phone and never uploaded.','把过去的断食记录带过来。文件只在这台手机上读取，不会上传。')+'</p>'+
    '<div class="group"><div class="row"><span class="stack"><span>Zero</span><small>'+L('Download your data from Zero, then choose the zip.','在 Zero 里下载你的数据，然后选择 zip 文件。')+'</small></span></div>'+
    '<div class="row"><span class="stack"><span>'+L('Other apps','其他应用')+'</span><small>'+L('A CSV or JSON file with a start and an end time for each fast.','包含每次断食开始和结束时间的 CSV 或 JSON 文件。')+'</small></span></div></div>'+
    (err?'<p class="note err" role="alert">'+err+'</p>':'')+
    '<div class="btns"><label class="btn" for="impFile">'+L('Choose a file','选择文件')+'</label><input id="impFile" type="file" accept=".zip,.json,.csv,.txt,application/zip,application/x-zip-compressed,application/json,text/csv,text/plain" hidden><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
 }
+function zipSheet(err){
+  openSheet('<h3>'+L('Enter the password','输入密码')+'</h3><p class="lede">'+L('It’s in the email with your download.','密码在随下载一起发来的邮件里。')+'</p>'+
+   '<div class="group"><div class="field"><label for="zipPw">'+L('Password','密码')+'</label><input id="zipPw" type="password" name="zip-password" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div>'+
+   (err?'<p class="note err" role="alert" style="color:var(--red)">'+L('That password didn’t work.','这个密码不对。')+'</p>':'')+
+   '<div class="btns"><button class="btn" id="zipGo" data-act="zipgo">'+L('Unlock','解锁')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
+  var i=$('zipPw'); if(i){ i.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); A.zipgo(); } }); setTimeout(function(){ try{ i.focus(); }catch(e){} },350); }
+}
 function importPreview(p){
-  impPlan=p; var skip=[];
+  impPlan=p; impZip=null; var skip=[];
   if(p.dup) skip.push(L(p.dup+' already in Lightly',p.dup+' 次已在轻伴里'));
   if(p.overlap) skip.push(L(p.overlap+' overlap'+(p.overlap>1?'':'s')+' a fast you have',p.overlap+' 次与已有记录重叠'));
   if(p.open) skip.push(L(p.open+' still running',p.open+' 次仍在进行'));
@@ -792,20 +799,18 @@ function importDo(){
     T(land+400,function(){ st[5].classList.add('on'); st[5].classList.remove('lock'); }); /* the buttons arrive last and only then take taps, so a double tap on Add cannot dismiss the result */
   },reduce?250:380);
 }
+function impMsg(code){ return code==='format'?L('I couldn’t find fasts with a start and an end time in that file.','在这个文件里没有找到带开始和结束时间的断食记录。'):code==='zip'?L('I couldn’t find fasts in that zip.','在这个 zip 里没有找到断食记录。'):code==='nozip'?L('This browser can’t open zips. Unzip it first, then choose the file inside.','这个浏览器无法打开 zip。请先解压，再选择里面的文件。'):L('That file isn’t readable.','这个文件无法读取。'); }
 document.addEventListener('change',function(e){
   var t=e.target; if(!t||(t.id!=='impFile'&&t.id!=='obImpFile')||!t.files||!t.files[0]) return; var f=t.files[0];
   if(f.size>20*1048576) return importSheet(L('That file is too large.','文件太大了。'));
   var r=new FileReader();
   function got(res){
-    if(res.error){ var M={format:L('I couldn’t find fasts with a start and an end time in that file.','在这个文件里没有找到带开始和结束时间的断食记录。'),
-      zip:L('I couldn’t find fasts in that zip.','在这个 zip 里没有找到断食记录。'),
-      encrypted:L('That zip is password-protected. Unzip it first, then choose the file inside.','这个 zip 有密码。请先解压，再选择里面的文件。'),
-      nozip:L('This browser can’t open zips. Unzip it first, then choose the file inside.','这个浏览器无法打开 zip。请先解压，再选择里面的文件。')};
-      return importSheet(M[res.error]||L('That file isn’t readable.','这个文件无法读取。')); }
+    if(res.error==='encrypted'||res.error==='password') return zipSheet(res.error==='password');
+    if(res.error) return importSheet(impMsg(res.error));
     importPreview(LightlyImport.plan(res,S.fasts,S.cur,S.del,Date.now()));
   }
   r.onerror=function(){ importSheet(L('Couldn’t read that file.','无法读取这个文件。')); };
-  if(/\.zip$/i.test(f.name)||f.type==='application/zip'||f.type==='application/x-zip-compressed'){ r.onload=function(){ LightlyImport.fromZip(r.result).then(got); }; r.readAsArrayBuffer(f); return; }
+  if(/\.zip$/i.test(f.name)||f.type==='application/zip'||f.type==='application/x-zip-compressed'){ r.onload=function(){ impZip=r.result; LightlyImport.fromZip(impZip).then(got); }; r.readAsArrayBuffer(f); return; }
   r.onload=function(){ var res=LightlyImport.parse(String(r.result||'')); got(res); };
   r.readAsText(f);
 });
@@ -1175,6 +1180,7 @@ var A={
   diag:function(){ var vv=window.visualViewport; toast('win '+innerWidth+'×'+innerHeight+' · screen '+screen.width+'×'+screen.height+' · vv '+(vv?Math.round(vv.width)+'×'+Math.round(vv.height):'-')+' · ph '+ph.offsetHeight+' · '+(navigator.standalone?'home screen':'browser')); },
   import:function(){ importSheet(); },
   impdo:function(){ importDo(); },
+  zipgo:function(){ var i=$('zipPw'), b=$('zipGo'); if(!impZip||!i||!i.value||(b&&b.disabled)) return; if(b) b.disabled=true; var z=impZip; LightlyImport.fromZip(z,i.value).then(function(res){ if(!sheetOpen||impZip!==z) return; if(res.error==='password') return zipSheet(true); if(res.error==='encrypted') return zipSheet(false); if(res.error) return importSheet(impMsg(res.error)); importPreview(LightlyImport.plan(res,S.fasts,S.cur,S.del,Date.now())); }); },
   export:function(){ try{ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-fasts-'+today()+'.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }catch(e){ toast(L('Couldn’t export.','导出失败。')); } },
   /* Erase everything: the one step that can't be undone. A red warning mark and a plain list of what goes, Cancel as the main button, and the erase button
      is locked for 3 seconds (counting down), then must be held for 2 seconds. An export is one tap away. */

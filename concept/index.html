@@ -2337,6 +2337,7 @@ window.LightlySphere=(function(){
     go.addEventListener('pointerdown',start); ['pointerup','pointercancel','pointerleave'].forEach(function(n2){ go.addEventListener(n2,stop); });
     go.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&!e.repeat) start(e); }); go.addEventListener('keyup',stop); }
   function impRender(){
+    if(impStep===12){ imp.classList.remove('res'); $('impTitle').textContent=L('Enter the password','输入密码'); $('impNote').textContent=L('It’s in the email with your download.','密码在随下载一起发来的邮件里。'); $('impBody').innerHTML='<div class="imp-sum"><div><span>'+L('Password','密码')+'</span><small>••••••••</small></div></div><button type="button" class="imp-go" id="zipUnlock">'+L('Unlock','解锁')+'</button>'; $('zipUnlock').onclick=function(){ impStep=1; impRender(); }; return; }
     if(impStep===11){ imp.classList.add('res'); eraseRender(); return; }
     if(impStep===10){ skyRender(); return; }
     if(impStep===8){ themeRender(); return; }
@@ -2351,7 +2352,7 @@ window.LightlySphere=(function(){
     else if(impStep===1) h='<div class="imp-sum"><div><span>'+L('New fasts','新增断食')+'</span><small>128</small></div><div><span>'+L('Dates','日期范围')+'</span><small>'+L('Mar 2025 – Oct 2026','2025年3月 – 2026年10月')+'</small></div><div><span>'+L('Reached the goal','达成目标')+'</span><small>119</small></div><div><span>'+L('Skipped','已跳过')+'</span><small>'+L('1 overlaps a fast you have · 1 still running','1 次与已有记录重叠 · 1 次仍在进行')+'</small></div></div><button type="button" class="imp-go" id="impGo">'+L('Add 128 fasts','添加 128 次断食')+'</button><button type="button" class="imp-go" id="impBack">'+L('Choose another file','换一个文件')+'</button>';
     else h=resHtml(!resAnim);
     imp.classList.toggle('res',impStep===2); $('impBody').innerHTML=h;
-    var b; if((b=$('impPick'))) b.onclick=function(){ impStep=1; impRender(); };
+    var b; if((b=$('impPick'))) b.onclick=function(){ impStep=12; impRender(); };
     if((b=$('impGo'))) b.onclick=function(){ resPlay(); };
     if((b=$('impBack'))) b.onclick=function(){ impStep=0; impRender(); };
     if((b=$('impDone'))) b.onclick=function(){ impOpen(false); };

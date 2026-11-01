@@ -43,5 +43,13 @@ const makeZip=(f,o)=>{const u=makeZip0(f,o);return u.buffer.slice(u.byteOffset,u
   assert.strictEqual((await I.fromZip(makeZip([['firestore.json',fs1]],{encrypt:true}))).error,'encrypted');
   assert.strictEqual((await I.fromZip(makeZip([['photo.png','x']]))).error,'zip');
   assert.strictEqual((await I.fromZip(new Uint8Array([1,2,3,4]).buffer)).error,'zip');
+  // password-protected zips made by real tools (zip -e = classic ZipCrypto; pyzipper = WinZip AES 128 and 256), password "lightly-test"
+  const fx=n=>{const u=require('fs').readFileSync(require('path').join(__dirname,'fixtures',n));return u.buffer.slice(u.byteOffset,u.byteOffset+u.length);};
+  for(const n of ['zero-zipcrypto.zip','zero-aes128.zip','zero-aes256.zip']){
+    assert.strictEqual((await I.fromZip(fx(n))).error,'encrypted',n+' asks for a password');
+    assert.strictEqual((await I.fromZip(fx(n),'wrong')).error,'password',n+' wrong password');
+    assert.strictEqual((await I.fromZip(fx(n),'')).error,'password',n+' empty password');
+    z=await I.fromZip(fx(n),'lightly-test');assert.strictEqual(z.source,'Zero',n);assert.strictEqual(z.items.length,2,n);
+  }
   console.log('import tests ok');
 })().catch(e=>{console.error(e);process.exit(1);});
