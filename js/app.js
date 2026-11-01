@@ -762,11 +762,19 @@ function importDo(){
   var p=impPlan; if(!p||!p.add.length) return;
   /* check again against the latest state, so a double tap can never create duplicates */
   var q=LightlyImport.plan({source:p.source,items:p.add,open:0},S.fasts,S.cur,S.del,Date.now());
-  if(!q.add.length){ impPlan=null; closeSheet(); return; } /* nothing left to add: no toast, no chime */
+  if(!q.add.length){ impPlan=null; closeSheet(); return; } /* nothing left to add: no sheet, no chime */
   q.add.forEach(function(f){ S.fasts.push(f); });
   fx('success'); /* the goal chime and its success haptic, once, only when fasts were really added (fx follows the Sound and Vibration settings) */
-  impPlan=null; save(); cache={}; closeSheet(); renderMe(); updateToday(); checkUnlocks(); if(!$('ob').hidden&&ob&&obFlow()[ob.step]==='import') setTimeout(function(){ A.obnext(); },260);
-  toast(L('Added '+q.add.length+' fasts.','已添加 '+q.add.length+' 次断食。'));
+  var n=q.add.length, onb=!$('ob').hidden&&ob&&obFlow()[ob.step]==='import', ok=q.add.filter(function(f){ return C.isDone(f); }).length, skipped=(q.dup||0)+(q.overlap||0)+(q.open||0)+(q.bad||0)+(q.future||0),
+    o={year:'numeric',month:'short',day:'numeric'}, rng=dateLbl(q.first,o)+' – '+dateLbl(q.last,o);
+  impPlan=null; save(); cache={}; renderMe(); updateToday(); checkUnlocks(); if(onb) setTimeout(function(){ A.obnext(); },260);
+  /* the result is a bottom sheet, like Fast saved, instead of a toast that is easy to miss */
+  openSheet('<span class="k">'+L('Import complete','导入完成')+'</span><span class="big">'+n+'</span><span class="of">'+L(n===1?'fast added to Days':'fasts added to Days','次断食已添加到“日子”')+'</span>'+
+    '<div class="facts"><div><b>'+ok+'</b><span>'+L('reached the goal','达成目标')+'</span></div><div><b>'+skipped+'</b><span>'+L('skipped','已跳过')+'</span></div></div>'+
+    '<p class="note">'+L('Covers '+rng+'. Skipped fasts were already in Lightly, overlapped one you have, or had unusable times.','时间范围：'+rng+'。已跳过的记录要么已在轻伴里，要么与已有记录重叠，要么时间无效。')+'</p>'+
+    '<div class="btns"><button class="btn dark" data-act="close">'+L('Done','完成')+'</button>'+(onb?'':'<button class="btn sec" data-act="impdays">'+L('See in Days','在“日子”里查看')+'</button>')+'</div>');
+  /* the buttons appear where "Add" was, so for a moment they ignore taps: a double tap on Add must not dismiss the result */
+  var bt=document.querySelector('#sheet .btns'); if(bt){ bt.style.pointerEvents='none'; setTimeout(function(){ bt.style.pointerEvents=''; },500); }
 }
 document.addEventListener('change',function(e){
   var t=e.target; if(!t||(t.id!=='impFile'&&t.id!=='obImpFile')||!t.files||!t.files[0]) return; var f=t.files[0];
@@ -1088,6 +1096,7 @@ var A={
   pickyear:function(b){ pickY=+b.dataset.y; openSheet(pickHtml(),null,true); },
   pickmonth:function(b){ var i=(+b.dataset.y)*12+(+b.dataset.m), c=calY*12+calM; closeSheet(); calGo(+b.dataset.y,+b.dataset.m,i<c?-1:i>c?1:0); },
   pickthis:function(){ var n=new Date(), i=n.getFullYear()*12+n.getMonth(), c=calY*12+calM; closeSheet(); calGo(n.getFullYear(),n.getMonth(),i<c?-1:i>c?1:0); },
+  impdays:function(){ closeSheet(); showTab('days'); },
   edit:function(b){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(f) fastSheet(f); },
   add:function(b){ fastSheet(null,b.dataset.k); },
   fssave:function(b){ fastSave(b.dataset.id); },

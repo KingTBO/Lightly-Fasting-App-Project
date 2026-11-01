@@ -2296,18 +2296,19 @@ window.LightlySphere=(function(){
     if(impStep>=5){ offRender(); return; }
     if(impStep===4){ $('impTitle').textContent=infoT; $('impNote').textContent=infoN; $('impBody').innerHTML='<button type="button" class="imp-go" id="infoOk">'+L('Done','完成')+'</button>'; $('infoOk').onclick=function(){ impOpen(false); }; return; }
     if(impStep===3){ $('impTitle').textContent=L('Edit times','修改时间'); $('impNote').textContent=L('Fix a start or end time, or add one you forgot to log. In the app these are time pickers.','修改开始或结束时间，或补上忘记记录的一次。在应用里这些是时间选择器。'); $('impBody').innerHTML=editHtml(); $('edSave').onclick=function(){ impOpen(false); }; return; }
-    $('impTitle').textContent=impStep===0?L('Import from another app','从其他应用导入'):impStep===1?L('Ready to import','准备导入'):L('Added','已添加');
+    $('impTitle').textContent=impStep===0?L('Import from another app','从其他应用导入'):impStep===1?L('Ready to import','准备导入'):L('Import complete','导入完成');
     $('impNote').textContent=impStep===0?L('Bring your past fasts with you. The file is read on this phone and never uploaded.','把过去的断食记录带过来。文件只在这台手机上读取，不会上传。')
       :impStep===1?L('From Zero. Nothing is added until you confirm.','来自 Zero。确认之前不会添加任何内容。'):L('Your history is here, and nothing was added twice.','你的历史记录已经在这里，没有任何重复。');
     var h='';
     if(impStep===0) h='<div class="imp-sum"><div><span>Zero<br><small>'+L('Download your data from Zero, unzip it, then choose firestore.json.','在 Zero 里下载你的数据并解压，然后选择 firestore.json。')+'</small></span></div><div><span>'+L('Other apps','其他应用')+'<br><small>'+L('A CSV or JSON file with a start and an end time for each fast.','包含每次断食开始和结束时间的 CSV 或 JSON 文件。')+'</small></span></div></div><button type="button" class="imp-go" id="impPick">'+L('Choose a file (sample)','选择文件（示例）')+'</button>';
     else if(impStep===1) h='<div class="imp-sum"><div><span>'+L('New fasts','新增断食')+'</span><small>128</small></div><div><span>'+L('Dates','日期范围')+'</span><small>'+L('Mar 2025 – Oct 2026','2025年3月 – 2026年10月')+'</small></div><div><span>'+L('Reached the goal','达成目标')+'</span><small>119</small></div><div><span>'+L('Skipped','已跳过')+'</span><small>'+L('1 overlaps a fast you have · 1 still running','1 次与已有记录重叠 · 1 次仍在进行')+'</small></div></div><button type="button" class="imp-go" id="impGo">'+L('Add 128 fasts','添加 128 次断食')+'</button><button type="button" class="imp-go" id="impBack">'+L('Choose another file','换一个文件')+'</button>';
-    else h='<button type="button" class="imp-go" id="impDone">'+L('Done','完成')+'</button>';
+    else h='<div class="imp-sum"><div><span>'+L('Fasts added to Days','已添加到“日子”的断食')+'</span><small>128</small></div><div><span>'+L('Reached the goal','达成目标')+'</span><small>119</small></div><div><span>'+L('Skipped','已跳过')+'</span><small>2</small></div></div><button type="button" class="imp-go" id="impDone">'+L('Done','完成')+'</button><button type="button" class="imp-go" id="impDays">'+L('See in Days','在“日子”里查看')+'</button>';
     $('impBody').innerHTML=h;
     var b; if((b=$('impPick'))) b.onclick=function(){ impStep=1; impRender(); };
     if((b=$('impGo'))) b.onclick=function(){ impStep=2; impRender(); doneChime(); };
     if((b=$('impBack'))) b.onclick=function(){ impStep=0; impRender(); };
-    if((b=$('impDone'))) b.onclick=function(){ impOpen(false); }; }
+    if((b=$('impDone'))) b.onclick=function(){ impOpen(false); };
+    if((b=$('impDays'))) b.onclick=function(){ impOpen(false); select(1); }; }
   function impOpen(v,step){ isc.classList.remove('peek'); if(v){ impStep=step||0; impRender(); } imp.classList.toggle('open',v); imp.setAttribute('aria-hidden',!v); isc.classList.toggle('on',v); if(v) $('impClose').focus({preventScroll:true}); else if(impFrom) impFrom.focus({preventScroll:true}); }
   var impFrom=null; $('meImp').addEventListener('click',function(){ impFrom=$('meImp'); impOpen(true); });
   $('ph').addEventListener('click',function(ev){ var e=document.elementsFromPoint(ev.clientX,ev.clientY).filter(function(x){ return x.id==='endA'||x.id==='endB'; })[0]; if(e&&!imp.classList.contains('open')){ impFrom=e; impOpen(true,3); } });

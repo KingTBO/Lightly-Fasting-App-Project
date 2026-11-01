@@ -175,6 +175,8 @@ const H=3600000,D=24*H;
   await p.evaluate(()=>{window.__fx={osc:0,vib:[]};const A=window.AudioContext||window.webkitAudioContext;if(A&&!A.prototype.__w){const c=A.prototype.createOscillator;A.prototype.createOscillator=function(){window.__fx.osc++;return c.apply(this,arguments);};A.prototype.__w=1;}navigator.vibrate=function(x){window.__fx.vib.push(JSON.stringify(x));return true;};});
   await p.click('[data-act=impdo]');await p.waitForTimeout(500);assert.strictEqual((await S()).fasts.length,before+5);
   {const fxr=await p.evaluate(()=>window.__fx);assert.strictEqual(fxr.osc,3,'import chime: three tones, once');assert.deepStrictEqual(fxr.vib.filter(v=>v==='[30,60,30]'),['[30,60,30]'],'import success haptic, once');}
+  // the result is a bottom sheet (not a toast): count, reached goal, skipped, Done and See in Days
+  {const t=await p.textContent('#sheet.open');assert.match(t,/Import complete|导入完成/);assert.match(t,/5/);assert(await p.$('#sheet.open [data-act=impdays]'),'See in Days');assert(!(await p.$('#toast.on')),'no toast for the import result');await p.click('#sheet [data-act=close]');await p.waitForTimeout(500);}
   await p.click('[data-act=import]');await p.setInputFiles('#impFile',file);await p.waitForSelector('[data-act=impdo]');
   assert(await p.$('[data-act=impdo][disabled]'),'second import has nothing to add');assert.strictEqual((await S()).fasts.length,before+5);
   await p.click('#sheet [data-act=close]');
