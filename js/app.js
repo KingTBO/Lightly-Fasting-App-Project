@@ -1165,8 +1165,7 @@ var A={
      is locked for 3 seconds (counting down), then must be held for 2 seconds. An export is one tap away. */
   erase:function(){
     var WARN='<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17" /><circle class="dot" cx="28" cy="40" r="2.6"/></svg>';
-    openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede ctr">'+L('This permanently deletes everything on this phone. It can’t be undone.','这会永久删除这台手机上的所有内容，无法撤销。')+'</p>'+
-      '<div class="group"><div class="row"><span>'+L('All your fasts, your streak and cheat days','你所有的断食记录、连续天数和弹性日')+'</span></div><div class="row"><span>'+L('Your plan, setup and unlocked plans','你的计划、初始设置和已解锁的计划')+'</span></div><div class="row"><span>'+L('Time off and every setting','休息记录和所有设置')+'</span></div></div>'+
+    openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Erase everything?','清除所有数据？')+'</h3><p class="lede ctr">'+L('Everything on this phone is deleted for good: fasts, streak, plan and settings.','这台手机上的所有内容都会被永久删除：断食记录、连续天数、计划和设置。')+'</p>'+
       '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button><button class="btn red solid hold" id="eraseGo" data-hold="eraseok" data-ms="2000" disabled aria-label="'+L('Erase everything, available in 3 seconds','清除所有数据，3 秒后可用')+'"><span class="hl">'+L('Erase everything · 3','清除所有数据 · 3')+'</span></button><button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
     var go=$('eraseGo'), lbl=go.querySelector('.hl'), n=3, iv=setInterval(function(){
       if(!go.isConnected){ clearInterval(iv); return; }
