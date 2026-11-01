@@ -1,0 +1,626 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Lightly Friends Design</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one calm reading column for the document, then a wrapping grid of phone mockups that use the app's own tokens.
+   Page tokens follow the Lightly app (Apple look, system fonts, warm yellow tint). Phone tokens are scoped to .phone and switch with the Screens control. */
+:root{
+  --bg:#F2F2F7; --surface:#FFFFFF; --ink:#111114; --ink-2:rgba(60,60,67,.78); --ink-3:rgba(60,60,67,.5);
+  --line:rgba(60,60,67,.18); --fill:rgba(120,120,128,.12); --tint:#FFCC00; --on-tint:#000; --link:#6B5000; --good:#1E8E3E; --bad:#C70012;
+  --code-bg:#ECECF1;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
+  --font-d:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --bg:#000; --surface:#1C1C1E; --ink:#F5F5F7; --ink-2:rgba(235,235,245,.72); --ink-3:rgba(235,235,245,.45);
+  --line:rgba(84,84,88,.65); --fill:rgba(118,118,128,.24); --tint:#FFD60A; --link:#FFD60A; --good:#30D158; --bad:#FF453A; --code-bg:#161618}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#000; --surface:#1C1C1E; --ink:#F5F5F7; --ink-2:rgba(235,235,245,.72); --ink-3:rgba(235,235,245,.45);
+  --line:rgba(84,84,88,.65); --fill:rgba(118,118,128,.24); --tint:#FFD60A; --link:#FFD60A; --good:#30D158; --bad:#FF453A; --code-bg:#161618}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--font);letter-spacing:-.011em;-webkit-font-smoothing:antialiased;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+html:lang(zh-Hans) body{letter-spacing:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3,p{margin:0}
+h1{font:700 clamp(34px,5.4vw,56px)/1.05 var(--font-d);letter-spacing:-.03em;text-wrap:balance}
+h2{font:700 clamp(24px,3vw,32px)/1.15 var(--font-d);letter-spacing:-.022em;text-wrap:balance}
+h3{font:600 17px/1.3 var(--font-d);letter-spacing:-.012em}
+.lede{font-size:clamp(17px,1.6vw,20px);line-height:1.5;color:var(--ink-2);max-width:62ch}
+p{max-width:66ch}
+.small{font-size:14px;color:var(--ink-2)}
+.eyebrow{font:600 12px var(--font);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3)}
+html:lang(zh-Hans) .eyebrow{text-transform:none;letter-spacing:.02em}
+code,.mono{font-family:var(--mono);font-size:.88em}
+section{padding-top:72px}
+
+/* sticky controls */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between;padding:10px 0;background:var(--bg);border-bottom:.5px solid var(--line)}
+.bar .name{font:600 15px var(--font-d)}
+.ctl{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;background:var(--fill);border-radius:9px;padding:2px}
+.seg button{border:0;background:transparent;color:var(--ink);font:500 13px var(--font);padding:6px 14px;border-radius:7px;min-height:30px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.seg button:focus-visible,.pill:focus-visible{outline:2px solid var(--tint);outline-offset:2px}
+.lab{font-size:12px;color:var(--ink-3);margin-right:6px}
+
+/* hero */
+.hero{padding-top:64px;display:grid;gap:20px}
+.status{display:inline-flex;align-items:center;gap:8px;font:500 13px var(--font);color:var(--ink-2);background:var(--fill);border-radius:999px;padding:5px 12px;width:max-content;max-width:100%}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--tint);flex:none}
+
+/* principles */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:28px 40px;margin-top:28px}
+.grid2 h3{margin-bottom:6px}
+.grid2 p{color:var(--ink-2);font-size:15.5px}
+
+/* legend */
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:28px}
+.lg{background:var(--surface);border-radius:16px;padding:18px 14px 16px;display:grid;gap:10px;justify-items:center;text-align:center}
+.lg svg{width:56px;height:56px}
+.lg b{font:600 15px var(--font)}
+.lg span{font-size:13px;color:var(--ink-2);line-height:1.35}
+.glow{filter:drop-shadow(0 0 5px rgba(255,190,40,.6))}
+.row-demo{display:flex;align-items:center;gap:14px;margin-top:24px;flex-wrap:wrap}
+.row-demo svg{width:30px;height:30px}
+
+/* flow */
+.flow{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px;counter-reset:s}
+.flow li{counter-increment:s;background:var(--surface);border-radius:16px;padding:16px;display:grid;gap:6px;align-content:start}
+.flow li::before{content:counter(s);width:26px;height:26px;border-radius:50%;background:var(--tint);color:var(--on-tint);font:700 13px/26px var(--font);text-align:center}
+.flow b{font:600 15px var(--font)}
+.flow span{font-size:14px;color:var(--ink-2);line-height:1.4}
+
+/* phones */
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:44px 24px;margin-top:32px;justify-items:center}
+.shot{display:grid;gap:14px;width:100%;max-width:320px;justify-items:center;align-content:start}
+.cap{width:100%;display:grid;gap:4px}
+.cap h3{font-size:16px}
+.cap p{font-size:14px;color:var(--ink-2);line-height:1.45}
+.cap .tag{font:600 11px var(--font);color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em}
+html:lang(zh-Hans) .cap .tag{text-transform:none;letter-spacing:.02em}
+
+.phone{--p-bg:#F2F2F7;--p-card:#fff;--p-label:#000;--p-2:rgba(60,60,67,.75);--p-3:rgba(60,60,67,.3);--p-sep:rgba(60,60,67,.22);--p-fill:rgba(120,120,128,.14);--p-tint:#FFCC00;--p-link:#7A5C00;--p-blue:#0062D9;--p-red:#C70012;--p-glass:rgba(255,255,255,.72);--p-sheet:#F2F2F7;--p-ring:rgba(142,142,147,.6);
+  position:relative;width:288px;height:660px;border-radius:40px;background:var(--p-bg);color:var(--p-label);overflow:hidden;font:400 13px/1.38 var(--font);letter-spacing:-.01em;box-shadow:0 0 0 7px #1a1a1d,0 0 0 8px #3a3a3e,0 20px 40px rgba(0,0,0,.22);isolation:isolate}
+.phone[data-mode="dark"]{--p-bg:#000;--p-card:#1C1C1E;--p-label:#fff;--p-2:rgba(235,235,245,.62);--p-3:rgba(235,235,245,.3);--p-sep:rgba(84,84,88,.6);--p-fill:rgba(118,118,128,.28);--p-tint:#FFD60A;--p-link:#FFD60A;--p-blue:#0A84FF;--p-red:#FF453A;--p-glass:rgba(44,44,46,.72);--p-sheet:#1C1C1E;--p-ring:rgba(174,174,178,.55)}
+.phone *{box-sizing:border-box}
+html:lang(zh-Hans) .phone{letter-spacing:0}
+.sb{height:44px;display:flex;justify-content:space-between;align-items:flex-end;padding:0 24px 6px;font:600 13px var(--font);position:relative;z-index:2}
+.sb i{display:inline-block;width:22px;height:10px;border-radius:3px;border:1px solid var(--p-2);position:relative}
+.sb i::after{content:"";position:absolute;inset:1px 5px 1px 1px;background:var(--p-label);border-radius:1px}
+.scr{position:absolute;inset:44px 0 0;overflow:hidden;padding:0 16px 92px}
+.ttl{font:700 26px/1.15 var(--font-d);letter-spacing:-.025em;margin:8px 0 12px}
+html:lang(zh-Hans) .ttl{letter-spacing:0}
+.tabs{position:absolute;left:14px;right:14px;bottom:20px;height:56px;border-radius:28px;background:var(--p-glass);backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);box-shadow:0 6px 20px rgba(0,0,0,.12);display:grid;grid-template-columns:repeat(4,1fr);padding:4px;z-index:3}
+.tabs div{display:grid;justify-items:center;align-content:center;gap:1px;border-radius:24px;font:500 9.5px var(--font);color:var(--p-2)}
+.tabs div svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.tabs div.on{background:var(--p-fill);color:var(--p-blue)}
+.hi{position:absolute;left:50%;bottom:7px;width:96px;height:4px;margin-left:-48px;border-radius:2px;background:var(--p-label);opacity:.55;z-index:3}
+.card{background:var(--p-card);border-radius:14px;overflow:hidden}
+.card+.card,.card+.foot,.foot+.card{margin-top:14px}
+.foot{font-size:11px;color:var(--p-2);padding:6px 14px 0;line-height:1.35}
+.r{display:flex;align-items:center;gap:10px;padding:9px 12px;min-height:44px}
+.r+.r{border-top:.5px solid var(--p-sep)}
+.r .t{flex:1;min-width:0}
+.r b{font-weight:500;font-size:14px;display:block;line-height:1.25}
+.r .s{font-size:11.5px;color:var(--p-2);display:block;line-height:1.3;white-space:nowrap}
+.r .end{font-size:13px;color:var(--p-2);white-space:nowrap}
+.r.red b{color:var(--p-red);font-weight:400}
+.disc{width:30px;height:30px;flex:none}
+.av{width:34px;height:34px;flex:none;border-radius:50%}
+.btn{display:grid;place-items:center;height:44px;border-radius:22px;background:var(--p-tint);color:#000;font:600 14px var(--font);width:100%;border:0}
+.btn.alt{background:var(--p-fill);color:var(--p-label)}
+.btn.sm{height:34px;border-radius:17px;font-size:13px;width:auto;padding:0 16px}
+.linkb{color:var(--p-link);font:500 13px var(--font);text-align:center;margin-top:12px}
+.sw{width:42px;height:26px;border-radius:13px;background:#34C759;position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw.off{background:var(--p-fill)}.sw.off::after{right:auto;left:2px}
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.34);z-index:4}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--p-sheet);border-radius:22px 22px 0 0;padding:8px 16px 28px;z-index:5;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+.sheet::before{content:"";display:block;width:36px;height:5px;border-radius:3px;background:var(--p-3);margin:0 auto 8px}
+.sh-t{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;min-height:32px}
+.sh-t h4{margin:0;font:700 17px var(--font-d)}
+.xb{width:30px;height:30px;border-radius:50%;background:var(--p-fill);display:grid;place-items:center;color:var(--p-2)}
+.xb svg{width:12px;height:12px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round}
+.field{background:var(--p-card);border-radius:12px;padding:11px 14px;font-size:15px}
+.field small{display:block;font-size:11px;color:var(--p-2);margin-bottom:1px}
+
+/* group screen */
+.gh{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin:8px 0 10px}
+.gh .ttl{margin:0;font-size:24px}
+.gh .sub{font-size:11.5px;color:var(--p-2);margin-top:1px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:10px}
+.d{display:grid;justify-items:center;gap:1px;padding:5px 0 6px;border-radius:11px;font-size:10px;color:var(--p-2);border:0;background:transparent;cursor:pointer;min-height:44px}
+.d b{font:600 14px var(--font);color:var(--p-label)}
+.d[aria-pressed="true"]{background:var(--p-tint);color:rgba(0,0,0,.7)}
+.d[aria-pressed="true"] b{color:#000}
+.d:focus-visible,.tap:focus-visible{outline:2px solid var(--p-blue);outline-offset:1px}
+.sum{font-size:11.5px;color:var(--p-2);padding:0 2px 8px}
+.tap{border:0;background:transparent;font:inherit;color:inherit;text-align:left;padding:0;display:flex;align-items:center;gap:10px;width:100%;cursor:pointer;min-height:44px}
+.cheer{font:600 11.5px var(--font);color:var(--p-label);background:var(--p-fill);border-radius:999px;padding:5px 11px;border:0;white-space:nowrap;min-height:28px;cursor:pointer}
+.cheer[aria-pressed="true"]{background:var(--p-tint);color:#000}
+.you{font-size:10px;font-weight:600;color:var(--p-2);background:var(--p-fill);border-radius:999px;padding:1px 7px;margin-left:5px;vertical-align:1px}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:12px 0 4px;text-align:center}
+.wk div{display:grid;gap:3px;justify-items:center;font-size:10px;color:var(--p-2)}
+.wk svg{width:28px;height:28px}
+.hero-p{display:grid;justify-items:center;text-align:center;gap:6px;padding-top:6px}
+.hero-p h2{font:700 21px/1.2 var(--font-d);letter-spacing:-.02em;margin:10px 4px 0}
+.hero-p p{font-size:13px;color:var(--p-2);margin:0 4px 12px;max-width:none}
+.trio{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:34px}
+.trio svg{width:46px;height:46px}
+.qr{width:112px;height:112px;background:#fff;border-radius:10px;padding:8px;margin:0 auto 10px}
+.code{font:600 22px var(--font-r,var(--font));letter-spacing:.12em;text-align:center;font-variant-numeric:tabular-nums}
+.chk{width:18px;height:18px;border-radius:50%;flex:none;display:grid;place-items:center}
+.chk.y{background:#34C759}.chk.n{background:var(--p-fill)}
+.chk svg{width:10px;height:10px;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.chk.y svg{stroke:#fff}.chk.n svg{stroke:var(--p-2)}
+.lmark{width:64px;height:64px}
+.web{padding:0 20px}
+.url{margin:0 20px 8px;background:var(--p-fill);border-radius:10px;font-size:11px;text-align:center;padding:5px;color:var(--p-2)}
+
+/* tables and code */
+.panel{background:var(--surface);border-radius:18px;padding:22px;margin-top:24px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin-top:24px}
+.two .panel{margin-top:0}
+.panel h3{margin-bottom:12px}
+ul.tick{list-style:none;margin:0;padding:0;display:grid;gap:9px;font-size:15px}
+ul.tick li{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;line-height:1.4}
+ul.tick li::before{content:"";width:18px;height:18px;border-radius:50%;margin-top:2px;background:var(--good) center/10px no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 5.3l2 2 4-4.6' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+ul.tick.no li::before{background-color:var(--bad);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2.6 2.6l4.8 4.8M7.4 2.6L2.6 7.4' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E")}
+ul.dots{margin:0;padding-left:1.1em;display:grid;gap:7px;font-size:15px;color:var(--ink-2)}
+ul.dots b{color:var(--ink);font-weight:600}
+.scroll{overflow-x:auto;margin-top:16px;border-radius:12px;background:var(--code-bg)}
+pre{margin:0;padding:16px 18px;font:13px/1.55 var(--mono);color:var(--ink);white-space:pre;min-width:max-content}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px}
+th,td{text-align:left;padding:10px 12px;vertical-align:top;border-bottom:.5px solid var(--line)}
+th{font:600 12px var(--font);color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+html:lang(zh-Hans) th{text-transform:none;letter-spacing:0}
+td:first-child{font-weight:600;white-space:nowrap}
+.tw{overflow-x:auto;margin-top:16px;background:var(--surface);border-radius:16px;padding:6px 8px}
+
+.dec{list-style:none;margin:24px 0 0;padding:0;display:grid;gap:12px}
+.dec li{background:var(--surface);border-radius:16px;padding:18px 20px;display:grid;gap:6px}
+.dec b{font:600 16px var(--font-d)}
+.dec p{font-size:15px;color:var(--ink-2)}
+.dec .rec{font-size:14px;color:var(--ink)}
+.dec .rec::before{content:"Recommended  ";font:600 11px var(--font);text-transform:uppercase;letter-spacing:.06em;color:var(--link)}
+html:lang(zh-Hans) .dec .rec::before{content:"建议  ";text-transform:none}
+.note{font-size:14px;color:var(--ink-3);margin-top:12px}
+.zhonly{display:none}
+.live{animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<radialGradient id="gSun" cx=".4" cy=".35" r=".85"><stop offset="0" stop-color="#FFF4C8"/><stop offset=".6" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/></radialGradient>
+<radialGradient id="gMoon" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#E6E0D0"/><stop offset="1" stop-color="#C4BBA4"/></radialGradient>
+</defs></svg>
+
+<div class="wrap">
+<div class="bar">
+  <div class="name">Lightly · <span data-l="Friends design|朋友功能设计"></span></div>
+  <div class="ctl">
+    <div><span class="lab" data-l="Language|语言"></span><span class="seg" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="zh" aria-pressed="false">中文</button></span></div>
+    <div><span class="lab" data-l="Screens|屏幕"></span><span class="seg" role="group" aria-label="Screens"><button type="button" data-mode="light" aria-pressed="true" data-l="Light|浅色"></button><button type="button" data-mode="dark" aria-pressed="false" data-l="Dark|深色"></button></span></div>
+  </div>
+</div>
+
+<header class="hero">
+  <span class="status"><i></i><span data-l="Design proposal v1 · nothing is built yet, waiting for your OK|设计提案 v1 · 还没有开发，等你确认"></span></span>
+  <h1 data-l="Fast together, quietly.|一起断食，安安静静。"></h1>
+  <p class="lede" data-l="Friends in Lightly is a small, standard feature. Start a group, send one link, and see how everyone's day is going. Each person shows up as the same moon-and-sun disc that fills on your Today screen.|Lightly 的朋友功能很简单：建一个小组，发一个链接，就能看到大家今天过得怎么样。每个人都用“今天”页面上同一个会逐渐填满的圆盘表示。"></p>
+  <p class="small" data-l="How I read your ask: a group you invite people to; once they join you see everyone's status on each day's progress; while someone fasts, their disc fills counter-clockwise like the icons on the concept page. Tapping a day in a week strip shows everyone's disc for that day.|我对你需求的理解：邀请朋友组成小组；加入后，在每一天的进度里看到每个人的状态；有人在断食时，他的圆盘像概念页那样逆时针填满。点一下一周条里的某一天，就能看到那天每个人的圆盘。"></p>
+</header>
+
+<section id="principles">
+  <p class="eyebrow" data-l="Principles|原则"></p>
+  <h2 style="margin-top:8px" data-l="Company, never competition|要陪伴，不要比较"></h2>
+  <div class="grid2">
+    <div><h3 data-l="Solo stays the main experience|一个人断食仍是主体验"></h3><p data-l="Today never shows a friend or an invite prompt. Friends is the third tab, and the app works fully without an account.|“今天”页面不会出现朋友或邀请提示。“朋友”是第三个标签页，不登录也能完整使用其他功能。"></p></div>
+    <div><h3 data-l="Every disc is measured against your own plan|每个圆盘只和自己的计划比"></h3><p data-l="A 13-hour fast and a 20-hour fast both end as a full disc, and each row names the plan (16h, 18h) so nobody reads a full 13h as less. No hours elapsed, no ranking, no streak race.|13 小时和 20 小时的断食，完成时都是满盘，每一行会写出计划（16 小时、18 小时），所以不会有人把 13 小时的满盘当成更少。不显示已断食小时数、排名或连续天数比赛。"></p></div>
+    <div><h3 data-l="Nobody is pushed past their plan|没人会被推着超出自己的计划"></h3><p data-l="The disc stops at full. There is no overtime on a friend's row, and no message that says someone is ahead of you.|圆盘满了就停住，朋友那一行不显示超时，也不会有“某某比你快”这种提示。"></p></div>
+    <div><h3 data-l="Resting is private and looks calm|休息是私密的，而且显得平静"></h3><p data-l="Cheat day, time off and feeling unwell all show the same dashed ring that says Resting. The reason never leaves the phone.|弹性日、休假和身体不适都显示为同一个“休息中”的虚线圈。原因永远不会离开你的手机。"></p></div>
+  </div>
+</section>
+
+<section id="icon">
+  <p class="eyebrow" data-l="Status icon|状态图标"></p>
+  <h2 style="margin-top:8px" data-l="One disc, four states|一个圆盘，四种状态"></h2>
+  <p class="lede" style="margin-top:12px" data-l="This is the counter-clockwise wedge from 12 o'clock that you fixed on the concept page. Friends use it at 30 pt on a row and larger in the week strip.|就是你在概念页定下来的、从 12 点起逆时针填充的扇形。朋友行里用 30 pt，周视图里更大。"></p>
+  <div class="legend" id="legend"></div>
+  <div class="row-demo"><span class="small" data-l="Filling live, as it would on a friend's row:|在朋友那一行里实时填充的样子："></span><svg id="liveDisc" viewBox="-12 -12 24 24" aria-label="Live disc"></svg><span class="small mono" id="liveTxt"></span></div>
+</section>
+
+<section id="flow">
+  <p class="eyebrow" data-l="Flow|流程"></p>
+  <h2 style="margin-top:8px" data-l="From first tap to a full group|从第一次点击到小组成型"></h2>
+  <ol class="flow">
+    <li><b data-l="Start a group|建一个小组"></b><span data-l="Friends tab, one name, done. Up to 10 people.|在“朋友”页起个名字就行，最多 10 人。"></span></li>
+    <li><b data-l="Share the link|发出链接"></b><span data-l="System share sheet, a copyable code, or a QR code for someone in the room.|用系统分享面板、可复制的邀请码，或当面扫二维码。"></span></li>
+    <li><b data-l="A friend opens it|朋友打开链接"></b><span data-l="A simple invite page shows the group name and who invited them. No statuses yet.|一个简单的邀请页，只显示小组名和邀请人，看不到任何状态。"></span></li>
+    <li><b data-l="They sign in and see what is shared|登录并看清分享内容"></b><span data-l="Google or email, then one screen that lists what the group sees and never sees.|用谷歌或邮箱登录，再看一页“小组能看到什么、永远看不到什么”。"></span></li>
+    <li><b data-l="Everyone appears|大家出现在小组里"></b><span data-l="Each row is a name, a status word and a disc. Tap a day to look back.|每一行是名字、一个状态词和一个圆盘。点某一天可以回看。"></span></li>
+  </ol>
+</section>
+
+<section id="screens">
+  <p class="eyebrow" data-l="Screens|屏幕"></p>
+  <h2 style="margin-top:8px" data-l="Ten screens, English and Chinese, light and dark|十个屏幕，中英文、浅深色"></h2>
+  <p class="lede" style="margin-top:12px" data-l="Use the controls at the top to switch language and light or dark. The two group screens are live: tap a day, tap a name, tap Cheer.|用顶部的控件切换语言和浅色、深色。两个小组屏幕是可操作的：点某一天、点某个人、点“加油”。"></p>
+  <div class="shots" id="shots"></div>
+</section>
+
+<section id="privacy">
+  <p class="eyebrow" data-l="Privacy|隐私"></p>
+  <h2 style="margin-top:8px" data-l="What a group can and cannot see|小组能看到什么，看不到什么"></h2>
+  <div class="two">
+    <div class="panel"><h3 data-l="The group sees|小组能看到"></h3>
+      <ul class="tick">
+        <li data-l="Your name and sky avatar, as you set them for groups|你为小组设置的名字和天空头像"></li>
+        <li data-l="One status word: Fasting, Reached goal, Resting or Not fasting (Fasted on a past day)|一个状态词：断食中、达成目标、休息中、没有断食（过去的日子是“已断食”）"></li>
+        <li data-l="The plan you are on, as hours (16h, 18h), next to your status word|你正在进行的计划，用小时表示（16 小时、18 小时），写在状态词旁边</li><li data-l="A disc showing how far along you are against that plan|一个圆盘，显示你离这个计划的目标还有多远"></li>
+        <li data-l="The same for the past 7 days|过去 7 天的同样信息"></li>
+        <li data-l="A quiet Cheer, if someone taps it|别人点的一个安静的“加油”"></li>
+      </ul></div>
+    <div class="panel"><h3 data-l="The group never sees|小组永远看不到"></h3>
+      <ul class="tick no">
+        <li data-l="Weight, or anything about your body|体重，或任何和身体有关的信息"></li>
+        <li data-l="Hours fasted so far, or your start and end times|已经断食了多少小时，或开始和结束时间"></li>
+        <li data-l="Your location, or whether it is moon or sun where you are|你的位置，也包括你那里此刻是月亮还是太阳"></li>
+        <li data-l="Why you are resting, or how many cheat days you used|你为什么休息，或用了几个弹性日"></li>
+        <li data-l="Your streak, in v1|你的连续天数（第一版不显示）"></li>
+      </ul></div>
+  </div>
+  <p class="note" data-l="Leaving a group, or turning Share my status off, takes effect immediately. The group then sees Resting, or nothing at all after you leave.|退出小组，或关掉“分享我的状态”，会立刻生效。关掉后小组看到的是“休息中”，退出后就什么都看不到。"></p>
+</section>
+
+<section id="backend">
+  <p class="eyebrow" data-l="Backend|后端"></p>
+  <h2 style="margin-top:8px" data-l="What it needs on the existing Supabase project|在现有 Supabase 项目上需要什么"></h2>
+  <p class="lede" style="margin-top:12px" data-l="Everything fits in the Supabase project you already use for sign-in and backup (eqvdxzbnumuudkqfkyyb). No new service. Friends data lives in its own small tables, so your private backup row in lightly_state is never readable by anyone else.|全部放在你已经用于登录和备份的 Supabase 项目里（eqvdxzbnumuudkqfkyyb），不需要新服务。朋友数据放在单独的小表里，所以别人永远读不到 lightly_state 里你的私人备份。"></p>
+
+  <div class="tw"><table>
+    <thead><tr><th data-l="Table|表"></th><th data-l="Holds|内容"></th><th data-l="Who can read it|谁能读"></th></tr></thead>
+    <tbody>
+      <tr><td>profiles</td><td data-l="Display name (24 chars), sky avatar key|昵称（24 字以内）、天空头像编号"></td><td data-l="People who share a group with you|和你同组的人"></td></tr>
+      <tr><td>groups</td><td data-l="Name, kind (friends, family, ramadan), owner, member limit|名称、类型（friends、family、ramadan）、群主、人数上限"></td><td data-l="Members|成员"></td></tr>
+      <tr><td>group_members</td><td data-l="Role, joined date, Share my status switch|角色、加入时间、“分享我的状态”开关"></td><td data-l="Members; you can update only your own switch|成员；只能改自己的开关"></td></tr>
+      <tr><td>group_invites</td><td data-l="8-character code, expiry (7 days), revoked flag|8 位邀请码、过期时间（7 天）、是否作废"></td><td data-l="The group owner only|仅群主"></td></tr>
+      <tr><td>my_status</td><td data-l="Fasting, resting or idle, plus start time and goal hours|断食中、休息或空闲，加开始时间和目标小时数"></td><td data-l="Only you. Friends get a computed result through a function, never the raw times|只有你自己。朋友通过函数拿到计算结果，拿不到原始时间"></td></tr>
+      <tr><td>my_days</td><td data-l="One row per day: fast, rest or none, progress 0 to 1, and that day's goal hours|每天一行：断食、休息或没有、0 到 1 的进度，以及当天的目标小时数"></td><td data-l="Only you, same rule|只有你，规则同上"></td></tr>
+      <tr><td>cheers</td><td data-l="Group, from, to, day; one per person per day|小组、发送者、接收者、日期；每人每天一个"></td><td data-l="The two people involved|相关的两个人"></td></tr>
+    </tbody></table></div>
+
+  <div class="two">
+    <div class="panel"><h3 data-l="Access rules (RLS)|访问规则（RLS）"></h3>
+      <ul class="dots">
+        <li data-l="<b>Row Level Security on every table.</b> A helper function <code>is_group_member(gid)</code> (security definer, empty search_path) backs the policies.|<b>每张表都开启行级安全。</b>用一个辅助函数 <code>is_group_member(gid)</code>（security definer，空 search_path）支撑所有策略。"></li>
+        <li data-l="<b>No direct inserts into group_members.</b> Joining goes through <code>join_group(code)</code>, which checks the code, expiry, revoked flag and member limit.|<b>不允许直接写入 group_members。</b>加入必须走 <code>join_group(code)</code>，由它检查邀请码、过期、作废和人数上限。"></li>
+        <li data-l="<b>Friends read through one function.</b> <code>group_board(gid, day)</code> returns name, avatar, status word, goal hours and progress. It computes progress on the server, so start and end times are never sent to other phones.|<b>朋友通过一个函数读取。</b><code>group_board(gid, day)</code> 返回名字、头像、状态词、目标小时数和进度。进度在服务器上算出，开始和结束时间不会发到别人手机上。"></li>
+        <li data-l="<b>Leaving works at once</b> because every read checks current membership. Deleting an account cascades through all the tables.|<b>退出立刻生效</b>，因为每次读取都检查当前成员关系。删除账号会级联清理所有表。"></li>
+      </ul></div>
+    <div class="panel"><h3 data-l="Live updates, and what is realistic for v1|实时更新，以及第一版的现实做法"></h3>
+      <ul class="dots">
+        <li data-l="<b>v1 polls.</b> The Friends tab calls <code>group_board</code> when it opens, when you pull to refresh, and every 60 seconds while it is on screen. A fast moves about 1% every 10 minutes, so polling looks live.|<b>第一版用轮询。</b>“朋友”页打开时、下拉刷新时、停留期间每 60 秒调用一次 <code>group_board</code>。一次断食大约每 10 分钟走 1%，轮询看起来就是实时的。"></li>
+        <li data-l="<b>Realtime later.</b> Postgres Changes cannot be used because friends cannot select the status table. The upgrade path is Realtime Broadcast on a private channel per group, sent by a trigger.|<b>实时推送以后做。</b>朋友读不到状态表，所以不能用 Postgres Changes。升级方案是每个小组一个私有的 Broadcast 频道，由触发器发送。"></li>
+        <li data-l="<b>Writes happen on events:</b> start, end, edit, delete, cheat day, goal reached, and app open. A small <code>publish_my_status()</code> call, queued while offline.|<b>在事件发生时写入：</b>开始、结束、编辑、删除、弹性日、达到目标、打开应用。一个很小的 <code>publish_my_status()</code> 调用，离线时排队。"></li>
+        <li data-l="<b>No push notifications in v1.</b> Web push on iPhone is limited. Cheers show up when the tab opens. Push comes with the native apps.|<b>第一版没有推送通知。</b>iPhone 上的网页推送受限，“加油”在打开页面时显示。推送等原生应用再做。"></li>
+        <li data-l="<b>Stale phones:</b> a fast more than 6 hours past its goal with no update shows as Not fasting.|<b>手机很久没同步：</b>超过目标 6 小时仍没有更新的断食，显示为“没有断食”。"></li>
+      </ul></div>
+  </div>
+
+  <div class="scroll" role="region" aria-label="SQL sketch" tabindex="0"><pre>-- Sketch only. Runs in the same Supabase project; nothing is applied until you approve.
+create table groups (
+  id uuid primary key default gen_random_uuid(),
+  name text not null check (char_length(name) between 1 and 32),
+  kind text not null default 'friends' check (kind in ('friends','family','ramadan')),
+  owner_id uuid not null references auth.users on delete cascade,
+  max_members int not null default 10
+);
+create table group_members (
+  group_id uuid references groups on delete cascade,
+  user_id  uuid references auth.users on delete cascade,
+  role text not null default 'member' check (role in ('owner','member')),
+  sharing boolean not null default true,
+  primary key (group_id, user_id)
+);
+create table my_status (
+  user_id uuid primary key references auth.users on delete cascade,
+  state text not null check (state in ('fasting','resting','idle')),
+  started_at timestamptz, goal_hours numeric check (goal_hours between 1 and 48),
+  updated_at timestamptz not null default now()
+);  -- RLS: select/insert/update only where user_id = auth.uid()
+
+create function is_group_member(gid uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (select 1 from public.group_members where group_id = gid and user_id = auth.uid());
+$$;
+
+create function group_board(gid uuid, d date) returns table (
+  user_id uuid, name text, avatar text, status text, progress real, cheered boolean
+) language sql stable security definer set search_path = '' as $$
+  -- returns 'fasting' | 'done' | 'part' | 'rest' | 'none' only. If a member's sharing = false: 'rest'.
+  -- progress for today = least(1, hours since started_at / goal_hours), computed here.
+  select ... where public.is_group_member(gid);
+$$;</pre></div>
+
+  <div class="two">
+    <div class="panel"><h3 data-l="Safety and App Store basics|安全和应用商店要求"></h3>
+      <ul class="dots">
+        <li data-l="Names and avatars are user content, so Apple expects a way to report a name, remove a member and block invites. All three are in the design (group settings).|名字和头像属于用户内容，苹果要求能举报名字、移除成员、屏蔽邀请，设计里都有（小组设置）。"></li>
+        <li data-l="Invite codes use 8 characters from a 31-letter alphabet (about 850 billion options), expire in 7 days, and join attempts are rate-limited per account.|邀请码是 8 位、31 个字符的字母表（约 8500 亿种），7 天过期，加入尝试按账号限速。"></li>
+        <li data-l="Sign in with Apple becomes mandatory before an iOS release that offers Google. Friends makes an account required, so it lands in the same release.|在 iOS 上提供谷歌登录前必须有“通过 Apple 登录”。朋友功能要求账号，所以会在同一个版本里做。"></li>
+        <li data-l="Mainland China: invites work as a code and a link, but WeChat and phone sign-in is the separate China track. Friends in China waits for it.|中国大陆：邀请可以用邀请码和链接，但微信和手机号登录属于单独的中国版本。大陆的朋友功能要等它。"></li>
+      </ul></div>
+    <div class="panel"><h3 data-l="Rough size|大致工作量"></h3>
+      <ul class="dots">
+        <li data-l="Schema, policies and the three functions: about 1 day|表结构、策略和三个函数：约 1 天"></li>
+        <li data-l="Friends tab, group, member and settings screens: 3 to 4 days|“朋友”页、小组、成员和设置屏幕：3 到 4 天"></li>
+        <li data-l="Invite page, join flow and consent screen: 1 day|邀请页、加入流程和授权页：1 天"></li>
+        <li data-l="Tests (including a policy test that a non-member reads nothing), QA, concept page and Notion: 1 to 2 days|测试（包含“非成员读不到任何数据”的策略测试）、质检、概念页和 Notion：1 到 2 天"></li>
+      </ul>
+      <p class="note" data-l="I can only test against the real database from your side, because my sandbox cannot reach supabase.co.|我的沙箱连不上 supabase.co，所以和真实数据库联调需要在你那边测试。"></p></div>
+  </div>
+</section>
+
+<section id="scope">
+  <p class="eyebrow" data-l="Scope|范围"></p>
+  <h2 style="margin-top:8px" data-l="What goes in the first release|第一版包含什么"></h2>
+  <div class="two">
+    <div class="panel"><h3 data-l="In v1|第一版做"></h3>
+      <ul class="tick">
+        <li data-l="Groups of up to 10, up to 3 groups per person|最多 10 人的小组，每人最多 3 个|"></li>
+        <li data-l="Invite by link, code or QR|用链接、邀请码或二维码邀请"></li>
+        <li data-l="Week strip and a status disc per person|一周条，加每人一个状态圆盘"></li>
+        <li data-l="One silent Cheer per person per day|每人每天一个静音“加油”"></li>
+        <li data-l="Share my status switch, leave, remove, report|“分享我的状态”开关、退出、移除、举报"></li>
+        <li data-l="English and Chinese, light and dark|中英文、浅深色"></li>
+      </ul></div>
+    <div class="panel"><h3 data-l="Later|以后再做"></h3>
+      <ul class="dots">
+        <li data-l="Push notifications (with native apps)|推送通知（等原生应用）"></li>
+        <li data-l="Realtime updates through Broadcast|通过 Broadcast 的实时更新"></li>
+        <li data-l="Moon or sun following each friend's sky, as an opt-in|圆盘随每个朋友所在的天空变成月亮或太阳（可选开启）"></li>
+        <li data-l="Optional streak sharing, per person|可选的连续天数分享，由个人决定"></li>
+        <li data-l="Family and Ramadan groups (see below)|家人和斋月小组（见下）"></li>
+      </ul></div>
+    <div class="panel"><h3 data-l="Not planned|不打算做"></h3>
+      <ul class="tick no">
+        <li data-l="Leaderboards or any ranking|排行榜或任何排名"></li>
+        <li data-l="Chat or free text between members|成员之间的聊天或自由文字"></li>
+        <li data-l="Sharing weight or food|分享体重或食物"></li>
+        <li data-l="Group challenges that push longer fasts|鼓励更长断食的小组挑战"></li>
+      </ul></div>
+  </div>
+</section>
+
+<section id="ramadan">
+  <p class="eyebrow" data-l="Looking ahead|往后看"></p>
+  <h2 style="margin-top:8px" data-l="Room for the Ramadan family group|给斋月家庭小组留好位置"></h2>
+  <p class="lede" style="margin-top:12px" data-l="The Ramadan research is happening in another thread. These hooks keep the v1 design from blocking it.|斋月的调研在另一个线程里进行。下面这些预留，保证第一版的设计不会挡住它。"></p>
+  <div class="panel"><ul class="dots">
+    <li data-l="<b>groups.kind</b> already allows family and ramadan. A family group can use a different name for the tab (Family) and the invite wording.|<b>groups.kind</b> 已经支持 family 和 ramadan。家人小组可以换标签名（家人）和邀请文案。"></li>
+    <li data-l="<b>The week strip becomes the month.</b> In Ramadan the day strip can show the 30 days with the day number, which is the Days calendar change you asked about.|<b>一周条换成整月。</b>斋月里这条可以显示 30 天和第几天，对应你说的“日历在斋月模式里要不同”。"></li>
+    <li data-l="<b>Same disc, dawn to sunset.</b> Resting already covers a day off for travel or illness without giving a reason, which matters in family groups.|<b>同一个圆盘，从黎明到日落。</b>“休息中”已经能表示出行或生病的一天且不用说明原因，这对家庭小组很重要。"></li>
+    <li data-l="<b>Iftar together</b> becomes a shared moment at sunset: one gentle note, no chat. It needs the push notifications that v1 skips.|<b>一起开斋</b>是日落时的共同时刻：一条轻提醒，不聊天。它需要第一版暂时不做的推送。"></li>
+    <li data-l="<b>Staying after Ramadan</b> is a retention question for the Ramadan thread. A group that outlives the month is the strongest hook, so the group should carry on as a normal Lightly group when Ramadan ends.|<b>斋月后留住用户</b>是斋月线程要回答的问题。能延续到斋月之后的小组是最强的留存点，所以斋月结束后小组应当自然变成普通的 Lightly 小组。"></li>
+  </ul></div>
+</section>
+
+<section id="decisions">
+  <p class="eyebrow" data-l="Your call|等你决定"></p>
+  <h2 style="margin-top:8px" data-l="Six decisions before I build|开发前需要你定的六件事"></h2>
+  <ol class="dec">
+    <li><b data-l="1. Should friends see each other's streak?|1. 朋友之间要显示连续天数吗？"></b><p data-l="Your concept page said yes. A visible streak can make a missed day feel public.|概念页写的是显示。可见的连续天数可能让漏掉的一天变得很公开。"></p><p class="rec" data-l="Leave it out of v1 and add it later as an opt-in per person.|第一版不做，以后做成每个人自己选择的可选项。"></p></li>
+    <li><b data-l="2. Should a friend's disc turn into a moon at night?|2. 朋友的圆盘要在他们那里是夜晚时变成月亮吗？"></b><p data-l="It is lovely, but it tells the group roughly what time it is for each person. That sits close to your rule about never sharing location.|很漂亮，但它会让小组大致知道每个人那边几点，这和你“永远不分享位置”的规则很近。"></p><p class="rec" data-l="Keep every friend disc a sun in v1 and offer the moon later as an opt-in.|第一版所有朋友的圆盘都用太阳，月亮以后做成可选项。"></p></li>
+    <li><b data-l="3. Keep Cheer in v1?|3. 第一版保留“加油”吗？"></b><p data-l="It is the only interaction, silent and once per day. It gives the group a bit of warmth without chat.|这是唯一的互动，静音、每天一次，让小组有点温度又不用聊天。"></p><p class="rec" data-l="Keep it.|保留。"></p></li>
+    <li><b data-l="4. Do friends see a past day as partial or just done?|4. 过去的日子显示实际完成比例，还是只显示“完成”？"></b><p data-l="A partial disc is honest and calm, with the word Fasted. A simpler option shows full or empty only.|部分圆盘更诚实也更平静，状态词是“已断食”。更简单的做法是只显示满或空。"></p><p class="rec" data-l="Show the partial disc, and never the word failed or early.|显示部分圆盘，绝不出现“失败”或“提前”这样的词。"></p></li>
+    <li><b data-l="5. Tab bar: four tabs, with Friends third?|5. 标签栏：四个标签，“朋友”放第三个？"></b><p data-l="Today, Days, Friends, Me. No badges and no red dots on Friends.|今天、日历、朋友、我。“朋友”上没有角标，也没有红点。"></p><p class="rec" data-l="Yes.|是的。"></p></li>
+    <li><b data-l="6. Is the account requirement fine?|6. 要求登录账号可以吗？"></b><p data-l="Friends needs sign-in with Google or email. Everything else stays account-free, so the Friends tab explains this when signed out.|朋友功能需要用谷歌或邮箱登录。其他功能仍然不需要账号，所以未登录时“朋友”页会说明这一点。"></p><p class="rec" data-l="Yes.|是的。"></p></li>
+  </ol>
+</section>
+</div>
+
+<script>
+(function(){
+  var lang='en', mode='light';
+  var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+  var L=function(a,b){return lang==='zh'?b:a};
+
+  /* disc: same wedge as the app: counter-clockwise from 12 o'clock */
+  function wedge(p,r){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; if(p>=.999) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z';
+    var a=p*2*Math.PI, ex=-r*Math.sin(a), ey=-r*Math.cos(a);
+    return 'M0 0 L0 '+(-r)+' A'+r+' '+r+' 0 '+(a>Math.PI?1:0)+' 0 '+ex.toFixed(2)+' '+ey.toFixed(2)+'Z'; }
+  function discInner(kind,p){
+    var ring='var(--ring,rgba(142,142,147,.6))';
+    if(kind==='rest') return '<circle r="10" fill="rgba(142,142,147,.1)" stroke="'+ring+'" stroke-width="1.2" stroke-dasharray="2.2 2.2"/>';
+    if(kind==='none') return '<circle r="10" fill="rgba(142,142,147,.14)" stroke="'+ring+'" stroke-width="1"/>';
+    return '<circle r="10" fill="rgba(142,142,147,.18)" stroke="'+ring+'" stroke-width="1"/><path d="'+wedge(kind==='done'?1:p,10)+'" fill="url(#gSun)"/>'; }
+  function disc(kind,p,cls){ return '<svg class="disc '+(cls||'')+(kind==='done'?' glow':'')+'" viewBox="-12 -12 24 24" aria-hidden="true" style="--ring:var(--p-ring,rgba(142,142,147,.6))">'+discInner(kind,p)+'</svg>'; }
+
+  /* avatars */
+  var AV={
+    you:{bg:'#F3C58E',g:'<path d="M6 16a6 6 0 0 1 12 0z" fill="#fff"/><path d="M4 18.2h16" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>'},
+    mei:{bg:'#2C3762',g:'<path d="M15 5a8 8 0 1 0 4 11 7 7 0 0 1-4-11z" fill="#F4EFE2"/>'},
+    arjun:{bg:'#E7915A',g:'<path d="M6 16a6 6 0 0 1 12 0z" fill="#FFE9A8"/><path d="M4 18.2h16" stroke="#FFE9A8" stroke-width="1.6" stroke-linecap="round"/>'},
+    sam:{bg:'#33406E',g:'<path d="M12 4l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#F4EFE2"/>'},
+    lena:{bg:'#5BA4CF',g:'<path d="M12 4c3 4 5 6.5 5 9.5a5 5 0 0 1-10 0C7 10.5 9 8 12 4z" fill="#fff"/>'},
+    diego:{bg:'#0E1430',g:'<circle cx="12" cy="12" r="6" fill="#F4EFE2"/>'},
+    maya:{bg:'#2C3762',g:'<path d="M15 5a8 8 0 1 0 4 11 7 7 0 0 1-4-11z" fill="#F4EFE2"/>'}};
+  function av(k,sz){ var a=AV[k]; return '<svg class="av" viewBox="0 0 24 24" aria-hidden="true"'+(sz?' style="width:'+sz+'px;height:'+sz+'px"':'')+'><circle cx="12" cy="12" r="12" fill="'+a.bg+'"/>'+a.g+'</svg>'; }
+
+  var ST={ fasting:['Fasting','断食中'], done:['Reached goal','达成目标'], part:['Fasted','已断食'], rest:['Resting','休息中'], none:['Not fasting','没有断食'] };
+  var ST_LONG={ fasting:['Filled by progress, counter-clockwise. Past days show the share reached','按进度逆时针填充。过去的日子显示当时完成的比例'], done:['Full disc, with a soft glow, for the rest of the day','整个白天保持满盘，带一点柔光'], part:['Muted and flat, no dot: the share they reached, settled','暗淡平整、没有圆点：已经定下来的完成比例'], rest:['Cheat day, time off or unwell. Reason hidden','弹性日、休假或不适，原因隐藏'], none:['Empty ring','空圆环'] };
+
+  /* people and week data. d index 0..6 = Sun 25 .. Sat 31 (today) */
+  var NAMES={you:['You','你'],mei:['Mei','美琪'],arjun:['Arjun','阿杰'],sam:['Sam','小山'],lena:['Lena','乐乐'],diego:['Diego','大卫'],maya:['Maya','小雅']};
+  var ORDER=['you','mei','arjun','lena','sam','diego'];
+  var WEEK={ /* [status, progress] */
+    you:  [['done',1],['done',1],['part',.7],['done',1],['done',1],['done',1],['fasting',.62]],
+    mei:  [['done',1],['done',1],['done',1],['done',1],['part',.8],['done',1],['fasting',.85]],
+    arjun:[['none',0],['done',1],['done',1],['rest',0],['done',1],['done',1],['fasting',.55]],
+    lena: [['done',1],['done',1],['done',1],['done',1],['done',1],['done',1],['done',1]],
+    sam:  [['rest',0],['rest',0],['done',1],['done',1],['part',.6],['done',1],['rest',0]],
+    diego:[['none',0],['part',.5],['none',0],['done',1],['none',0],['part',.7],['none',0]]};
+  var PLAN={you:16,mei:18,arjun:16,lena:13,sam:16,diego:20};
+  function planTx(k){ return PLAN[k]+(lang==='zh'?'小时':'h'); }
+  var DOW=[['S','日'],['M','一'],['T','二'],['W','三'],['T','四'],['F','五'],['S','六']];
+  var DATES=[25,26,27,28,29,30,31];
+
+  /* icons */
+  var IC={
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>',
+    days:'<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    fr:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8M17.5 14.2a6 6 0 0 1 3.5 5.3"/>',
+    me:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18c1.2-2.4 3-3.5 5.5-3.5s4.3 1.1 5.5 3.5"/>'};
+  function tabs(on){ var t=[['sun','Today','今天'],['days','Days','日历'],['fr','Friends','朋友'],['me','Me','我']];
+    return '<nav class="tabs" aria-hidden="true">'+t.map(function(x,i){return '<div'+(i===on?' class="on"':'')+'><svg viewBox="0 0 24 24">'+IC[x[0]]+'</svg><span>'+L(x[1],x[2])+'</span></div>';}).join('')+'</nav><i class="hi"></i>'; }
+  function sb(){ return '<div class="sb"><span>9:41</span><i></i></div>'; }
+  function xbtn(){ return '<span class="xb" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8"/></svg></span>'; }
+  function sheet(title,body){ return '<div class="dim"></div><div class="sheet"><div class="sh-t"><h4>'+title+'</h4>'+xbtn()+'</div>'+body+'</div>'; }
+  var CHK='<svg viewBox="0 0 10 10"><path d="M2 5.3l2 2 4-4.6"/></svg>', CRS='<svg viewBox="0 0 10 10"><path d="M2.6 2.6l4.8 4.8M7.4 2.6L2.6 7.4"/></svg>';
+
+  /* ---------- screens ---------- */
+  function sEmpty(signedOut){
+    return sb()+'<div class="scr"><div class="ttl">'+L('Friends','朋友')+'</div><div class="hero-p"><div class="trio">'+disc('none',0)+disc('fasting',.6)+disc('done',1)+'</div>'+
+      '<h2 style="margin-top:26px">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+
+      '<p>'+(signedOut?L('Friends needs an account so your group can find you. Everything else in Lightly works without one.','朋友功能需要账号，这样小组才能找到你。轻伴的其他功能不用账号也能用。'):L('Start a group and send one link. You can see how everyone’s day is going. Your fasts stay yours.','建一个小组，发一个链接，就能看到大家今天过得怎么样。你的断食数据仍然只属于你。'))+'</p>'+
+      '<div class="btn">'+(signedOut?L('Sign in','登录'):L('Start a group','建一个小组'))+'</div>'+
+      (signedOut?'':'<div class="linkb">'+L('Enter an invite code','输入邀请码')+'</div>')+'</div></div>'+tabs(2); }
+
+  function sCreate(){
+    return sEmpty(false)+sheet(L('New group','新建小组'),
+      '<div class="field"><small>'+L('Group name','小组名称')+'</small>'+L('Morning crew','晨光小组')+'</div>'+
+      '<p class="foot" style="padding-top:8px;max-width:none">'+L('Up to 10 people. You can rename it any time.','最多 10 人，随时可以改名。')+'</p>'+
+      '<div class="btn" style="margin-top:18px">'+L('Create and invite','创建并邀请')+'</div>'); }
+
+  function qr(){ var n=21,s=7,i,j,o='',h=1234567; function f(x,y){return (x<7&&y<7)||(x>=n-7&&y<7)||(x<7&&y>=n-7);}
+    function fin(x,y,ox,oy){var dx=x-ox,dy=y-oy; if(dx<0||dy<0||dx>6||dy>6) return null; return (dx===0||dx===6||dy===0||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4));}
+    for(i=0;i<n;i++)for(j=0;j<n;j++){ var v; var a=fin(i,j,0,0),b=fin(i,j,n-7,0),c=fin(i,j,0,n-7);
+      if(a!==null||b!==null||c!==null) v=!!(a||b||c); else if(f(i,j)) v=false; else { h=(h*1103515245+12345+i*31+j*17)&0x7fffffff; v=(h>>8)%2===0; }
+      if(v) o+='<rect x="'+i+'" y="'+j+'" width="1" height="1"/>'; }
+    return '<svg class="qr" viewBox="-.5 -.5 22 22" style="width:112px;height:112px;display:block" aria-label="QR code" fill="#111">'+o+'</svg>'; }
+  function sInvite(){
+    return sGroup(6,true)+sheet(L('Invite friends','邀请朋友'),
+      '<div style="background:var(--p-card);border-radius:14px;padding:14px 12px 12px">'+qr().replace('class="qr"','class="qr" ')+'<div style="text-align:center;font-size:11px;color:var(--p-2);margin-bottom:2px">'+L('Invite code','邀请码')+'</div><div class="code">K7QM 4XD9</div></div>'+
+      '<div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px"><div class="btn">'+L('Share link','分享链接')+'</div><div class="btn alt" style="width:auto;padding:0 18px">'+L('Copy','复制')+'</div></div>'+
+      '<p class="foot" style="padding-top:10px;max-width:none">'+L('Valid for 7 days. 3 of 10 spots used. Anyone with the link can ask to join, so share it only with people you know.','7 天内有效，已用 3 / 10 个名额。拿到链接的人都能加入，请只发给你认识的人。')+'</p>'); }
+
+  /* interactive group screen */
+  var inst=0, gstate={};
+  function boardFor(day){ return ORDER.map(function(k){ var w=WEEK[k][day]; return {k:k,s:w[0],p:w[1]}; }); }
+  function sumLine(b,day){ var c={fasting:0,done:0,rest:0,part:0,none:0}; b.forEach(function(x){c[x.s]++;});
+    var parts=[]; if(c.fasting) parts.push(c.fasting+L(' fasting',' 人断食中')); if(c.done) parts.push(c.done+L(' reached goal',' 人达成目标')); if(c.part) parts.push(c.part+L(' fasted',' 人断食过')); if(c.rest) parts.push(c.rest+L(' resting',' 人休息'));
+    return parts.join(' · ')||L('Nobody fasted','没有人断食'); }
+  function sGroup(day0,inSheet,id){
+    id=id||('g'+(inst++)); var st=gstate[id]=gstate[id]||{day:day0,cheer:{}};
+    var day=st.day, b=boardFor(day), today=day===6;
+    var rows=b.map(function(x){ var me=x.k==='you', nm=NAMES[x.k][lang==='zh'?1:0];
+      var sw=ST[x.s][lang==='zh'?1:0]; if(!today&&x.s==='fasting') sw=ST.done[lang==='zh'?1:0]; if(x.s==='fasting'||x.s==='done'||x.s==='part') sw+=' · '+planTx(x.k);
+      var ch=(!me&&today&&(x.s==='fasting'||x.s==='done'))?'<button class="cheer" type="button" data-cheer="'+x.k+'" data-id="'+id+'" aria-pressed="'+(!!st.cheer[x.k])+'">'+(st.cheer[x.k]?L('Cheered','已加油'):L('Cheer','加油'))+'</button>':'';
+      return '<div class="r"><button class="tap" type="button" data-member="'+x.k+'" data-id="'+id+'" aria-label="'+nm+', '+sw+'">'+av(x.k)+'<span class="t"><b>'+nm+(me?'<span class="you">'+L('You','我')+'</span>':'')+'</b><span class="s">'+sw+'</span></span></button>'+ch+disc(x.s,x.p)+'</div>'; }).join('');
+    var strip=DOW.map(function(d,i){ return '<button class="d" type="button" data-day="'+i+'" data-id="'+id+'" aria-pressed="'+(i===day)+'" aria-label="'+DATES[i]+'"><span>'+d[lang==='zh'?1:0]+'</span><b>'+DATES[i]+'</b></button>'; }).join('');
+    return sb()+'<div class="scr" data-gid="'+id+'"><div class="gh"><div><div class="ttl">'+L('Morning crew','晨光小组')+'</div><div class="sub">'+L('6 people · Oct 25 to 31','6 人 · 10 月 25 日至 31 日')+'</div></div><div class="btn sm alt" style="min-height:34px">'+L('Invite','邀请')+'</div></div>'+
+      '<div class="days" role="group" aria-label="Days">'+strip+'</div>'+
+      '<div class="sum">'+(today?L('Today','今天'):L('Oct ','10 月 ')+DATES[day]+(lang==='zh'?' 日':''))+' · '+sumLine(b,day)+'</div>'+
+      '<div class="card">'+rows+'</div></div>'+tabs(2); }
+
+  function sMember(){
+    var k='mei', nm=NAMES[k][lang==='zh'?1:0];
+    var wk=DOW.map(function(d,i){ var w=WEEK[k][i]; return '<div>'+disc(w[0],w[1])+'<span>'+d[lang==='zh'?1:0]+'</span></div>'; }).join('');
+    return sGroup(6,true,'m0')+sheet(nm,
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">'+av(k,44)+'<div><b style="font-size:15px;font-weight:600;display:block">'+nm+'</b><span style="font-size:12px;color:var(--p-2)">'+L('Fasting now · ','正在断食 · ')+planTx(k)+'</span></div><div style="margin-left:auto">'+disc('fasting',.85,'').replace('class="disc','class="disc" style="width:44px;height:44px" data-x="').replace('data-x=" ','')+'</div></div>'+
+      '<div class="foot" style="padding:10px 0 0">'+L('Last 7 days','过去 7 天')+'</div><div class="card" style="padding:10px 8px 8px;margin-top:4px"><div class="wk" style="margin:0">'+wk+'</div></div>'+
+      '<div class="btn" style="margin-top:16px">'+L('Cheer Mei','给美琪加油')+'</div>'+
+      '<p class="foot" style="padding-top:8px;max-width:none;text-align:center">'+L('A cheer is silent. Mei sees a small sun next to her name the next time she opens Friends.','加油是静音的。美琪下次打开“朋友”页时，会在名字旁看到一个小太阳。')+'</p>'); }
+
+  function sSettings(){
+    var mem=['you','mei','arjun','lena'].map(function(k,i){ return '<div class="r">'+av(k,30)+'<div class="t"><b>'+NAMES[k][lang==='zh'?1:0]+'</b></div><span class="end">'+(i===0?L('Owner','群主'):'')+'</span></div>'; }).join('');
+    return sb()+'<div class="scr" style="overflow:hidden"><div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 12px"><div class="ttl" style="margin:0;font-size:22px">'+L('Group settings','小组设置')+'</div>'+xbtn()+'</div>'+
+      '<div class="card"><div class="r"><div class="t"><b>'+L('Share my status','分享我的状态')+'</b></div><span class="sw" aria-hidden="true"></span></div></div>'+
+      '<div class="foot">'+L('Turn off to rest quietly. The group sees Resting and nothing else.','关掉后你安静休息，小组只会看到“休息中”。')+'</div>'+
+      '<div class="card"><div class="r"><div class="t"><b>'+L('Invite link','邀请链接')+'</b><span class="s">'+L('Expires in 6 days','6 天后过期')+'</span></div><span class="end" style="color:var(--p-link)">'+L('Reset','重置')+'</span></div></div>'+
+      '<div class="foot" style="padding-top:12px">'+L('Members','成员')+'</div>'+
+      '<div class="card" style="margin-top:4px">'+mem+'<div class="r"><div class="t"><b style="color:var(--p-link);font-weight:400">'+L('Show all 6','显示全部 6 人')+'</b></div></div></div>'+
+      '<div class="foot">'+L('Swipe a member to remove them or report a name.','左滑成员可以移除或举报名字。')+'</div>'+
+      '<div class="card" style="margin-top:14px"><div class="r red"><div class="t"><b>'+L('Leave group','退出小组')+'</b></div></div></div></div><i class="hi"></i>'; }
+
+  function sJoin(){
+    return '<div style="height:44px"></div><div class="url">lightly · '+L('Join a group','加入小组')+'</div>'+
+      '<div class="web" style="text-align:center;padding-top:34px"><svg class="lmark" viewBox="-12 -12 24 24" style="width:68px;height:68px" aria-hidden="true"><circle r="10" fill="rgba(142,142,147,.18)" stroke="rgba(142,142,147,.6)" stroke-width="1"/><path d="'+wedge(.72,10)+'" fill="url(#gSun)"/></svg>'+
+      '<h2 style="font:700 22px/1.2 var(--font-d);letter-spacing:-.02em;margin:22px 0 6px">'+L('Maya invited you to Morning crew','小雅邀请你加入晨光小组')+'</h2>'+
+      '<p style="font-size:13px;color:var(--p-2);max-width:none;margin:0 6px 20px">'+L('5 people fast together here. You see how each day is going, and they see yours. You choose what is shared before you join.','5 个人在这里一起断食。你能看到每天的情况，他们也能看到你的。加入前由你决定分享什么。')+'</p>'+
+      '<div style="display:flex;justify-content:center;margin-bottom:24px">'+['maya','mei','arjun','lena','sam'].map(function(k,i){return '<span style="margin-left:'+(i?'-8px':'0')+';border:2px solid var(--p-bg);border-radius:50%;display:block;line-height:0">'+av(k,38)+'</span>';}).join('')+'</div>'+
+      '<div class="btn">'+L('Join Morning crew','加入晨光小组')+'</div><div class="linkb">'+L('What the group sees','小组能看到什么')+'</div>'+
+      '<p style="font-size:11px;color:var(--p-2);margin:22px 8px 0;max-width:none">'+L('You will sign in with Google or email. No account yet? That takes under a minute.','你将用谷歌或邮箱登录。还没有账号？一分钟就能建好。')+'</p></div>'; }
+
+  function sConsent(){
+    var y=[['Your name and sky avatar','你的名字和天空头像'],['The plan you are on, like 16h','你正在进行的计划，比如 16 小时'],['Whether you are fasting, reached your goal, or resting','你是在断食、已达成目标，还是在休息'],['A disc showing how far along you are','一个显示你进度的圆盘']];
+    var n=[['Your weight or anything about your body','你的体重或任何身体信息'],['Hours fasted so far, or exact times','已经断食的小时数或具体时间'],['Your location, or why you rest','你的位置，或你休息的原因']];
+    function row(a,yes){return '<div class="r"><span class="chk '+(yes?'y':'n')+'">'+(yes?CHK:CRS)+'</span><div class="t"><b style="font-weight:400;font-size:13px">'+a[lang==='zh'?1:0]+'</b></div></div>';}
+    return sJoinBg()+sheet(L('What the group sees','小组能看到什么'),
+      '<div class="foot" style="padding:0 0 4px">'+L('Morning crew sees','晨光小组能看到')+'</div><div class="card">'+y.map(function(a){return row(a,true);}).join('')+'</div>'+
+      '<div class="foot" style="padding:10px 0 4px">'+L('It never sees','永远看不到')+'</div><div class="card">'+n.map(function(a){return row(a,false);}).join('')+'</div>'+
+      '<div class="btn" style="margin-top:14px">'+L('Join Morning crew','加入晨光小组')+'</div>'+
+      '<p class="foot" style="padding-top:8px;text-align:center;max-width:none">'+L('Leave any time and you disappear from the group right away.','随时可以退出，退出后你会立刻从小组里消失。')+'</p>'); }
+  function sJoinBg(){ return '<div style="height:44px"></div><div class="web" style="text-align:center;padding-top:50px;opacity:.5"><svg viewBox="-12 -12 24 24" style="width:60px;height:60px">'+discInner('fasting',.72)+'</svg></div>'; }
+
+  var SHOTS=[
+    {tag:['Friends tab · signed in','朋友页 · 已登录'],t:['Start from nothing','从零开始'],d:['The empty state explains the feature in one line and offers two actions. Today never links here.','空状态用一句话说明功能，给出两个操作。“今天”页面不会链接到这里。'],f:function(){return sEmpty(false);}},
+    {tag:['Friends tab · signed out','朋友页 · 未登录'],t:['An account is only needed here','只有这里需要账号'],d:['One button. The copy says everything else works without an account.','只有一个按钮，文案说明其他功能不需要账号。'],f:function(){return sEmpty(true);}},
+    {tag:['Sheet','弹层'],t:['Name the group','给小组起名'],d:['One field and one primary pill. The X dismisses, like every other Lightly sheet.','一个输入框、一个主按钮，右上角圆形 X 关闭，和轻伴其他弹层一致。'],f:sCreate},
+    {tag:['Sheet','弹层'],t:['Send the invite','发出邀请'],d:['Share link opens the system share sheet. The code and QR cover people in the same room or a chat app that blocks links.','“分享链接”打开系统分享面板。邀请码和二维码适合面对面，或不让发链接的聊天软件。'],f:sInvite},
+    {tag:['Live · Friends tab','可操作 · 朋友页'],t:['The group, today','小组，今天'],d:['A week strip, one summary line, then a row per person with a status word and a disc. Tap a day, a name, or Cheer.','一周条、一行小结，然后每人一行，有状态词和圆盘。可以点某一天、某个人或“加油”。'],f:function(){return sGroup(6,false,'g-today');}},
+    {tag:['Live · a past day','可操作 · 过去的一天'],t:['Look back at any day','回看任何一天'],d:['The same list for Thursday. Cheer is hidden on past days. A fast that ended early shows the share reached.','同一个列表，显示周四。过去的日子没有“加油”。提前结束的断食就显示当时完成的比例。'],f:function(){return sGroup(4,false,'g-past');}},
+    {tag:['Sheet','弹层'],t:['One person, one week','一个人，一周'],d:['Tap a name for the last seven days as discs. Cheer is the only action.','点名字看过去七天的圆盘。唯一的操作是“加油”。'],f:sMember},
+    {tag:['Group settings','小组设置'],t:['Control and exit','控制和退出'],d:['Share my status is first and plainest. Leave is a red row at the bottom. Remove and report live behind a swipe.','“分享我的状态”放在最前面，说明最简单。退出是底部的红色行。移除和举报在左滑里。'],f:sSettings},
+    {tag:['Invite page · opens in the browser','邀请页 · 在浏览器里打开'],t:['What a friend sees first','朋友第一眼看到什么'],d:['The group name, who invited them, and avatars only. No statuses until they have joined.','只有小组名、邀请人和头像。加入之前看不到任何状态。'],f:sJoin},
+    {tag:['Sheet · before joining','弹层 · 加入之前'],t:['Consent in plain words','用大白话说明授权'],d:['Three yes, three no, and a promise that leaving takes effect at once.','三条会分享、三条绝不分享，并承诺退出立刻生效。'],f:sConsent}
+  ];
+
+  function renderShots(){
+    $('#shots').innerHTML=SHOTS.map(function(s,i){ inst=0; Object.keys(gstate).forEach(function(k){ if(k.indexOf('g-')!==0&&k!=='m0') delete gstate[k]; });
+      return '<figure class="shot" style="margin:0"><div class="phone" data-mode="'+mode+'" data-i="'+i+'">'+s.f()+'</div><figcaption class="cap"><span class="tag">'+s.tag[lang==='zh'?1:0]+'</span><h3>'+s.t[lang==='zh'?1:0]+'</h3><p>'+s.d[lang==='zh'?1:0]+'</p></figcaption></figure>'; }).join('');
+  }
+  function renderLegend(){
+    var k=[['fasting',.6],['done',1],['rest',0],['none',0]];
+    $('#legend').innerHTML=k.map(function(x){ return '<div class="lg"><svg viewBox="-12 -12 24 24" class="'+(x[0]==='done'?'glow':'')+'" aria-hidden="true">'+discInner(x[0],x[1])+'</svg><b>'+ST[x[0]][lang==='zh'?1:0]+'</b><span>'+ST_LONG[x[0]][lang==='zh'?1:0]+'</span></div>'; }).join('');
+  }
+  function applyText(){
+    document.documentElement.lang=lang==='zh'?'zh-Hans':'en';
+    $$('[data-l]').forEach(function(el){ var p=el.getAttribute('data-l').split('|'); var v=p[lang==='zh'?1:0]; if(v.indexOf('<')>=0) el.innerHTML=v; else el.textContent=v; });
+    $$('[data-lang]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.lang===lang);});
+    $$('[data-mode]').forEach(function(b){ if(b.tagName==='BUTTON') b.setAttribute('aria-pressed',b.dataset.mode===mode); });
+    renderLegend(); renderShots();
+  }
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('button'); if(!t) return;
+    if(t.dataset.lang){ lang=t.dataset.lang; applyText(); return; }
+    if(t.dataset.mode&&!t.closest('.phone')){ mode=t.dataset.mode; $$('.phone').forEach(function(p){p.dataset.mode=mode;}); $$('[data-mode]').forEach(function(b){ if(b.tagName==='BUTTON') b.setAttribute('aria-pressed',b.dataset.mode===mode); }); return; }
+    var id=t.dataset.id; if(!id) return;
+    var ph=t.closest('.phone'), st=gstate[id];
+    if(t.dataset.day!==undefined){ st.day=+t.dataset.day; rerender(ph,id); }
+    else if(t.dataset.cheer){ st.cheer[t.dataset.cheer]=!st.cheer[t.dataset.cheer]; rerender(ph,id); }
+    else if(t.dataset.member){ /* tapping a name opens the member screen in the gallery */ var m=$('.phone[data-i="6"]'); if(m) m.scrollIntoView({behavior:'smooth',block:'center'}); }
+  });
+  function rerender(ph,id){ var i=+ph.dataset.i, s=SHOTS[i]; var gid=id; var day=gstate[id].day;
+    var html=sGroup(day,false,id); var tmp=document.createElement('div'); tmp.innerHTML=html;
+    var scr=$('.scr',ph); var ns=$('.scr',tmp); scr.innerHTML=ns.innerHTML;
+    var f=ph.querySelector('[data-day][aria-pressed="true"]'); if(f) f.focus({preventScroll:true}); }
+
+  /* live disc demo */
+  (function(){ var p=0,last=0,el=$('#liveDisc'),tx=$('#liveTxt'),red=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function draw(){ el.innerHTML=discInner(p>=1?'done':'fasting',p); tx.textContent=Math.round(Math.min(p,1)*100)+'%'; }
+    draw(); if(red){p=.62;draw();return;}
+    setInterval(function(){ p+=.01; if(p>1.12) p=0; draw(); },120); })();
+
+  applyText();
+})();
+</script>
+
+</body></html>
