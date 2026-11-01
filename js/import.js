@@ -75,6 +75,46 @@ function parse(text){
   return r||{error:'format'};
 }
 
+/* Zip files (Zero's export arrives as one): read the central directory, inflate with the browser's own DecompressionStream, then use the first file inside that holds fasts. No library. */
+var MAXZ=60*1048576;
+function u16(b,o){ return b[o]|b[o+1]<<8; } function u32(b,o){ return (b[o]|b[o+1]<<8|b[o+2]<<16|b[o+3]<<24)>>>0; }
+function inflate(raw){
+  if(typeof DecompressionStream==='undefined') return Promise.reject(new Error('nozip'));
+  var ds=new DecompressionStream('deflate-raw'), w=ds.writable.getWriter(); w.write(raw).catch(function(){}); w.close().catch(function(){});
+  return new Response(ds.readable).arrayBuffer().then(function(a){ return new Uint8Array(a); });
+}
+/* ArrayBuffer -> Promise of [{name,bytes}] (only text-like candidates), or rejects with Error('zip'|'encrypted'|'nozip') */
+function unzip(buf){
+  var b=new Uint8Array(buf), n=b.length, e=-1, i;
+  for(i=n-22;i>=Math.max(0,n-22-65535);i--) if(u32(b,i)===0x06054b50){ e=i; break; }
+  if(e<0) return Promise.reject(new Error('zip'));
+  var cnt=u16(b,e+10), o=u32(b,e+16), jobs=[], enc=false;
+  if(cnt>2000) return Promise.reject(new Error('zip'));
+  for(i=0;i<cnt;i++){
+    if(o+46>n||u32(b,o)!==0x02014b50) return Promise.reject(new Error('zip'));
+    var flag=u16(b,o+8), meth=u16(b,o+10), csz=u32(b,o+20), usz=u32(b,o+24), nl=u16(b,o+28), xl=u16(b,o+30), cl=u16(b,o+32), lo=u32(b,o+42);
+    var name=new TextDecoder().decode(b.subarray(o+46,o+46+nl)); o+=46+nl+xl+cl;
+    if(!/\.(json|csv|txt)$/i.test(name)||/(^|\/)(__MACOSX\/|\._)/.test(name)) continue;
+    if(flag&1){ enc=true; continue; }
+    if(usz>MAXZ||lo+30>n||u32(b,lo)!==0x04034b50) continue;
+    (function(name,meth,csz,lo){
+      var ds=lo+30+u16(b,lo+26)+u16(b,lo+28), raw=b.subarray(ds,ds+csz);
+      jobs.push((meth===0?Promise.resolve(raw):meth===8?inflate(raw):Promise.reject(new Error('zip'))).then(function(by){ return {name:name,bytes:by}; }));
+    })(name,meth,csz,lo);
+  }
+  if(!jobs.length) return Promise.reject(new Error(enc?'encrypted':'zip'));
+  return Promise.all(jobs);
+}
+/* the file to import from a zip: Zero's firestore.json first, then biodata.json, then any other file that holds fasts. Both Zero files list the same fasts, so never merge them. */
+function fromZip(buf){
+  return unzip(buf).then(function(files){
+    var rank=function(f){ var m=f.name.toLowerCase().split('/').pop(); return m==='firestore.json'?0:m==='biodata.json'?1:2; };
+    files.sort(function(a,c){ return rank(a)-rank(c)||c.bytes.length-a.bytes.length; });
+    for(var i=0;i<files.length;i++){ var r=parse(new TextDecoder().decode(files[i].bytes)); if(r&&!r.error&&r.items.length) return r; }
+    return {error:'format'};
+  },function(err){ return {error:err&&/^(zip|encrypted|nozip)$/.test(err.message)?err.message:'zip'}; });
+}
+
 /* Decide what goes in. `have` is the state's fasts, `cur` an open fast, `gone` ids the user deleted. */
 function plan(res,have,cur,gone,now){
   var out={source:res.source,add:[],dup:0,overlap:0,bad:0,open:res.open||0,future:0,first:null,last:null};
@@ -96,6 +136,6 @@ function plan(res,have,cur,gone,now){
   return out;
 }
 
-var api={parse:parse,plan:plan,ts:ts,csv:csv};
+var api={parse:parse,plan:plan,ts:ts,csv:csv,unzip:unzip,fromZip:fromZip};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyImport=api;
 })(typeof self!=='undefined'?self:this);

@@ -24,4 +24,24 @@ r=I.parse('started_at;ended_at\n2026-09-01T20:00:00Z;2026-09-02T12:00:00Z');asse
 r=I.parse(JSON.stringify({fasts:[{id:'q',start:now-20*H,end:now-4*H,goalH:16}]}));assert.strictEqual(r.source,'Lightly');assert.strictEqual(I.plan(r,[],null,[],now).add.length,1);
 // garbage
 assert.strictEqual(I.parse('').error,'empty');assert.strictEqual(I.parse('{oops').error,'json');assert.strictEqual(I.parse('{"a":1}').error,'format');assert.strictEqual(I.parse('hello,world\n1,2').error,'format');
-console.log('import tests ok');
+
+
+// zip files: build real zips (stored and deflated, with a data descriptor-free layout) and read them back
+const makeZip0=require('./zip-helper.js');
+const makeZip=(f,o)=>{const u=makeZip0(f,o);return u.buffer.slice(u.byteOffset,u.byteOffset+u.length);};
+(async()=>{
+  const fs1=JSON.stringify(zero), bio1=JSON.stringify(bio);
+  // Zero's zip: firestore.json wins, biodata.json is not merged in, mac junk and folders are ignored
+  let z=await I.fromZip(makeZip([['export/biodata.json',bio1],['__MACOSX/export/._firestore.json','junk'],['export/firestore.json',fs1],['export/readme.pdf','x']]));
+  assert.strictEqual(z.source,'Zero');assert.strictEqual(z.items.length,2);assert.strictEqual(I.plan(z,[],null,[],now).add.length,2);
+  // only biodata.json inside still works; stored (not deflated) entries work
+  z=await I.fromZip(makeZip([['biodata.json',bio1]],{store:true}));assert.strictEqual(z.items.length,1);
+  // a CSV inside a zip
+  z=await I.fromZip(makeZip([['fasts.csv','Start,End\n2026-09-01 20:00,2026-09-02 12:00\n']]));assert.strictEqual(z.items.length,1);
+  // a zip with nothing usable, a password-protected zip, and a file that is not a zip
+  assert.strictEqual((await I.fromZip(makeZip([['photo.png','x'],['notes.txt','hello']]))).error,'format');
+  assert.strictEqual((await I.fromZip(makeZip([['firestore.json',fs1]],{encrypt:true}))).error,'encrypted');
+  assert.strictEqual((await I.fromZip(makeZip([['photo.png','x']]))).error,'zip');
+  assert.strictEqual((await I.fromZip(new Uint8Array([1,2,3,4]).buffer)).error,'zip');
+  console.log('import tests ok');
+})().catch(e=>{console.error(e);process.exit(1);});
