@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.53.1
+- **copy** The setup screens say much less. Each step now has one short line, and nothing is said twice. The welcome line is just "Fasting that follows the sky." "Have you fasted before?" no longer has an intro line or descriptions under each answer (the plan buttons below it show what opens). "Pick your plan" drops its intro and the "Fast 13 hours" lines under every plan (only locked plans keep "After 3 fasts"). "Make it yours" has no intro. The safety note, the location line, the import text and the final "You're set" note are each cut to one or two short sentences, in English and Chinese. The concept page's setup demo matches.
+
 ## 0.53.0
 - **design** Erasing everything now takes real care, because it can't be undone. The Erase everything sheet has a red warning mark, says plainly that everything on this phone is deleted for good, and lists what goes: your fasts, streak and cheat days; your plan, setup and unlocked plans; time off and every setting. Cancel is now the main button. The erase button starts locked and counts down 3, 2, 1, then turns solid red and has to be held for 2 seconds (a short press does nothing, and the button fills as you hold). There is a quiet "Export my fasts first" button on the sheet for people who want a copy. The concept page's Erase demo matches (nothing is erased there), in English and Chinese.
 
