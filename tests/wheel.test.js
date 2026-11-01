@@ -8,7 +8,7 @@ const ok=n=>console.log('ok -',n);
  const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  for(const page of ['',  'concept/']){
   const ctx=await b.newContext({viewport:{width:390,height:844},hasTouch:false});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
-  await p.addInitScript(()=>{window.__v=[];navigator.vibrate=function(x){window.__v.push(x);return true;};});
+  await p.addInitScript(()=>{window.__v=[];navigator.vibrate=function(x){window.__v.push(x);return true;};window.__osc=0;try{const A=window.AudioContext||window.webkitAudioContext,oc=A.prototype.createOscillator;A.prototype.createOscillator=function(){window.__osc++;return oc.call(this);};}catch(e){}});
   await p.goto(base+page);await p.waitForTimeout(600);
   const app=page==='';
   if(app){ // onboarding: "I've fasted before" opens the start-time wheel
@@ -43,6 +43,7 @@ const ok=n=>console.log('ok -',n);
   assert(moved>=8,'a quick flick carries past many values, moved '+moved);
   const ticks=await p.evaluate(()=>window.__v.length);
   assert(ticks>=6,'a haptic tick per value passed, got '+ticks);
+  assert((await p.evaluate(()=>window.__osc))>=ticks,'a quiet tick sound per value, oscillators '+(await p.evaluate(()=>window.__osc))+' for '+ticks+' ticks');
   ok((app?'app':'concept')+': flick glides '+moved+' values, ends on a row, '+ticks+' ticks');
   // loop: from 59 going forward lands on 00 with no end
   await p.evaluate(s=>{const c=document.querySelector(s+' [data-c=m]');c.scrollTop=(60*3+59)*36;},sel);await p.waitForTimeout(300);
@@ -65,6 +66,14 @@ const ok=n=>console.log('ok -',n);
   const box=await (await p.$('#obStart [data-c=m]')).boundingBox(), x=box.x+box.width/2, y0=box.y+box.height/2;
   await p.mouse.move(x,y0+50);await p.mouse.down();await p.mouse.move(x,y0-50,{steps:5});await p.mouse.up();await p.waitForTimeout(100);
   const t=await p.evaluate(()=>document.querySelector('#obStart [data-c=m]').scrollTop);assert.strictEqual(t%36,0,'Reduce Motion: lands on a row at once');ok('Reduce Motion: no gliding');await ctx.close();}
+ // Sound off: the tick is silent too
+ {const ctx=await b.newContext({viewport:{width:390,height:844}});const p=await ctx.newPage();
+  await p.addInitScript(()=>{localStorage.setItem('lightly:v1',JSON.stringify({v:1,onboarded:false,prefs:{sound:false}}));window.__osc=0;const A=window.AudioContext||window.webkitAudioContext,oc=A.prototype.createOscillator;A.prototype.createOscillator=function(){window.__osc++;return oc.call(this);};});
+  await p.goto(base);await p.waitForTimeout(600);
+  await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('.ob-step.on [data-act=obnext]');await p.waitForTimeout(900);await p.click('#obStart .pk-row');await p.waitForTimeout(700);
+  const box=await (await p.$('#obStart [data-c=m]')).boundingBox(), x=box.x+box.width/2, y0=box.y+box.height/2;
+  await p.mouse.move(x,y0+50);await p.mouse.down();for(let k=1;k<=10;k++){await p.mouse.move(x,y0+50-k*8);await p.waitForTimeout(50);}await p.mouse.up();
+  assert.strictEqual(await p.evaluate(()=>window.__osc),0,'Sound off: no tick sound');ok('Sound setting off silences the wheel tick');await ctx.close();}
  // iPhone: no navigator.vibrate, so each value tap goes through a fresh hidden switch, clicked inside the finger's own pointermove
  {const ctx=await b.newContext({viewport:{width:390,height:844},userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'});const p=await ctx.newPage();
   await p.addInitScript(()=>{try{Object.defineProperty(Navigator.prototype,'vibrate',{value:undefined,configurable:true});}catch(e){}window.__c=[];const o=HTMLLabelElement.prototype.click;HTMLLabelElement.prototype.click=function(){window.__c.push({sw:!!this.querySelector('input[switch]'),inMove:window.__inMove===true});return o.call(this);};
