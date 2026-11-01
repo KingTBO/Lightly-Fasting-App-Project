@@ -7,7 +7,7 @@ const ok=n=>console.log('ok -',n);
 (async()=>{await new Promise(r=>srv.listen(0,r));const base='http://localhost:'+srv.address().port+'/';
  const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  for(const page of ['',  'concept/']){
-  const ctx=await b.newContext({viewport:{width:390,height:844},hasTouch:false});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+  const ctx=await b.newContext({viewport:{width:390,height:844},hasTouch:false});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));const wav=[];p.on('response',r=>{if(/wheel-tick\.wav/.test(r.url()))wav.push(r.status());});
   await p.addInitScript(()=>{window.__v=[];navigator.vibrate=function(x){window.__v.push(x);return true;};window.__osc=0;try{const A=window.AudioContext||window.webkitAudioContext,oc=A.prototype.createBufferSource;A.prototype.createBufferSource=function(){window.__osc++;return oc.call(this);};}catch(e){}});
   await p.goto(base+page);await p.waitForTimeout(600);
   const app=page==='';
@@ -44,6 +44,7 @@ const ok=n=>console.log('ok -',n);
   const ticks=await p.evaluate(()=>window.__v.length);
   assert(ticks>=6,'a haptic tick per value passed, got '+ticks);
   assert((await p.evaluate(()=>window.__osc))>=ticks,'a quiet tick sound per value, oscillators '+(await p.evaluate(()=>window.__osc))+' for '+ticks+' ticks');
+  assert.deepStrictEqual(wav.slice(0,1),[200],'the tick sample sounds/wheel-tick.wav loads');
   ok((app?'app':'concept')+': flick glides '+moved+' values, ends on a row, '+ticks+' ticks');
   // loop: from 59 going forward lands on 00 with no end
   await p.evaluate(s=>{const c=document.querySelector(s+' [data-c=m]');c.scrollTop=(60*3+59)*36;},sel);await p.waitForTimeout(300);
