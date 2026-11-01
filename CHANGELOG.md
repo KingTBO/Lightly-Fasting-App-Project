@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.51.0
+- **design** When an import finishes, the result now comes up as a bottom sheet instead of a small message at the top that was easy to miss and hard to read. It is the same kind of sheet as "Fast saved": "Import complete", the number of fasts added in large type, how many of them reached their goal, how many were skipped (already in Lightly, overlapping, or with unusable times), and the dates covered. Tap **Done**, or **See in Days** to go straight to the new fasts. The chime and vibration from 0.50.0 still play with it. During setup the sheet appears over the setup screen and has only Done. The concept page's import demo matches.
+
 ## 0.50.0
 - **feature** When an import finishes and fasts were added, the app now plays the same soft chime as reaching a goal, with the same success vibration (three short pulses). It plays once per import, follows the Sound and Vibration switches in Me (turn Sound off and it is silent, turn Vibration off and it does not buzz), and stays silent when the file can't be read, has no fasts in it, or there is nothing new to add. The same happens when you import during setup. The concept page's import demo (in Me and in setup) does the same, and its Sound description now mentions it.
 
