@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.49.1
+- **design** The wheel's tick is now the stock Android click (the open-source "Effect_Tick" sound from the Android Open Source Project, Apache 2.0 licence), chosen by TEEBO after hearing it, instead of the lookalike made in code. It is a short 94 millisecond clip, about as quiet as before, and still follows the Sound setting. It loads the first time you open a wheel and works offline; until it has loaded, the old click stands in. The concept page matches. The licence note is in sounds/README.md.
+
 ## 0.49.0
 - **design** The wheel's tick sound is now a dry, short mechanical click, closer to the iPhone Clock picker, instead of the soft musical blip from 0.48.0 (which sounded odd). It is a 9 millisecond burst of filtered noise with a tiny low knock under it, still quiet, still following the Sound setting, still one per 40 milliseconds. Apple's own picker sound can't be copied into the app, so this is a lookalike made in code. The concept page matches. A preview recording is in the project files (fasting-app/sounds/wheel-click-preview.wav).
 
