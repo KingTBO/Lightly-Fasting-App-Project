@@ -694,7 +694,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <div class="loc"><label for="city" data-zh="日出日落地">Sunrise and sunset for</label><select id="city"><option value="shanghai">Shanghai</option><option value="singapore">Singapore</option><option value="london">London</option><option value="newyork">New York</option></select><button type="button" id="geoBtn" data-zh="用我的位置">Use my location</button></div>
         <p class="why" id="sunWhy"></p>
       </div>
-      <div class="group row2"><div><b data-zh="声音">Sound</b><span data-zh="达成目标时一声轻轻的铃，转动时间滚轮时有很轻的滴答声。应用里会跟随手机的静音设置。">A soft chime when you reach your goal, and a very quiet tick as you turn the time wheels. In the app it follows your phone's silent mode.</span></div><button class="sw" type="button" role="switch" aria-checked="true" id="sndSw" aria-label="Sound"></button></div>
+      <div class="group row2"><div><b data-zh="声音">Sound</b><span data-zh="达成目标或导入成功时一声轻轻的铃，转动时间滚轮时有很轻的滴答声。应用里会跟随手机的静音设置。">A soft chime when you reach your goal or finish an import, and a very quiet tick as you turn the time wheels. In the app it follows your phone's silent mode.</span></div><button class="sw" type="button" role="switch" aria-checked="true" id="sndSw" aria-label="Sound"></button></div>
       <div class="group row2"><div><b data-zh="3D 月亮和太阳">3D moon and sun</b><span id="d3Note" data-zh="一个真正被照亮的球体。关掉可以和平面版对比，老手机会自动用平面版。">A real lit sphere. Turn it off to compare with the flat version, which older phones get automatically.</span></div><button class="sw" type="button" role="switch" aria-checked="true" id="d3Sw" aria-label="3D moon and sun"></button></div>
       <button class="play" type="button" id="playBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg><span id="playLbl" data-zh="从头播放">Play the Whole Fast</span></button>
     </div>
@@ -1845,7 +1845,7 @@ window.LightlySphere=(function(){
       else if(q==='plan') st.plan=v;
       try{ if(navigator.vibrate) navigator.vibrate(5); }catch(e){}
       rerender(); }); });
-    var im=el.querySelector('[data-imp]'); if(im&&!im._b){ im._b=1; im.addEventListener('click',function(){ st.imp=true; rerender(); }); }
+    var im=el.querySelector('[data-imp]'); if(im&&!im._b){ im._b=1; im.addEventListener('click',function(){ st.imp=true; rerender(); if(window.LightlyDoneChime) window.LightlyDoneChime(); }); }
   }
   back.addEventListener('click',function(){ if(st.step>0) show(st.step-1,-1); });
   function out(){ var rec=risky()?'13':RULES.recommend[st.exp||'first']; var started=st.exp||st.safety.length;
@@ -2132,6 +2132,13 @@ window.LightlySphere=(function(){
   var api=window.LightlyAPI; if(!api) return;
   var $=function(i){ return document.getElementById(i); }, ph=$('ph'), me=$('meScr'), tabs=[].slice.call(ph.querySelectorAll('.tabs>span'));
   function L(en,zh){ return api.lang()==='zh'?zh:en; }
+  /* a finished import plays the same soft chime as reaching a goal, with the success haptic; it follows the Sound switch and plays once per import */
+  var dctx=null;
+  function doneChime(){ var sw=$('sndSw'); try{ if(navigator.vibrate) navigator.vibrate([30,60,30]); }catch(e){}
+    if(sw&&sw.getAttribute('aria-checked')!=='true') return;
+    try{ if(!dctx){ var A=window.AudioContext||window.webkitAudioContext; if(!A) return; dctx=new A(); } if(dctx.state==='suspended') dctx.resume();
+      [[1318.5,1.4,.06,0],[1975.5,1.6,.04,.09],[2637,1.2,.02,.18]].forEach(function(n){ var o=dctx.createOscillator(), g=dctx.createGain(), t=dctx.currentTime+n[3]; o.type='sine'; o.frequency.setValueAtTime(n[0],t); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(n[2],t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+n[1]); o.connect(g); g.connect(dctx.destination); o.start(t); o.stop(t+n[1]+.02); }); }catch(e){} }
+  window.LightlyDoneChime=doneChime;
   var signed=null; /* null, or how they signed in */
   var IC={apple:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.5 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.6 1.3-.1 1.7-.8 3.3-.8 1.5 0 1.9.8 3.3.8 1.4 0 2.2-1.2 3.1-2.5 1-1.4 1.3-2.8 1.4-2.9-.1 0-2.7-1-2.7-4.3zM13.9 5.1c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg>',
     google:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.6 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h5.9c-.3 1.4-1 2.5-2.2 3.3v2.7h3.6c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8C3.9 20.6 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.8 14.2c-.2-.7-.4-1.4-.4-2.2s.1-1.5.4-2.2V7H2.1C1.4 8.5 1 10.2 1 12s.4 3.5 1.1 5l3.7-2.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2C17.5 2.1 15 1 12 1 7.7 1 3.9 3.4 2.1 7l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>',
@@ -2298,7 +2305,7 @@ window.LightlySphere=(function(){
     else h='<button type="button" class="imp-go" id="impDone">'+L('Done','完成')+'</button>';
     $('impBody').innerHTML=h;
     var b; if((b=$('impPick'))) b.onclick=function(){ impStep=1; impRender(); };
-    if((b=$('impGo'))) b.onclick=function(){ impStep=2; impRender(); };
+    if((b=$('impGo'))) b.onclick=function(){ impStep=2; impRender(); doneChime(); };
     if((b=$('impBack'))) b.onclick=function(){ impStep=0; impRender(); };
     if((b=$('impDone'))) b.onclick=function(){ impOpen(false); }; }
   function impOpen(v,step){ isc.classList.remove('peek'); if(v){ impStep=step||0; impRender(); } imp.classList.toggle('open',v); imp.setAttribute('aria-hidden',!v); isc.classList.toggle('on',v); if(v) $('impClose').focus({preventScroll:true}); else if(impFrom) impFrom.focus({preventScroll:true}); }

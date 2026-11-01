@@ -112,7 +112,7 @@ function canTick(){ return !!navigator.vibrate||IOS; }
 function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); else iosTap(); }catch(e){} }
 /* one fixed vocabulary, so the same thing always feels the same:
    select = a wheel detent, light = a touch or toggle, hour = the hour turns, medium = a fast starts or a hold completes,
-   success = the goal is reached (its soft chime is the biggest sound; the wheels also make a very quiet tick, see sTick), nope = a gentle "not now" (two light taps, no sound). Nothing fires on routine saves. */
+   success = the goal is reached, or an import adds fasts (its soft chime is the biggest sound; the wheels also make a very quiet tick, see sTick), nope = a gentle "not now" (two light taps, no sound). Nothing fires on routine saves. */
 var FX={select:3,light:6,hour:8,medium:14,success:[30,60,30],nope:[8,70,8]};
 function fx(k){ buzz(FX[k]); if(k==='success') sChime(); else if(k==='select') sTick(); }
 
@@ -762,7 +762,9 @@ function importDo(){
   var p=impPlan; if(!p||!p.add.length) return;
   /* check again against the latest state, so a double tap can never create duplicates */
   var q=LightlyImport.plan({source:p.source,items:p.add,open:0},S.fasts,S.cur,S.del,Date.now());
+  if(!q.add.length){ impPlan=null; closeSheet(); return; } /* nothing left to add: no toast, no chime */
   q.add.forEach(function(f){ S.fasts.push(f); });
+  fx('success'); /* the goal chime and its success haptic, once, only when fasts were really added (fx follows the Sound and Vibration settings) */
   impPlan=null; save(); cache={}; closeSheet(); renderMe(); updateToday(); checkUnlocks(); if(!$('ob').hidden&&ob&&obFlow()[ob.step]==='import') setTimeout(function(){ A.obnext(); },260);
   toast(L('Added '+q.add.length+' fasts.','已添加 '+q.add.length+' 次断食。'));
 }

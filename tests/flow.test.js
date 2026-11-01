@@ -171,11 +171,15 @@ const H=3600000,D=24*H;
   const file={name:'biodata.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({fast_data:[1,2,3,4,5].map(row)}))};
   await p.click('[data-act=import]');await p.setInputFiles('#impFile',file);await p.waitForSelector('[data-act=impdo]');
   assert.strictEqual((await S()).fasts.length,before,'preview adds nothing');assert.match(await p.textContent('#sheet'),/Add 5 fasts|添加 5 次断食/);
+  // the finished import plays the goal chime (3 tones) and the success haptic once; a failed or empty import stays silent
+  await p.evaluate(()=>{window.__fx={osc:0,vib:[]};const A=window.AudioContext||window.webkitAudioContext;if(A&&!A.prototype.__w){const c=A.prototype.createOscillator;A.prototype.createOscillator=function(){window.__fx.osc++;return c.apply(this,arguments);};A.prototype.__w=1;}navigator.vibrate=function(x){window.__fx.vib.push(JSON.stringify(x));return true;};});
   await p.click('[data-act=impdo]');await p.waitForTimeout(500);assert.strictEqual((await S()).fasts.length,before+5);
+  {const fxr=await p.evaluate(()=>window.__fx);assert.strictEqual(fxr.osc,3,'import chime: three tones, once');assert.deepStrictEqual(fxr.vib.filter(v=>v==='[30,60,30]'),['[30,60,30]'],'import success haptic, once');}
   await p.click('[data-act=import]');await p.setInputFiles('#impFile',file);await p.waitForSelector('[data-act=impdo]');
   assert(await p.$('[data-act=impdo][disabled]'),'second import has nothing to add');assert.strictEqual((await S()).fasts.length,before+5);
   await p.click('#sheet [data-act=close]');
-  await p.click('[data-act=import]');await p.setInputFiles('#impFile',{name:'x.json',mimeType:'application/json',buffer:Buffer.from('{"a":1}')});await p.waitForSelector('.note.err');ok('import previews, skips duplicates and rejects unknown files');
+  await p.click('[data-act=import]');await p.setInputFiles('#impFile',{name:'x.json',mimeType:'application/json',buffer:Buffer.from('{"a":1}')});await p.waitForSelector('.note.err');
+  {const fxr=await p.evaluate(()=>window.__fx);assert.strictEqual(fxr.osc,3,'empty or failed import is silent');assert.strictEqual(fxr.vib.filter(v=>v==='[30,60,30]').length,1,'empty or failed import does not play the success haptic');}ok('import previews, skips duplicates, rejects unknown files, and chimes once on success only');
   await p.click('#sheet [data-act=close]');}
  await p.evaluate(()=>{document.getElementById('me').scrollTop=0;});await p.click('[data-act=erase]');await p.click('[data-act=eraseok]');await p.waitForTimeout(800);assert.strictEqual(await p.evaluate(()=>(JSON.parse(localStorage.getItem('lightly:v1'))||{}).onboarded||false),false);ok('erase resets');
  assert.deepStrictEqual(errs,[]);console.log('all flows ok');await b.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});
