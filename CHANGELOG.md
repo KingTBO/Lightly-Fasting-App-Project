@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.51.1
+- **docs** Added a team change log on Notion (Lightly workspace, "Team change log"): one short plain-language list of every change, with a section per person (Tengbo, Varun), so the team can see who did what. The release rules and AGENTS.md now say every contributor, and their Claude, adds each merged change to that page under their own name. The app and the concept page did not change.
+
 ## 0.51.0
 - **design** When an import finishes, the result now comes up as a bottom sheet instead of a small message at the top that was easy to miss and hard to read. It is the same kind of sheet as "Fast saved": "Import complete", the number of fasts added in large type, how many of them reached their goal, how many were skipped (already in Lightly, overlapping, or with unusable times), and the dates covered. Tap **Done**, or **See in Days** to go straight to the new fasts. The chime and vibration from 0.50.0 still play with it. During setup the sheet appears over the setup screen and has only Done. The concept page's import demo matches.
 

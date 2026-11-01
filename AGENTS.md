@@ -48,6 +48,8 @@ How much to test is set by the size of the change (RELEASING.md, step 5):
 5. **Concept page.** Anything people can see in the app is mirrored on the concept page (`concept/index.html`, the product landing page) in the same change. Its text switches language with `data-zh` attributes.
 6. **Merging.** TEEBO has said agents merge their own PRs; they do not need to merge for you. Make sure the checks pass first. If a check fails, say so in the PR and to TEEBO before doing anything else, and never merge over a red check. After merging, say what shipped and ask TEEBO to verify it live. Anything that is not a Lightly PR still needs TEEBO's go-ahead.
 
+7. **Team change log.** Each contributor (and their agent) adds every merged change to the Notion page [Team change log](https://app.notion.com/p/40b24bd28b8d81e39691c9baaf823107) under their own name (Tengbo or Varun), in the matching category, newest first: version plus one plain sentence, for example `v0.49.1 Updated timer sound to the stock Android click`. Never write in another person's section. If you cannot reach Notion, say so in the PR so the owner can add it.
+
 ## Design rules
 
 - **Apple's look on every platform.** Follow Apple's Human Interface Guidelines for visual style, motion and typography, on Android and the web as well as iOS. No Material styling. Apple celebrates with restraint (one object, real material, a ring closing), not colour washes, rays or gold gradients.
