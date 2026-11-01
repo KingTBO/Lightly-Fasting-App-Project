@@ -1776,9 +1776,12 @@ window.LightlySphere=(function(){
   var IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   /* iPhone Safari cannot vibrate from the web; Safari 17.4+ taps when an <input switch> is toggled, so toggle a fresh invisible one (works from a real touch event only) */
   var tctx=null;   /* the wheel's quiet tick sound, with the Sound switch (the app's sTick) */
+  var clickBuf=null;
   function tickSound(){ var sw=document.getElementById('sndSw'); if(sw&&sw.getAttribute('aria-checked')!=='true') return;
-    try{ if(!tctx){ var A=window.AudioContext||window.webkitAudioContext; if(!A) return; tctx=new A(); } if(tctx.state==='suspended') tctx.resume();
-      [[1700,.028,.05],[3400,.012,.012]].forEach(function(n){ var o=tctx.createOscillator(), g=tctx.createGain(), t=tctx.currentTime; o.type='sine'; o.frequency.setValueAtTime(n[0],t); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(n[2],t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+n[1]); o.connect(g); g.connect(tctx.destination); o.start(t); o.stop(t+n[1]+.02); }); }catch(e){} }
+    try{ if(!tctx){ var A=window.AudioContext||window.webkitAudioContext; if(!A) return; tctx=new A(); } if(tctx.state==='suspended') tctx.resume(); var c=tctx;
+      if(!clickBuf){ var n=Math.floor(c.sampleRate*.02), d; clickBuf=c.createBuffer(1,n,c.sampleRate); d=clickBuf.getChannelData(0); for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.0025)); }
+      var t=c.currentTime, src=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(); src.buffer=clickBuf; f.type='bandpass'; f.frequency.value=2600; f.Q.value=.9; g.gain.value=.22; src.connect(f); f.connect(g); g.connect(c.destination); src.start(t);
+      var o=c.createOscillator(), og=c.createGain(); o.type='sine'; o.frequency.setValueAtTime(260,t); o.frequency.exponentialRampToValueAtTime(140,t+.02); og.gain.setValueAtTime(.05,t); og.gain.exponentialRampToValueAtTime(.0001,t+.022); o.connect(og); og.connect(c.destination); o.start(t); o.stop(t+.03); }catch(e){} }
   function tickWarm(){ try{ if(!tctx){ var A=window.AudioContext||window.webkitAudioContext; if(A) tctx=new A(); } if(tctx&&tctx.state==='suspended') tctx.resume(); }catch(e){} }   /* a real tap lets iPhone start sound later */
   function tick(){ tickSound(); try{ if(navigator.vibrate){ navigator.vibrate(3); return; } if(!IOS) return; var l=document.createElement('label'), i=document.createElement('input'); l.setAttribute('aria-hidden','true'); l.style.cssText='position:fixed;left:0;top:0;width:44px;height:26px;opacity:.01;pointer-events:none;z-index:-1'; i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1; l.appendChild(i); document.body.appendChild(l); l.click(); setTimeout(function(){ if(l.parentNode) l.parentNode.removeChild(l); },150); }catch(e){} }
   function pkCol(key,label,items,sel,flex,loop){ var n=items.length, base=loop?n*PK_MID:0, rows=items, r;

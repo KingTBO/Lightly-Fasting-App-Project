@@ -89,8 +89,14 @@ function actx(){ if(!S.prefs.sound) return null; try{ if(!ac){ var A=window.Audi
 function tone(f,dur,vol,type,at){ var c=actx(); if(!c) return; var t=c.currentTime+(at||0), o=c.createOscillator(), g=c.createGain();
   o.type=type||'sine'; o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+.02); }
-/* the wheel's tick: a very short, soft click (about 25 ms), quieter than the chime; it follows the Sound setting like every sound */
-function sTick(){ tone(1700,.028,.05,'sine'); tone(3400,.012,.012,'sine'); }
+/* the wheel's tick: a dry, short mechanical click like the iPhone Clock picker (Apple's own sound is not ours to use, so this is synthesized):
+   a 9 ms burst of band-passed noise for the "tick", with a tiny low "knock" under it. Quiet, and it follows the Sound setting like every sound. */
+var clickBuf=null;
+function sTick(){ var c=actx(); if(!c) return;
+  if(!clickBuf){ var n=Math.floor(c.sampleRate*.02), d; clickBuf=c.createBuffer(1,n,c.sampleRate); d=clickBuf.getChannelData(0); for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.0025)); }
+  var t=c.currentTime, src=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain();
+  src.buffer=clickBuf; f.type='bandpass'; f.frequency.value=2600; f.Q.value=.9; g.gain.value=.22; src.connect(f); f.connect(g); g.connect(c.destination); src.start(t);
+  var o=c.createOscillator(), og=c.createGain(); o.type='sine'; o.frequency.setValueAtTime(260,t); o.frequency.exponentialRampToValueAtTime(140,t+.02); og.gain.setValueAtTime(.05,t); og.gain.exponentialRampToValueAtTime(.0001,t+.022); o.connect(og); og.connect(c.destination); o.start(t); o.stop(t+.03); }
 function sChime(){ tone(1318.5,1.4,.06); tone(1975.5,1.6,.04,'sine',.09); tone(2637,1.2,.02,'sine',.18); }
 /* Android and desktop Chrome can vibrate from the web. iPhone Safari cannot (no navigator.vibrate and no haptics API at all), but Safari 17.4+ plays a small tap
    when an <input type=checkbox switch> is toggled, so on iPhone we toggle a fresh, invisible one with a label click. It is a hack: it has only been seen to work

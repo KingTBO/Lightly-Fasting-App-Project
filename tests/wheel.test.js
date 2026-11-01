@@ -8,7 +8,7 @@ const ok=n=>console.log('ok -',n);
  const b=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  for(const page of ['',  'concept/']){
   const ctx=await b.newContext({viewport:{width:390,height:844},hasTouch:false});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
-  await p.addInitScript(()=>{window.__v=[];navigator.vibrate=function(x){window.__v.push(x);return true;};window.__osc=0;try{const A=window.AudioContext||window.webkitAudioContext,oc=A.prototype.createOscillator;A.prototype.createOscillator=function(){window.__osc++;return oc.call(this);};}catch(e){}});
+  await p.addInitScript(()=>{window.__v=[];navigator.vibrate=function(x){window.__v.push(x);return true;};window.__osc=0;try{const A=window.AudioContext||window.webkitAudioContext,oc=A.prototype.createBufferSource;A.prototype.createBufferSource=function(){window.__osc++;return oc.call(this);};}catch(e){}});
   await p.goto(base+page);await p.waitForTimeout(600);
   const app=page==='';
   if(app){ // onboarding: "I've fasted before" opens the start-time wheel
@@ -68,7 +68,7 @@ const ok=n=>console.log('ok -',n);
   const t=await p.evaluate(()=>document.querySelector('#obStart [data-c=m]').scrollTop);assert.strictEqual(t%36,0,'Reduce Motion: lands on a row at once');ok('Reduce Motion: no gliding');await ctx.close();}
  // Sound off: the tick is silent too
  {const ctx=await b.newContext({viewport:{width:390,height:844}});const p=await ctx.newPage();
-  await p.addInitScript(()=>{localStorage.setItem('lightly:v1',JSON.stringify({v:1,onboarded:false,prefs:{sound:false}}));window.__osc=0;const A=window.AudioContext||window.webkitAudioContext,oc=A.prototype.createOscillator;A.prototype.createOscillator=function(){window.__osc++;return oc.call(this);};});
+  await p.addInitScript(()=>{localStorage.setItem('lightly:v1',JSON.stringify({v:1,onboarded:false,prefs:{sound:false}}));window.__osc=0;const A=window.AudioContext||window.webkitAudioContext,oc=A.prototype.createBufferSource;A.prototype.createBufferSource=function(){window.__osc++;return oc.call(this);};});
   await p.goto(base);await p.waitForTimeout(600);
   await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('.ob-step.on [data-act=obnext]');await p.waitForTimeout(900);await p.click('#obStart .pk-row');await p.waitForTimeout(700);
   const box=await (await p.$('#obStart [data-c=m]')).boundingBox(), x=box.x+box.width/2, y0=box.y+box.height/2;
