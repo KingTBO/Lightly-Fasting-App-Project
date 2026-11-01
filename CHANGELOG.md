@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.52.0
+- **design** The import result now has a clear "done" moment before the numbers (TEEBO picked option B). When you tap Add, the preview sheet slides away, there is a short pause, and one new sheet rises with a green check already in its header. The check draws itself, and as it lands the soft chime and the success vibration play (still once, and still following the Sound and Vibration switches). Then "Import complete", the count of fasts (counting up), the goal and skipped numbers, the dates covered and the buttons arrive one after another. The buttons take taps only once they have arrived, so a double tap on Add cannot dismiss the result. With Reduce Motion on, the check is already drawn and things simply fade in. The concept page's import demo matches, in English and Chinese.
+
 ## 0.51.1
 - **docs** Added a team change log on Notion (Lightly workspace, "Team change log"): one short plain-language list of every change, with a section per person (Tengbo, Varun), so the team can see who did what. The release rules and AGENTS.md now say every contributor, and their Claude, adds each merged change to that page under their own name. The app and the concept page did not change.
 

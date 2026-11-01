@@ -132,7 +132,8 @@ function shChrome(html){ if(html.indexOf('<h3>')!==0) return html; var i=html.in
   return ('<div class="sh-h">'+html.slice(0,i)+SHX.replace('aria-label="Close"','aria-label="'+L('Close','关闭')+'"')+'</div>'+html.slice(i)).replace(/<button class="btn sec" data-act="close">[^<]*<\/button>/g,'').replace('<div class="btns"></div>',''); }
 function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
-function closeSheet(){ if(!sheetOpen) return; sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
+var sheetHold=false; /* true for the short pause before the import result rises: taps on the dim must not close it (a double tap on Add lands there) */
+function closeSheet(){ if(!sheetOpen||sheetHold) return; sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
 /* drag the grabber: 1:1 with the finger, then project where the flick was going and dismiss or spring back */
 (function(){ var y0=0,dy=0,vy=0,lt=0,ly=0,drag=false;
   sheetEl.addEventListener('pointerdown',function(e){ if(reduce||!e.target.closest('.grab')) return; drag=true; y0=e.clientY; ly=e.clientY; lt=performance.now(); vy=0; dy=0; sheetEl.style.transition='none'; try{ sheetEl.setPointerCapture(e.pointerId); }catch(x){} });
@@ -758,23 +759,38 @@ function importPreview(p){
    (n?'':'<p class="note">'+L('There is nothing new in this file.','这个文件里没有新的记录。')+'</p>')+
    '<div class="btns"><button class="btn" data-act="impdo"'+(n?'':' disabled')+'>'+(n?L('Add '+n+' fasts','添加 '+n+' 次断食'):L('Nothing to add','没有可添加的内容'))+'</button><button class="btn quiet" data-act="import">'+L('Choose another file','换一个文件')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
 }
+/* the result of an import (TEEBO picked option B): the preview sheet closes, a short pause, one new sheet rises with a green check already in its header,
+   the check draws, and as it lands the goal chime and success haptic play and the title, the number, the details and the buttons arrive one after another. */
+var IMPCK='<svg class="imp-ck" viewBox="0 0 56 56" aria-hidden="true"><circle class="disc" cx="28" cy="28" r="27"/><circle class="ring" cx="28" cy="28" r="26" pathLength="1"/><path class="tick" d="M16.5 29.5l8 8 15-17" pathLength="1"/></svg>';
 function importDo(){
   var p=impPlan; if(!p||!p.add.length) return;
   /* check again against the latest state, so a double tap can never create duplicates */
   var q=LightlyImport.plan({source:p.source,items:p.add,open:0},S.fasts,S.cur,S.del,Date.now());
   if(!q.add.length){ impPlan=null; closeSheet(); return; } /* nothing left to add: no sheet, no chime */
   q.add.forEach(function(f){ S.fasts.push(f); });
-  fx('success'); /* the goal chime and its success haptic, once, only when fasts were really added (fx follows the Sound and Vibration settings) */
   var n=q.add.length, onb=!$('ob').hidden&&ob&&obFlow()[ob.step]==='import', ok=q.add.filter(function(f){ return C.isDone(f); }).length, skipped=(q.dup||0)+(q.overlap||0)+(q.open||0)+(q.bad||0)+(q.future||0),
     o={year:'numeric',month:'short',day:'numeric'}, rng=dateLbl(q.first,o)+' – '+dateLbl(q.last,o);
   impPlan=null; save(); cache={}; renderMe(); updateToday(); checkUnlocks(); if(onb) setTimeout(function(){ A.obnext(); },260);
-  /* the result is a bottom sheet, like Fast saved, instead of a toast that is easy to miss */
-  openSheet('<span class="k">'+L('Import complete','导入完成')+'</span><span class="big">'+n+'</span><span class="of">'+L(n===1?'fast added to Days':'fasts added to Days','次断食已添加到“日子”')+'</span>'+
-    '<div class="facts"><div><b>'+ok+'</b><span>'+L('reached the goal','达成目标')+'</span></div><div><b>'+skipped+'</b><span>'+L('skipped','已跳过')+'</span></div></div>'+
-    '<p class="note">'+L('Covers '+rng+'. Skipped fasts were already in Lightly, overlapped one you have, or had unusable times.','时间范围：'+rng+'。已跳过的记录要么已在轻伴里，要么与已有记录重叠，要么时间无效。')+'</p>'+
-    '<div class="btns"><button class="btn dark" data-act="close">'+L('Done','完成')+'</button>'+(onb?'':'<button class="btn sec" data-act="impdays">'+L('See in Days','在“日子”里查看')+'</button>')+'</div>');
-  /* the buttons appear where "Add" was, so for a moment they ignore taps: a double tap on Add must not dismiss the result */
-  var bt=document.querySelector('#sheet .btns'); if(bt){ bt.style.pointerEvents='none'; setTimeout(function(){ bt.style.pointerEvents=''; },500); }
+  var html='<div class="imp-res"><div class="badge">'+IMPCK+'</div><div class="center" role="status"><span class="k stg">'+L('Import complete','导入完成')+'</span><span class="big stg">'+n+'</span><span class="of stg">'+L(n===1?'fast added to Days':'fasts added to Days','次断食已添加到“日子”')+'</span>'+
+    '<div class="facts stg"><div><b>'+ok+'</b><span>'+L('reached the goal','达成目标')+'</span></div><div><b>'+skipped+'</b><span>'+L('skipped','已跳过')+'</span></div></div>'+
+    '<p class="note stg">'+L('Covers '+rng+'. Skipped fasts were already in Lightly, overlapped one you have, or had unusable times.','时间范围：'+rng+'。已跳过的记录要么已在轻伴里，要么与已有记录重叠，要么时间无效。')+'</p>'+
+    '<div class="btns stg lock"><button class="btn dark" data-act="close">'+L('Done','完成')+'</button>'+(onb?'':'<button class="btn sec" data-act="impdays">'+L('See in Days','在“日子”里查看')+'</button>')+'</div></div></div>';
+  /* the preview sheet slides away (the dim stays), then a pause, then the result rises */
+  sheetEl.classList.remove('open'); sheetHold=true;
+  setTimeout(function(){
+    sheetHold=false;
+    if(!sheetOpen){ fx('success'); return; }
+    openSheet(html);
+    var root=sheetEl.querySelector('.imp-res'), st=[].slice.call(root.querySelectorAll('.stg')), big=st[1], t0=reduce?0:200, land=reduce?300:1000;
+    function live(){ return root.isConnected; }
+    function T(ms,fn){ setTimeout(function(){ if(live()) fn(); },ms); }
+    T(t0,function(){ root.classList.add('go'); });
+    setTimeout(function(){ fx('success'); },land); /* the chime and haptic play once as the check lands */
+    T(land,function(){ st[0].classList.add('on'); big.classList.add('on'); if(!reduce){ var c0=performance.now(); big.textContent='0'; (function step(){ var k=Math.min((performance.now()-c0)/600,1); big.textContent=Math.round(n*(1-Math.pow(1-k,3))); if(k<1&&live()) requestAnimationFrame(step); })(); } });
+    T(land+150,function(){ st[2].classList.add('on'); st[3].classList.add('on'); });
+    T(land+280,function(){ st[4].classList.add('on'); });
+    T(land+400,function(){ st[5].classList.add('on'); st[5].classList.remove('lock'); }); /* the buttons arrive last and only then take taps, so a double tap on Add cannot dismiss the result */
+  },reduce?250:380);
 }
 document.addEventListener('change',function(e){
   var t=e.target; if(!t||(t.id!=='impFile'&&t.id!=='obImpFile')||!t.files||!t.files[0]) return; var f=t.files[0];
