@@ -739,10 +739,10 @@ var impPlan=null;
 function importSheet(err){
   impPlan=null;
   openSheet('<h3>'+L('Import from another app','从其他应用导入')+'</h3><p class="lede">'+L('Bring your past fasts with you. The file is read on this phone and never uploaded.','把过去的断食记录带过来。文件只在这台手机上读取，不会上传。')+'</p>'+
-   '<div class="group"><div class="row"><span class="stack"><span>Zero</span><small>'+L('Download your data from Zero, unzip it, then choose firestore.json.','在 Zero 里下载你的数据并解压，然后选择 firestore.json。')+'</small></span></div>'+
+   '<div class="group"><div class="row"><span class="stack"><span>Zero</span><small>'+L('Download your data from Zero, then choose the zip.','在 Zero 里下载你的数据，然后选择 zip 文件。')+'</small></span></div>'+
    '<div class="row"><span class="stack"><span>'+L('Other apps','其他应用')+'</span><small>'+L('A CSV or JSON file with a start and an end time for each fast.','包含每次断食开始和结束时间的 CSV 或 JSON 文件。')+'</small></span></div></div>'+
    (err?'<p class="note err" role="alert">'+err+'</p>':'')+
-   '<div class="btns"><label class="btn" for="impFile">'+L('Choose a file','选择文件')+'</label><input id="impFile" type="file" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
+   '<div class="btns"><label class="btn" for="impFile">'+L('Choose a file','选择文件')+'</label><input id="impFile" type="file" accept=".zip,.json,.csv,.txt,application/zip,application/x-zip-compressed,application/json,text/csv,text/plain" hidden><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
 }
 function importPreview(p){
   impPlan=p; var skip=[];
@@ -795,12 +795,18 @@ function importDo(){
 document.addEventListener('change',function(e){
   var t=e.target; if(!t||(t.id!=='impFile'&&t.id!=='obImpFile')||!t.files||!t.files[0]) return; var f=t.files[0];
   if(f.size>20*1048576) return importSheet(L('That file is too large.','文件太大了。'));
-  if(/\.zip$/i.test(f.name)) return importSheet(L('Unzip it first, then choose the file inside.','请先解压，再选择里面的文件。'));
   var r=new FileReader();
+  function got(res){
+    if(res.error){ var M={format:L('I couldn’t find fasts with a start and an end time in that file.','在这个文件里没有找到带开始和结束时间的断食记录。'),
+      zip:L('I couldn’t find fasts in that zip.','在这个 zip 里没有找到断食记录。'),
+      encrypted:L('That zip is password-protected. Unzip it first, then choose the file inside.','这个 zip 有密码。请先解压，再选择里面的文件。'),
+      nozip:L('This browser can’t open zips. Unzip it first, then choose the file inside.','这个浏览器无法打开 zip。请先解压，再选择里面的文件。')};
+      return importSheet(M[res.error]||L('That file isn’t readable.','这个文件无法读取。')); }
+    importPreview(LightlyImport.plan(res,S.fasts,S.cur,S.del,Date.now()));
+  }
   r.onerror=function(){ importSheet(L('Couldn’t read that file.','无法读取这个文件。')); };
-  r.onload=function(){ var res=LightlyImport.parse(String(r.result||''));
-    if(res.error) return importSheet(res.error==='format'?L('I couldn’t find fasts with a start and an end time in that file.','在这个文件里没有找到带开始和结束时间的断食记录。'):L('That file isn’t readable.','这个文件无法读取。'));
-    importPreview(LightlyImport.plan(res,S.fasts,S.cur,S.del,Date.now())); };
+  if(/\.zip$/i.test(f.name)||f.type==='application/zip'||f.type==='application/x-zip-compressed'){ r.onload=function(){ LightlyImport.fromZip(r.result).then(got); }; r.readAsArrayBuffer(f); return; }
+  r.onload=function(){ var res=LightlyImport.parse(String(r.result||'')); got(res); };
   r.readAsText(f);
 });
 
@@ -1023,7 +1029,7 @@ function obHtml(i){
       (risky?'<p class="gf" style="padding:0 4px">'+L('Longer fasts stay off for you.','长时间断食对你保持关闭。')+'</p>':'')+'<div class="grow"></div>'+obPrev(ob.plan);
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='import'){
-    body='<div class="grow"></div>'+IMP_GLYPH+'<h1 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h1><p class="lede" style="text-align:center">'+L('Optional. Zero’s firestore.json, or a CSV or JSON file.','可选。Zero 的 firestore.json，或 CSV、JSON 文件。')+'</p><div class="grow"></div><input id="obImpFile" type="file" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden>';
+    body='<div class="grow"></div>'+IMP_GLYPH+'<h1 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h1><p class="lede" style="text-align:center">'+L('Optional. Zero’s data zip, or a CSV or JSON file.','可选。Zero 的数据 zip，或 CSV、JSON 文件。')+'</p><div class="grow"></div><input id="obImpFile" type="file" accept=".zip,.json,.csv,.txt,application/zip,application/x-zip-compressed,application/json,text/csv,text/plain" hidden>';
     cta='<label class="btn" for="obImpFile">'+L('Choose a file','选择文件')+'</label><button class="btn sec" data-act="obnext">'+L('Skip for now','暂时跳过')+'</button>';
   }else if(key==='custom'){
     body='<h1>'+L('Make it yours','按你的习惯来')+'</h1><div class="group">'+pkField('obStart',L('Usual start time','通常开始时间'),ob.start||'20:00','t')+'</div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>'+obPrev(ob.plan||'16',ob.start||'20:00');

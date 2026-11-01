@@ -1,6 +1,6 @@
 /* End-to-end flows in a real browser. usage: NODE_PATH=$(npm root -g) node tests/flow.test.js */
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert');
-const root=path.join(__dirname,'..');
+const root=path.join(__dirname,'..'),makeZip=require('./zip-helper.js');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.webmanifest':'application/manifest+json'};
 const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.url.split('?')[0]));if(f.endsWith('/'))f+='index.html';fs.readFile(f,(e,d)=>{if(e){r.writeHead(404);r.end();}else{r.writeHead(200,{'Content-Type':mime[path.extname(f)]||'application/octet-stream'});r.end(d);}});});
 const H=3600000,D=24*H;
@@ -184,6 +184,14 @@ const H=3600000,D=24*H;
   await p.click('#sheet [data-act=close]');
   await p.click('[data-act=import]');await p.setInputFiles('#impFile',{name:'x.json',mimeType:'application/json',buffer:Buffer.from('{"a":1}')});await p.waitForSelector('.note.err');
   {const fxr=await p.evaluate(()=>window.__fx);assert.strictEqual(fxr.osc,3,'empty or failed import is silent');assert.strictEqual(fxr.vib.filter(v=>v==='[30,60,30]').length,1,'empty or failed import does not play the success haptic');}ok('import previews, skips duplicates, rejects unknown files, and chimes once on success only');
+  // a zip is chosen directly: Lightly opens it, uses firestore.json, shows the preview, and a password-protected zip gets its own message
+  {const before=(await S()).fasts.length, t=Date.now()-30*D, d=(i,id)=>({id,data:{id,start:new Date(t+i*D).toISOString(),end:new Date(t+i*D+16*H).toISOString(),endWithSeconds:new Date(t+i*D+16*H).toISOString(),isEnded:true,goal:{hours:16}}});
+   const fs1=JSON.stringify({fasts:[1,2,3].map(i=>d(i,'Z'+i))}), zip=n=>({name:'zero.zip',mimeType:'application/zip',buffer:makeZip(n[0],n[1])});
+   await p.click('#sheet [data-act=close]');await p.waitForTimeout(400);
+   await p.click('[data-act=import]');await p.setInputFiles('#impFile',zip([[['zero-export/biodata.json','{"fast_data":[]}'],['zero-export/firestore.json',fs1]]]));await p.waitForSelector('[data-act=impdo]');
+   assert.match(await p.textContent('#sheet'),/From Zero/);assert.match(await p.textContent('#sheet'),/Add 3 fasts|添加 3 次断食/);assert.strictEqual((await S()).fasts.length,before,'a zip preview adds nothing');
+   await p.click('#sheet [data-act=close]');await p.waitForTimeout(400);
+   await p.click('[data-act=import]');await p.setInputFiles('#impFile',zip([[['firestore.json',fs1]],{encrypt:true}]));await p.waitForSelector('.note.err');assert.match(await p.textContent('.note.err'),/password|有密码/);ok('a zip imports directly, and a password-protected zip is explained');}
   await p.click('#sheet [data-act=close]');}
  await p.evaluate(()=>{document.getElementById('me').scrollTop=0;});await p.click('[data-act=erase]');await p.waitForSelector('#eraseGo[disabled]');assert.match(await p.textContent('#sheet'),/can’t be undone|can't be undone|无法撤销/);await p.waitForSelector('#eraseGo:not([disabled])',{timeout:6000});
  {const bx=await p.locator('#eraseGo').boundingBox();await p.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await p.mouse.down();await p.waitForTimeout(800);await p.mouse.up();await p.waitForTimeout(300);assert((await S()).onboarded,'a short press does not erase');await p.mouse.down();await p.waitForTimeout(2400);await p.mouse.up();}await p.waitForTimeout(1200);assert.strictEqual(await p.evaluate(()=>(JSON.parse(localStorage.getItem('lightly:v1'))||{}).onboarded||false),false);ok('erase resets');
