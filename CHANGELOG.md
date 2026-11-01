@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.53.2
+- **copy** The import step in setup is now a title and one line ("Optional. Zero’s firestore.json, or a CSV or JSON file."), instead of a title plus two lines that said the same thing. Same on the concept page.
+
 ## 0.53.1
 - **copy** The setup screens say much less. Each step now has one short line, and nothing is said twice. The welcome line is just "Fasting that follows the sky." "Have you fasted before?" no longer has an intro line or descriptions under each answer (the plan buttons below it show what opens). "Pick your plan" drops its intro and the "Fast 13 hours" lines under every plan (only locked plans keep "After 3 fasts"). "Make it yours" has no intro. The safety note, the location line, the import text and the final "You're set" note are each cut to one or two short sentences, in English and Chinese. The concept page's setup demo matches.
 
