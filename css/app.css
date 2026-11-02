@@ -131,6 +131,7 @@ html:lang(zh-Hans) .h-title,html:lang(zh-Hans) .ob h1{letter-spacing:0}
 .gh{font:500 0.8125rem var(--font);color:var(--label-2);letter-spacing:.005em;padding:8px calc(var(--m) + 16px) 6px}
 .gf{letter-spacing:.005em;font:400 0.8125rem/1.35 var(--font);color:var(--label-2);padding:0 calc(var(--m) + 16px) 16px;margin-top:-8px}
 .row{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 16px;width:100%;border:0;background:transparent;text-align:left;font:400 1.0625rem/1.3 var(--font);color:var(--label);position:relative}
+a.row{text-decoration:none;color:var(--label)}
 .row+.row::before{content:"";position:absolute;left:16px;right:0;top:0;border-top:.5px solid var(--sep)}
 .row .v{margin-left:auto;color:var(--label-2);font-size:1.0625rem;white-space:nowrap}
 .row .chev,.offopt .chev{width:8px;height:14px;flex:none;stroke:var(--label-3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
