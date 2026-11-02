@@ -67,10 +67,15 @@ function token(){
 function profile(){ return token().then(function(t){ return call('/auth/v1/user',{token:t}); }).then(function(u){ var a=getAuth(); if(a){ a.photo=photoOf(u); setAuth(a); } return a; }); }
 function signOut(){ var a=getAuth(); setAuth(null); if(a&&ready()) call('/auth/v1/logout',{method:'POST',token:a.access}).catch(function(){}); }
 
+/* ---------- delete account ----------
+   Runs on the server (supabase/functions/delete-account), which checks the person's own token and deletes the account, the backup and the profile picture.
+   Only after it says ok is the session dropped here. */
+function deleteAccount(){ return token().then(function(t){ return call('/functions/v1/delete-account',{method:'POST',token:t,body:{}}); }).then(function(r){ if(!r||!r.ok) throw new Error('not deleted'); setAuth(null); return true; }); }
+
 /* ---------- backup ---------- */
 function pull(){ return token().then(function(t){ return call('/rest/v1/lightly_state?select=data,updated_at',{token:t}); }).then(function(rows){ return rows&&rows[0]||null; }); }
 function push(data){ data=scrub(data); var a=getAuth(); return token().then(function(t){ return call('/rest/v1/lightly_state?on_conflict=user_id',{method:'POST',token:t,headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{user_id:a.uid,data:data,updated_at:new Date().toISOString()}}); }); }
 
-root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,pull:pull,push:push};
+root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,deleteAccount:deleteAccount,pull:pull,push:push};
 if(typeof module!=='undefined'&&module.exports) module.exports=root.LightlyCloud;
 })(typeof self!=='undefined'?self:this);

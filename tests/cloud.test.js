@@ -20,7 +20,7 @@ console.log('merge ok');
 if(!process.argv.includes('--e2e')&&!process.env.NODE_PATH){process.exit(0);}
 const {chromium}=require('playwright');
 const root=path.join(__dirname,'..');
-let rows={},codes={},googleOn=false;
+let rows={},codes={},googleOn=false,delFail=false,deleted=[];
 const mock=http.createServer((q,r)=>{
   r.setHeader('Access-Control-Allow-Origin','*');r.setHeader('Access-Control-Allow-Headers','*');r.setHeader('Access-Control-Allow-Methods','*');
   if(q.method==='OPTIONS'){r.writeHead(204);return r.end();}
@@ -30,6 +30,7 @@ const mock=http.createServer((q,r)=>{
     if(u.startsWith('/auth/v1/verify')){if(j.token!==codes[j.email])return out(400,{msg:'Token has expired or is invalid'});return out(200,{access_token:'tok-'+j.email,refresh_token:'r',expires_in:3600,user:{id:'uid-'+j.email,email:j.email}});}
     if(u.startsWith('/auth/v1/user')) return out(200,{id:'uid-x',email:'x@y.z'});
     if(u.startsWith('/auth/v1/logout')) return out(204,{});
+    if(u.startsWith('/functions/v1/delete-account')){const tk=(q.headers.authorization||'');if(!tk.startsWith('Bearer tok-'))return out(401,{error:'signed out'});if(delFail)return out(500,{error:'account'});const uid=tk.replace('Bearer tok-','uid-');delete rows[uid];deleted.push(uid);return out(200,{ok:true});}
     if(u.startsWith('/rest/v1/lightly_state')){const uid=(q.headers.authorization||'').replace('Bearer tok-','uid-');
       if(q.method==='GET') return out(200,rows[uid]?[rows[uid]]:[]);
       rows[uid]={data:j.data,updated_at:j.updated_at};return out(201,{});}
@@ -82,6 +83,24 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  // a brand-new account on a fresh browser still gets onboarding, once, after sign-in resolves
  const d6=await device(null,false);await d6.p.evaluate(()=>localStorage.clear());await d6.p.goto(url+'#access_token=tok-new@example.com&refresh_token=r&expires_in=3600&type=magiclink');await d6.p.reload();await d6.p.waitForTimeout(1800);
  assert(!(await d6.p.evaluate(()=>document.getElementById('ob').hidden)),'new account sees onboarding');ok('new account still gets onboarding');
+ // delete account: only when signed in; a failed attempt changes nothing; a good one removes the account, signs out and asks what to do with the fasts on the phone
+ {await d4.p.goto(url);await d4.p.waitForTimeout(500);await d4.p.click('#tabs [data-tab=me]');assert(!(await d4.p.$('[data-act=delacct]')),'no Delete account row when signed out');
+ await d3.p.goto(url);await d3.p.waitForTimeout(1500);await d3.p.click('#tabs [data-tab=me]');assert(await d3.p.$('[data-act=delacct]'),'Delete account row when signed in');
+ const holdDel=async()=>{await d3.p.waitForFunction(()=>{const g=document.getElementById('delGo');return g&&!g.disabled;},null,{timeout:6000});const bb=await d3.p.locator('#delGo').boundingBox();await d3.p.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2);await d3.p.mouse.down();await d3.p.waitForTimeout(2400);await d3.p.mouse.up();};
+ await d3.p.click('[data-act=delacct]');assert(await d3.p.isDisabled('#delGo'),'delete is locked at first');assert.match(await d3.p.textContent('#sheet'),/Delete your account\?/);
+ await d3.p.mouse.click(5,5);await d3.p.waitForTimeout(500);assert(await d3.p.evaluate(()=>!!localStorage.getItem('lightly:auth')),'closing the sheet deletes nothing');
+ delFail=true;await d3.p.click('[data-act=delacct]');await holdDel();await d3.p.waitForSelector('#sheet .note.err');assert.match(await d3.p.textContent('#sheet .note.err'),/Couldn.t delete/);assert(await d3.p.evaluate(()=>!!localStorage.getItem('lightly:auth')),'a failed delete keeps the sign-in');assert.deepStrictEqual(deleted,[]);ok('delete account: locked first, cancel safe, failure keeps everything');
+ delFail=false;await holdDel();await d3.p.waitForSelector('[data-act=delkeep]',{timeout:6000});
+ assert.deepStrictEqual(deleted,['uid-link@example.com']);assert(!rows['uid-link@example.com'],'backup removed on the server');assert(await d3.p.evaluate(()=>!localStorage.getItem('lightly:auth')),'signed out');
+ assert((await d3.p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).fasts.some(x=>x.id==='three'),'fasts still on the phone');assert(await d3.p.$('[data-act=erase]'),'offers to erase them');
+ await d3.p.click('[data-act=delkeep]');await d3.p.waitForTimeout(400);assert(await d3.p.$('[data-act=emailsheet]'),'back to the signed-out card');assert(!(await d3.p.$('[data-act=delacct]')),'row gone');ok('delete account: server delete, sign out, keep or erase the fasts');}
+ // the public deletion page signs in and deletes the same way
+ {const w=await device(null,false);await w.p.goto(url+'delete-account/?lang=en');await w.p.waitForTimeout(600);assert(await w.p.isVisible('#out'),'signed-out sign-in card');
+ await w.p.goto(url+'delete-account/#access_token=tok-page@example.com&refresh_token=r&expires_in=3600&type=magiclink');await w.p.reload();await w.p.waitForTimeout(800);
+ assert(await w.p.isVisible('#in'),'signed-in card');assert.match(await w.p.textContent('#who'),/x@y.z/);
+ const bb=await w.p.locator('#del').boundingBox();await w.p.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2);await w.p.mouse.down();await w.p.waitForTimeout(500);await w.p.mouse.up();assert.strictEqual(deleted.length,1,'a short press deletes nothing');
+ await w.p.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2);await w.p.mouse.down();await w.p.waitForTimeout(2400);await w.p.mouse.up();await w.p.waitForSelector('#done:not([hidden])',{timeout:5000});
+ assert.deepStrictEqual(deleted,['uid-link@example.com','uid-page@example.com']);assert(await w.p.evaluate(()=>!localStorage.getItem('lightly:auth')));await w.p.click('.lang [data-l=zh]');assert.match(await w.p.textContent('#done'),/账号已删除/);ok('public deletion page: hold to delete, then done, EN and ZH');}
  assert.deepStrictEqual(d1.errs.concat(d2.errs,d3.errs,d4.errs,d5.errs,d6.errs),[]);console.log('cloud e2e ok');await b.close();mock.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});
 function ok(n){console.log('ok -',n);}
 

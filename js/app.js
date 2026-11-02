@@ -1037,6 +1037,7 @@ function renderMe(){
   h+='<div class="gf">'+L('You’ll hear when you reach your goal, as long as Lightly was opened recently.','只要最近打开过轻伴，达成目标时就会提醒你。')+'</div>';
   h+='<div class="gh">'+L('Care','关怀')+'</div><div class="group"><button class="row" data-act="timeoff"><span class="stack"><span>'+L('Time off','休息一下')+'</span></span>'+(offNow()?'<span class="v">'+(offNow().kind==='travel'?L('Travelling','旅行中'):L('Resting','休养中'))+'</span>':'')+CHEV+'</button></div>';
   h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group"><button class="row" data-act="import"><span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export"><span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase"><span>'+L('Erase everything','清除所有数据')+'</span></button></div>';
+  if(cloudOn()) h+='<div class="group"><button class="row red" data-act="delacct"><span>'+L('Delete account','删除账号')+'</span></button></div>'; /* only for someone who has an account; signed out there is nothing in the cloud, Erase everything covers the phone */
   if(C.ramadanDay()===0) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
   h+='<p class="gf" data-act="diag" style="text-align:center">'+L('Lightly · web app · v','轻伴 · 网页版 · v')+(window.LIGHTLY_VERSION||'')+L(' · saved on this device',' · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
   $('me').innerHTML=h;
@@ -1183,8 +1184,36 @@ function eraseLine(n,st){
   var e=en.join(', ');
   return L('You’ll lose '+e+'. This can’t be undone.','你将失去'+zh.join('、')+'。此操作无法撤销。');
 }
+/* a red button that is locked for 3 seconds (counting down), then must be held for 2 seconds */
+var WARN='<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17" /><circle class="dot" cx="28" cy="40" r="2.6"/></svg>';
+function lockedHold(id,act,lab){ return '<button class="btn red solid hold" id="'+id+'" data-hold="'+act+'" data-ms="2000" disabled aria-label="'+L(lab[0]+', available in 3 seconds',lab[1]+'，3 秒后可用')+'"><span class="hl">'+L(lab[0]+' · 3',lab[1]+' · 3')+'</span></button>'; }
+function unlockHold(id,lab,ready){
+  var go=$(id), lbl=go.querySelector('.hl'), n=3, iv=setInterval(function(){
+    if(!go.isConnected||!sheetOpen){ clearInterval(iv); return; } /* closed early: the countdown stops, with no buzz */
+    n--; if(n>0){ lbl.textContent=L(lab[0]+' · '+n,lab[1]+' · '+n); return; }
+    clearInterval(iv); go.disabled=false; lbl.textContent=L(ready[0],ready[1]); go.setAttribute('aria-label',L(ready[0],ready[1])); fx('light'); },1000);
+}
+function delAcctSheet(err){
+  var au=CL.getAuth(); if(!au) return closeSheet();
+  openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Delete your account?','删除账号？')+'</h3><p class="lede ctr">'+L('Your account, backup and profile picture are deleted for good. This can’t be undone.','账号、云端备份和头像将被永久删除，无法撤销。')+'</p>'+
+    (err?'<p class="note err ctr" role="alert" style="color:var(--red)">'+esc(err)+'</p>':'')+
+    '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button>'+lockedHold('delGo','delacctok',['Delete account','删除账号'])+'<button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
+  unlockHold('delGo',['Delete account','删除账号'],['Hold to delete account','按住删除账号']);
+}
+/* the account is gone and this phone is signed out: ask what happens to the fasts that are still here */
+function delAcctDone(){
+  try{ localStorage.removeItem(AVG); }catch(e){}
+  sync.at=0; sync.err=''; clearTimeout(sync.t);
+  if(S.avatar&&S.avatar.t==='google') S.avatar=null; /* that photo belonged to the account */
+  S.cloudUid=null; save();
+  fx('success');
+  openSheet('<!--keep--><h3 class="ctr">'+L('Account deleted','账号已删除')+'</h3><p class="lede ctr">'+L('Keep your fasts on this phone?','要在这台手机上保留断食记录吗？')+'</p>'+
+    '<div class="btns"><button class="btn" data-act="delkeep">'+L('Keep on this phone','保留在手机上')+'</button><button class="btn red" data-act="erase">'+L('Erase from this phone','从手机上清除')+'</button></div>');
+  if(curTab==='me') renderMe();
+}
 var A={
   close:closeSheet,
+  delkeep:function(){ closeSheet(); renderMe(); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
   day:function(b){ selDay=b.dataset.k; fabOn=true; renderDays(); },
@@ -1256,13 +1285,15 @@ var A={
   /* Erase everything: the one step that can't be undone. A red warning mark and a plain list of what goes, Cancel as the main button, and the erase button
      is locked for 3 seconds (counting down), then must be held for 2 seconds. An export is one tap away. */
   erase:function(){
-    var WARN='<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17" /><circle class="dot" cx="28" cy="40" r="2.6"/></svg>';
     openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Are you sure?','你确定吗？')+'</h3><p class="lede ctr">'+eraseLine(S.fasts.length,curStreak())+'</p>'+
-      '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button><button class="btn red solid hold" id="eraseGo" data-hold="eraseok" data-ms="2000" disabled aria-label="'+L('Erase everything, available in 3 seconds','清除所有数据，3 秒后可用')+'"><span class="hl">'+L('Erase everything · 3','清除所有数据 · 3')+'</span></button><button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
-    var go=$('eraseGo'), lbl=go.querySelector('.hl'), n=3, iv=setInterval(function(){
-      if(!go.isConnected||!sheetOpen){ clearInterval(iv); return; } /* closed early: the countdown stops, with no buzz */
-      n--; if(n>0){ lbl.textContent=L('Erase everything · '+n,'清除所有数据 · '+n); return; }
-      clearInterval(iv); go.disabled=false; lbl.textContent=L('Hold to erase everything','按住清除所有数据'); go.setAttribute('aria-label',L('Hold to erase everything','按住清除所有数据')); fx('light'); },1000);
+      '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button>'+lockedHold('eraseGo','eraseok',['Erase everything','清除所有数据'],['Hold to erase everything','按住清除所有数据'])+'<button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
+    unlockHold('eraseGo',['Erase everything','清除所有数据'],['Hold to erase everything','按住清除所有数据']);
+  },
+  /* Delete account: same care as Erase everything, because it can't be undone either. Only reachable when signed in. The server does the deleting (supabase/functions/delete-account). */
+  delacct:function(){ delAcctSheet(''); },
+  delacctok:function(){
+    var go=$('delGo'); if(go){ go.disabled=true; go.querySelector('.hl').textContent=L('Deleting…','正在删除…'); }
+    CL.deleteAccount().then(function(){ delAcctDone(); }).catch(function(x){ delAcctSheet(x&&(x.status===401||x.status===400)?L('Your sign-in has expired. Sign out, sign in again, then try again.','登录已过期。请退出后重新登录，再试一次。'):L('Couldn’t delete the account. Check your connection and try again.','没能删除账号，请检查网络后重试。')); });
   },
   eraseok:function(){ try{ localStorage.removeItem(KEY); localStorage.removeItem(AVG); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
   usualset:function(){ S.prefs.usualStart='20:00'; save(); cache={}; updateToday(); renderMe(); pkToggle('usualStart'); },

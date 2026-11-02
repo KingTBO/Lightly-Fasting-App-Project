@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Delete your Lightly account · 删除轻伴账号</title>
+<meta name="description" content="How to delete your Lightly (轻伴) account and the data stored with it.">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#0E1430">
+<link rel="icon" href="../icon-192.png">
+<style>
+:root{color-scheme:light;--bg:#F2F2F7;--card:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--sep:rgba(60,60,67,.29);--fill:rgba(120,120,128,.12);--tint:#FFCC00;--red:#C70012;--link:#7A5C00;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#000;--card:#1C1C1E;--label:#fff;--label-2:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);--fill:rgba(118,118,128,.24);--tint:#FFD60A;--red:#FF453A;--link:#FFD60A}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--label);font:400 1.0625rem/1.47 var(--font);letter-spacing:-.022em;-webkit-font-smoothing:antialiased}
+html:lang(zh-Hans) body{letter-spacing:0}
+main{max-width:560px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px max(32px,env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;justify-content:space-between;min-height:44px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600}
+.brand img{width:28px;height:28px;border-radius:7px}
+.lang{display:inline-flex;background:var(--fill);border-radius:999px;padding:2px}
+.lang button{min-width:56px;min-height:36px;border:0;border-radius:999px;background:transparent;color:var(--label);font:500 .9375rem var(--font)}
+.lang button[aria-pressed=true]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+h1{font:700 2.125rem/1.12 var(--font);letter-spacing:-.03em;margin:8px 0 12px}
+html:lang(zh-Hans) h1{letter-spacing:0}
+p{margin:0 0 16px}
+.sub{color:var(--label-2)}
+ol{margin:0 0 24px;padding-left:24px}
+ol li{margin-bottom:6px}
+.card{background:var(--card);border-radius:20px;padding:20px 16px;display:grid;gap:12px}
+.card h2{font:600 1.25rem/1.2 var(--font);margin:0}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:#000;font:600 1.0625rem var(--font);text-decoration:none}
+.btn.sec{background:var(--fill);color:var(--label);font-weight:500}
+.btn.quiet{background:transparent;color:var(--label-2);min-height:44px;font:500 .9375rem var(--font)}
+.btn:disabled{opacity:.4}
+.btn.del{background:var(--red);color:#fff;position:relative;overflow:hidden;isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none}
+.btn.del::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.28);transform-origin:left;transform:scaleX(var(--hold,0));z-index:-1}
+input{width:100%;min-height:44px;border:0;border-radius:12px;background:var(--fill);color:var(--label);font:inherit;font-size:1.0625rem;padding:0 14px}
+.err{color:var(--red);margin:0}
+.note{color:var(--label-2);margin:0;font-size:.9375rem}
+.foot{margin-top:24px;color:var(--label-2);font-size:.9375rem}
+a{color:var(--link)}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.btn.del::before{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div class="brand"><img src="../icon-180.png" alt="" width="28" height="28"><span>Lightly 轻伴</span></div>
+    <div class="lang" role="group" aria-label="Language"><button type="button" data-l="en" aria-pressed="true">English</button><button type="button" data-l="zh" aria-pressed="false">中文</button></div></div>
+  <h1 data-zh="删除你的轻伴账号">Delete your Lightly account</h1>
+  <p class="sub" data-zh="你的账号、云端备份和头像会被立即永久删除。只保存在手机上的断食记录不受影响。">Your account, cloud backup and profile picture are deleted for good, right away. Fasts kept only on your phone aren’t affected.</p>
+  <ol>
+    <li data-zh="用你登录轻伴时用的方式登录。">Sign in the way you did in Lightly.</li>
+    <li data-zh="按住“删除账号”。">Hold “Delete account”.</li>
+  </ol>
+
+  <section class="card" id="out" hidden>
+    <h2 data-zh="登录">Sign in</h2>
+    <button type="button" class="btn sec" id="g" hidden><span data-zh="用 Google 继续">Continue with Google</span></button>
+    <input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com" aria-label="Email">
+    <button type="button" class="btn sec" id="send" data-zh="发送登录链接">Send sign-in link</button>
+    <p class="note" id="sent" hidden data-zh="请查收邮件，点里面的登录链接。链接会回到这个页面。">Check your email and tap the sign-in link. It brings you back to this page.</p>
+    <p class="err" id="err" role="alert" hidden></p>
+  </section>
+
+  <section class="card" id="in" hidden>
+    <h2><span data-zh="已登录：">Signed in as </span><span id="who"></span></h2>
+    <button type="button" class="btn del" id="del"><span class="hl" data-zh="按住删除账号">Hold to delete account</span></button>
+    <button type="button" class="btn quiet" id="dl" data-zh="先下载我的备份">Download my backup first</button>
+    <button type="button" class="btn quiet" id="so" data-zh="退出登录">Sign out</button>
+    <p class="err" id="err2" role="alert" hidden></p>
+  </section>
+
+  <section class="card" id="done" hidden>
+    <h2 data-zh="账号已删除">Account deleted</h2>
+    <p class="note" style="margin:0" data-zh="你的账号、备份和头像已经删除。手机上的断食记录仍在，可在应用里“我的 → 清除所有数据”清除。">Your account, backup and profile picture are gone. Fasts on your phone are still there; erase them in the app under Me, Erase everything.</p>
+  </section>
+
+  <p class="foot" data-zh="在应用里也可以：我的 → 删除账号。">In the app: Me, then Delete account.</p>
+</main>
+<script src="../js/config.js"></script>
+<script src="../js/cloud.js"></script>
+<script>
+(function(){
+'use strict';
+var CL=window.LightlyCloud, $=function(i){return document.getElementById(i);}, lang=/^zh/i.test(navigator.language||'')?'zh':'en';
+try{ var q=new URLSearchParams(location.search).get('lang'); if(q==='zh'||q==='en') lang=q; }catch(e){}
+function L(en,zh){ return lang==='zh'?zh:en; }
+function apply(){
+  document.documentElement.lang=lang==='zh'?'zh-Hans':'en';
+  [].forEach.call(document.querySelectorAll('[data-zh]'),function(e){ if(e.dataset.en==null) e.dataset.en=e.textContent; e.textContent=lang==='zh'?e.dataset.zh:e.dataset.en; });
+  [].forEach.call(document.querySelectorAll('.lang button'),function(b){ b.setAttribute('aria-pressed',b.dataset.l===lang); });
+  document.title=L('Delete your Lightly account','删除轻伴账号');
+}
+document.querySelector('.lang').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; lang=b.dataset.l; apply(); });
+function show(id){ ['out','in','done'].forEach(function(k){ $(k).hidden=k!==id; }); }
+function say(el,t){ el.textContent=t||''; el.hidden=!t; }
+function mailErr(x){ return x&&(x.status===429||/rate|seconds|too many/i.test(x.message||''))?L('Too many emails just now. Wait a minute and try again.','邮件发得太频繁了，请等一分钟再试。'):L('Couldn’t send the email: ','邮件没发出去：')+(x&&x.message||''); }
+
+function render(){
+  var au=CL.getAuth(); if(!au){ show('out'); return; }
+  $('who').textContent=au.email||L('your account','你的账号'); show('in');
+}
+/* sign in */
+$('send').addEventListener('click',function(){
+  var e=($('em').value||'').trim(); say($('err'),''); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return say($('err'),L('That doesn’t look like an email address.','这个邮箱地址看起来不对。'));
+  $('send').disabled=true; CL.sendCode(e,null).then(function(){ $('sent').hidden=false; setTimeout(function(){ $('send').disabled=false; },60000); }).catch(function(x){ $('send').disabled=false; say($('err'),mailErr(x)); });
+});
+$('g').addEventListener('click',function(){ location.assign(CL.oauthUrl('google',null)); });
+$('so').addEventListener('click',function(){ CL.signOut(); render(); });
+/* the backup, as a file, before it goes */
+$('dl').addEventListener('click',function(){
+  say($('err2'),''); CL.pull().then(function(row){
+    if(!row||!row.data) return say($('err2'),L('There is no backup in this account.','这个账号里没有备份。'));
+    var blob=new Blob([JSON.stringify(row.data,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-backup.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500);
+  }).catch(function(){ say($('err2'),L('Couldn’t download the backup.','没能下载备份。')); });
+});
+/* press and hold for 2 seconds, the same as in the app */
+(function(){ var b=$('del'), t0=0, raf=0, on=false, lbl=b.querySelector('.hl');
+  function end(){ on=false; cancelAnimationFrame(raf); b.style.setProperty('--hold',0); apply(); }
+  function go(){ on=false; b.disabled=true; lbl.textContent=L('Deleting…','正在删除…'); say($('err2'),'');
+    CL.deleteAccount().then(function(){ show('done'); }).catch(function(x){ b.disabled=false; apply(); say($('err2'),x&&(x.status===401||x.status===400)?L('Your sign-in has expired. Sign out, sign in again, then try again.','登录已过期。请退出后重新登录，再试一次。'):L('Couldn’t delete the account. Check your connection and try again.','没能删除账号，请检查网络后重试。')); }); }
+  function start(e){ if(on||b.disabled) return; e.preventDefault(); on=true; t0=performance.now(); lbl.textContent=L('Keep holding…','继续按住…');
+    (function step(){ if(!on) return; var f=Math.min((performance.now()-t0)/2000,1); b.style.setProperty('--hold',f); if(f>=1) return go(); raf=requestAnimationFrame(step); })(); }
+  b.addEventListener('pointerdown',function(e){ try{ b.setPointerCapture(e.pointerId); }catch(x){} start(e); });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(n){ b.addEventListener(n,function(){ if(on) end(); }); });
+  b.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&!e.repeat) start(e); }); b.addEventListener('keyup',function(){ if(on) end(); });
+})();
+
+apply();
+if(!CL.ready()){ show('out'); say($('err'),L('Sign-in isn’t available right now. Please try again later.','暂时无法登录，请稍后再试。')); }
+else{
+  CL.fromHash().catch(function(){ say($('err'),L('That sign-in link didn’t work. Send a new one.','这个登录链接无效，请重新发送。')); }).then(function(){ render(); });
+  CL.providerOn('google').then(function(on){ $('g').hidden=!on; });
+}
+})();
+</script>
+</body>
+</html>
