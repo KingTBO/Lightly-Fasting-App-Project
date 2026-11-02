@@ -84,4 +84,8 @@ const srv=http.createServer((q,r)=>{ const u=decodeURIComponent(q.url.split('?')
    gOk=false; await p.evaluate(()=>localStorage.removeItem('lightly:avg')); await p.reload(); await p.waitForTimeout(800); await p.click('#tabs [data-tab=me]'); await p.waitForTimeout(500);
    assert(!(await p.$('#me .avb img.avi'))&&await p.$('#me .avb .av svg:not(.def)'),'Google photo that cannot load falls back to an icon'); ok('Google account: photo by default, cached, switchable, falls back'); 
    await c.close(); }
+ // the very first tick is the real Android tick, not the stand-in click: it is loaded on the first touch of the page
+ { const {c,p}=await page({state:{prefs:{sound:true,haptics:false,d3:false}}}); await p.evaluate(()=>{ window.__synth=0; const o=AudioContext.prototype.createBuffer; AudioContext.prototype.createBuffer=function(){ window.__synth++; return o.apply(this,arguments); }; });
+   await p.click('#me [data-act=avatar]'); await p.waitForTimeout(800); await p.click('#sheet [data-act=avicon]'); await p.waitForTimeout(500);
+   assert.strictEqual(await p.evaluate(()=>window.__synth),0,'first profile tick used the real tick'); ok('first profile picture tick is the Android tick'); await c.close(); }
  assert.deepStrictEqual(errs,[],'no page errors: '+errs.join('|')); await b.close(); srv.close(); console.log('avatars e2e ok'); })().catch(e=>{ console.error(e); process.exit(1); });
