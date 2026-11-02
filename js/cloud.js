@@ -28,7 +28,9 @@ function merge(a,b){
 /* ---------- session ---------- */
 function getAuth(){ try{ return JSON.parse(localStorage.getItem(AK)); }catch(e){ return null; } }
 function setAuth(a){ try{ if(a) localStorage.setItem(AK,JSON.stringify(a)); else localStorage.removeItem(AK); }catch(e){} }
-function toAuth(r){ return {access:r.access_token,refresh:r.refresh_token,exp:Math.floor(Date.now()/1000)+(r.expires_in||3600),email:(r.user&&r.user.email)||'',uid:(r.user&&r.user.id)||''}; }
+/* the Google account's own photo comes with the user record (user_metadata.avatar_url); an email account has none */
+function photoOf(u){ var m=(u&&u.user_metadata)||{}; return m.avatar_url||m.picture||''; }
+function toAuth(r){ return {access:r.access_token,refresh:r.refresh_token,exp:Math.floor(Date.now()/1000)+(r.expires_in||3600),email:(r.user&&r.user.email)||'',uid:(r.user&&r.user.id)||'',photo:photoOf(r.user)}; }
 function call(path,o){ o=o||{}; var c=cfg(), h={apikey:c.key,'Content-Type':'application/json'}; if(o.token) h.Authorization='Bearer '+o.token; else if(/^eyJ/.test(c.key)) h.Authorization='Bearer '+c.key; /* new sb_publishable_ keys are not JWTs: apikey alone */ for(var k in (o.headers||{})) h[k]=o.headers[k];
   return fetch(c.url.replace(/\/$/,'')+path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){ return r.text().then(function(t){ var j=null; try{ j=t?JSON.parse(t):null; }catch(e){} if(!r.ok){ var m=(j&&(j.msg||j.error_description||j.message||j.error))||('HTTP '+r.status); var e=new Error(m); e.status=r.status; throw e; } return j; }); }); }
 /* The link in the email may open in a different browser than the one that asked for it, with empty storage.
@@ -37,7 +39,7 @@ function b64(str){ return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,
 function unb64(x){ x=x.replace(/-/g,'+').replace(/_/g,'/'); while(x.length%4) x+='='; return decodeURIComponent(escape(atob(x))); }
 /* a precise location never leaves the phone: backups and sign-in links carry the place without its coordinates */
 function scrub(S){ var c=JSON.parse(JSON.stringify(S)); if(c.place&&c.place.key==='here') c.place={key:'here',lat:null,lon:null}; return c; }
-function pack(S){ if(!S||!S.onboarded) return ''; var c=scrub(S); delete c.cloudUid; delete c.del; var f=(c.fasts||[]).slice(); var out='';
+function pack(S){ if(!S||!S.onboarded) return ''; var c=scrub(S); delete c.cloudUid; delete c.del; delete c.avatar; /* a picked photo is far too big for a link */ var f=(c.fasts||[]).slice(); var out='';
   for(;;){ c.fasts=f; out=b64(JSON.stringify(c)); if(out.length<=1800||!f.length) break; f.shift(); } return out.length<=1800?out:''; }
 function unpack(x){ try{ var o=JSON.parse(unb64(x)); return o&&o.onboarded?o:null; }catch(e){ return null; } }
 function takeCarried(){ var m=/[?&]r=([\w-]+)/.exec(location.search); if(!m) return null; try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){} return unpack(m[1]); }
@@ -59,14 +61,16 @@ function fromHash(){
 function token(){
   var a=getAuth(); if(!a) return Promise.reject(new Error('signed out'));
   if(a.exp-60>Date.now()/1000) return Promise.resolve(a.access);
-  return call('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:a.refresh}}).then(function(r){ var n=toAuth(r); n.email=n.email||a.email; n.uid=n.uid||a.uid; setAuth(n); return n.access; }).catch(function(e){ if(e.status===400||e.status===401) setAuth(null); throw e; });
+  return call('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:a.refresh}}).then(function(r){ var n=toAuth(r); n.email=n.email||a.email; n.uid=n.uid||a.uid; if(!r.user) n.photo=a.photo; setAuth(n); return n.access; }).catch(function(e){ if(e.status===400||e.status===401) setAuth(null); throw e; });
 }
+/* sessions that started before photos were read have none stored yet: ask once */
+function profile(){ return token().then(function(t){ return call('/auth/v1/user',{token:t}); }).then(function(u){ var a=getAuth(); if(a){ a.photo=photoOf(u); setAuth(a); } return a; }); }
 function signOut(){ var a=getAuth(); setAuth(null); if(a&&ready()) call('/auth/v1/logout',{method:'POST',token:a.access}).catch(function(){}); }
 
 /* ---------- backup ---------- */
 function pull(){ return token().then(function(t){ return call('/rest/v1/lightly_state?select=data,updated_at',{token:t}); }).then(function(rows){ return rows&&rows[0]||null; }); }
 function push(data){ data=scrub(data); var a=getAuth(); return token().then(function(t){ return call('/rest/v1/lightly_state?on_conflict=user_id',{method:'POST',token:t,headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{user_id:a.uid,data:data,updated_at:new Date().toISOString()}}); }); }
 
-root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,pull:pull,push:push};
+root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,pull:pull,push:push};
 if(typeof module!=='undefined'&&module.exports) module.exports=root.LightlyCloud;
 })(typeof self!=='undefined'?self:this);

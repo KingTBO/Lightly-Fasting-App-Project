@@ -583,23 +583,37 @@ html:lang(zh-Hans) .me-h{text-transform:none}
 .me-out{display:block;width:100%;margin-top:12px;min-height:48px;border:0;border-radius:14px;background:var(--card);color:var(--red);font:400 17px var(--font);cursor:pointer}
 
 /* ---------- profile pictures ---------- */
-.me-card .me-av{display:grid;place-items:center;margin:0;overflow:hidden;padding:0;border:0;cursor:default;line-height:0}
+.me-avw{position:relative;flex:none;width:52px;height:52px}
+.me-avb{position:relative;flex:none;width:52px;height:52px;padding:0;border:0;background:none;border-radius:50%;cursor:pointer;transition:transform .15s cubic-bezier(.16,1,.3,1)}
+.me-avb:active{transform:scale(.94)}
+.me-card .me-av{display:grid;place-items:center;margin:0;overflow:hidden;padding:0;border:0;cursor:pointer;line-height:0}
 .me-card .me-av svg,.me-card .me-av img{width:52px;height:52px;display:block;object-fit:cover}
 .me-card .me-av .def{width:30px;height:30px;transform:translateY(-1px)}
-.me-pick{background:var(--card);border-radius:16px;padding:14px 12px 12px;margin-top:10px}
-.me-pick .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px 6px;justify-items:center}
-.me-pick button{position:relative;width:54px;height:54px;border-radius:50%;border:0;padding:0;background:none;cursor:pointer;transition:transform .15s cubic-bezier(.16,1,.3,1)}
-.me-pick button:active{transform:scale(.92)}
-.me-pick button svg,.me-pick button img{width:54px;height:54px;border-radius:50%;display:block;object-fit:cover}
-.me-pick button[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--card),0 0 0 5px var(--blue)}
-.me-pick button[aria-disabled="true"]{cursor:default}
-.me-pick button[aria-disabled="true"]>svg{filter:grayscale(1);opacity:.35}
+.me-edit{pointer-events:none;position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:var(--tint);color:var(--on-tint);box-shadow:0 0 0 2px var(--card);display:grid;place-items:center}
+.me-edit svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.me-pick{background:var(--card);border-radius:16px;padding:14px 0 0;margin-top:10px;overflow:hidden}
+.me-pick .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 0;justify-items:center;padding:0 12px 16px}
+.me-pick .grid button{position:relative;width:64px;height:64px;border-radius:50%;border:0;padding:0;background:none;cursor:pointer;transition:transform .15s cubic-bezier(.16,1,.3,1)}
+.me-pick .grid button:active{transform:scale(.92)}
+.me-pick .grid button>svg,.me-pick .grid button>img{width:64px;height:64px;border-radius:50%;display:block;object-fit:cover}
+.me-pick .grid button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--card),0 0 0 5.5px var(--blue)}
+.me-pick .grid button[aria-disabled="true"]>svg{filter:grayscale(1);opacity:.35}
 .me-pick .lk{position:absolute;inset:0;display:grid;place-items:center}
-.me-pick .lk svg{width:18px;height:18px;opacity:1;filter:none}
-.me-pick .ph-add{background:var(--fill);display:grid;place-items:center;color:var(--blue)}
-.me-pick .ph-add svg{width:24px;height:24px}
-.me-pick .cap{font-size:13px;color:var(--label-2);margin:12px 4px 0;line-height:1.35;min-height:36px}
-.me-pick .cap b{color:var(--label);font-weight:600}
+.me-pick .lk svg{width:20px;height:20px;opacity:1;filter:none}
+.me-pick .rw{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:0 16px;border:0;border-top:.5px solid var(--sep);background:none;color:var(--label);font:400 17px var(--font);text-align:left;cursor:pointer}
+.me-pick .rw:active{background:var(--fill)}
+.me-pick .rw svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--label-2);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.me-pick .rw .th{width:30px;height:30px;border-radius:50%;overflow:hidden;flex:none}
+.me-pick .rw .th img{width:100%;height:100%;display:block;object-fit:cover}
+.me-pick .rw .ck{margin-left:auto;stroke:var(--blue);stroke-width:2}
+.me-pick .rw .cv{margin-left:auto;width:8px;height:14px;stroke:var(--label-3);stroke-width:2}
+.me-pick .rw.red{color:var(--red)}
+.me-pick .cap{font-size:13px;color:var(--label-2);margin:-6px 16px 14px;line-height:1.35}
+.me-crop{position:relative;width:256px;height:256px;margin:0 auto 14px;border-radius:12px;overflow:hidden;touch-action:none;cursor:grab;background:var(--fill)}
+.me-crop canvas{display:block;width:100%;height:100%}
+.me-crop i{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle closest-side,transparent calc(100% - 1px),rgba(0,0,0,.5) 100%)}
+.me-pick .zm{display:block;width:calc(100% - 32px);margin:0 16px 12px;min-height:44px;accent-color:var(--tint)}
+.me-pick .use{display:flex;align-items:center;justify-content:center;width:calc(100% - 32px);margin:0 16px 16px;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer}
 
 /* ---------- plan chip on Today + plan sheet ---------- */
 .ph .pchip{border:0;background:none;padding:0;margin:0;min-height:44px;display:flex;align-items:center;color:inherit;cursor:pointer;font:inherit;-webkit-tap-highlight-color:transparent}
@@ -802,14 +816,11 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div class="dy-pop" id="dyPop" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Go to a month"></div>
       <div class="me" id="meScr" aria-hidden="true" aria-label="Me">
         <div class="me-card">
-          <span class="me-av" id="meAv"></span>
+          <span class="me-avw"><button type="button" class="me-avb" id="meAvB" aria-label="Change profile picture" aria-expanded="false"><span class="me-av" id="meAv"></span></button><i class="me-edit" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.4-2h5l1.4 2h1.6A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.3"/></svg></i></span>
           <div><b id="meName"></b><span id="meSub"></span></div>
         </div>
-        <div class="me-pick" id="mePick" hidden>
-          <div class="grid" id="meGrid" role="group" aria-label="Profile picture"></div>
-          <p class="cap" id="meCap"></p>
-          <input type="file" accept="image/*" id="meFile" hidden>
-        </div>
+        <div class="me-pick" id="mePick" hidden></div>
+        <input type="file" accept="image/*" id="meFile" hidden>
         <div id="meOut">
           <p class="me-h" id="meH"></p>
           <div class="me-btns" id="meBtns"></div>
@@ -2184,24 +2195,43 @@ window.LightlySphere=(function(){
     return '<svg viewBox="-20 -20 40 40" aria-hidden="true">'+S[k]()+'</svg>'; }
   var AV=[['crescent','Crescent moon','新月'],['full','Full moon','满月'],['sunrise','Sunrise','日出'],['star','Morning star','晨星'],['stars','Your stars','星座'],['lantern','Lantern','灯笼'],['tea','A cup of tea','一杯茶'],['drop','Water drop','一滴水'],
     ['eclipse','Eclipse','日食',30]];
-  var pic='crescent', photo=null, fastsDone=12; /* sample: 12 fasts so far */
+  var choice=null, pic='crescent', photo=null, fastsDone=12, pickOpen=false, crop=null; /* sample: 12 fasts so far */
+  var GPH='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9CC8EE"/><stop offset="1" stop-color="#E8C9A8"/></linearGradient></defs><rect width="64" height="64" fill="url(#g)"/><circle cx="32" cy="26" r="10" fill="#7A5A44"/><path d="M12 64c2-16 10-22 20-22s18 6 20 22z" fill="#3C5A82"/></svg>'); /* stands in for the Google account photo */
   var DEF='<svg class="def" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
-  function avatar(){ var el=$('meAv'); el.style.color='var(--label-2)';
-    el.innerHTML=!signed?DEF:photo?'<img alt="" src="'+photo+'">':av(pic); }
-  function picker(){ var g=$('meGrid'); $('mePick').hidden=!signed; if(!signed) return;
-    g.innerHTML=AV.map(function(a){ var lock=a[3]&&fastsDone<a[3];
-      return '<button type="button" data-k="'+a[0]+'" aria-pressed="'+(!photo&&pic===a[0])+'"'+(lock?' aria-disabled="true"':'')+' aria-label="'+L(a[1],a[2])+'">'+av(a[0])+(lock?'<span class="lk"><svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="var(--label-2)"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="var(--label-2)" stroke-width="2"/></svg></span>':'')+'</button>'; }).join('')
-      +'<button type="button" class="ph-add" data-k="photo" aria-pressed="'+(!!photo)+'" aria-label="'+L('Your own photo','自己的照片')+'">'+(photo?'<img alt="" src="'+photo+'">':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.4-2h5l1.4 2h1.6A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12.5" r="3.3" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>')+'</button>';
-    [].forEach.call(g.children,function(b){ b.addEventListener('click',function(){ var k=b.dataset.k;
-      if(b.getAttribute('aria-disabled')){ cap(k); return; } if(k==='photo'){ $('meFile').click(); return; } photo=null; pic=k; cap(k); avatar(); picker(); try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){} });
-      });
-    cap(photo?'photo':pic); }
-  function cap(k){ var a=AV.filter(function(x){return x[0]===k;})[0], t;
-    if(k==='photo') t=L('<b>Your photo.</b> It stays private unless you join friends, and you can change it any time.','<b>你自己的照片。</b>除非你加了朋友，否则只有你能看到，随时可以换。');
-    else if(a&&a[3]) t=L('<b>Eclipse</b> unlocks after '+a[3]+' fasts of any length ('+fastsDone+' so far). Earned by showing up, never by fasting longer.','<b>日食</b>在完成 '+a[3]+' 次断食后解锁（目前 '+fastsDone+' 次），多长都算。靠坚持，不靠饿得更久。');
-    else t=L('<b>'+a[1]+'.</b> Pick a sky, or tap the camera to use your own photo.','<b>'+a[2]+'。</b>选一片天空，或者点相机用自己的照片。');
-    $('meCap').innerHTML=t; }
-  $('meFile').addEventListener('change',function(e){ var f=e.target.files&&e.target.files[0]; if(!f) return; var r=new FileReader(); r.onload=function(){ photo=r.result; avatar(); picker(); }; r.readAsDataURL(f); });
+  var CAM='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.4-2h5l1.4 2h1.6A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.3"/></svg>';
+  /* what shows: a gallery photo, a picked icon, or the default: a Google account's own photo, an icon for an email account, the plain person when signed out */
+  function isG(){ return signed==='Google'; }
+  function cur(){ if(choice==='photo'&&photo) return 'photo'; if(choice==='icon'&&signed) return 'icon'; if(choice==='google'&&isG()) return 'google'; if(choice==='photo'&&!photo) return isG()?'google':signed?'icon':'none'; return isG()?'google':signed?'icon':'none'; }
+  function pic1(c,sz){ return c==='photo'?'<img alt="" src="'+photo+'">':c==='google'?'<img alt="" src="'+GPH+'">':c==='icon'?av(pic):DEF; }
+  function avatar(){ var el=$('meAv'); el.style.color='var(--label-2)'; el.innerHTML=pic1(cur()); }
+  var CH='<svg class="cv" viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5 7 7l-5.5 5.5"/></svg>', CK='<svg class="ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  function picker(note){ var box=$('mePick'); box.hidden=!pickOpen; $('meAvB').setAttribute('aria-expanded',String(pickOpen)); if(!pickOpen) return;
+    if(crop){ box.innerHTML='<div class="me-crop" id="mCrop"><canvas id="mCropC" width="256" height="256" role="img" aria-label="'+L('Your photo. Drag to move.','你的照片，拖动可移动。')+'"></canvas><i></i></div><input class="zm" id="mZoom" type="range" min="1" max="4" step="0.01" value="'+crop.zoom+'" aria-label="'+L('Zoom','缩放')+'"><button type="button" class="use" data-r="save">'+L('Use photo','使用照片')+'</button>'; cropDraw(); return; }
+    var c=cur(), h='<div class="grid" role="group" aria-label="'+L('Profile picture','头像')+'">'+AV.map(function(a){ var lock=a[3]&&fastsDone<a[3], on=c==='icon'&&pic===a[0];
+      return '<button type="button" data-k="'+a[0]+'" aria-pressed="'+on+'"'+(lock?' aria-disabled="true"':'')+' aria-label="'+L(a[1],a[2])+(lock?L(', locked',', 未解锁'):'')+'">'+av(a[0])+(lock?'<span class="lk"><svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="var(--label-2)"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="var(--label-2)" stroke-width="2"/></svg></span>':'')+'</button>'; }).join('')+'</div>';
+    if(note) h+='<p class="cap">'+note+'</p>';
+    if(isG()) h+='<button type="button" class="rw" data-r="google"><span class="th"><img alt="" src="'+GPH+'"></span><span>'+L('Google photo','Google 头像')+'</span>'+(c==='google'?CK:'')+'</button>';
+    h+='<label class="rw" for="meFile">'+CAM+'<span>'+L('Choose from photos','从相册选择')+'</span>'+CH+'</label>';
+    if(c==='photo') h+='<button type="button" class="rw red" data-r="remove">'+L('Remove photo','移除照片')+'</button>';
+    box.innerHTML=h; }
+  function done(){ pickOpen=false; crop=null; avatar(); picker(); try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){} }
+  $('meAvB').addEventListener('click',function(){ if(!pickOpen){ pickOpen=true; crop=null; } else { pickOpen=false; crop=null; } picker(); });
+  $('mePick').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return;
+    if(b.dataset.k){ var a=AV.filter(function(x){return x[0]===b.dataset.k;})[0]; if(a[3]&&fastsDone<a[3]) return picker(L(a[1]+' unlocks after '+a[3]+' fasts.',a[2]+'在完成 '+a[3]+' 次断食后解锁。')); pic=a[0]; choice='icon'; return done(); }
+    if(b.dataset.r==='google'){ choice='google'; return done(); }
+    if(b.dataset.r==='remove'){ photo=null; choice=null; return done(); }
+    if(b.dataset.r==='save'&&crop){ cropDraw(); photo=$('mCropC').toDataURL('image/jpeg',.86); choice='photo'; return done(); } });
+  /* photo from the gallery: move and scale under a circle, kept as a small 256 px picture */
+  function fit(w,h,z,ox,oy){ z=Math.min(4,Math.max(1,z||1)); var s=Math.max(256/w,256/h)*z, dw=w*s, dh=h*s, mx=(dw-256)/2, my=(dh-256)/2; ox=Math.min(mx,Math.max(-mx,ox||0)); oy=Math.min(my,Math.max(-my,oy||0)); return {zoom:z,dw:dw,dh:dh,ox:ox,oy:oy,x:(256-dw)/2+ox,y:(256-dh)/2+oy}; }
+  function cropDraw(){ var c=$('mCropC'); if(!c||!crop) return; var f=fit(crop.w,crop.h,crop.zoom,crop.ox,crop.oy); crop.ox=f.ox; crop.oy=f.oy; crop.zoom=f.zoom; var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,256,256); x.drawImage(crop.img,f.x,f.y,f.dw,f.dh); var z=$('mZoom'); if(z&&+z.value!==f.zoom) z.value=f.zoom; }
+  $('meFile').addEventListener('change',function(e){ var f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; var u=URL.createObjectURL(f), im=new Image(); im.onload=function(){ URL.revokeObjectURL(u); crop={img:im,w:im.naturalWidth,h:im.naturalHeight,zoom:1,ox:0,oy:0}; pickOpen=true; picker(); }; im.onerror=function(){ URL.revokeObjectURL(u); }; im.src=u; });
+  (function(){ var pts={}; var box=$('mePick');
+    function dist(){ var k=Object.keys(pts); if(k.length<2) return 0; var a=pts[k[0]], b=pts[k[1]]; return Math.hypot(a.x-b.x,a.y-b.y); }
+    box.addEventListener('pointerdown',function(e){ var t=e.target.closest('#mCrop'); if(!t||!crop) return; pts[e.pointerId]={x:e.clientX,y:e.clientY}; try{ t.setPointerCapture(e.pointerId); }catch(x){} });
+    box.addEventListener('pointermove',function(e){ var p=pts[e.pointerId]; if(!p||!crop) return; var el=$('mCrop'); if(Object.keys(pts).length===1){ var k=256/el.getBoundingClientRect().width; crop.ox+=(e.clientX-p.x)*k; crop.oy+=(e.clientY-p.y)*k; p.x=e.clientX; p.y=e.clientY; } else { var d0=dist(); p.x=e.clientX; p.y=e.clientY; var d1=dist(); if(d0>0) crop.zoom*=d1/d0; } cropDraw(); });
+    function up(e){ delete pts[e.pointerId]; } box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up);
+    box.addEventListener('wheel',function(e){ if(!crop||!e.target.closest('#mCrop')) return; e.preventDefault(); crop.zoom*=Math.exp(-e.deltaY*.002); cropDraw(); },{passive:false});
+    box.addEventListener('input',function(e){ if(e.target.id==='mZoom'&&crop){ crop.zoom=+e.target.value; cropDraw(); } }); })();
   function render(){
     avatar(); picker();
     $('meName').textContent=signed?L('Signed in','已登录'):L('Not signed in','未登录');
@@ -2213,7 +2243,7 @@ window.LightlySphere=(function(){
     $('meNote').textContent=L('Creating an account is optional. It backs up your fasts and moves them to a new phone. Lightly never shares your weight or sells your data. Email sign-in is available now.','创建账号是可选的，只用来备份断食记录、换手机时同步。轻伴从不分享你的体重，也不出售你的数据。目前支持邮箱登录。');
     [].forEach.call($('meBtns').children,function(b){ b.addEventListener('click',function(){ signed=b.dataset.w.replace(/^(Continue with |通过 |用)| 继续$|继续$|登录$/g,''); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} render(); }); }); }
   $('meLogin').addEventListener('click',function(){ signed=L('Email','邮箱'); render(); });
-  $('meSignOut').addEventListener('click',function(){ signed=null; render(); });
+  $('meSignOut').addEventListener('click',function(){ signed=null; pickOpen=false; crop=null; render(); });
   /* Time off: travel (1 to 14 days) or unwell (2 weeks), playable here */
   var off=null, offDays=3;
   function offBar(){ var b=$('offBar'); b.hidden=!off; if(off) b.innerHTML=(off.kind==='travel'?L('Travelling · day 1 of '+off.days,'旅行中 · 第 1 天，共 '+off.days+' 天'):L('Resting · day 1 of '+off.days,'休养中 · 第 1 天，共 '+off.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>'; $('ph').classList.toggle('offon',!!off); window.LIGHTLY_OFF=off; if(window.refreshToday) window.refreshToday(!!off); if(window.refreshStreak) window.refreshStreak(); }

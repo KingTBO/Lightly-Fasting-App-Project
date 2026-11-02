@@ -17,6 +17,7 @@ A real, installable web app (PWA) at the repo root, deployed by GitHub Pages fro
 - `js/app.js` UI and state (`localStorage` key `lightly:v1`). `css/app.css` styles. `js/sphere.js` the moon/sun.
 - `js/cloud.js`, `js/config.js`, `supabase/schema.sql` optional email and Google sign-in with backup. Everything must keep working signed out. Never commit a `service_role` key or any secret; the anon key in `js/config.js` is public by design.
 - `js/import.js` imports fasts from other apps. Never put a user's export or password in the repo.
+- `js/avatars.js` the profile-picture list (placeholder sky pictures designers can swap, see the comment at its top) and the crop maths. Tested by `node tests/avatars.test.js` (add `--e2e` with Playwright for the browser flow).
 - `concept/` is the product landing page. `app/` is a redirect stub for an old URL; leave it.
 - `.agents/` and `.claude/skills/` hold Supabase helper skills; do not edit them.
 
@@ -26,6 +27,7 @@ A real, installable web app (PWA) at the repo root, deployed by GitHub Pages fro
 python3 -m http.server 8000                                   # open http://localhost:8000
 node tests/core.test.js                                       # unit tests for the rules
 node tests/import.test.js
+node tests/avatars.test.js                                    # profile pictures (NODE_PATH set or --e2e also runs the browser flow)
 NODE_PATH=$(npm root -g) node tests/wheel.test.js             # wheel pickers: momentum, snap at rest, looping, 24-hour columns, haptic ticks (about 1 minute)
 NODE_PATH=$(npm root -g) node tests/cloud.test.js --e2e       # only if cloud or sign-in code changed
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright

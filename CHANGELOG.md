@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.56.0
+- **feature** You can now choose your profile picture on the Me tab. Tap the picture (it has a small camera mark) to open "Profile picture". If you signed in with Google, your Google photo is used straight away. Otherwise you start with one of the little sky pictures (crescent moon, full moon, sunrise, morning star, your stars, lantern, a cup of tea, water drop; the Eclipse opens after 30 fasts), and you can pick another. Anyone, signed in or not, can also choose a photo from their photos: you move and scale it under a circle, and Lightly keeps a small 256 px copy, so it works offline and is part of your backup. "Google photo" brings the Google picture back, and "Remove photo" goes back to the default. If a picture can't load, a sky picture shows instead. The sky pictures are placeholders that designers can swap by editing one list in `js/avatars.js`. Same on the concept page, in English and Chinese.
+
 ## 0.55.0
 - **feature** Zero's zip has a password (Zero emails it with the download), so Lightly now asks for it. Choose the zip, type the password in a small sheet (“It’s in the email with your download.”), and Lightly unlocks it, finds the right file and shows the usual preview. A wrong password says so and lets you try again. It opens both common kinds of zip password, and the password is used only on the phone and never stored or sent. This makes the 0.54.0 zip import work with a real Zero export, which it did not before. Same on the concept page.
 
