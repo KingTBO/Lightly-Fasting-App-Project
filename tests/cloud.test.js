@@ -28,7 +28,7 @@ const mock=http.createServer((q,r)=>{
     if(u.startsWith('/auth/v1/settings')) return out(200,{external:{google:googleOn,email:true}});
     if(u.startsWith('/auth/v1/otp')){codes[j.email]='123456';return out(200,{});}
     if(u.startsWith('/auth/v1/verify')){if(j.token!==codes[j.email])return out(400,{msg:'Token has expired or is invalid'});return out(200,{access_token:'tok-'+j.email,refresh_token:'r',expires_in:3600,user:{id:'uid-'+j.email,email:j.email}});}
-    if(u.startsWith('/auth/v1/user')){if(goneTok.has(q.headers.authorization))return out(403,{msg:'User from sub claim in JWT does not exist'});return out(200,{id:'uid-x',email:'x@y.z'});}
+    if(u.startsWith('/auth/v1/user')){if(goneTok.has(q.headers.authorization))return out(403,{msg:'User from sub claim in JWT does not exist'});return out(200,(q.headers.authorization||'').includes('google')?{id:'uid-g',email:'mina.k@gmail.com',user_metadata:{given_name:'Mina',full_name:'Mina Kato',avatar_url:''}}:{id:'uid-x',email:'x@y.z'});}
     if(u.startsWith('/auth/v1/logout')) return out(204,{});
     if(u.startsWith('/functions/v1/delete-account')){const tk=(q.headers.authorization||'');if(!tk.startsWith('Bearer tok-'))return out(401,{error:'signed out'});if(delFail)return out(500,{error:'account'});const uid=tk.replace('Bearer tok-','uid-');delete rows[uid];deleted.push(uid);return out(200,{ok:true});}
     if(u.startsWith('/rest/v1/lightly_state')){const uid=(q.headers.authorization||'').replace('Bearer tok-','uid-');
@@ -52,7 +52,7 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  await d1.p.click('#tabs [data-tab=me]');await d1.p.click('[data-act=emailsheet]');await d1.p.fill('#emIn','tb@example.com');await d1.p.click('[data-act=emsend]');await d1.p.waitForSelector('#emCode');
  await d1.p.fill('#emCode','000000');await d1.p.click('[data-act=emverify]');await d1.p.waitForSelector('#sheet .note.err');assert.match(await d1.p.textContent('#sheet .note.err'),/didn.t work/);ok('wrong code is refused');
  await d1.p.fill('#emCode','123456');await d1.p.click('[data-act=emverify]');await d1.p.waitForTimeout(1200);
- assert.match(await d1.p.textContent('#me .me-card b'),/tb@example.com/);assert(rows['uid-tb@example.com'],'backup written');assert.strictEqual(rows['uid-tb@example.com'].data.fasts.length,1);ok('email code sign-in and first backup');
+ assert.match(await d1.p.textContent('#me .me-card b'),/Add your name/);assert(rows['uid-tb@example.com'],'backup written');assert.strictEqual(rows['uid-tb@example.com'].data.fasts.length,1);ok('email code sign-in and first backup');
  // device 2: fresh install, has a different fast, signs in as the same person: fasts are combined, account settings win
  const d2=await device(base([f('two',now-24*H)],{planId:'20',mod:now}));
  await d2.p.click('#tabs [data-tab=me]');await d2.p.click('[data-act=emailsheet]');await d2.p.fill('#emIn','tb@example.com');await d2.p.click('[data-act=emsend]');await d2.p.waitForSelector('#emCode');await d2.p.fill('#emCode','123456');await d2.p.click('[data-act=emverify]');await d2.p.waitForTimeout(1500);
@@ -101,6 +101,16 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  goneTok.add('Bearer tok-other@example.com');await o.p.click('#tabs [data-tab=me]');await o.p.click('[data-act=syncnow]');await o.p.waitForTimeout(1500);
  assert(await o.p.evaluate(()=>!localStorage.getItem('lightly:auth')),'signed out after the account was deleted elsewhere');assert.match(await o.p.textContent('#toast'),/no longer exists/);
  assert((await o.p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).fasts.some(x=>x.id==='keep'),'fasts kept');assert(await o.p.$('[data-act=emailsheet]'),'signed-out card shown');ok('account deleted on another phone: this phone signs out, keeps its fasts, says why');}
+ // the name on the Me tab: a Google first name by default, "Add your name" for email accounts, editable by anyone, saved in the backup
+ {const n=await device(base([f('nm',now-30*H)]),false);await n.p.goto(url+'#access_token=tok-google@example.com&refresh_token=r&expires_in=3600&type=magiclink');await n.p.reload();await n.p.waitForTimeout(1500);
+ await n.p.click('#tabs [data-tab=me]');assert.strictEqual((await n.p.textContent('#me .me-card b')).trim(),'Mina','Google first name is the default');
+ await n.p.click('#me [data-act=namesheet]');await n.p.fill('#nmIn','Sam');await n.p.keyboard.press('Enter');await n.p.waitForTimeout(500);
+ assert.strictEqual((await n.p.textContent('#me .me-card b')).trim(),'Sam','chosen name wins');await n.p.waitForTimeout(4500);assert.strictEqual(rows['uid-google@example.com'].data.name,'Sam','the name rides along in the backup');
+ await n.p.click('#me [data-act=namesheet]');await n.p.fill('#nmIn','');await n.p.click('[data-act=namesave]');await n.p.waitForTimeout(400);assert.strictEqual((await n.p.textContent('#me .me-card b')).trim(),'Mina','clearing goes back to the Google name');
+ await n.p.click('[data-act=signout]');await n.p.click('[data-act=signoutok]');await n.p.waitForTimeout(300);assert.strictEqual((await n.p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).name,null,'name leaves with the sign-in');
+ const e=await device(base([f('nm2',now-30*H)]),false);await e.p.goto(url+'#access_token=tok-plain@example.com&refresh_token=r&expires_in=3600&type=magiclink');await e.p.reload();await e.p.waitForTimeout(1500);await e.p.click('#tabs [data-tab=me]');
+ assert.match(await e.p.textContent('#me .me-card b.noname'),/Add your name/,'email account is asked to add a name');assert(!/@/.test(await e.p.textContent('#me .me-card')),'no email shown as a name');
+ await e.p.click('#me [data-act=namesheet]');assert.match(await e.p.textContent('#sheet'),/x@y\.z/,'the email is in the edit sheet');ok('display name: Google first name, add-your-name for email, editable, saved in the backup');}
  // the public deletion page signs in and deletes the same way
  {const w=await device(null,false);await w.p.goto(url+'delete-account/?lang=en');await w.p.waitForTimeout(600);assert(await w.p.isVisible('#out'),'signed-out sign-in card');
  await w.p.goto(url+'delete-account/#access_token=tok-page@example.com&refresh_token=r&expires_in=3600&type=magiclink');await w.p.reload();await w.p.waitForTimeout(800);

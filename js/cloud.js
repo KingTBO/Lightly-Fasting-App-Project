@@ -30,7 +30,9 @@ function getAuth(){ try{ return JSON.parse(localStorage.getItem(AK)); }catch(e){
 function setAuth(a){ try{ if(a) localStorage.setItem(AK,JSON.stringify(a)); else localStorage.removeItem(AK); }catch(e){} }
 /* the Google account's own photo comes with the user record (user_metadata.avatar_url); an email account has none */
 function photoOf(u){ var m=(u&&u.user_metadata)||{}; return m.avatar_url||m.picture||''; }
-function toAuth(r){ return {access:r.access_token,refresh:r.refresh_token,exp:Math.floor(Date.now()/1000)+(r.expires_in||3600),email:(r.user&&r.user.email)||'',uid:(r.user&&r.user.id)||'',photo:photoOf(r.user)}; }
+/* a Google account's first name (given_name, or the first word of the full name); an email account has none */
+function nameOf(u){ var m=(u&&u.user_metadata)||{}; var n=m.given_name||String(m.full_name||m.name||'').trim().split(/\s+/)[0]; return String(n||'').slice(0,24); }
+function toAuth(r){ return {access:r.access_token,refresh:r.refresh_token,exp:Math.floor(Date.now()/1000)+(r.expires_in||3600),email:(r.user&&r.user.email)||'',uid:(r.user&&r.user.id)||'',photo:photoOf(r.user),name:nameOf(r.user)}; }
 function call(path,o){ o=o||{}; var c=cfg(), h={apikey:c.key,'Content-Type':'application/json'}; if(o.token) h.Authorization='Bearer '+o.token; else if(/^eyJ/.test(c.key)) h.Authorization='Bearer '+c.key; /* new sb_publishable_ keys are not JWTs: apikey alone */ for(var k in (o.headers||{})) h[k]=o.headers[k];
   return fetch(c.url.replace(/\/$/,'')+path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){ return r.text().then(function(t){ var j=null; try{ j=t?JSON.parse(t):null; }catch(e){} if(!r.ok){ var m=(j&&(j.msg||j.error_description||j.message||j.error))||('HTTP '+r.status); var e=new Error(m); e.status=r.status; throw e; } return j; }); }); }
 /* The link in the email may open in a different browser than the one that asked for it, with empty storage.
@@ -61,10 +63,10 @@ function fromHash(){
 function token(){
   var a=getAuth(); if(!a) return Promise.reject(new Error('signed out'));
   if(a.exp-60>Date.now()/1000) return Promise.resolve(a.access);
-  return call('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:a.refresh}}).then(function(r){ var n=toAuth(r); n.email=n.email||a.email; n.uid=n.uid||a.uid; if(!r.user) n.photo=a.photo; setAuth(n); return n.access; }).catch(function(e){ if(e.status===400||e.status===401) setAuth(null); throw e; });
+  return call('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:a.refresh}}).then(function(r){ var n=toAuth(r); n.email=n.email||a.email; n.uid=n.uid||a.uid; if(!r.user){ n.photo=a.photo; n.name=a.name; } setAuth(n); return n.access; }).catch(function(e){ if(e.status===400||e.status===401) setAuth(null); throw e; });
 }
-/* sessions that started before photos were read have none stored yet: ask once */
-function profile(){ return token().then(function(t){ return call('/auth/v1/user',{token:t}); }).then(function(u){ var a=getAuth(); if(a){ a.photo=photoOf(u); setAuth(a); } return a; }); }
+/* sessions that started before photos and names were read have none stored yet: ask once */
+function profile(){ return token().then(function(t){ return call('/auth/v1/user',{token:t}); }).then(function(u){ var a=getAuth(); if(a){ a.photo=photoOf(u); a.name=nameOf(u); setAuth(a); } return a; }); }
 function signOut(){ var a=getAuth(); setAuth(null); if(a&&ready()) call('/auth/v1/logout',{method:'POST',token:a.access}).catch(function(){}); }
 
 /* Is this sign-in still good? A phone that was signed in when the account was deleted somewhere else still holds a token for a person who no longer exists.
