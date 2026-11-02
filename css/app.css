@@ -4,7 +4,7 @@
   color-scheme:light;
   --bg:#F2F2F7; --card:#FFFFFF; --label:#000; --label-2:rgba(60,60,67,.75); --label-3:rgba(60,60,67,.3);
   --sep:rgba(60,60,67,.29); --fill:rgba(120,120,128,.12); --fill-2:rgba(120,120,128,.2);
-  --tint:#FFCC00; --on-tint:#000; --green:#34C759; --red:#C70012; --blue:#0062D9; --link:#7A5C00; --orange:#C93400; --moon:#F4EFE2; --moon-edge:#B9AF96; --night:#0E1430;
+  --tint:#FFCC00; --on-tint:#000; --green:#34C759; --red:#C70012; --blue:#0062D9; --link:#7A5C00; --orange:#C93400; --moon:#F4EFE2; --moon-edge:#B9AF96; --bar-edge:#C99F00; --night:#0E1430;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
   --font-d:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
   --font-r:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,'Inter','PingFang SC','Noto Sans SC',sans-serif;
@@ -16,10 +16,10 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
   --bg:#000; --card:#1C1C1E; --label:#fff; --label-2:rgba(235,235,245,.6); --label-3:rgba(235,235,245,.3);
-  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --link:#FFD60A; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A}}
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --link:#FFD60A; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A; --bar-edge:transparent}}
 :root[data-theme="dark"]{color-scheme:dark;
   --bg:#000; --card:#1C1C1E; --label:#fff; --label-2:rgba(235,235,245,.6); --label-3:rgba(235,235,245,.3);
-  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --link:#FFD60A; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A}
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --link:#FFD60A; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A; --bar-edge:transparent}
 
 /* skies follow the real sunrise and sunset where you are */
 [data-sky="night"]  {--stars:1;--sky:#0E1430;--ink:#fff;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.10);--rim:rgba(255,255,255,.28);--glass:rgba(40,44,70,.55)}
@@ -447,28 +447,40 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 @media (prefers-reduced-motion:reduce){.rung{transition:none}}
 .group .row b{font-weight:600}
 
-/* Days: milestone header, swipeable month, month picker */
-.mile{overflow:hidden}
-.mhero{display:flex;align-items:center;gap:16px;padding:18px 16px 8px}
-.ring{position:relative;width:112px;height:112px;flex:none}
-.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.ring circle{fill:none;stroke-width:9;stroke-linecap:round}
-.ring .rt{stroke:var(--fill-2)}
-.ring .rp{stroke:var(--tint);animation:ringIn .9s var(--spr) both}
-@keyframes ringIn{from{stroke-dashoffset:var(--cir)}}
-.rn{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.rn b{font:700 2.5rem/1 var(--font-r);font-variant-numeric:tabular-nums}
-.rn span{font:500 0.75rem var(--font);color:var(--label-2);margin-top:2px}
-.mtx{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
-.mtx b{font:600 1.0625rem/1.25 var(--font)}
-.mtx small{font:400 0.875rem/1.35 var(--font);color:var(--label-2)}
-.rec{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px 4px 8px;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 0.75rem var(--font);animation:recPop .6s var(--spr) .5s both}
-.rec svg{width:13px;height:13px;fill:currentColor}
-@keyframes recPop{from{transform:scale(.6);opacity:0}}
-.mline{font:500 0.875rem/1.35 var(--font);color:var(--label-2);font-variant-numeric:tabular-nums;padding:6px 16px 10px}
-.mchips{display:flex;gap:8px;padding:10px 16px 16px}
-.mchip{flex:1;min-height:32px;border-radius:999px;display:grid;place-items:center;font:600 0.8125rem var(--font-r);border:1.5px dashed var(--label-3);color:var(--label-2)}
-.mchip.on{background:var(--tint);color:var(--on-tint);border-color:transparent}
+/* Days: totals header, swipeable month, month picker, average fast chart */
+.tot{padding:20px 16px 0}
+.tt{display:flex;flex-direction:column;gap:2px;padding-bottom:16px}
+.tk{font:500 0.8125rem var(--font);color:var(--label-2)}
+.tn{font:700 3rem/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tn small{font:600 1.25rem var(--font-r);color:var(--label-2);margin-left:8px;letter-spacing:0}
+.ts{font:400 0.875rem var(--font);color:var(--label-2)}
+.tstats{display:grid;grid-template-columns:repeat(3,1fr);border-top:.5px solid var(--sep);margin:0 -16px}
+.tstats div{padding:12px 4px 14px;text-align:center;min-width:0}
+.tstats div+div{border-left:.5px solid var(--sep)}
+.tstats b{display:block;font:700 1.25rem/1.15 var(--font-r);font-variant-numeric:tabular-nums}
+.tstats span{font:400 0.75rem var(--font);color:var(--label-2)}
+.avg{padding-top:12px}
+.avgseg{padding:0 12px}
+.avgsum{padding:14px 16px 0;min-height:72px}
+.avgsum b{font:700 1.75rem/1.1 var(--font-r);font-variant-numeric:tabular-nums}
+.avgsum b small{font:500 0.875rem var(--font);color:var(--label-2);margin-left:4px}
+.avgsum p{margin:2px 0 0;font:400 0.8125rem/1.35 var(--font);color:var(--label-2)}
+.avgplot{position:relative;margin:0 4px}
+.avgplot svg{display:block;width:100%;height:100%}
+.avgplot text{fill:var(--label-2);font:500 11px var(--font-r);font-variant-numeric:tabular-nums}
+.avgplot text.on{fill:var(--label);font-weight:700}
+.avgplot .gl{stroke:var(--sep);stroke-width:.5}
+.avgplot .gp{stroke:var(--link);stroke-width:1.2;stroke-dasharray:4 3}
+.avgplot .bar{fill:var(--tint);stroke:var(--bar-edge);stroke-width:1}
+.avgplot .bar.on{stroke:var(--label);stroke-width:2}
+.avgplot .bar0{fill:var(--fill-2)}
+.avgplot.avgplay .bar{transform-box:fill-box;transform-origin:50% 100%;animation:barUp .6s var(--spr) both}
+@keyframes barUp{from{transform:scaleY(.02)}}
+.avgcol{position:absolute;border:0;background:transparent;border-radius:8px;padding:0}
+.avgcol:focus-visible{outline:2px solid var(--link);outline-offset:-2px}
+.avgfoot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:2px 16px 16px;font:400 0.75rem var(--font);color:var(--label-2)}
+.avgfoot .lg{display:inline-flex;align-items:center;gap:6px}
+.avgfoot .lg i{width:18px;border-top:1.5px dashed var(--link)}
 .cal-t{width:auto!important;height:44px;padding:0 12px;border-radius:999px!important;font:600 1.0625rem var(--font);color:var(--label)!important;gap:6px}
 .cal-t svg{width:11px!important;height:8px!important;stroke:var(--link)!important;stroke-width:2}
 .cal-g{touch-action:pan-y}
@@ -484,10 +496,9 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .pm:disabled{opacity:.3}
 .pm.on{background:var(--tint);color:var(--on-tint);font-weight:600}
 .pm i{position:absolute;bottom:6px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:currentColor;opacity:.55}
-@media (prefers-reduced-motion:reduce){.ring .rp,.rec{animation:none}.sheet.float{transition:opacity .2s ease,visibility 0s .2s;transform:translateY(-50%)}}
+@media (prefers-reduced-motion:reduce){.avgplot.avgplay .bar{animation:none}.sheet.float{transition:opacity .2s ease,visibility 0s .2s;transform:translateY(-50%)}}
 .cal-v{position:relative;overflow:hidden}
 .cal-g.in{position:absolute;top:0;left:0;right:0}
-.ring .rp:not(.play){animation:none}
 .fabwrap{position:absolute;right:0;bottom:calc(12px + 64px + 4px + var(--sab));width:104px;height:88px;padding-right:var(--m);box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;overflow:hidden;pointer-events:none;z-index:4;transition:bottom .5s var(--spring)}
 .ph.tabs-off .fabwrap{bottom:calc(-4px + var(--sab))}
 .fab{position:relative;flex:none;width:56px;height:56px;border:0;border-radius:50%;background:var(--tint);color:var(--on-tint);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.22),0 1px 3px rgba(0,0,0,.18);transform:translateX(calc(100% + var(--m) + 8px));opacity:0;visibility:hidden;pointer-events:none;transition:transform .55s var(--spring),opacity .25s ease,visibility 0s .55s}

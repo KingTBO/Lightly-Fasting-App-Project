@@ -68,12 +68,6 @@ function eatH(f){ return f.goalH>=24?12:Math.max(24-f.goalH,1); }
 function today(){ return C.dayKey(Date.now()); }
 function inRamadan(){ return C.ramadanDay()>0||S.ramadanPreview; }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
-function bestStreak(){
-  var fs=streakFasts().filter(function(f){return f.end;}); if(!fs.length) return 0;
-  var offK=C.offKeys(S.off), first=C.dayKey(Math.min.apply(null,fs.map(function(f){return f.end;}))), t=today(), k=first, chain=0, best=0, g=0;
-  while(k<=t&&g++<5000){ var st=C.dayStatus(k,fs,S.flex.used,offK); if(st==='done'){chain++; best=Math.max(best,chain);} else if(st==='flex'||st==='off'){} else if(k!==t) chain=0; k=C.addDays(k,1); }
-  return best;
-}
 function curStreak(){ return C.streak(streakFasts(),S.flex.used.concat(C.offKeys(S.off))); }
 function checkUnlocks(){ [24,36].forEach(function(k){ var r=C.longStatus(k,S.profile,{fasts:S.fasts,unwell:S.unwell,unlocked:S.unlocked}); if((r.st==='ok'||r.st==='wait'||r.st==='paused')&&!S.unlocked[k]){ S.unlocked[k]=Date.now(); save(); } }); }
 function usualTxt(){ var t=(S.prefs.usualStart||'20:00').split(':'); var d=new Date(); d.setHours(+t[0],+t[1],0,0); return clockMs(d.getTime()); }
@@ -429,7 +423,7 @@ function showTab(t,instant){
   ph.style.setProperty('--ti',order.indexOf(t));
   document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('sel',b.dataset.tab===t); b.setAttribute('aria-current',b.dataset.tab===t?'page':'false'); });
   ph.classList.toggle('sys',t!=='today');
-  if(t==='days'){ ringPlay=true; fabOn=false; selDay=null; } if(t==='days') renderDays(); if(t==='me') renderMe(); fabSync(); if(t==='today') updateToday();
+  if(t==='days'){ avgPlay=true; avgSel=null; fabOn=false; selDay=null; } if(t==='days') renderDays(); if(t==='me') renderMe(); fabSync(); if(t==='today') updateToday();
   chrome();
   $(t).scrollTop=0;
 }
@@ -497,27 +491,39 @@ function fabSync(){ var f=$('dayFab'); if(!f) return; var on=curTab==='days'&&fa
   f.classList.toggle('on',on); f.setAttribute('aria-hidden',!on); f.tabIndex=on?0:-1; f.dataset.mode=has?'edit':'add';
   f.setAttribute('aria-label',has?L('Edit this day’s fast','编辑这天的断食'):L('Add a fast for this day','为这天补记断食')); }
 function initCal(){ var d=new Date(); calY=d.getFullYear(); calM=d.getMonth(); selDay=null; }
-/* the Days header: one ring toward the next streak milestone, then the two numbers that matter */
-var MILES=[3,7,14,30,60,100,200,365];
-function dayWord(n){ return L(n===1?'day':'days','天'); }
-var ringPlay=true;
-/* one quiet line instead of a row of stat tiles: this month's fasts, then the longest streak */
-function statLine(best){ var d=new Date(), m0=new Date(d.getFullYear(),d.getMonth(),1).getTime(), n=S.fasts.filter(function(f){ return C.isDone(f)&&f.end>=m0; }).length;
-  var a=n?L(n+(n===1?' fast':' fasts')+' this month','本月 '+n+' 次断食'):L('No fasts yet this month','本月还没有断食');
-  return a+(best>0?' · '+L('longest streak '+best+' '+dayWord(best),'最长连续 '+best+' 天'):''); }
-function milestoneHtml(st,best,total){
-  var next=0, prev=0; MILES.forEach(function(m){ if(m<=st) prev=m; });
-  for(var i=0;i<MILES.length;i++) if(MILES[i]>st){ next=MILES[i]; break; }
-  var R=52, CIR=2*Math.PI*R, frac=next?(st-prev)/(next-prev):1, off=CIR*(1-Math.max(0,Math.min(1,frac)));
-  var record=st>=3&&st>=best, left=next-st;
-  var line=next?(L(left+' '+dayWord(left)+' to your '+next+'-day streak','还差 '+left+' 天，达成 '+next+' 天连续')):L('Every streak milestone reached','所有连续记录里程碑都已达成');
-  var sub=st?(next?L('Keep going. One fast a day.','继续保持，每天一次断食。'):L('That is a full year.','整整一年了。')):L('Finish a fast to start your streak.','完成一次断食，开启你的连续记录。');
-  var chips=MILES.slice(0,6).map(function(m){ return '<span class="mchip'+(m<=best?' on':'')+'"'+(m<=best?'':' aria-hidden="true"')+'>'+m+'</span>'; }).join('');
-  return '<div class="group mile"><div class="mhero"><div class="ring" role="img" aria-label="'+L('Current streak: '+st+' '+dayWord(st),'当前连续 '+st+' 天')+'"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rt" cx="60" cy="60" r="'+R+'"/><circle class="rp'+(ringPlay?' play':'')+'" cx="60" cy="60" r="'+R+'" style="--cir:'+CIR.toFixed(1)+';--off:'+off.toFixed(1)+'" stroke-dasharray="'+CIR.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="rn"><b>'+st+'</b><span>'+L('day streak','天连续')+'</span></div></div>'+
-    '<div class="mtx"><b>'+line+'</b><small>'+sub+'</small>'+(record?'<span class="rec"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z"/></svg>'+L('Your longest streak','你的最长连续')+'</span>':'')+'</div></div>'+
-    '<p class="mline">'+statLine(best)+'</p>'+
-    '<div class="mchips" aria-label="'+L('Streak milestones reached','已达成的连续里程碑')+'">'+chips+'</div></div>';
+/* the Days header: how long you have fasted in all, then streak, fasts and the average fast */
+function numTxt(h){ var r=h>=100; return new Intl.NumberFormat(loc(),{minimumFractionDigits:r||!h?0:1,maximumFractionDigits:r?0:1}).format(h); }
+function totalsHtml(){
+  var t=C.totals(S.fasts), st=curStreak(), since=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(t.since));
+  return '<div class="group tot"><div class="tt"><span class="tk">'+L('Total fasted','累计断食')+'</span><b class="tn" aria-label="'+numTxt(t.hours)+' '+L('hours','小时')+'">'+numTxt(t.hours)+'<small>'+L('hours','小时')+'</small></b><span class="ts">'+L('Since '+since,'自 '+since+' 起')+'</span></div>'+
+    '<div class="tstats"><div><b>'+st+'</b><span>'+L('day streak','天连续')+'</span></div><div><b>'+t.n+'</b><span>'+L(t.n===1?'fast':'fasts','次断食')+'</span></div><div><b>'+numTxt(t.avg)+' '+L('h','小时')+'</b><span>'+L('average','平均')+'</span></div></div></div>';
 }
+/* average fast under the calendar: Weeks follows the month you are viewing, Months looks back over the last six */
+var avgMode='weeks', avgSel=null, avgPlay=true;
+function avgData(){
+  var now=new Date(), nowI=now.getFullYear()*12+now.getMonth(), viewI=calY*12+calM;
+  if(avgMode==='months'){ var endI=viewI<nowI-5?viewI:nowI, d=C.monthAvgs(S.fasts,Math.floor(endI/12),endI%12,6); return {mode:'months',bars:d.map(function(x){ return {n:x.n,h:x.h,lab:new Intl.DateTimeFormat(loc(),{month:'short'}).format(new Date(x.y,x.m,1)),full:new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(x.y,x.m,1)),cur:x.y*12+x.m===viewI}; })}; }
+  var w=C.weekAvgs(S.fasts,calY,calM); return {mode:'weeks',bars:w.map(function(x){ var a=C.keyToDate(x.s).getTime(), e=C.keyToDate(x.e).getTime();
+    var dt=new Date(a); return {n:x.n,h:x.h,lab:S.lang==='zh'?(dt.getMonth()+1)+'/'+dt.getDate():dateLbl(a,{month:'short',day:'numeric'}),full:x.s===x.e?dateLbl(a,{month:'short',day:'numeric'}):dateLbl(a,{month:'short',day:'numeric'})+'–'+dateLbl(e,{day:'numeric'}),cur:false}; })}; }
+function avgHtml(play){
+  var d=avgData(), bars=d.bars, n=bars.length, used=bars.filter(function(x){return x.n;}), sel=avgSel;
+  if(sel===null||sel>=n||!bars[sel]) { sel=-1; for(var i=n-1;i>=0;i--){ if(d.mode==='months'?bars[i].cur:bars[i].n){ sel=i; break; } } if(sel<0&&used.length) sel=bars.indexOf(used[used.length-1]); }
+  var goal=S.planId==='ramadan'?0:plan().fast, mx=Math.max(goal,used.reduce(function(a,x){return Math.max(a,x.h);},0)), ymax=Math.max(20,Math.ceil(mx*1.12/4)*4);
+  var W=320,Hh=196,l=30,r=8,top=24,bot=26,pH=Hh-top-bot,pW=W-l-r, y=function(v){return top+pH-pH*v/ymax;}, col=pW/n, bw=Math.min(44,col-14), svg='', btns='', i;
+  [0,ymax/2,ymax].forEach(function(tk){ svg+='<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y(tk).toFixed(1)+'" y2="'+y(tk).toFixed(1)+'" class="gl"/><text x="'+(l-6)+'" y="'+(y(tk)+4).toFixed(1)+'" text-anchor="end">'+tk+'</text>'; });
+  if(goal) svg+='<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y(goal).toFixed(1)+'" y2="'+y(goal).toFixed(1)+'" class="gp"/>';
+  bars.forEach(function(b,i){ var cx=l+col*(i+.5), x=cx-bw/2, on=i===sel, hh=b.n?Math.max(3,pH*b.h/ymax):3, yy=top+pH-hh, rr=Math.min(5,bw/2);
+    svg+=b.n?'<path class="bar'+(on?' on':'')+'" d="M'+x.toFixed(1)+' '+(top+pH)+'V'+(yy+rr).toFixed(1)+'Q'+x.toFixed(1)+' '+yy.toFixed(1)+' '+(x+rr).toFixed(1)+' '+yy.toFixed(1)+'H'+(x+bw-rr).toFixed(1)+'Q'+(x+bw).toFixed(1)+' '+yy.toFixed(1)+' '+(x+bw).toFixed(1)+' '+(yy+rr).toFixed(1)+'V'+(top+pH)+'Z"/><text class="v'+(on?' on':'')+'" x="'+cx.toFixed(1)+'" y="'+(yy-6).toFixed(1)+'" text-anchor="middle">'+numTxt(b.h)+'</text>':
+      '<rect class="bar0" x="'+x.toFixed(1)+'" y="'+(top+pH-3)+'" width="'+bw.toFixed(1)+'" height="3" rx="1.5"/>';
+    svg+='<text class="x'+(on?' on':'')+'" x="'+cx.toFixed(1)+'" y="'+(Hh-8)+'" text-anchor="middle">'+esc(b.lab)+'</text>';
+    btns+='<button type="button" class="avgcol" data-act="avgbar" data-i="'+i+'" aria-pressed="'+on+'" aria-label="'+esc(b.full)+', '+(b.n?numTxt(b.h)+' '+L('hours per fast','小时 每次')+', '+b.n+' '+L(b.n===1?'fast':'fasts','次断食'):L('no fasts','没有断食'))+'" style="left:'+(100*(l+col*i)/W).toFixed(2)+'%;width:'+(100*col/W).toFixed(2)+'%;top:'+(100*top/Hh).toFixed(2)+'%;height:'+(100*(Hh-top)/Hh).toFixed(2)+'%"></button>'; });
+  var tot=used.reduce(function(a,x){return a+x.h*x.n;},0), cnt=used.reduce(function(a,x){return a+x.n;},0), s=sel>=0?bars[sel]:null;
+  var head='<div class="avgsum"><b class="num">'+(s&&s.n?numTxt(s.h):'–')+'<small>'+L('h per fast','小时 / 次')+'</small></b><p>'+(s&&s.n?esc(s.full)+' · '+s.n+' '+L(s.n===1?'fast':'fasts','次断食'):(d.mode==='weeks'?L('No fasts this month','这个月还没有断食'):L('No fasts yet','还没有断食')))+'</p></div>';
+  var foot='<div class="avgfoot"><span>'+(cnt?(d.mode==='weeks'?L('Month average ','本月平均 '):L('Average ','平均 '))+numTxt(tot/cnt)+' '+L('h','小时'):'')+'</span>'+(goal?'<span class="lg"><i></i>'+L('Plan '+goal+' h','计划 '+goal+' 小时')+'</span>':'')+'</div>';
+  return '<div class="group avg"><div class="avgseg"><div class="seg" role="group" aria-label="'+L('Range','范围')+'"><button type="button" data-act="avgmode" data-m="weeks" aria-pressed="'+(avgMode==='weeks')+'">'+L('Weeks','按周')+'</button><button type="button" data-act="avgmode" data-m="months" aria-pressed="'+(avgMode==='months')+'">'+L('Months','按月')+'</button></div></div>'+head+
+    '<div class="avgplot'+(play?' avgplay':'')+'" style="aspect-ratio:'+W+'/'+Hh+'"><svg viewBox="0 0 '+W+' '+Hh+'" aria-hidden="true">'+svg+'</svg>'+btns+'</div>'+foot+'</div>';
+}
+function avgDraw(play){ var el=$('avgBox'); if(el) el.innerHTML=avgHtml(play); }
 /* the month and year picker: a floating card, only offered once there is more than one month to move between */
 var pickY=0;
 function monthRange(){ var all=S.fasts, first=all.length?new Date(Math.min.apply(null,all.map(function(f){return f.start;}))):new Date(), n=new Date(); return [first.getFullYear()*12+first.getMonth(), n.getFullYear()*12+n.getMonth()]; }
@@ -538,6 +544,7 @@ function calGo(y,m,dir,x0){ if(slideEnd) slideEnd(); calY=y; calM=m;
   var D=$('days'), v=D.querySelector('.cal-v'), og=v&&v.querySelector('.cal-g'), mn=D.querySelector('.cal-h .mn'), r=monthRange(), cur=y*12+m;
   if(mn) mn.textContent=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(y,m,1));
   var pv=D.querySelector('[data-act=calprev]'), nx=D.querySelector('[data-act=calnext]'); if(pv) pv.disabled=cur<=r[0]; if(nx) nx.disabled=cur>=r[1];
+  avgSel=null; avgDraw(false);
   if(!v||!og){ renderDays(); return; }
   var ng=og.cloneNode(false); ng.innerHTML=gridInner(y,m); ng.classList.add('in'); v.appendChild(ng);
   if(reduce||!dir||!ng.animate){ og.remove(); ng.classList.remove('in'); og.style.cssText=''; return; }
@@ -573,8 +580,7 @@ function gridInner(y,m){ var h='', t=today(), all=S.fasts;
 function renderDays(){
   var fs=streakFasts(), all=S.fasts, t=today(), first=all.length?new Date(Math.min.apply(null,all.map(function(f){return f.start;}))):new Date();
   var canPrev=calY*12+calM>first.getFullYear()*12+first.getMonth()-0, canNext=calY*12+calM<new Date().getFullYear()*12+new Date().getMonth();
-  var total=all.filter(C.isDone).length, st=curStreak(), best=bestStreak();
-  var first1=!all.length, h=first1?'<div class="group firstuse"><p>'+L('Fasts you finish show up here as filled days.','完成的断食会在这里显示为实心的日子。')+'</p><button class="btn sec" data-act="gotoday">'+L('Start a fast','开始断食')+'</button></div>':milestoneHtml(st,best,total);
+    var first1=!C.finished(all).length, h=first1?'<div class="group firstuse"><p>'+L('Fasts you finish show up here as filled days.','完成的断食会在这里显示为实心的日子。')+'</p><button class="btn sec" data-act="gotoday">'+L('Start a fast','开始断食')+'</button></div>':totalsHtml();
   var mname=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(calY,calM,1));
   h+='<div class="group'+(first1?' dim':'')+'"><div class="cal"><div class="cal-h"><button data-act="calprev" aria-label="'+L('Previous month','上个月')+'"'+(canPrev?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button>'+(monthRange()[0]<monthRange()[1]?'<button class="cal-t" data-act="calpick" aria-haspopup="dialog"><span class="mn">'+mname+'</span><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg></button>':'<b class="cal-t0"><span class="mn">'+mname+'</span></b>')+'<button data-act="calnext" aria-label="'+L('Next month','下个月')+'"'+(canNext?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>';
   h+='<div class="cal-v"><div class="cal-g">'+gridInner(calY,calM);
@@ -590,7 +596,8 @@ function renderDays(){
   if(fl) h+='<div class="row"><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
   h+='</div>';
   }
-  $('days').innerHTML=h; ringPlay=false; fabSync();
+  if(!first1) h+='<div class="gh avgh">'+L('Average fast','平均断食时长')+'</div><div id="avgBox">'+avgHtml(avgPlay)+'</div>';
+  $('days').innerHTML=h; avgPlay=false; fabSync();
 }
 
 /* ---------- in-app wheel pickers: they replace the browser's date, time and select controls ----------
@@ -1236,6 +1243,8 @@ var A={
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
   day:function(b){ selDay=b.dataset.k; fabOn=true; renderDays(); },
   gotoday:function(){ showTab('today'); },
+  avgmode:function(b){ if(avgMode===b.dataset.m) return; avgMode=b.dataset.m; avgSel=null; avgDraw(true); var n=$('avgBox').querySelector('[data-act=avgmode][aria-pressed=true]'); if(n) n.focus({preventScroll:true}); },
+  avgbar:function(b){ avgSel=+b.dataset.i; avgDraw(false); var n=$('avgBox').querySelector('[data-i="'+avgSel+'"]'); if(n) n.focus({preventScroll:true}); },
   addday:function(){ fastSheet(null,selDay); },
   cheatday:function(b){ cheatSheet(b.dataset.k); },
   fab:function(){ var l=(C.fastDays(S.fasts)[selDay]||[]).slice().sort(function(a,b){return a.end-b.end;}); if(l.length) fastSheet(l[l.length-1]); else fastSheet(null,selDay); },
