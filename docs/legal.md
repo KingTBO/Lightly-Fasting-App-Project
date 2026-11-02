@@ -27,7 +27,7 @@ Highlighted `[bracketed]` items on both pages:
 2. A privacy contact email and a support email (also wanted on the delete-account page).
 3. Governing law and court for the terms.
 4. Retention periods: how long Supabase keeps database backups after a deletion (depends on the Supabase plan), and how long logs are kept.
-5. Whether Lightly launches in mainland China at first. The PIPL wording is a placeholder; Android-first outside mainland China avoids the cross-border consent and local-rule work for now.
+5. Mainland China is out of scope for now (Tengbo, 2 November 2026): it needs its own project (China-hosted data, PIPL consent and local rules, a Chinese entity). The pages therefore have no China section. The Chinese-language version is for Chinese speakers anywhere else. Before ever offering Lightly in mainland China, the policy needs a China-specific rewrite.
 6. The 18+ age limit (assumed in both pages).
 7. For EU/UK users, explicit consent for the health-related backup: a line at sign-in ("Back up my fasts to my account; this includes health-related information") is the usual way. Not built yet; ask the lawyer for the exact words, then it is a small app change.
 
