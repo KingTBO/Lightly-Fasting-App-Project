@@ -8,7 +8,7 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 /* ---------- state ---------- */
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
 function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false},
-  planId:'16',customH:16,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
+  planId:'16',customH:16,avatar:null,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
   prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
@@ -133,7 +133,7 @@ function shChrome(html){ if(html.indexOf('<h3>')!==0) return html; var i=html.in
 function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
 var sheetHold=false; /* true for the short pause before the import result rises: taps on the dim must not close it (a double tap on Add lands there) */
-function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
+function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop(); sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
 /* drag the grabber: 1:1 with the finger, then project where the flick was going and dismiss or spring back */
 (function(){ var y0=0,dy=0,vy=0,lt=0,ly=0,drag=false;
   sheetEl.addEventListener('pointerdown',function(e){ if(reduce||!e.target.closest('.grab')) return; drag=true; y0=e.clientY; ly=e.clientY; lt=performance.now(); vy=0; dy=0; sheetEl.style.transition='none'; try{ sheetEl.setPointerCapture(e.pointerId); }catch(x){} });
@@ -905,16 +905,16 @@ function syncNow(silent){
     if(S.onboarded&&!$('ob').hidden){ ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; showTab('today'); }
     return CL.push(S);
   }).then(function(){ sync.at=Date.now(); if(!silent) toast(L('Backed up.','已备份。')); }).catch(function(e){ sync.err=e&&e.message||'error'; if(!silent) toast(L('Couldn’t back up: ','备份失败：')+sync.err); })
-    .then(function(){ sync.busy=false; if(curTab==='me') renderMe(); if(curTab==='today') updateToday(); });
+    .then(function(){ sync.busy=false; if(curTab==='me') renderMe(); if(curTab==='today') updateToday(); avRefresh(); });
 }
 function accountHtml(){
   var zh=S.lang==='zh', au=CL&&CL.getAuth(), h='';
   if(au){
-    h+='<div class="group"><div class="me-card"><span class="av"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><div><b>'+esc(au.email||L('Signed in','已登录'))+'</b><span>'+(sync.busy?L('Backing up…','正在备份…'):sync.err?L('Couldn’t back up. Tap Back up now to retry.','备份失败，点“立即备份”重试。'):sync.at?L('Backed up just now','刚刚已备份'):L('Your fasts are backed up to your account.','你的记录会备份到账号。'))+'</span></div></div>'+
+    h+='<div class="group"><div class="me-card">'+avatarBtn()+'<div><b>'+esc(au.email||L('Signed in','已登录'))+'</b><span>'+(sync.busy?L('Backing up…','正在备份…'):sync.err?L('Couldn’t back up. Tap Back up now to retry.','备份失败，点“立即备份”重试。'):sync.at?L('Backed up just now','刚刚已备份'):L('Your fasts are backed up to your account.','你的记录会备份到账号。'))+'</span></div></div>'+
       '<div class="signin"><button class="btn sec" data-act="syncnow"'+(sync.busy?' disabled':'')+'>'+L('Back up now','立即备份')+'</button><button class="btn sec" data-act="signout">'+L('Sign out','退出登录')+'</button></div></div>';
     return h;
   }
-  h+='<div class="group"><div class="me-card"><span class="av"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><div><b>'+L('Not signed in','未登录')+'</b><span>'+L('Everything works. Fasts stay on this phone.','所有功能都能用，断食记录保存在这台手机上。')+'</span></div></div>'+
+  h+='<div class="group"><div class="me-card">'+avatarBtn()+'<div><b>'+L('Not signed in','未登录')+'</b><span>'+L('Everything works. Fasts stay on this phone.','所有功能都能用，断食记录保存在这台手机上。')+'</span></div></div>'+
    '<div class="signin"><button class="btn gbtn" data-act="google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.6 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h5.9c-.3 1.4-1 2.5-2.2 3.3v2.7h3.6c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8C3.9 20.6 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.8 14.2c-.2-.7-.4-1.4-.4-2.2s.1-1.5.4-2.2V7H2.1C1.4 8.5 1 10.2 1 12s.4 3.5 1.1 5l3.7-2.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2C17.5 2.1 15 1 12 1 7.7 1 3.9 3.4 2.1 7l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg><span>'+L('Continue with Google','用 Google 继续')+'</span></button><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button></div></div>'+
    '<div class="gf" style="margin-top:-8px">'+L('Signing in is optional and only backs up your fasts, so you can change phones.','登录是可选的，只用来备份记录，换手机时不会丢。')+'</div>';
   return h;
@@ -937,6 +937,72 @@ function emailSheet(step,email,err){
 }
 var emCool=0;
 function resendCool(){ var b=$('emResend'); if(!b) return; var left=Math.ceil((emCool-Date.now())/1000); if(left>0){ b.disabled=true; b.textContent=L('Send again in ','可再发送：')+left+L(' s',' 秒'); setTimeout(resendCool,1000); } else { b.disabled=false; b.textContent=L('Send again','再发一次'); } }
+/* ---------- profile picture: a Google account's own photo, a placeholder icon (js/avatars.js), or a photo from the gallery ----------
+   The choice is saved in S.avatar ({t:'icon',id} | {t:'google'} | {t:'photo',d}); nothing saved means the default (see LightlyAvatars.choose).
+   A picked photo is cropped to a circle's square, stored at 256 px as a small JPEG, so it works offline and goes into the backup.
+   The Google photo is copied into this phone once (lightly:avg) rather than loaded from Google each time; a failed image falls back to an icon. */
+var AV=window.LightlyAvatars, AVG='lightly:avg', crop=null;
+var PERSON='<svg class="def" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>';
+var CAMERA='<svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.4-2h5l1.4 2h1.6A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.3"/></svg>';
+function avCache(){ try{ return JSON.parse(localStorage.getItem(AVG))||{}; }catch(e){ return {}; } }
+function googleUrl(u){ return String(u).replace(/=s\d+(-c)?$/,'=s256-c'); }
+function googleSrc(au){ if(!au||!au.photo) return ''; var g=avCache(); return g.u===au.photo&&g.d?g.d:googleUrl(au.photo); }
+function cacheGoogle(){ var au=CL&&CL.getAuth(); if(!au||!au.photo||avCache().u===au.photo) return;
+  var im=new Image(); im.crossOrigin='anonymous'; im.referrerPolicy='no-referrer';
+  im.onload=function(){ try{ var c=document.createElement('canvas'); c.width=c.height=AV.SIZE; c.getContext('2d').drawImage(im,0,0,AV.SIZE,AV.SIZE); localStorage.setItem(AVG,JSON.stringify({u:au.photo,d:c.toDataURL('image/jpeg',.86)})); }catch(e){} };
+  im.src=googleUrl(au.photo); }
+/* a session that started before photos were read asks once for its profile, then the Google photo is copied to this phone */
+function avRefresh(){ var au=cloudOn()&&CL.getAuth(); if(!au) return; (au.photo===undefined?CL.profile().catch(function(){}):Promise.resolve()).then(function(){ cacheGoogle(); if(curTab==='me'&&!sheetOpen) renderMe(); }); }
+function avPick(){ return AV.choose(S.avatar,CL&&CL.getAuth(),S.fasts.length); }
+function avHtml(a){ a=a||avPick();
+  if(a.t==='photo') return '<img class="avi" alt="" src="'+a.d+'">';
+  if(a.t==='google') return '<img class="avi" alt="" referrerpolicy="no-referrer" src="'+esc(googleSrc(CL.getAuth()))+'">';
+  if(a.t==='icon') return AV.html(a.id);
+  return PERSON; }
+function avatarBtn(){ return '<span class="avw"><button type="button" class="avb" data-act="avatar" aria-label="'+L('Change profile picture','更换头像')+'"><span class="av">'+avHtml()+'</span></button><i class="avedit" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.4-2h5l1.4 2h1.6A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.3"/></svg></i></span>'; }
+/* an image that fails to load (offline Google photo, a damaged file) is swapped for the icon you'd have by default */
+document.addEventListener('error',function(e){ var t=e.target; if(!t||t.tagName!=='IMG'||!t.classList.contains('avi')||t.dataset.bad) return;
+  var au=CL&&CL.getAuth(), f=au?AV.html(AV.defaultIcon(au.uid||au.email)):PERSON; if(f.indexOf('<img')===0) f=PERSON;
+  var d=document.createElement('span'); d.innerHTML=f; if(d.firstChild){ d.firstChild.dataset&&(d.firstChild.dataset.bad=1); t.replaceWith(d.firstChild); } },true);
+function avatarSheet(){
+  var au=CL&&CL.getAuth(), cur=avPick(), done=S.fasts.length, h='<h3>'+L('Profile picture','头像')+'</h3><div class="av-grid" role="group" aria-label="'+L('Profile picture','头像')+'">';
+  AV.LIST.forEach(function(a){ var lk=AV.locked(a,done), nm=L(a.en,a.zh);
+    h+='<button type="button" class="avt'+(cur.t==='icon'&&cur.id===a.id?' sel':'')+(lk?' lk':'')+'" data-act="avicon" data-id="'+a.id+'" aria-pressed="'+(cur.t==='icon'&&cur.id===a.id)+'" aria-label="'+esc(nm+(lk?L(', locked',', 未解锁'):''))+'">'+AV.html(a.id)+(lk?'<span class="lkm"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg></span>':'')+'</button>'; });
+  h+='</div><div class="group avrows">';
+  if(au&&au.photo) h+='<button class="row" data-act="avgoogle"><span class="avs"><img class="avi" alt="" referrerpolicy="no-referrer" src="'+esc(googleSrc(au))+'"></span><span>'+L('Google photo','Google 头像')+'</span><span class="v">'+(cur.t==='google'?CHECK:'')+'</span></button>';
+  h+='<label class="row" for="avFile">'+CAMERA+'<span>'+L('Choose from photos','从相册选择')+'</span>'+CHEV+'</label>';
+  if(cur.t==='photo') h+='<button class="row red" data-act="avremove"><span>'+L('Remove photo','移除照片')+'</span></button>';
+  h+='</div><input id="avFile" type="file" accept="image/*" hidden>';
+  openSheet(h);
+}
+function dropCrop(){ if(crop&&crop.src&&crop.src.close) try{ crop.src.close(); }catch(e){} crop=null; }
+function cropDraw(){ var c=$('cropC'); if(!c||!crop) return; var f=AV.fit(crop.w,crop.h,crop.zoom,crop.ox,crop.oy); crop.ox=f.ox; crop.oy=f.oy; crop.zoom=f.zoom;
+  var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,AV.SIZE,AV.SIZE); x.imageSmoothingQuality='high'; x.drawImage(crop.src,f.x,f.y,f.dw,f.dh); var z=$('cropZ'); if(z&&+z.value!==f.zoom) z.value=f.zoom; }
+function cropSheet(){
+  openSheet('<h3>'+L('Move and scale','移动和缩放')+'</h3><div class="crop" id="crop"><canvas id="cropC" width="'+AV.SIZE+'" height="'+AV.SIZE+'" role="img" aria-label="'+L('Your photo. Drag to move.','你的照片，拖动可移动。')+'"></canvas><i class="cm" aria-hidden="true"></i></div>'+
+    '<div class="zoom"><input id="cropZ" type="range" min="1" max="4" step="0.01" value="1" aria-label="'+L('Zoom','缩放')+'"></div><div class="btns"><button class="btn" data-act="avsave">'+L('Use photo','使用照片')+'</button></div>');
+  cropDraw(); }
+function avFile(f){
+  var open=function(src,w,h){ dropCrop(); crop={src:src,w:w,h:h,zoom:1,ox:0,oy:0}; cropSheet(); };
+  var bad=function(){ toast(L('Couldn’t open that photo.','这张照片打不开。')); };
+  var viaImg=function(){ var u=URL.createObjectURL(f), im=new Image(); im.onload=function(){ URL.revokeObjectURL(u); open(im,im.naturalWidth,im.naturalHeight); }; im.onerror=function(){ URL.revokeObjectURL(u); bad(); }; im.src=u; };
+  if(window.createImageBitmap) createImageBitmap(f,{imageOrientation:'from-image'}).then(function(b){ open(b,b.width,b.height); },viaImg); else viaImg();
+}
+function avSet(v){ S.avatar=v; save(); closeSheet(); renderMe(); }
+document.addEventListener('change',function(e){ var t=e.target; if(!t||t.id!=='avFile'||!t.files||!t.files[0]) return; var f=t.files[0]; t.value=''; avFile(f); });
+/* drag to move, pinch or slide or scroll to zoom */
+(function(){ var pts={};
+  function dist(){ var k=Object.keys(pts); if(k.length<2) return 0; var a=pts[k[0]], b=pts[k[1]]; return Math.hypot(a.x-b.x,a.y-b.y); }
+  document.addEventListener('pointerdown',function(e){ var t=e.target.closest&&e.target.closest('#crop'); if(!t||!crop) return; pts[e.pointerId]={x:e.clientX,y:e.clientY}; try{ t.setPointerCapture(e.pointerId); }catch(x){} });
+  document.addEventListener('pointermove',function(e){ var p=pts[e.pointerId]; if(!p||!crop) return; var n=Object.keys(pts).length, el=$('crop'); if(!el) return;
+    if(n===1){ var k=AV.SIZE/el.getBoundingClientRect().width; crop.ox+=(e.clientX-p.x)*k; crop.oy+=(e.clientY-p.y)*k; p.x=e.clientX; p.y=e.clientY; }
+    else{ var d0=dist(); p.x=e.clientX; p.y=e.clientY; var d1=dist(); if(d0>0) crop.zoom*=d1/d0; }
+    cropDraw(); });
+  function up(e){ delete pts[e.pointerId]; }
+  document.addEventListener('pointerup',up); document.addEventListener('pointercancel',up);
+  document.addEventListener('wheel',function(e){ if(!crop||!e.target.closest||!e.target.closest('#crop')) return; e.preventDefault(); crop.zoom*=Math.exp(-e.deltaY*.002); cropDraw(); },{passive:false});
+  document.addEventListener('input',function(e){ if(e.target.id==='cropZ'&&crop){ crop.zoom=+e.target.value; cropDraw(); } });
+})();
 function emailErr(x){ return x&&(x.status===429||/rate|seconds|too many/i.test(x.message||''))?L('Too many emails just now. Wait a minute and try again.','邮件发得太频繁了，请等一分钟再试。'):L('Couldn’t send the email: ','邮件没发出去：')+x.message; }
 
 function fastSub(p){ return L('Fast '+p.fast+' hours','断食 '+p.fast+' 小时'); }
@@ -1158,7 +1224,12 @@ var A={
   emverify:function(b){ var e=b.dataset.e, c=($('emCode').value||'').trim(); if(c.length<6) return emailSheet('sent',e,L('Enter the 6-digit code.','请输入 6 位验证码。')); b.disabled=true; b.textContent=L('Checking…','验证中…');
     CL.verify(e,c).then(function(){ closeSheet(); toast(L('Signed in.','已登录。')); renderMe(); syncNow(true); }).catch(function(x){ emailSheet('sent',e,L('That code didn’t work. ','验证码不对：')+x.message); }); },
   signout:function(){ openSheet('<!--keep--><h3>'+L('Sign out?','退出登录？')+'</h3><p class="lede">'+L('Your fasts stay on this phone and in your account. You can sign back in any time.','记录会保留在这台手机和你的账号里，随时可以重新登录。')+'</p><div class="btns"><button class="btn dark" data-act="signoutok">'+L('Sign out','退出登录')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
-  signoutok:function(){ CL.signOut(); sync.at=0; sync.err=''; closeSheet(); renderMe(); },
+  signoutok:function(){ CL.signOut(); try{ localStorage.removeItem(AVG); }catch(e){} sync.at=0; sync.err=''; closeSheet(); renderMe(); },
+  avatar:function(){ avatarSheet(); },
+  avicon:function(b){ var a=AV.find(b.dataset.id); if(!a) return; if(AV.locked(a,S.fasts.length)) return toast(L(a.en+' unlocks after '+a.unlock+' fasts.','完成 '+a.unlock+' 次断食后解锁'+a.zh+'。')); fx('select'); avSet({t:'icon',id:a.id}); },
+  avgoogle:function(){ fx('select'); avSet({t:'google'}); },
+  avremove:function(){ avSet(null); },
+  avsave:function(){ var c=$('cropC'); if(!c||!crop) return; cropDraw(); var d=c.toDataURL('image/jpeg',.86); fx('success'); avSet({t:'photo',d:d}); },
   syncnow:function(){ syncNow(false); },
   lang:function(b){ S.lang=b.dataset.v; save(); applyLang(); cache={}; if(!$('ob').hidden){ obRefresh(); } else renderMe(); updateToday(); },
   choice:function(b){ choiceSheet(b.dataset.k); },
@@ -1193,7 +1264,7 @@ var A={
       n--; if(n>0){ lbl.textContent=L('Erase everything · '+n,'清除所有数据 · '+n); return; }
       clearInterval(iv); go.disabled=false; lbl.textContent=L('Hold to erase everything','按住清除所有数据'); go.setAttribute('aria-label',L('Hold to erase everything','按住清除所有数据')); fx('light'); },1000);
   },
-  eraseok:function(){ try{ localStorage.removeItem(KEY); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
+  eraseok:function(){ try{ localStorage.removeItem(KEY); localStorage.removeItem(AVG); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
   usualset:function(){ S.prefs.usualStart='20:00'; save(); cache={}; updateToday(); renderMe(); pkToggle('usualStart'); },
   pktog:function(b){ pkToggle(b.dataset.id); },
   tstyle:function(b){ S.prefs.timerStyle=b.dataset.v; ph.dataset.ts=b.dataset.v; save(); renderMe(); cache={}; fitDisc(); },
