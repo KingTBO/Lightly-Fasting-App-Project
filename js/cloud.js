@@ -52,13 +52,15 @@ function verify(email,code){ return call('/auth/v1/verify',{method:'POST',body:{
 var provCache=null;
 function providerOn(name){ if(!ready()) return Promise.resolve(false); if(!provCache) provCache=call('/auth/v1/settings').catch(function(){ provCache=null; return null; }); return provCache.then(function(st){ return !!(st&&st.external&&st.external[name]); }); }
 function oauthUrl(name,state){ var r=pack(state); return cfg().url.replace(/\/$/,'')+'/auth/v1/authorize?provider='+encodeURIComponent(name)+'&redirect_to='+encodeURIComponent(location.origin+location.pathname+(r?'?r='+r:'')); }
+/* the access token is a JWT whose payload names the person: used only if the network drops right after the redirect, so the tokens in the link are not lost */
+function jwtUser(t){ try{ var o=JSON.parse(unb64(String(t).split('.')[1])); return o&&o.sub?{id:o.sub,email:o.email||'',user_metadata:o.user_metadata||{}}:null; }catch(e){ return null; } }
 /* returning from a magic link: the tokens arrive in the URL hash */
 function fromHash(){
   var h=location.hash.replace(/^#/,''); if(h.indexOf('access_token=')<0&&h.indexOf('error=')<0) return Promise.resolve(null);
   var p={}; h.split('&').forEach(function(x){ var i=x.indexOf('='); if(i>0) p[x.slice(0,i)]=decodeURIComponent(x.slice(i+1).replace(/\+/g,' ')); });
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
   if(p.error||!p.access_token){ var er=new Error(p.error_description||p.error||'link failed'); er.linkError=p.error_code||p.error||'error'; return Promise.reject(er); }
-  return call('/auth/v1/user',{token:p.access_token}).then(function(u){ var a=toAuth({access_token:p.access_token,refresh_token:p.refresh_token,expires_in:+p.expires_in||3600,user:u}); setAuth(a); return a; });
+  return call('/auth/v1/user',{token:p.access_token}).catch(function(e){ var u=!e.status&&jwtUser(p.access_token); if(u) return u; throw e; }).then(function(u){ var a=toAuth({access_token:p.access_token,refresh_token:p.refresh_token,expires_in:+p.expires_in||3600,user:u}); setAuth(a); return a; });
 }
 function token(){
   var a=getAuth(); if(!a) return Promise.reject(new Error('signed out'));
