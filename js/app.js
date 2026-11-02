@@ -895,6 +895,7 @@ var CL=window.LightlyCloud, sync={busy:false,msg:'',at:0,err:'',t:0};
 function cloudOn(){ return CL&&CL.ready()&&CL.getAuth(); }
 function cloudSoon(){ if(!cloudOn()) return; clearTimeout(sync.t); sync.t=setTimeout(function(){ syncNow(true); },4000); }
 function applyRemote(m){ quiet=true; Object.keys(m).forEach(function(k){ S[k]=m[k]; }); if(S.place&&S.place.key==='here'&&S.place.lat==null) S.place={key:C.guessCity(tzGuess())}; /* coordinates stay on the phone */ quiet=false; saveNow(); }
+function gone(deleted){ try{ localStorage.removeItem(AVG); }catch(e){} sync.err=''; sync.at=0; quiet=true; S.cloudUid=null; if(S.avatar&&S.avatar.t==='google') S.avatar=null; quiet=false; saveNow(); toast(deleted?L('This account no longer exists, so you’re signed out. Your fasts are still on this phone.','这个账号已不存在，已退出登录。断食记录仍在这台手机上。'):L('Your sign-in expired, so you’re signed out. Your fasts are still on this phone.','登录已过期，已退出登录。断食记录仍在这台手机上。')); }
 function syncNow(silent){
   if(!cloudOn()||sync.busy) return Promise.resolve(); sync.busy=true; sync.err=''; if(curTab==='me') renderMe();
   return CL.pull().then(function(row){
@@ -904,7 +905,9 @@ function syncNow(silent){
     if(row&&row.data){ var before=JSON.stringify(S); applyRemote(merged); if(JSON.stringify(S)!==before){ cache={}; ticksKey=''; applyTheme(); applyLang(); } } else { quiet=true; S.cloudUid=au.uid; quiet=false; }
     if(S.onboarded&&!$('ob').hidden){ ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; showTab('today'); }
     return CL.push(S);
-  }).then(function(){ sync.at=Date.now(); if(!silent) toast(L('Backed up.','已备份。')); }).catch(function(e){ sync.err=e&&e.message||'error'; if(!silent) toast(L('Couldn’t back up: ','备份失败：')+sync.err); })
+  }).then(function(){ sync.at=Date.now(); if(!silent) toast(L('Backed up.','已备份。')); }).catch(function(e){ sync.err=e&&e.message||'error'; if(!silent) toast(L('Couldn’t back up: ','备份失败：')+sync.err);
+      /* the account may be gone (deleted on another phone), or the sign-in expired: sign out here and say why. Offline or a server hiccup keeps you signed in. */
+      if(!CL.getAuth()) return gone(false); return CL.alive().then(function(ok){ if(!ok) gone(true); }); })
     .then(function(){ sync.busy=false; if(curTab==='me') renderMe(); if(curTab==='today') updateToday(); avRefresh(); });
 }
 function accountHtml(){

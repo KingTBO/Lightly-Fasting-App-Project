@@ -67,6 +67,11 @@ function token(){
 function profile(){ return token().then(function(t){ return call('/auth/v1/user',{token:t}); }).then(function(u){ var a=getAuth(); if(a){ a.photo=photoOf(u); setAuth(a); } return a; }); }
 function signOut(){ var a=getAuth(); setAuth(null); if(a&&ready()) call('/auth/v1/logout',{method:'POST',token:a.access}).catch(function(){}); }
 
+/* Is this sign-in still good? A phone that was signed in when the account was deleted somewhere else still holds a token for a person who no longer exists.
+   The server says so (401, 403 or 404); then this phone is signed out here. Any other failure (offline, 5xx) says nothing, so it stays signed in. */
+function alive(){ var a=getAuth(); if(!a) return Promise.resolve(false);
+  return token().then(function(t){ return call('/auth/v1/user',{token:t}); }).then(function(){ return true; }).catch(function(e){ if(e&&(e.status===401||e.status===403||e.status===404)){ setAuth(null); return false; } return getAuth()?true:false; }); }
+
 /* ---------- delete account ----------
    Runs on the server (supabase/functions/delete-account), which checks the person's own token and deletes the account, the backup and the profile picture.
    Only after it says ok is the session dropped here. */
@@ -76,6 +81,6 @@ function deleteAccount(){ return token().then(function(t){ return call('/functio
 function pull(){ return token().then(function(t){ return call('/rest/v1/lightly_state?select=data,updated_at',{token:t}); }).then(function(rows){ return rows&&rows[0]||null; }); }
 function push(data){ data=scrub(data); var a=getAuth(); return token().then(function(t){ return call('/rest/v1/lightly_state?on_conflict=user_id',{method:'POST',token:t,headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{user_id:a.uid,data:data,updated_at:new Date().toISOString()}}); }); }
 
-root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,deleteAccount:deleteAccount,pull:pull,push:push};
+root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,deleteAccount:deleteAccount,alive:alive,pull:pull,push:push};
 if(typeof module!=='undefined'&&module.exports) module.exports=root.LightlyCloud;
 })(typeof self!=='undefined'?self:this);
