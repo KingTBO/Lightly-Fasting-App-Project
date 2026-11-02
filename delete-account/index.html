@@ -80,6 +80,7 @@ a{color:var(--link)}
   </section>
 
   <p class="foot" data-zh="在应用里也可以：我的 → 删除账号。">In the app: Me, then Delete account.</p>
+  <p class="foot" id="legal"></p>
 </main>
 <script src="../js/config.js"></script>
 <script src="../js/cloud.js"></script>
@@ -90,6 +91,7 @@ var CL=window.LightlyCloud, $=function(i){return document.getElementById(i);}, l
 try{ var q=new URLSearchParams(location.search).get('lang'); if(q==='zh'||q==='en') lang=q; }catch(e){}
 function L(en,zh){ return lang==='zh'?zh:en; }
 function apply(){
+  $('legal').innerHTML='<a href="../privacy/?lang='+lang+'">'+L('Privacy Policy','隐私政策')+'</a> · <a href="../terms/?lang='+lang+'">'+L('Terms of Use','使用条款')+'</a>';
   document.documentElement.lang=lang==='zh'?'zh-Hans':'en';
   [].forEach.call(document.querySelectorAll('[data-zh]'),function(e){ if(e.dataset.en==null) e.dataset.en=e.textContent; e.textContent=lang==='zh'?e.dataset.zh:e.dataset.en; });
   [].forEach.call(document.querySelectorAll('.lang button'),function(b){ b.setAttribute('aria-pressed',b.dataset.l===lang); });

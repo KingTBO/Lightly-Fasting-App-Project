@@ -370,6 +370,7 @@ html:lang(zh-Hans) .friends .tag{text-transform:none}
 .mock.dark .acts{color:#7DB8FF}
 .foot{margin:clamp(80px,10vw,140px) 0 64px;padding-top:28px;border-top:.5px solid var(--sep);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;font-size:14px;color:var(--label-2)}
 .foot b{display:block;color:var(--label);font-weight:600;margin-bottom:4px}
+.foot span a{display:inline-flex;align-items:center;min-height:44px;margin-right:10px}
 @media (max-width:1080px){.plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:860px){.sec-head,.friends{grid-template-columns:1fr}.plat,.foot{grid-template-columns:1fr}}
 @media (max-width:560px){.plan-grid{grid-template-columns:1fr 1fr}.kind>div{grid-template-columns:1fr}.kind .try{grid-column:1}}
@@ -838,6 +839,8 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <p class="me-h" data-zh="你的数据">Your data</p>
         <div class="me-list"><div role="button" tabindex="0" id="meImp"><span data-zh="从其他应用导入">Import from another app</span><small></small></div><div role="button" tabindex="0" id="meExp"><span data-zh="导出我的记录">Export my fasts</span><small></small></div><div role="button" tabindex="0" id="meErase" style="color:var(--red)"><span data-zh="清除所有数据">Erase everything</span></div></div>
         <div class="me-list" id="meDelL" hidden><div role="button" tabindex="0" id="meDel" style="color:var(--red)"><span data-zh="删除账号">Delete account</span></div></div>
+        <p class="me-h" data-zh="关于">About</p>
+        <div class="me-list"><div role="button" tabindex="0" id="meLegalP"><span data-zh="隐私政策">Privacy Policy</span><small></small></div><div role="button" tabindex="0" id="meLegalT"><span data-zh="使用条款">Terms of Use</span><small></small></div></div>
         <button type="button" class="me-out" id="meSignOut" hidden></button>
       </div>
       <nav class="tabs" aria-label="App tabs">
@@ -1116,6 +1119,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 
   <footer class="foot">
     <div><b data-zh="示例内容">Sample content</b><span data-zh="界面里的人名、时间和数字都是示例数据。日出日落是按所选城市今天的真实时间算的。">Names, times and numbers in the screens are sample data. Sunrise and sunset are calculated for the chosen city today.</span></div>
+    <div><b data-zh="隐私与条款">Privacy and terms</b><span><a href="../privacy/" data-zh="隐私政策（草稿）">Privacy Policy (draft)</a> · <a href="../terms/" data-zh="使用条款（草稿）">Terms of Use (draft)</a> · <a href="../delete-account/" data-zh="删除账号">Delete your account</a></span></div>
     <div><b data-zh="给设计和开发的说明">For design and build</b><span><a href="notes/" data-zh="苹果外观如何在安卓上实现，以及名称和版本说明 →">How Apple's look is built on Android, plus the name and version notes →</a></span></div>
   </footer>
 </div>
@@ -2409,6 +2413,9 @@ window.LightlySphere=(function(){
   $('meErase').addEventListener('click',function(){ impFrom=$('meErase'); impOpen(true,11); });
   $('meId').addEventListener('click',function(){ if(signed){ impFrom=$('meId'); impOpen(true,14); } });
   $('meDel').addEventListener('click',function(){ impFrom=$('meDel'); impOpen(true,13); });
+  /* About: the public pages (also the URLs given to Google Play), opened in a new tab */
+  [['meLegalP','../privacy/'],['meLegalT','../terms/']].forEach(function(r){ var go=function(){ window.open(r[1]+'?lang='+api.lang(),'_blank','noopener'); }; $(r[0]).addEventListener('click',go); $(r[0]).addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }); });
+
   $('meUnwell').addEventListener('click',function(){ impFrom=$('meUnwell'); impOpen(true,off?9:5); });
   $('offBar').addEventListener('click',function(){ impFrom=$('offBar'); impOpen(true,9); });
   $('sub').addEventListener('click',function(){ impFrom=$('sub'); impOpen(true,10); });
