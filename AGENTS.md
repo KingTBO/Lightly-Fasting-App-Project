@@ -31,6 +31,7 @@ NODE_PATH=$(npm root -g) node tests/launch.test.js         # opens from the save
 node tests/avatars.test.js                                    # profile pictures (NODE_PATH set or --e2e also runs the browser flow)
 NODE_PATH=$(npm root -g) node tests/wheel.test.js             # wheel pickers: momentum, snap at rest, looping, 24-hour columns, haptic ticks (about 1 minute)
 NODE_PATH=$(npm root -g) node tests/cloud.test.js --e2e       # only if cloud or sign-in code changed
+NODE_PATH=$(npm root -g) node tests/signin-return.test.js     # coming back from a sign-in link never shows Today (a few seconds)
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright
 NODE_PATH=$(npm root -g) node qa/run-app.js --screens=idle    # alignment check for one scenario (idle, mid, goal, eat, empty, ob)
 NODE_PATH=$(npm root -g) node qa/run.js index.html concept    # alignment check for the concept page

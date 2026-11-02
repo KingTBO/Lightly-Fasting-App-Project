@@ -591,3 +591,14 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .sheet .zoom{padding:0 var(--m) 18px}
 .sheet .zoom input{width:100%;min-height:44px;accent-color:var(--tint)}
 @media (prefers-reduced-motion:reduce){.avb,.avt{transition:none}}
+
+/* coming back from a sign-in link: a neutral screen until the account has answered, so Today never flashes before Me */
+.holdscr{display:none}
+html.signing,html.signing body{background:var(--bg)}
+html.signing .ph{background:var(--bg)}
+html.signing .scr,html.signing .tabs,html.signing .fabwrap,html.signing .stars{visibility:hidden}
+html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;justify-content:center;z-index:1;pointer-events:none}
+.holdscr i{width:22px;height:22px;border-radius:50%;border:2px solid color-mix(in srgb,var(--label) 16%,transparent);border-top-color:var(--label-2);animation:holdspin .9s linear infinite}
+@keyframes holdspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.holdscr i{animation:none;border-top-color:color-mix(in srgb,var(--label) 16%,transparent);opacity:.7}}
+.ph.boot .tab-ind{transition:none}

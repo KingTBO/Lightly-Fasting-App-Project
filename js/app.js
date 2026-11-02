@@ -182,8 +182,9 @@ function phasePath(p,r){ p=Math.min(Math.max(p,0),1); if(p<=0.001) return ''; va
 /* Some iPhones give a Home Screen app a page about 62 pt shorter than the screen, and nothing can be drawn below it. The home indicator is then below the page, so there is no bottom inset to keep clear of. */
 function shortPage(){ var root=document.documentElement, st=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode:standalone)').matches), gap=Math.max(screen.height||0,screen.width||0)-window.innerHeight;
   if(st&&window.innerWidth<600&&window.innerHeight>window.innerWidth&&gap>20&&gap<140) root.style.setProperty('--sab','0px'); else root.style.removeProperty('--sab'); }
+var holding=false; /* true while a sign-in link is being processed: a neutral screen, never Today */
 function chrome(){ /* the colour behind the app (page background, status bar, home-indicator area) always matches the screen on top of it */
-  var c=(curTab==='today'?getComputedStyle(ph).getPropertyValue('--sky'):getComputedStyle(document.documentElement).getPropertyValue('--bg')).trim()||'#0E1430';
+  var c=(curTab==='today'&&!holding?getComputedStyle(ph).getPropertyValue('--sky'):getComputedStyle(document.documentElement).getPropertyValue('--bg')).trim()||'#0E1430';
   document.documentElement.style.backgroundColor=c; document.body.style.backgroundColor=c;
   var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',c); }
 function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-sky',k); chrome(); } }
@@ -418,12 +419,13 @@ function setNotify(on,done){
 
 /* ---------- tabs ---------- */
 var curTab='today';
-function showTab(t){
+function showTab(t,instant){
   var prev=curTab, order=['today','days','me']; curTab=t; if(t==='today') tipUntil=Date.now()+6000; closeSheet(); ph.classList.remove('tabs-off');
   /* Today has the sky behind it and the other tabs a plain background: the colours must swap instantly, not fade in over a second */
   if((prev==='today')!==(t==='today')){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); }
   order.forEach(function(k){ $(k).classList.remove('leaving'); });
-  order.forEach(function(k){ var e=$(k), was=e.classList.contains('on'); e.classList.toggle('on',k===t); if(!reduce&&prev!==t&&e.animate){ if(k===t){ e.getAnimations().forEach(function(a){ a.cancel(); }); e.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.16,1,.3,1)'}); } else if(was){ e.classList.add('leaving'); var an=e.animate([{opacity:1},{opacity:0}],{duration:160,easing:'ease-out'}); an.onfinish=function(){ e.classList.remove('leaving'); }; } } });
+  order.forEach(function(k){ var e=$(k), was=e.classList.contains('on'); e.classList.toggle('on',k===t); if(!reduce&&!instant&&prev!==t&&e.animate){ if(k===t){ e.getAnimations().forEach(function(a){ a.cancel(); }); e.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.16,1,.3,1)'}); } else if(was){ e.classList.add('leaving'); var an=e.animate([{opacity:1},{opacity:0}],{duration:160,easing:'ease-out'}); an.onfinish=function(){ e.classList.remove('leaving'); }; } } });
+  if(instant){ ph.classList.add('boot'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('boot'); }); }); }
   ph.style.setProperty('--ti',order.indexOf(t));
   document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('sel',b.dataset.tab===t); b.setAttribute('aria-current',b.dataset.tab===t?'page':'false'); });
   ph.classList.toggle('sys',t!=='today');
@@ -1381,14 +1383,29 @@ applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnl
 shortPage(); chrome();
 ['resize','orientationchange','pageshow'].forEach(function(e){ window.addEventListener(e,function(){ shortPage(); chrome(); }); });
 if(window.matchMedia){ var mq=matchMedia('(prefers-color-scheme:dark)'); if(mq.addEventListener) mq.addEventListener('change',function(){ setTimeout(chrome,50); }); }
-var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash);
+var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash)&&!!(CL&&CL.ready());
 if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }
-/* coming back through a sign-in link: let the account restore first, so onboarding never flashes for someone who already did it */
-if(!S.onboarded&&!(returning&&CL&&CL.ready())){ updateToday(); obStart(); } else if(S.onboarded){ showTab('today'); }
+var rootEl=document.documentElement;
+/* Coming back through a sign-in link (Google, or the email link): the page opens on a neutral screen (index.html marks it before anything is drawn),
+   never on Today. Once the account has answered, the person lands on Me, where they started, or on onboarding if this really is a new account. */
+var landed=false, landMsg='', toasted=false;
+function landToast(){ if(landMsg&&!toasted){ toasted=true; toast(landMsg); } }
+function land(){
+  if(landed) return; landed=true; holding=false; rootEl.classList.remove('signing');
+  if(!S.onboarded){ ph.classList.remove('sys'); updateToday(); obStart(); chrome(); } else showTab('me',true);
+  landToast();
+}
+if(returning){ holding=true; ph.classList.add('sys'); chrome(); setTimeout(land,9000); /* never stay on the neutral screen if the network hangs */ }
+else{ rootEl.classList.remove('signing'); if(!S.onboarded){ updateToday(); obStart(); } else showTab('today'); }
 scheduleGoal();
 if(CL&&CL.ready()){ window.addEventListener('storage',function(ev){ if(ev.key===CL.AK&&ev.newValue){ closeSheet(); renderMe(); toast(L('Signed in.','已登录。')); syncNow(true); } });
-  CL.fromHash().then(function(a){ if(a){ closeSheet(); toast(L('Signed in.','已登录。')); if(S.onboarded) showTab('me'); } }).catch(function(x){ if(x&&x.linkError){ showTab('me'); toast(/expired|otp/i.test(x.linkError+x.message)?L('That link expired or was already used. Send a new one.','链接已过期或已用过，请重新发送。'):L('Couldn’t sign in with that link. Send a new one.','这个链接登录失败，请重新发送。')); } }).then(function(){ return cloudOn()?syncNow(true):null; }).then(function(){ if(!S.onboarded&&$('ob').hidden){ updateToday(); obStart(); } }); }
-
+  CL.fromHash().then(function(a){ if(a){ closeSheet(); landMsg=L('Signed in.','已登录。'); } })
+    .catch(function(x){ landMsg=x&&x.linkError&&/expired|otp/i.test(x.linkError+x.message)?L('That link expired or was already used. Send a new one.','链接已过期或已用过，请重新发送。'):L('Couldn’t sign in with that link. Send a new one.','这个链接登录失败，请重新发送。'); })
+    .then(function(){
+      if(!returning) return cloudOn()?syncNow(true):null;   /* an ordinary launch: just catch the backup up */
+      if(S.onboarded){ land(); landToast(); return cloudOn()?syncNow(true):null; }   /* already set up here: show Me at once, the backup catches up behind it */
+      return Promise.resolve(cloudOn()?syncNow(true):null).then(function(){ land(); landToast(); });  /* maybe a restore from the account: wait, so onboarding never flashes for someone who already did it */
+    }); }
 /* a shooting star now and then, only under a night sky; one at a time, never with Reduce Motion, never over a sheet or onboarding */
 (function(){ var NS='http://www.w3.org/2000/svg', svg=$('stars'); if(!svg) return;
   var defs=document.createElementNS(NS,'defs'); defs.innerHTML='<linearGradient id="shootG" gradientUnits="userSpaceOnUse" x1="-52" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".95"/></linearGradient>'; svg.insertBefore(defs,svg.firstChild);
