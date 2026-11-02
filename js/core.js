@@ -218,8 +218,31 @@ function flexBlock(k,state,now){
   return '';
 }
 
+
+/* ---------- Days totals and averages ----------
+   Every finished fast counts (also one ended early and one imported), so the totals are your whole history and only ever go up.
+   A fast belongs to the day it ended on, the same as the calendar. */
+function finished(fasts){ return fasts.filter(function(f){ return f.end&&f.end>f.start; }); }
+function totals(fasts){ var l=finished(fasts), h=0, since=0; l.forEach(function(f){ h+=hours(f); if(!since||f.start<since) since=f.start; }); return {hours:h,n:l.length,avg:l.length?h/l.length:0,since:since}; }
+function avgOf(l){ var h=0; l.forEach(function(f){ h+=hours(f); }); return l.length?h/l.length:0; }
+/* weeks of month m (0-based), Monday first, like the calendar; a week that crosses into the next month only counts its days inside the month.
+   Returns [{s:'YYYY-MM-DD', e:'YYYY-MM-DD', n:fasts, h:average hours per fast}] */
+function weekAvgs(fasts,y,m){
+  var first=dayKey(new Date(y,m,1).getTime()), last=dayKey(new Date(y,m+1,0).getTime()), fm=fastDays(finished(fasts)), out=[];
+  for(var wk=mondayOf(keyToDate(first).getTime()); wk<=last; wk=addDays(wk,7)){
+    var s=wk<first?first:wk, e=addDays(wk,6); if(e>last) e=last;
+    var l=[]; for(var k=s; k<=e; k=addDays(k,1)) if(fm[k]) l=l.concat(fm[k]);
+    out.push({s:s,e:e,n:l.length,h:avgOf(l)}); }
+  return out; }
+/* up to `count` months ending at (y,m): [{y,m,n,h}]. Months before the first fast are left out, so a new user sees one bar, not a row of blanks. */
+function monthAvgs(fasts,y,m,count){
+  var l=finished(fasts), by={}, firstIdx=1e9; l.forEach(function(f){ var d=new Date(f.end), i=d.getFullYear()*12+d.getMonth(); (by[i]=by[i]||[]).push(f); firstIdx=Math.min(firstIdx,i); });
+  var end=y*12+m, start=Math.max(end-(count||6)+1,Math.min(firstIdx,end)), out=[];
+  for(var i=start;i<=end;i++){ var a=by[i]||[]; out.push({y:Math.floor(i/12),m:i%12,n:a.length,h:avgOf(a)}); }
+  return out; }
+
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,planStatusLabel:planStatusLabel,
-  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock};
+  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);
