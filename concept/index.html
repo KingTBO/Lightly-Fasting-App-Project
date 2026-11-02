@@ -835,6 +835,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <div class="me-list"><div role="button" tabindex="0" id="meUnwell"><span data-zh="休息一下">Time off</span><small id="meUnwellV"></small></div></div>
         <p class="me-h" data-zh="你的数据">Your data</p>
         <div class="me-list"><div role="button" tabindex="0" id="meImp"><span data-zh="从其他应用导入">Import from another app</span><small></small></div><div role="button" tabindex="0" id="meExp"><span data-zh="导出我的记录">Export my fasts</span><small></small></div><div role="button" tabindex="0" id="meErase" style="color:var(--red)"><span data-zh="清除所有数据">Erase everything</span></div></div>
+        <div class="me-list" id="meDelL" hidden><div role="button" tabindex="0" id="meDel" style="color:var(--red)"><span data-zh="删除账号">Delete account</span></div></div>
         <button type="button" class="me-out" id="meSignOut" hidden></button>
       </div>
       <nav class="tabs" aria-label="App tabs">
@@ -2236,7 +2237,7 @@ window.LightlySphere=(function(){
     avatar(); picker();
     $('meName').textContent=signed?L('Signed in','已登录'):L('Not signed in','未登录');
     $('meSub').textContent=signed?L('Backed up just now with ','刚刚已备份 · ')+signed+L('. Your fasts follow you to a new phone.','。换手机时断食记录会跟着你。'):L('Everything works without an account. Your fasts stay on this phone.','不登录也能用全部功能，断食记录保存在这台手机上。');
-    $('meOut').hidden=!!signed; $('meSignOut').hidden=!signed; $('meSignOut').textContent=L('Sign Out','退出登录');
+    $('meOut').hidden=!!signed; $('meSignOut').hidden=!signed; $('meDelL').hidden=!signed; $('meSignOut').textContent=L('Sign Out','退出登录');
     $('meH').textContent=L('Back up your fasts','备份你的断食记录');
     $('meBtns').innerHTML=ways().map(function(w){ return '<button type="button" class="me-btn '+(w[0]==='phone'?'mail':w[0])+'" data-w="'+w[1]+'">'+IC[w[0]]+'<span>'+w[1]+'</span></button>'; }).join('');
     $('meLogin').innerHTML=L('Already have an account? <b>Log In</b>','已经有账号？<b>登录</b>');
@@ -2354,19 +2355,24 @@ window.LightlySphere=(function(){
       T(land+150,function(){ st[2].classList.add('on'); st[3].classList.add('on'); }); T(land+280,function(){ st[4].classList.add('on'); }); T(land+400,function(){ st[5].classList.add('on'); st[5].classList.remove('lock'); }); },rmo?250:380)); }
   /* Erase everything: a red warning, a plain list, Cancel as the main button; the erase button is locked for 3 seconds (counting down), then must be held for 2 seconds */
   var erT=0, erRaf=0;
-  function eraseRender(){ clearInterval(erT); cancelAnimationFrame(erRaf); var zh=api.lang()==='zh';
-    $('impTitle').textContent=L('Erase everything?','清除所有数据？'); $('impNote').textContent='';
-    $('impBody').innerHTML='<div class="imp-wrn"><div class="warn-ico"><svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17"/><circle class="dot" cx="28" cy="40" r="2.6"/></svg></div><h4 class="wh" aria-hidden="true">'+L('Are you sure?','你确定吗？')+'</h4><p class="wl">'+L('You’ll lose all 128 fasts, your 12-day streak, your plan and settings. This can’t be undone.','你将失去全部 128 次断食记录、12 天连续记录、计划和设置。此操作无法撤销。')+'</p><button type="button" class="imp-go dk" id="erCancel">'+L('Cancel','取消')+'</button><button type="button" class="imp-go erase" id="erGo" disabled><span>'+L('Erase everything · 3','清除所有数据 · 3')+'</span></button><button type="button" class="imp-go q" id="erExp">'+L('Export my fasts first','先导出我的记录')+'</button></div>';
+  function eraseRender(acct){ clearInterval(erT); cancelAnimationFrame(erRaf); var zh=api.lang()==='zh', nm=acct?['Delete account','删除账号']:['Erase everything','清除所有数据'], rd=acct?['Hold to delete account','按住删除账号']:['Hold to erase everything','按住清除所有数据'];
+    $('impTitle').textContent=acct?L('Delete account?','删除账号？'):L('Erase everything?','清除所有数据？'); $('impNote').textContent='';
+    $('impBody').innerHTML='<div class="imp-wrn"><div class="warn-ico"><svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17"/><circle class="dot" cx="28" cy="40" r="2.6"/></svg></div><h4 class="wh" aria-hidden="true">'+(acct?L('Delete your account?','删除账号？'):L('Are you sure?','你确定吗？'))+'</h4><p class="wl">'+(acct?L('Your account, backup and profile picture are deleted for good. This can’t be undone.','账号、云端备份和头像将被永久删除，无法撤销。'):L('You’ll lose all 128 fasts, your 12-day streak, your plan and settings. This can’t be undone.','你将失去全部 128 次断食记录、12 天连续记录、计划和设置。此操作无法撤销。'))+'</p><button type="button" class="imp-go dk" id="erCancel">'+L('Cancel','取消')+'</button><button type="button" class="imp-go erase" id="erGo" disabled><span>'+L(nm[0]+' · 3',nm[1]+' · 3')+'</span></button><button type="button" class="imp-go q" id="erExp">'+L('Export my fasts first','先导出我的记录')+'</button></div>';
     var go=$('erGo'), lb=go.firstChild, n=3, hold=0, fin=0;
-    $('erCancel').onclick=function(){ impOpen(false); }; $('erExp').onclick=function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$('meErase')); };
-    erT=setInterval(function(){ if(!go.isConnected){ clearInterval(erT); return; } n--; if(n>0){ lb.textContent=L('Erase everything · '+n,'清除所有数据 · '+n); return; } clearInterval(erT); go.disabled=false; lb.textContent=L('Hold to erase everything','按住清除所有数据'); buzz(6); },1000);
-    function stop(){ if(!hold) return; hold=0; clearTimeout(fin); cancelAnimationFrame(erRaf); go.classList.remove('holding'); go.style.setProperty('--hold',0); if(!go.dataset.done) lb.textContent=L('Hold to erase everything','按住清除所有数据'); }
+    $('erCancel').onclick=function(){ impOpen(false); }; $('erExp').onclick=function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$(acct?'meDel':'meErase')); };
+    erT=setInterval(function(){ if(!go.isConnected){ clearInterval(erT); return; } n--; if(n>0){ lb.textContent=L(nm[0]+' · '+n,nm[1]+' · '+n); return; } clearInterval(erT); go.disabled=false; lb.textContent=L(rd[0],rd[1]); buzz(6); },1000);
+    function stop(){ if(!hold) return; hold=0; clearTimeout(fin); cancelAnimationFrame(erRaf); go.classList.remove('holding'); go.style.setProperty('--hold',0); if(!go.dataset.done) lb.textContent=L(rd[0],rd[1]); }
     function start(e){ if(go.disabled||hold) return; e.preventDefault(); hold=performance.now(); go.classList.add('holding'); lb.textContent=L('Keep holding…','继续按住…'); buzz(6); var t0=hold;
-      function finish(){ if(!hold) return; hold=0; cancelAnimationFrame(erRaf); go.style.setProperty('--hold',1); go.dataset.done=1; go.classList.remove('holding'); buzz(14); lb.textContent=L('Nothing erased: this is a demo','没有删除任何内容：这只是演示'); setTimeout(function(){ impOpen(false); },1500); }
+      function finish(){ if(!hold) return; hold=0; cancelAnimationFrame(erRaf); go.style.setProperty('--hold',1); go.dataset.done=1; go.classList.remove('holding'); buzz(14); if(acct){ delDone(); return; } lb.textContent=L('Nothing erased: this is a demo','没有删除任何内容：这只是演示'); setTimeout(function(){ impOpen(false); },1500); }
       fin=setTimeout(finish,2000); (function step(){ if(!hold) return; go.style.setProperty('--hold',Math.min((performance.now()-t0)/2000,1)); erRaf=requestAnimationFrame(step); })(); }
     go.addEventListener('pointerdown',start); ['pointerup','pointercancel','pointerleave'].forEach(function(n2){ go.addEventListener(n2,stop); });
     go.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&!e.repeat) start(e); }); go.addEventListener('keyup',stop); }
+  /* the account is gone: keep or erase the fasts still on the phone (the demo changes nothing) */
+  function delDone(){ $('impTitle').textContent=L('Account deleted','账号已删除'); $('impNote').textContent='';
+    $('impBody').innerHTML='<div class="imp-wrn"><h4 class="wh" aria-hidden="true">'+L('Account deleted','账号已删除')+'</h4><p class="wl">'+L('Keep your fasts on this phone?','要在这台手机上保留断食记录吗？')+'</p><button type="button" class="imp-go" id="dlKeep">'+L('Keep on this phone','保留在手机上')+'</button><button type="button" class="imp-go" id="dlErase" style="background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--red)">'+L('Erase from this phone','从手机上清除')+'</button></div>';
+    $('dlKeep').onclick=function(){ signed=null; pickOpen=false; crop=null; impOpen(false); render(); }; $('dlErase').onclick=function(){ impStep=11; impRender(); }; }
   function impRender(){
+    if(impStep===13){ imp.classList.add('res'); eraseRender(true); return; }
     if(impStep===12){ imp.classList.remove('res'); $('impTitle').textContent=L('Enter the password','输入密码'); $('impNote').textContent=L('It’s in the email with your download.','密码在随下载一起发来的邮件里。'); $('impBody').innerHTML='<div class="imp-sum"><div><span>'+L('Password','密码')+'</span><small>••••••••</small></div></div><button type="button" class="imp-go" id="zipUnlock">'+L('Unlock','解锁')+'</button>'; $('zipUnlock').onclick=function(){ impStep=1; impRender(); }; return; }
     if(impStep===11){ imp.classList.add('res'); eraseRender(); return; }
     if(impStep===10){ skyRender(); return; }
@@ -2393,6 +2399,7 @@ window.LightlySphere=(function(){
   var infoT='', infoN=''; function info(t,n,from){ infoT=t; infoN=n; impFrom=from; impOpen(true,4); }
   $('meExp').addEventListener('click',function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$('meExp')); });
   $('meErase').addEventListener('click',function(){ impFrom=$('meErase'); impOpen(true,11); });
+  $('meDel').addEventListener('click',function(){ impFrom=$('meDel'); impOpen(true,13); });
   $('meUnwell').addEventListener('click',function(){ impFrom=$('meUnwell'); impOpen(true,off?9:5); });
   $('offBar').addEventListener('click',function(){ impFrom=$('offBar'); impOpen(true,9); });
   $('sub').addEventListener('click',function(){ impFrom=$('sub'); impOpen(true,10); });
