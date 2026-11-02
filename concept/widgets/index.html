@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lightly widgets 轻伴小组件</title>
+<meta name="description" content="Design for the Lightly home-screen and lock-screen widgets. A design and plan for the Android and iPhone apps; not in the web app.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Same tokens as the app and the concept page (HIG system colours, Lightly tint). */
+:root{
+  color-scheme:light;
+  --bg:#F2F2F7; --card:#FFFFFF; --label:#000000; --label-2:rgba(60,60,67,.8); --label-3:rgba(60,60,67,.3);
+  --sep:rgba(60,60,67,.29); --fill:rgba(120,120,128,.12); --tint:#FFCC00; --on-tint:#000000; --blue:#0062D9; --orange:#C93400;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
+  --font-d:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
+  --font-r:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,'Inter','PingFang SC','Noto Sans SC',sans-serif;
+  --gutter:max(16px,4vw);
+  /* the widget surface (follows the phone's light / dark setting) */
+  --w-bg:#FFFFFF; --w-ink:#000000; --w-ink-2:rgba(60,60,67,.8); --w-fill:rgba(120,120,128,.12); --w-unlit:rgba(142,142,147,.22); --w-rim:rgba(142,142,147,.6);
+  --wall:linear-gradient(160deg,#BFD9F2 0%,#E9D9F0 55%,#F6D9C8 100%);
+}
+:root[data-mode="dark"]{
+  color-scheme:dark;
+  --bg:#000000; --card:#1C1C1E; --label:#FFFFFF; --label-2:rgba(235,235,245,.68); --label-3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --tint:#FFD60A; --blue:#0A84FF; --orange:#FF9F0A;
+  --w-bg:#1C1C1E; --w-ink:#FFFFFF; --w-ink-2:rgba(235,235,245,.68); --w-fill:rgba(118,118,128,.28); --w-unlit:rgba(142,142,147,.28); --w-rim:rgba(235,235,245,.34);
+  --wall:linear-gradient(160deg,#101a3a 0%,#271f4a 55%,#40253a 100%);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--label);font:400 17px/1.47 var(--font);letter-spacing:-.022em;-webkit-font-smoothing:antialiased}
+html:lang(zh-Hans) body{letter-spacing:0}
+button{font:inherit;color:inherit;letter-spacing:inherit}
+a{color:var(--blue)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 var(--gutter)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:8px}
+
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0;flex-wrap:wrap}
+.word{display:flex;align-items:center;min-height:44px;gap:8px;font:700 19px var(--font-d);text-decoration:none;color:var(--label)}
+.word i{width:18px;height:18px;border-radius:50%;background:var(--tint)}
+.word small{font:500 15px var(--font);color:var(--label-2)}
+.bar-r{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar-r a.back{font-size:15px;color:var(--label-2);display:inline-flex;align-items:center;min-height:44px;text-decoration:none}
+.seg{display:inline-flex;background:var(--fill);border-radius:9px;padding:2px}
+.seg button{border:0;background:transparent;border-radius:7px;padding:6px 14px;font:600 13px var(--font);cursor:pointer;min-height:32px}
+.seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04)}
+
+.eyebrow{display:inline-block;font:600 13px var(--font);color:var(--orange);text-transform:uppercase;letter-spacing:.04em}
+html:lang(zh-Hans) .eyebrow{text-transform:none;letter-spacing:0}
+.h1{font:700 clamp(36px,6vw,64px)/1.04 var(--font-d);letter-spacing:-.035em;margin:8px 0 16px;text-wrap:balance}
+html:lang(zh-Hans) .h1{letter-spacing:0;line-height:1.14}
+.lede{font-size:clamp(17px,1.5vw,20px);line-height:1.45;color:var(--label-2);margin:0;max-width:60ch}
+.intro{padding:clamp(20px,4vw,44px) 0 12px}
+.callout{background:var(--card);border-radius:16px;padding:16px 18px;margin:24px 0 0;display:grid;gap:6px}
+.callout b{font:600 16px var(--font)}
+.callout p{margin:0;font-size:15px;color:var(--label-2)}
+
+.sec{padding:clamp(28px,5vw,56px) 0 0}
+.h2{font:700 clamp(24px,3vw,32px)/1.15 var(--font-d);letter-spacing:-.025em;margin:0 0 8px}
+html:lang(zh-Hans) .h2{letter-spacing:0}
+.sec > p{margin:0 0 20px;color:var(--label-2);font-size:16px;max-width:64ch}
+.stage{background:var(--wall);border-radius:24px;padding:clamp(16px,3vw,28px);display:flex;flex-wrap:wrap;gap:clamp(12px,2vw,20px);align-items:flex-start}
+.item{display:flex;flex-direction:column;gap:8px}
+.item figcaption{font:600 13px var(--font);color:var(--label);padding:2px 4px;text-shadow:none}
+:root:not([data-mode="dark"]) .item figcaption{color:rgba(0,0,0,.72)}
+:root[data-mode="dark"] .item figcaption{color:rgba(255,255,255,.78)}
+figure.item{margin:0}
+
+/* ---------- the widgets ---------- */
+.w{position:relative;background:var(--w-bg);color:var(--w-ink);border-radius:28px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.14),0 1px 3px rgba(0,0,0,.1);font-family:var(--font)}
+.w.ios{border-radius:22px}
+.w.s{width:160px;height:160px;padding:14px;display:flex;flex-direction:column}
+.w.m{width:340px;height:160px;padding:14px 16px;display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center}
+.w .disc{display:block}
+.w .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;background:var(--w-fill);font:600 12px var(--font);color:var(--w-ink-2);font-variant-numeric:tabular-nums}
+.cap{font:500 13px/1.2 var(--font);color:var(--w-ink-2)}
+.big{font:600 31px/1.05 var(--font-r);font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+.big.sm{font-size:28px}
+.big.long{font-size:25px}
+.w.m .big{font-size:38px}
+.sub{font:500 13px/1.25 var(--font);color:var(--w-ink-2);font-variant-numeric:tabular-nums}
+.w.s .stack{margin-top:auto;display:flex;flex-direction:column;gap:3px}
+.w.m .txt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 15px var(--font);margin-top:6px;align-self:flex-start}
+
+/* lock screen (iPhone) */
+.lock{background:linear-gradient(170deg,#3a4a78,#7a5a8a 60%,#c88a78);border-radius:28px;padding:22px 18px;width:100%;max-width:560px}
+.lock .tm{text-align:center;color:rgba(255,255,255,.9);font:700 64px/1 var(--font-r);letter-spacing:-.02em;margin:4px 0 14px}
+.lock .tm small{display:block;font:600 16px var(--font);opacity:.85;margin-bottom:6px;letter-spacing:0}
+.lock .inline{text-align:center;color:#fff;font:600 15px var(--font);margin-bottom:12px;font-variant-numeric:tabular-nums;display:flex;justify-content:center;align-items:center;gap:6px}
+.lw{display:flex;justify-content:center;gap:12px;align-items:center;flex-wrap:wrap}
+.lw .c,.lw .r{background:rgba(255,255,255,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff}
+.lw .c{width:76px;height:76px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:700 15px var(--font-r);font-variant-numeric:tabular-nums}
+.lw .r{width:172px;height:76px;border-radius:18px;display:grid;grid-template-columns:44px 1fr;gap:8px;align-items:center;padding:0 12px}
+.lw .r .a{font:500 12px/1.2 var(--font);opacity:.85}.lw .r .b{font:700 22px/1.05 var(--font-r);font-variant-numeric:tabular-nums}
+.lock .note{color:rgba(255,255,255,.85);font-size:12px;text-align:center;margin:12px 0 0}
+
+.wk{display:flex;gap:6px}
+.wk i{width:26px;height:26px;border-radius:50%;background:var(--w-unlit);display:flex;align-items:center;justify-content:center;font:600 11px var(--font);color:var(--w-ink-2);font-style:normal}
+.wk i.on{background:var(--tint);color:#000}
+.wk i.cheat{background:transparent;border:1.5px solid var(--orange);color:var(--orange)}
+.wk i.now{box-shadow:0 0 0 2px var(--w-bg),0 0 0 3.5px var(--tint)}
+.sky{border-radius:28px}
+
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cols > div,.tbl{background:var(--card);border-radius:16px;padding:16px 18px}
+.cols b{display:block;font:600 16px var(--font);margin-bottom:4px}
+.cols p{margin:0;font-size:14.5px;color:var(--label-2)}
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px}
+.tbl th{font:600 13px var(--font);color:var(--label-2);text-align:left;padding:6px 10px 8px 0;border-bottom:1px solid var(--sep)}
+.tbl td{padding:9px 10px 9px 0;border-bottom:1px solid var(--sep);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.go{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.go a{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 15px var(--font);text-decoration:none}
+.go a.sec2{background:var(--fill);color:var(--label)}
+footer{padding:48px 0 64px;color:var(--label-2);font-size:14px}
+@media (max-width:860px){.cols{grid-template-columns:1fr}}
+@media (max-width:420px){.w.m{width:100%;grid-template-columns:76px 1fr;gap:10px}.w.m .disc{width:76px;height:76px}.w.m .big{font-size:28px}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<radialGradient id="mdMoon" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#E6E0D0"/><stop offset="1" stop-color="#C4BBA4"/></radialGradient>
+<radialGradient id="mdMoonD" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#EDE8DB"/><stop offset="1" stop-color="#B5AC96"/></radialGradient>
+<radialGradient id="mdSun" cx=".4" cy=".35" r=".85"><stop offset="0" stop-color="#FFF4C8"/><stop offset=".6" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/></radialGradient>
+</defs></svg>
+
+<div class="wrap">
+  <nav class="bar" aria-label="Main" id="top">
+    <a class="word" href="../"><i aria-hidden="true"></i>Lightly <small>轻伴</small></a>
+    <div class="bar-r">
+      <a class="back" href="../#phones" data-zh="返回概念页">Back to the concept page</a>
+      <div class="seg" role="group" aria-label="Language"><button type="button" id="l-en" aria-pressed="true">EN</button><button type="button" id="l-zh" aria-pressed="false">中文</button></div>
+      <div class="seg" role="group" aria-label="Appearance"><button type="button" id="m-light" aria-pressed="true" data-zh="浅色">Light</button><button type="button" id="m-dark" aria-pressed="false" data-zh="深色">Dark</button></div>
+    </div>
+  </nav>
+
+  <header class="intro">
+    <span class="eyebrow" data-zh="设计与计划 · 还没做">Design and plan · not built yet</span>
+    <h1 class="h1" data-zh="桌面上的月亮和太阳">Your moon and sun, on the home screen</h1>
+    <p class="lede" data-zh="小组件让你不用打开应用就能看到断食进行到哪了：同一个会被点亮的圆，同一个大数字，同样安静。">A widget shows how your fast is going without opening the app: the same filling disc, the same big number, the same calm.</p>
+    <div class="callout">
+      <b data-zh="网页版做不了真正的小组件">The web app cannot make real widgets</b>
+      <p data-zh="浏览器不能在安卓或 iPhone 的桌面上放小组件，“添加到主屏幕”只会放一个图标。真正的小组件要用原生代码写（安卓的 App Widget，iPhone 的 WidgetKit），所以它们跟着安卓应用一起做。下面是设计，开发说明在 docs/widgets.md。">Browsers cannot put a widget on an Android or iPhone home screen. “Add to Home Screen” only adds an icon. Real widgets are written in native code (Android App Widgets, iPhone WidgetKit), so they come with the Android app. Below is the design; the build notes are in docs/widgets.md.</p>
+    </div>
+  </header>
+
+  <section class="sec" id="small" aria-labelledby="s-h">
+    <h2 class="h2" id="s-h" data-zh="小号 · 2×2">Small · 2×2</h2>
+    <p data-zh="只看一眼：圆、剩余时间、几点结束。整块点开应用。这里没有按钮，要结束断食必须打开应用并按住。">For a glance: the disc, time left, and when it ends. The whole widget opens the app. There is no button on it; ending a fast always means opening the app and holding.</p>
+    <div class="stage" id="st-small"></div>
+  </section>
+
+  <section class="sec" id="medium" aria-labelledby="m-h">
+    <h2 class="h2" id="m-h" data-zh="中号 · 4×2">Medium · 4×2</h2>
+    <p data-zh="更大的圆，开始和结束时间，加计划。准备好或进食时段里有一个“开始断食”按钮（点按即可，不会误触结束）。">A bigger disc, the start and end times, and the plan. When you are ready to fast, or in the eating window, there is a Start fast button. There is never an End button.</p>
+    <div class="stage" id="st-medium"></div>
+  </section>
+
+  <section class="sec" id="lock" aria-labelledby="l-h">
+    <h2 class="h2" id="l-h" data-zh="锁屏 · iPhone">Lock Screen · iPhone</h2>
+    <p data-zh="iPhone 的锁屏小组件是单色的，所以只用圆和时间。锁屏上不显示计划名、连续天数和任何其他信息。安卓手机的锁屏不放第三方小组件，用的是常驻通知，锁屏上只写“Lightly”。">iPhone Lock Screen widgets are single-colour, so they use only the disc and the time. They never show the plan name, streak or anything else. Android phones do not put third-party widgets on the lock screen; there the ongoing notification does the job, and on the lock screen it only says “Lightly”.</p>
+    <div class="stage" id="st-lock"></div>
+  </section>
+
+  <section class="sec" id="week" aria-labelledby="w-h">
+    <h2 class="h2" id="w-h" data-zh="第二批 · 一周和样式">Second wave · the week, and styles</h2>
+    <p data-zh="一周小组件显示连续天数和七个点（弹性日是空心点）。样式（比如跟着天空变色）是以后的“Lightly Plus”，计时器本身的小组件一直免费。">A week widget shows the streak and the seven dots (a cheat day is a hollow dot). Styles, such as colours that follow the sky, would be part of Lightly Plus later. The timer widgets themselves stay free.</p>
+    <div class="stage" id="st-week"></div>
+  </section>
+
+  <section class="sec" id="rules" aria-labelledby="r-h">
+    <h2 class="h2" id="r-h" data-zh="它们怎么表现">How they behave</h2>
+    <div class="cols" style="margin-bottom:12px">
+      <div><b data-zh="数字自己走">The number ticks by itself</b><p data-zh="时间用系统自带的计时控件，应用不用一直运行，也不耗电。圆每 10 分钟左右换一张。">The time uses the system’s own timer view, so the app does not have to run and it costs no battery. The disc moves on about every 10 minutes.</p></div>
+      <div><b data-zh="只有开始，没有结束">Start yes, End never</b><p data-zh="准备好时可以从小组件开始。结束永远要打开应用并按住，这样口袋里不会误触，也不会催你。">You can start from a widget when you are ready. Ending always means opening the app and holding, so a pocket tap can’t end it, and nothing urges you either way.</p></div>
+      <div><b data-zh="私密为先">Private by default</b><p data-zh="只存开始时间、目标和日出日落时刻。没有体重、邮箱、位置坐标。锁屏上不显示计划名，休息状态只写“休息”。">Only the start time, the goal and the sunrise and sunset times are shared with the widget. No weight, email or coordinates. The lock screen never names the plan, and a rest period just says “Rest”.</p></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th data-zh="状态">State</th><th data-zh="圆">Disc</th><th data-zh="大数字">Big number</th><th data-zh="点按">Tap</th></tr></thead>
+      <tbody>
+        <tr><td data-zh="准备好了">Ready</td><td data-zh="空圆，月亮或太阳">Empty disc, moon or sun</td><td data-zh="“准备好了”，加计划">“Ready”, plan below</td><td data-zh="打开今天；中号有“开始断食”">Opens Today; medium has Start fast</td></tr>
+        <tr><td data-zh="断食中">Fasting</td><td data-zh="逆时针被点亮">Fills counter-clockwise</td><td data-zh="剩余时间，走秒">Time left, ticking</td><td data-zh="打开今天">Opens Today</td></tr>
+        <tr><td data-zh="达成目标">Goal reached</td><td data-zh="满，之后不再变化">Full, and stays full</td><td data-zh="已断食时间，继续走">Elapsed time, still ticking</td><td data-zh="打开今天（按住结束）">Opens Today (hold there to end)</td></tr>
+        <tr><td data-zh="进食时段">Eating window</td><td data-zh="慢慢退去">Slowly empties</td><td data-zh="进食窗口还剩">Eating window left</td><td data-zh="打开今天；中号有“开始断食”">Opens Today; medium has Start fast</td></tr>
+        <tr><td data-zh="休息 / 旅行">Rest or break</td><td data-zh="空圆">Empty disc</td><td data-zh="“休息”或“休息”第几天">“Rest” or “Break”, day count</td><td data-zh="打开今天（不显示开始按钮）">Opens Today (no Start button)</td></tr>
+      </tbody></table></div>
+    <div class="go"><a href="https://github.com/KingTBO/Lightly-Fasting-App-Project/blob/main/docs/widgets.md" data-zh="读开发说明">Read the build notes</a><a class="sec2" href="../" data-zh="回到概念页">Back to the concept page</a></div>
+  </section>
+
+  <footer data-zh="这些是设计图，不是已经能用的功能。真正的小组件会在安卓应用里先上线。">These are design drawings, not a working feature. The real widgets arrive first in the Android app.</footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, lang='en';
+  try{ var q=new URLSearchParams(location.search); if(q.get('lang')==='zh') lang='zh'; if(q.get('mode')==='dark') root.dataset.mode='dark'; }catch(e){}
+  function L(en,zh){ return lang==='zh'?zh:en; }
+  function mode(){ return root.dataset.mode==='dark'?'dark':'light'; }
+
+  /* disc: the app's flat fallback. p 0..1 fills counter-clockwise from 12 o'clock; wane unwinds the same way. */
+  function wedge(p,r,wane){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; if(p>=.999) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z';
+    var f=wane?(1-p):0, t=wane?1:p, a0=f*2*Math.PI, a1=t*2*Math.PI, sx=-r*Math.sin(a0), sy=-r*Math.cos(a0), ex=-r*Math.sin(a1), ey=-r*Math.cos(a1);
+    return 'M0 0 L'+sx.toFixed(2)+' '+sy.toFixed(2)+' A'+r+' '+r+' 0 '+((a1-a0)>Math.PI?1:0)+' 0 '+ex.toFixed(2)+' '+ey.toFixed(2)+'Z'; }
+  function disc(size,p,o){ o=o||{}; var R=22, fill=o.mono?'#fff':(o.sun?'url(#mdSun)':(mode()==='dark'?'url(#mdMoon)':'url(#mdMoonD)'));
+    var unlit=o.mono?'rgba(255,255,255,.28)':'var(--w-unlit)', rim=o.mono?'rgba(255,255,255,.6)':'var(--w-rim)';
+    var glow=o.glow?'<circle r="'+(R+1.6)+'" fill="none" stroke="'+(o.sun?'#FFC93C':'#F4EFE2')+'" stroke-opacity=".55" stroke-width="1.6"/>':'';
+    return '<svg class="disc" width="'+size+'" height="'+size+'" viewBox="-25 -25 50 50" aria-hidden="true">'+glow+'<circle r="'+R+'" fill="'+unlit+'" stroke="'+rim+'" stroke-width=".9"/><path d="'+wedge(p,R,o.wane)+'" fill="'+fill+'"/></svg>'; }
+
+  /* snapshot values (a 16:8 fast started 18:30, 14 h 31 m in): the same numbers as the concept page */
+  var D={left:'1:28:12', eatLeft:'5:40:00', over:'16:12:03'};
+  var states=[];
+  /* ready is shown as a moon in the small widgets row; fasting at night is a moon, in the afternoon a sun */
+  function smallW(s,ios){
+    var wb='<div class="big'+(s.bigWord?' sm':(s.big.length>=8?' long':''))+'">'+s.big+'</div>';
+    return '<div class="w s'+(ios?' ios':'')+'" role="img" aria-label="'+s.name+', '+s.cap+' '+s.big+'">'+
+      '<div class="row">'+disc(54,s.p,s)+'<span class="chip">'+s.plan+'</span></div>'+
+      '<div class="stack"><div class="cap">'+s.cap+'</div>'+wb+'<div class="sub">'+s.sub+'</div></div></div>';
+  }
+  function mediumW(s,ios){
+    var wb=s.bigWord?'<div class="big">'+s.big+'</div>':'<div class="big">'+s.big+'</div>';
+    var sub=s.btn?(s.k==='ready'?'':''):'';
+    return '<div class="w m'+(ios?' ios':'')+'" role="img" aria-label="'+s.name+', '+s.cap+' '+s.big+'">'+
+      disc(96,s.p,s)+
+      '<div class="txt"><div class="row"><span class="cap">'+s.cap+'</span><span class="chip">'+s.plan+'</span></div>'+wb+
+      (s.btn?(s.k==='ready'?'<div class="sub">'+s.sub+'</div>':'<div class="sub">'+s.sub2+'</div>')+'<span class="btn">'+L('Start fast','开始断食')+'</span>':'<div class="sub">'+(s.sub2||s.sub)+'</div>')+
+      '</div></div>';
+  }
+  function item(html,label){ return '<figure class="item">'+html+'<figcaption>'+label+'</figcaption></figure>'; }
+
+  function render(){
+    // sun vs moon: ready and fasting overnight are the moon, goal reached at sunrise is the sun, the eating window is the sun
+    var set=function(id,html){ document.getElementById(id).innerHTML=html; };
+    set('st-small', states.map(function(s,i){ return item(smallW(s,false), s.name+' · Android'); }).join('')+
+      item(smallW(states[1],true), L('Fasting · iPhone shape','断食中 · iPhone 形状')));
+    set('st-medium', states.map(function(s){ return item(mediumW(s,false), s.name+' · Android'); }).join('')+
+      item(mediumW(states[1],true), L('Fasting · iPhone shape','断食中 · iPhone 形状')));
+
+    var m1={p:.91}, m2={p:.62};
+    var lockHtml='<div class="lock"><div class="inline">'+disc(16,.91,{mono:true})+'<span>'+L('1:28 left','还剩 1:28')+'</span></div>'+
+      '<div class="tm"><small>'+L('Monday 2 November','11月2日 星期一')+'</small>9:41</div>'+
+      '<div class="lw"><div class="c" role="img" aria-label="'+L('1 hour 28 minutes left','还剩 1 小时 28 分钟')+'">'+disc(40,.91,{mono:true})+'<span>1:28</span></div>'+
+      '<div class="r" role="img" aria-label="'+L('Time left 1:28:12, ends 10:30','剩余 1:28:12，10:30 结束')+'">'+disc(44,.91,{mono:true})+'<div><div class="a">'+L('Time left','剩余时间')+'</div><div class="b">1:28:12</div><div class="a">'+L('Ends 10:30','10:30 结束')+'</div></div></div></div>'+
+      '<p class="note">'+L('Circular, rectangular and inline. White on the wallpaper, as the system draws every Lock Screen widget.','圆形、长方形和单行三种。像系统里所有锁屏小组件一样，白色画在壁纸上。')+'</p></div>';
+    var andNote='<div class="item" style="max-width:340px"><div class="w m" style="grid-template-columns:44px 1fr;height:auto;padding:14px 16px;border-radius:20px">'+disc(40,.91,{})+
+      '<div class="txt"><div class="cap">Lightly · '+L('now','现在')+'</div><div class="big sm" style="font-size:22px">1:28:12</div><div class="sub">'+L('left · ends 10:30','剩余 · 10:30 结束')+'</div></div></div>'+
+      '<figcaption>'+L('Android ongoing notification (opened)','安卓常驻通知（展开）')+'</figcaption></div>'+
+      '<div class="item" style="max-width:340px"><div class="w m" style="grid-template-columns:44px 1fr;height:auto;padding:14px 16px;border-radius:20px">'+disc(40,.91,{mono:false})+
+      '<div class="txt"><div class="cap">Lightly</div><div class="sub" style="font-size:15px;color:var(--w-ink)">'+L('Fasting','断食中')+'</div></div></div>'+
+      '<figcaption>'+L('Same notification on the lock screen (private)','锁屏上的同一条通知（私密版）')+'</figcaption></div>';
+    set('st-lock', '<div style="flex:1 1 380px;min-width:0">'+lockHtml+'</div><div style="display:flex;flex-direction:column;gap:12px">'+andNote+'</div>');
+
+    function weekDots(){ var d=L('M T W T F S S','一 二 三 四 五 六 日').split(' '); var cls=['on','on','on','cheat','on','on','on now'];
+      return '<div class="wk">'+d.map(function(x,i){ return '<i class="'+cls[i]+'">'+(cls[i]==='cheat'?'☆':x)+'</i>'; }).join('')+'</div>'; }
+    var weekW='<div class="w m" style="grid-template-columns:1fr;gap:10px;align-content:center"><div class="row"><span class="cap">'+L('This week','本周')+'</span><span class="chip">'+L('42 fasts','共 42 次')+'</span></div>'+
+      '<div class="big" style="font-size:34px">'+L('7 day streak','连续 7 天')+'</div>'+weekDots()+'</div>';
+    function skyW(bg,ink,ink2,unlit,rim,p,sun,cap,big,sub,label){ return item('<div class="w m sky" style="background:'+bg+';color:'+ink+';--w-ink:'+ink+';--w-ink-2:'+ink2+';--w-unlit:'+unlit+';--w-rim:'+rim+';--w-fill:'+unlit+'">'+disc(96,p,{sun:sun})+
+      '<div class="txt"><div class="row"><span class="cap">'+cap+'</span><span class="chip">16:8</span></div><div class="big">'+big+'</div><div class="sub">'+sub+'</div></div></div>',label); }
+    set('st-week', item(weekW,L('Week · Android 4×2','一周 · 安卓 4×2'))+
+      skyW('#2C3762','#FFFFFF','rgba(235,235,245,.8)','rgba(255,255,255,.14)','rgba(255,255,255,.3)',.91,false,L('Time left','剩余时间'),D.left,L('Ends 10:30','10:30 结束'),L('Sky style · night (Plus, later)','天空样式 · 夜晚（Plus，以后）'))+
+      skyW('#CDE6F6','#1C1C1E','rgba(28,28,30,.8)','rgba(28,28,30,.1)','rgba(28,28,30,.26)',.28,true,L('Time left','剩余时间'),'11:42:00',L('Ends 20:30','20:30 结束'),L('Sky style · day (Plus, later)','天空样式 · 白天（Plus，以后）')));
+
+    document.querySelectorAll('[data-zh]').forEach(function(el){ if(!el.dataset.en) el.dataset.en=el.innerHTML; el.innerHTML=lang==='zh'?el.dataset.zh:el.dataset.en; });
+    root.lang=lang==='zh'?'zh-Hans':'en';
+    document.getElementById('l-en').setAttribute('aria-pressed',lang==='en'); document.getElementById('l-zh').setAttribute('aria-pressed',lang==='zh');
+    document.getElementById('m-light').setAttribute('aria-pressed',mode()==='light'); document.getElementById('m-dark').setAttribute('aria-pressed',mode()==='dark');
+  }
+  function setLang(l){ lang=l; states.length=0; init(); render(); }
+  function setMode(m){ if(m==='dark') root.dataset.mode='dark'; else root.removeAttribute('data-mode'); init(); render(); }
+  function init(){
+    states.length=0;
+    states.push(
+      {k:'ready', name:L('Ready','准备好了'), p:0, sun:false, cap:L('16-hour plan','16 小时计划'), big:L('Ready','准备好了'), sub:L('Finish 10:30 if you start now','现在开始，10:30 结束'), btn:true, plan:'16:8', bigWord:true},
+      {k:'fast', name:L('Fasting','断食中'), p:.91, sun:false, cap:L('Time left','剩余时间'), big:D.left, sub:L('Ends 10:30','10:30 结束'), plan:'16:8', sub2:L('Started 18:30 · ends 10:30','18:30 开始 · 10:30 结束')},
+      {k:'goal', name:L('Goal reached','达成目标'), p:1, sun:true, glow:true, cap:L('Goal reached','目标达成'), big:D.over, sub:L('Goal 16 h','目标 16 小时'), plan:'16:8', sub2:L('Goal 16 h · 12 min over','目标 16 小时 · 超出 12 分钟')},
+      {k:'eat', name:L('Eating window','进食时段'), p:.62, wane:true, sun:true, cap:L('Eating window left','进食窗口还剩'), big:D.eatLeft, sub:L('Tap to open','点按打开'), btn:true, plan:'16:8', sub2:L('Closes 18:30','18:30 关闭')});
+  }
+  document.getElementById('l-en').addEventListener('click',function(){ setLang('en'); });
+  document.getElementById('l-zh').addEventListener('click',function(){ setLang('zh'); });
+  document.getElementById('m-light').addEventListener('click',function(){ setMode('light'); });
+  document.getElementById('m-dark').addEventListener('click',function(){ setMode('dark'); });
+  init(); render();
+})();
+</script>
+</body></html>

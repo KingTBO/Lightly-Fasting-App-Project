@@ -361,6 +361,7 @@ html:lang(zh-Hans) .friends .tag{text-transform:none}
 .plat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .plat figure{margin:0;background:var(--card);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
 .plat figcaption b{display:block;font:600 16px var(--font);margin-bottom:4px}.plat figcaption span{font-size:14px;color:var(--label-2);line-height:1.4;display:block}
+.plat figcaption a.wlink{display:inline-flex;align-items:center;min-height:44px;font-size:14px;color:var(--blue);text-decoration:none}
 .mock{border-radius:18px;padding:14px;background:#CDE6F6;color:#1C1C1E;min-height:132px;display:flex;flex-direction:column;justify-content:center}
 .mock.dark{background:#0E1430;color:#fff}
 .mock .r{display:flex;align-items:center;gap:12px}.mock svg{width:44px;height:44px;flex:none}
@@ -1096,7 +1097,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <figure><div class="mock"><div class="t1">Lightly · <span data-zh="现在">now</span></div><div class="r" style="margin-top:6px"><svg viewBox="-12 -12 24 24" data-p=".91"></svg><div><div class="t2" data-zh="还剩 1:28">1:28 left</div><div class="t3" data-zh="10:30 结束">Ends 10:30</div></div></div><div class="pb"><i></i></div><div class="acts"><span data-zh="结束断食">End fast</span><span data-zh="打开">Open</span></div></div>
         <figcaption><b data-zh="安卓常驻通知">Android ongoing notification</b><span data-zh="进度一直在通知栏里。">Progress stays in the notification shade.</span></figcaption></figure>
       <figure><div class="mock"><div class="r"><svg viewBox="-12 -12 24 24" data-p=".91"></svg><div><div class="t2">1:28</div><div class="t3" data-zh="剩余 · 黎明">left · Dawn</div></div></div><div class="t3" style="margin-top:10px" data-zh="日出 06:04 · 10:30 结束">Sunrise 06:04 · ends 10:30</div></div>
-        <figcaption><b data-zh="桌面小组件">Home-screen widget</b><span data-zh="Zero 在 iOS 上最受好评的就是小组件，我们第一天就在安卓上做好它。">Zero's best-loved feature on iOS. Lightly ships it on Android from day one.</span></figcaption></figure>
+        <figcaption><b data-zh="桌面小组件">Home-screen widget</b><span data-zh="Zero 在 iOS 上最受好评的就是小组件，我们第一天就在安卓上做好它。网页版做不了真正的小组件，它们随安卓应用一起上线。">Zero's best-loved feature on iOS. Lightly ships it on Android from day one. The web app can't make real widgets, so they arrive with the Android app.</span><a class="wlink" href="widgets/" data-zh="看小号、中号和锁屏设计 →">See the small, medium and Lock Screen designs →</a></figcaption></figure>
       <figure><div class="mock dark"><div class="r"><svg viewBox="-12 -12 24 24" data-p=".6" data-moon="1"></svg><div><div class="t1" data-zh="月亮 · 深夜">Moon · Night</div><div class="t2" data-zh="还剩 6:24">6:24 left</div></div></div></div>
         <figcaption><b data-zh="iPhone 实时活动">iPhone Live Activity</b><span data-zh="随后上线，锁屏和灵动岛上都能看到你的月亮或太阳。">Coming after Android: your moon or sun on the Lock Screen and Dynamic Island.</span></figcaption></figure>
     </div>
