@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.58.2
+- **fix** Opening Lightly from the email sign-in link (or any time on a slow connection) no longer sits on the logo screen waiting for the network. The app still checks for updates first, but if the connection hasn't answered after about a second it opens from the copy already on the phone, and picks up the update on the next launch. Before, every file waited for the network with no limit, so a slow connection meant a long logo screen. The sign-in link itself opens from the saved copy too.
+
 ## 0.58.1
 - **fix** The first tick sound after opening the app, for example when you pick a profile picture, was a quick stand-in click instead of the Android tick, and only later ticks sounded right. The real tick now loads on your first touch of the screen, so every tick sounds the same from the start.
 
