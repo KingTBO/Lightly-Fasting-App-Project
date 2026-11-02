@@ -99,6 +99,9 @@ function sTick(){ var c=actx(); if(!c) return; loadTick(c);
   if(tickBuf){ src.buffer=tickBuf; g.gain.value=.7; src.connect(g); g.connect(c.destination); src.start(t); return; }
   if(!clickBuf){ var n=Math.floor(c.sampleRate*.02), d; clickBuf=c.createBuffer(1,n,c.sampleRate); d=clickBuf.getChannelData(0); for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.0025)); }
   var f=c.createBiquadFilter(); src.buffer=clickBuf; f.type='bandpass'; f.frequency.value=2600; f.Q.value=.9; g.gain.value=.22; src.connect(f); f.connect(g); g.connect(c.destination); src.start(t); }
+/* load the real tick on the first touch of the page, so even the very first tick (a profile picture tap, say) is the Android tick and not the stand-in click */
+function warmTick(){ if(tickBuf||tickLoad) return; var c=actx(); if(c) loadTick(c); }
+document.addEventListener('pointerdown',warmTick,true); document.addEventListener('keydown',warmTick,true);
 function sChime(){ tone(1318.5,1.4,.06); tone(1975.5,1.6,.04,'sine',.09); tone(2637,1.2,.02,'sine',.18); }
 /* Android and desktop Chrome can vibrate from the web. iPhone Safari cannot (no navigator.vibrate and no haptics API at all), but Safari 17.4+ plays a small tap
    when an <input type=checkbox switch> is toggled, so on iPhone we toggle a fresh, invisible one with a label click. It is a hack: it has only been seen to work
