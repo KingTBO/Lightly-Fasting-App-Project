@@ -473,6 +473,8 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .me-av{flex:none;width:52px;height:52px;border-radius:50%;background:var(--fill);display:grid;place-items:center}
 .me-av svg{width:30px;height:30px}
 .me-card b{display:block;font:600 17px var(--font)}
+.me-card .me-id{display:block;flex:1;min-width:0;min-height:44px;margin:0;padding:0;border:0;background:none;color:inherit;text-align:left;font:inherit;letter-spacing:inherit;cursor:pointer}
+.me-card b.noname{color:var(--label-2);font-weight:500}
 .me-card span{display:block;font-size:13px;color:var(--label-2);line-height:1.35;margin-top:2px}
 .dy-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.dy-sum div{background:var(--card);border-radius:14px;padding:12px 8px;text-align:center}.dy-sum b{display:block;font:700 28px/1.1 var(--font-r)}.dy-sum span{font-size:13px;color:var(--label-2)}
 .dy-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:var(--card);border-radius:14px;padding:10px 8px}.dy-cal i{font-style:normal;font-size:11px;color:var(--label-2);text-align:center;padding-bottom:4px}
@@ -817,7 +819,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div class="me" id="meScr" aria-hidden="true" aria-label="Me">
         <div class="me-card">
           <span class="me-avw"><button type="button" class="me-avb" id="meAvB" aria-label="Change profile picture" aria-expanded="false"><span class="me-av" id="meAv"></span></button><i class="me-edit" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.4-2h5l1.4 2h1.6A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.3"/></svg></i></span>
-          <div><b id="meName"></b><span id="meSub"></span></div>
+          <button type="button" class="me-id" id="meId" aria-label="Edit your name"><b id="meName"></b><span id="meSub"></span></button>
         </div>
         <div class="me-pick" id="mePick" hidden></div>
         <input type="file" accept="image/*" id="meFile" hidden>
@@ -2233,9 +2235,11 @@ window.LightlySphere=(function(){
     function up(e){ delete pts[e.pointerId]; } box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up);
     box.addEventListener('wheel',function(e){ if(!crop||!e.target.closest('#mCrop')) return; e.preventDefault(); crop.zoom*=Math.exp(-e.deltaY*.002); cropDraw(); },{passive:false});
     box.addEventListener('input',function(e){ if(e.target.id==='mZoom'&&crop){ crop.zoom=+e.target.value; cropDraw(); } }); })();
+  /* the name on the Me tab: the one you chose, else a Google account's first name, else you're asked to add one */
+  var cname=''; function dispName(){ return cname||(signed==='Google'?'Alex':''); }
   function render(){
     avatar(); picker();
-    $('meName').textContent=signed?L('Signed in','已登录'):L('Not signed in','未登录');
+    var dn=dispName(); $('meName').textContent=signed?(dn||L('Add your name','添加你的名字')):L('Not signed in','未登录'); $('meName').classList.toggle('noname',!!signed&&!dn); $('meId').disabled=!signed;
     $('meSub').textContent=signed?L('Backed up just now with ','刚刚已备份 · ')+signed+L('. Your fasts follow you to a new phone.','。换手机时断食记录会跟着你。'):L('Everything works without an account. Your fasts stay on this phone.','不登录也能用全部功能，断食记录保存在这台手机上。');
     $('meOut').hidden=!!signed; $('meSignOut').hidden=!signed; $('meDelL').hidden=!signed; $('meSignOut').textContent=L('Sign Out','退出登录');
     $('meH').textContent=L('Back up your fasts','备份你的断食记录');
@@ -2244,7 +2248,7 @@ window.LightlySphere=(function(){
     $('meNote').textContent=L('Creating an account is optional. It backs up your fasts and moves them to a new phone. Lightly never shares your weight or sells your data. Email sign-in is available now.','创建账号是可选的，只用来备份断食记录、换手机时同步。轻伴从不分享你的体重，也不出售你的数据。目前支持邮箱登录。');
     [].forEach.call($('meBtns').children,function(b){ b.addEventListener('click',function(){ signed=b.dataset.w.replace(/^(Continue with |通过 |用)| 继续$|继续$|登录$/g,''); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} render(); }); }); }
   $('meLogin').addEventListener('click',function(){ signed=L('Email','邮箱'); render(); });
-  $('meSignOut').addEventListener('click',function(){ signed=null; pickOpen=false; crop=null; render(); });
+  $('meSignOut').addEventListener('click',function(){ signed=null; cname=''; pickOpen=false; crop=null; render(); });
   /* Time off: travel (1 to 14 days) or unwell (2 weeks), playable here */
   var off=null, offDays=3;
   function offBar(){ var b=$('offBar'); b.hidden=!off; if(off) b.innerHTML=(off.kind==='travel'?L('Travelling · day 1 of '+off.days,'旅行中 · 第 1 天，共 '+off.days+' 天'):L('Resting · day 1 of '+off.days,'休养中 · 第 1 天，共 '+off.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>'; $('ph').classList.toggle('offon',!!off); window.LIGHTLY_OFF=off; if(window.refreshToday) window.refreshToday(!!off); if(window.refreshStreak) window.refreshStreak(); }
@@ -2370,8 +2374,12 @@ window.LightlySphere=(function(){
   /* the account is gone: keep or erase the fasts still on the phone (the demo changes nothing) */
   function delDone(){ $('impTitle').textContent=L('Account deleted','账号已删除'); $('impNote').textContent='';
     $('impBody').innerHTML='<div class="imp-wrn"><h4 class="wh" aria-hidden="true">'+L('Account deleted','账号已删除')+'</h4><p class="wl">'+L('Keep your fasts on this phone?','要在这台手机上保留断食记录吗？')+'</p><button type="button" class="imp-go" id="dlKeep">'+L('Keep on this phone','保留在手机上')+'</button><button type="button" class="imp-go" id="dlErase" style="background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--red)">'+L('Erase from this phone','从手机上清除')+'</button></div>';
-    $('dlKeep').onclick=function(){ signed=null; pickOpen=false; crop=null; impOpen(false); render(); }; $('dlErase').onclick=function(){ impStep=11; impRender(); }; }
+    $('dlKeep').onclick=function(){ signed=null; cname=''; pickOpen=false; crop=null; impOpen(false); render(); }; $('dlErase').onclick=function(){ impStep=11; impRender(); }; }
+  function nameRender(){ imp.classList.remove('res'); $('impTitle').textContent=L('Your name','你的名字'); $('impNote').textContent=L('Signed in as ','登录账号：')+(signed==='Google'?'alex@gmail.com':'you@example.com');
+    $('impBody').innerHTML='<div class="imp-sum"><div><span>'+L('Name','名字')+'</span><input id="nmIn" type="text" maxlength="24" placeholder="'+(signed==='Google'?'Alex':L('Your name','你的名字'))+'" value="'+cname.replace(/"/g,'&quot;')+'" style="width:60%;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:15px"></div></div><button type="button" class="imp-go" id="nmSave">'+L('Save','保存')+'</button>';
+    function save(){ cname=($('nmIn').value||'').trim().slice(0,24); impOpen(false); render(); } $('nmSave').onclick=save; $('nmIn').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); save(); } }); }
   function impRender(){
+    if(impStep===14){ nameRender(); return; }
     if(impStep===13){ imp.classList.add('res'); eraseRender(true); return; }
     if(impStep===12){ imp.classList.remove('res'); $('impTitle').textContent=L('Enter the password','输入密码'); $('impNote').textContent=L('It’s in the email with your download.','密码在随下载一起发来的邮件里。'); $('impBody').innerHTML='<div class="imp-sum"><div><span>'+L('Password','密码')+'</span><small>••••••••</small></div></div><button type="button" class="imp-go" id="zipUnlock">'+L('Unlock','解锁')+'</button>'; $('zipUnlock').onclick=function(){ impStep=1; impRender(); }; return; }
     if(impStep===11){ imp.classList.add('res'); eraseRender(); return; }
@@ -2399,6 +2407,7 @@ window.LightlySphere=(function(){
   var infoT='', infoN=''; function info(t,n,from){ infoT=t; infoN=n; impFrom=from; impOpen(true,4); }
   $('meExp').addEventListener('click',function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$('meExp')); });
   $('meErase').addEventListener('click',function(){ impFrom=$('meErase'); impOpen(true,11); });
+  $('meId').addEventListener('click',function(){ if(signed){ impFrom=$('meId'); impOpen(true,14); } });
   $('meDel').addEventListener('click',function(){ impFrom=$('meDel'); impOpen(true,13); });
   $('meUnwell').addEventListener('click',function(){ impFrom=$('meUnwell'); impOpen(true,off?9:5); });
   $('offBar').addEventListener('click',function(){ impFrom=$('offBar'); impOpen(true,9); });

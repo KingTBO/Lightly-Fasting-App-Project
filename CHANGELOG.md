@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.58.0
+- **feature** The Me tab now shows a name instead of your email. Signed in with Google, it is your Google first name. With email, it says "Add your name" until you choose one. Tap the name to change it (up to 24 characters, clear it to go back to the Google name). Your email moves into that sheet, where it says who you're signed in as. The name is saved in your backup, so it follows you to a new phone, and it leaves with the sign-in when you sign out. Same on the concept page.
+
 ## 0.57.1
 - **fix** If you delete your account on one phone, your other phones now notice. Before, a second phone stayed signed in as the deleted account and just failed to back up. Now, the next time it backs up (when you open the app, or tap Back up now), it signs out and says "This account no longer exists, so you’re signed out. Your fasts are still on this phone." Your fasts on that phone are kept. If the sign-in has simply expired, it says so instead. Being offline or a server hiccup never signs you out.
 

@@ -8,7 +8,7 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 /* ---------- state ---------- */
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
 function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false},
-  planId:'16',customH:16,avatar:null,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
+  planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
   prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
@@ -895,7 +895,7 @@ var CL=window.LightlyCloud, sync={busy:false,msg:'',at:0,err:'',t:0};
 function cloudOn(){ return CL&&CL.ready()&&CL.getAuth(); }
 function cloudSoon(){ if(!cloudOn()) return; clearTimeout(sync.t); sync.t=setTimeout(function(){ syncNow(true); },4000); }
 function applyRemote(m){ quiet=true; Object.keys(m).forEach(function(k){ S[k]=m[k]; }); if(S.place&&S.place.key==='here'&&S.place.lat==null) S.place={key:C.guessCity(tzGuess())}; /* coordinates stay on the phone */ quiet=false; saveNow(); }
-function gone(deleted){ try{ localStorage.removeItem(AVG); }catch(e){} sync.err=''; sync.at=0; quiet=true; S.cloudUid=null; if(S.avatar&&S.avatar.t==='google') S.avatar=null; quiet=false; saveNow(); toast(deleted?L('This account no longer exists, so you’re signed out. Your fasts are still on this phone.','这个账号已不存在，已退出登录。断食记录仍在这台手机上。'):L('Your sign-in expired, so you’re signed out. Your fasts are still on this phone.','登录已过期，已退出登录。断食记录仍在这台手机上。')); }
+function gone(deleted){ try{ localStorage.removeItem(AVG); }catch(e){} sync.err=''; sync.at=0; quiet=true; S.cloudUid=null; S.name=null; if(S.avatar&&S.avatar.t==='google') S.avatar=null; quiet=false; saveNow(); toast(deleted?L('This account no longer exists, so you’re signed out. Your fasts are still on this phone.','这个账号已不存在，已退出登录。断食记录仍在这台手机上。'):L('Your sign-in expired, so you’re signed out. Your fasts are still on this phone.','登录已过期，已退出登录。断食记录仍在这台手机上。')); }
 function syncNow(silent){
   if(!cloudOn()||sync.busy) return Promise.resolve(); sync.busy=true; sync.err=''; if(curTab==='me') renderMe();
   return CL.pull().then(function(row){
@@ -910,10 +910,19 @@ function syncNow(silent){
       if(!CL.getAuth()) return gone(false); return CL.alive().then(function(ok){ if(!ok) gone(true); }); })
     .then(function(){ sync.busy=false; if(curTab==='me') renderMe(); if(curTab==='today') updateToday(); avRefresh(); });
 }
+/* the name on the Me tab: the one the person chose, else a Google account's first name, else none (they are asked to add one) */
+function dispName(au){ return String((S.name!=null&&S.name!==''?S.name:(au&&au.name))||'').trim(); }
+function nameSheet(){
+  var au=CL.getAuth(); if(!au) return;
+  openSheet('<h3>'+L('Your name','你的名字')+'</h3><div class="group"><div class="field"><label for="nmIn">'+L('Name','名字')+'</label><input id="nmIn" type="text" maxlength="24" autocomplete="given-name" autocapitalize="words" spellcheck="false" placeholder="'+(au.name?esc(au.name):L('Your name','你的名字'))+'" value="'+esc(S.name||'')+'" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div>'+
+    (au.email?'<p class="note">'+L('Signed in as ','登录账号：')+esc(au.email)+'</p>':'')+
+    '<div class="btns"><button class="btn" data-act="namesave">'+L('Save','保存')+'</button></div>');
+  var i=$('nmIn'); if(i) setTimeout(function(){ try{ i.focus(); i.select(); }catch(e){} },350);
+}
 function accountHtml(){
   var zh=S.lang==='zh', au=CL&&CL.getAuth(), h='';
   if(au){
-    h+='<div class="group"><div class="me-card">'+avatarBtn()+'<div><b>'+esc(au.email||L('Signed in','已登录'))+'</b><span>'+(sync.busy?L('Backing up…','正在备份…'):sync.err?L('Couldn’t back up. Tap Back up now to retry.','备份失败，点“立即备份”重试。'):sync.at?L('Backed up just now','刚刚已备份'):L('Your fasts are backed up to your account.','你的记录会备份到账号。'))+'</span></div></div>'+
+    h+='<div class="group"><div class="me-card">'+avatarBtn()+'<button type="button" class="me-id" data-act="namesheet" aria-label="'+L('Edit your name','修改名字')+'">'+(dispName(au)?'<b>'+esc(dispName(au))+'</b>':'<b class="noname">'+L('Add your name','添加你的名字')+'</b>')+'<span>'+(sync.busy?L('Backing up…','正在备份…'):sync.err?L('Couldn’t back up. Tap Back up now to retry.','备份失败，点“立即备份”重试。'):sync.at?L('Backed up just now','刚刚已备份'):L('Your fasts are backed up to your account.','你的记录会备份到账号。'))+'</span></button></div>'+
       '<div class="signin"><button class="btn sec" data-act="syncnow"'+(sync.busy?' disabled':'')+'>'+L('Back up now','立即备份')+'</button><button class="btn sec" data-act="signout">'+L('Sign out','退出登录')+'</button></div></div>';
     return h;
   }
@@ -955,7 +964,7 @@ function cacheGoogle(){ var au=CL&&CL.getAuth(); if(!au||!au.photo||avCache().u=
   im.onload=function(){ try{ var c=document.createElement('canvas'); c.width=c.height=AV.SIZE; c.getContext('2d').drawImage(im,0,0,AV.SIZE,AV.SIZE); localStorage.setItem(AVG,JSON.stringify({u:au.photo,d:c.toDataURL('image/jpeg',.86)})); }catch(e){} };
   im.src=googleUrl(au.photo); }
 /* a session that started before photos were read asks once for its profile, then the Google photo is copied to this phone */
-function avRefresh(){ var au=cloudOn()&&CL.getAuth(); if(!au) return; (au.photo===undefined?CL.profile().catch(function(){}):Promise.resolve()).then(function(){ cacheGoogle(); if(curTab==='me'&&!sheetOpen) renderMe(); }); }
+function avRefresh(){ var au=cloudOn()&&CL.getAuth(); if(!au) return; ((au.photo===undefined||au.name===undefined)?CL.profile().catch(function(){}):Promise.resolve()).then(function(){ cacheGoogle(); if(curTab==='me'&&!sheetOpen) renderMe(); }); }
 function avPick(){ return AV.choose(S.avatar,CL&&CL.getAuth(),S.fasts.length); }
 function avHtml(a){ a=a||avPick();
   if(a.t==='photo') return '<img class="avi" alt="" src="'+a.d+'">';
@@ -1208,7 +1217,7 @@ function delAcctDone(){
   try{ localStorage.removeItem(AVG); }catch(e){}
   sync.at=0; sync.err=''; clearTimeout(sync.t);
   if(S.avatar&&S.avatar.t==='google') S.avatar=null; /* that photo belonged to the account */
-  S.cloudUid=null; save();
+  S.cloudUid=null; S.name=null; save();
   fx('success');
   openSheet('<!--keep--><h3 class="ctr">'+L('Account deleted','账号已删除')+'</h3><p class="lede ctr">'+L('Keep your fasts on this phone?','要在这台手机上保留断食记录吗？')+'</p>'+
     '<div class="btns"><button class="btn" data-act="delkeep">'+L('Keep on this phone','保留在手机上')+'</button><button class="btn red" data-act="erase">'+L('Erase from this phone','从手机上清除')+'</button></div>');
@@ -1255,8 +1264,10 @@ var A={
   emresend:function(b){ var e=b.dataset.e; if(Date.now()<emCool) return; emCool=Date.now()+60000; CL.sendCode(e,S).then(function(){ emailSheet('sent',e); toast(L('Sent again.','已重新发送。')); }).catch(function(x){ emCool=0; emailSheet('sent',e,emailErr(x)); }); },
   emverify:function(b){ var e=b.dataset.e, c=($('emCode').value||'').trim(); if(c.length<6) return emailSheet('sent',e,L('Enter the 6-digit code.','请输入 6 位验证码。')); b.disabled=true; b.textContent=L('Checking…','验证中…');
     CL.verify(e,c).then(function(){ closeSheet(); toast(L('Signed in.','已登录。')); renderMe(); syncNow(true); }).catch(function(x){ emailSheet('sent',e,L('That code didn’t work. ','验证码不对：')+x.message); }); },
+  namesheet:nameSheet,
+  namesave:function(){ var v=($('nmIn').value||'').trim().slice(0,24); S.name=v||null; save(); closeSheet(); renderMe(); },
   signout:function(){ openSheet('<!--keep--><h3>'+L('Sign out?','退出登录？')+'</h3><p class="lede">'+L('Your fasts stay on this phone and in your account. You can sign back in any time.','记录会保留在这台手机和你的账号里，随时可以重新登录。')+'</p><div class="btns"><button class="btn dark" data-act="signoutok">'+L('Sign out','退出登录')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
-  signoutok:function(){ CL.signOut(); try{ localStorage.removeItem(AVG); }catch(e){} sync.at=0; sync.err=''; closeSheet(); renderMe(); },
+  signoutok:function(){ CL.signOut(); try{ localStorage.removeItem(AVG); }catch(e){} S.name=null; save(); sync.at=0; sync.err=''; closeSheet(); renderMe(); },
   avatar:function(){ avatarSheet(); },
   avicon:function(b){ var a=AV.find(b.dataset.id); if(!a) return; if(AV.locked(a,S.fasts.length)) return toast(L(a.en+' unlocks after '+a.unlock+' fasts.','完成 '+a.unlock+' 次断食后解锁'+a.zh+'。')); fx('select'); avSet({t:'icon',id:a.id}); },
   avgoogle:function(){ fx('select'); avSet({t:'google'}); },
@@ -1311,6 +1322,7 @@ var A={
   obcityshow:function(){ ob.city=true; obRefresh(); },
   obdone:obFinish
 };
+document.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){ e.preventDefault(); A.namesave(); } });
 document.addEventListener('click',function(e){ var b=e.target.closest('[data-act]'); if(!b||!ph.contains(b)) return; var f=A[b.dataset.act]; if(f){ if(b.tagName==='BUTTON'&&b.disabled) return; f(b); } });
 document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!t.dataset.chg) return;
   if(t.dataset.chg==='custom'){ var v=Math.min(23,Math.max(12,Math.round(+t.value)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; } save(); cache={}; ticksKey=''; updateToday(); planSheet(); }
