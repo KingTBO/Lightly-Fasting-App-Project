@@ -1093,7 +1093,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
       <p data-zh="游戏感只用来陪你熬过难熬的几个小时，绝不用来让你多饿一会儿。">The game is there to get you through the hard hours, never to keep you hungry for longer.</p></div>
     <div class="kind">
       <div><b data-zh="目标就是终点">Your goal is the finish line</b><p data-zh="超出计划不会有任何奖励。">Nothing is rewarded past your plan.</p></div>
-      <div><b data-zh="每周一个弹性日">A cheat day every week</b><p data-zh="聚会、加班、朋友生日，用掉一个弹性日，连续天数不会断。最多存两个，每 7 天最多用两个。提前结束也照样算数。">Office catch-up or a friend’s birthday? A cheat day keeps your streak. Hold up to two, use at most two in any 7 days. Ending early still counts.</p></div>
+      <div><b data-zh="每周一个弹性日">A cheat day every week</b><p data-zh="聚会、加班、朋友生日，用掉一个弹性日，连续天数不会断。最多存两个，每 7 天最多用两个。当天开始断食的按钮会关闭，收回弹性日后即可恢复。提前结束也照样算数。">Office catch-up or a friend’s birthday? A cheat day keeps your streak. Hold up to two, use at most two in any 7 days. Start fast stays closed that day until you take it back. Ending early still counts.</p></div>
       <div><b data-zh="身体不舒服就停">Feeling unwell ends it</b><p data-zh="打卡时选择“头晕”或“不舒服”，轻伴会建议你结束断食，不扣任何东西。">Answer "dizzy" or "unwell" in a check-in and Lightly suggests ending the fast, with no penalty.</p></div>
       <div><b data-zh="计时器永远免费">The timer stays free</b><p data-zh="计时、修改时间、历史记录和桌面小组件都免费，第一次断食前不会出现付费墙。">Timing, editing, history and the widget are free, and no paywall appears before your first fast.</p></div>
       <div><b data-zh="不记录饮食">No food logging</b><p data-zh="不数卡路里，没有 AI 教练。">No calorie counting and no AI coach.</p></div>
@@ -1554,6 +1554,7 @@ window.LightlySphere=(function(){
     put($('shStreak'),'shS',String(n));
     var d=$('stDots'), nw=d.lastElementChild, ck=window.LIGHTLY_CHEAT; nw.classList.toggle('on',todayDone&&!ck.used); nw.classList.toggle('rest',ck.used);
     d.setAttribute('aria-label',L('Last 7 days. '+(ck.used?'Today is a cheat day.':todayDone?'Today is done.':'Today is not done yet.')+' One cheat day, kept in your streak.','最近 7 天。'+(ck.used?'今天是弹性日。':todayDone?'今天已完成。':'今天还没完成。')+'其中一天是弹性日，不影响连续天数。'));
+    if(window.paintRestBar) window.paintRestBar();
     var brk=!!window.LIGHTLY_OFF; $('streak').disabled=brk; if(brk) $('streak').removeAttribute('aria-haspopup'); else $('streak').setAttribute('aria-haspopup','dialog');
     $('streak').setAttribute('aria-label',brk?L(n+' day streak, on hold during time off.','连续 '+n+' 天，休息期间暂停。'):L(n+' day streak, '+ck.left+' of 2 cheat days left. Open cheat days.','连续 '+n+' 天，弹性日剩 '+ck.left+' 个（共 2 个）。打开弹性日。')); }
   window.refreshStreak=streakUI;
@@ -1568,8 +1569,9 @@ window.LightlySphere=(function(){
     put($('skyStage'),'sub',lang==='zh'?sk[3]:sk[2]);
     var evEn=b==='moon'?'Sunrise':'Sunset', evZh=b==='moon'?'日出':'日落', skyTxt=cd?L(evEn+' in '+lt,lt+'后'+evZh):L(evEn+' ',evZh+' ')+clock(turnAt);
     put($('skyTx'),'skx',skyTxt); $('sub').setAttribute('aria-label',(lang==='zh'?sk[3]:sk[2])+', '+skyTxt+'. '+L('Opens an explanation.','打开说明。')); window.LIGHTLY_SUNTXT={rise:clock(SUN.rise),set:clock(SUN.set)};
-    var off=window.LIGHTLY_OFF, brk=!!off&&mode!=='fast'; if(brk||mode==='idle'||mode==='eat') put($('readAlt'),'alt','');
-    if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); tip(L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
+    var off=window.LIGHTLY_OFF, chd=!off&&!!window.LIGHTLY_CHEAT.used&&mode==='idle', brk=(!!off&&mode!=='fast')||chd; if(brk||mode==='idle'||mode==='eat') put($('readAlt'),'alt','');
+    if(chd){ put(readK,'k',L('Cheat day','弹性日')); put(readBig,'b',L('Day off','休息')); tip(L('Your streak holds. Take back the cheat day above to start a fast.','连续记录保持。想断食，请先收回上方的弹性日。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
+    else if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); tip(L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); tip(L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(mode==='fast'||mode==='saved'){
       if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmtS(GOAL-h),1); put($('readAlt'),'alt',L('Elapsed ','已断食 ')+hmsS(h)); var tp=tipFor(h,sk[1]); tip(tp[lang==='zh'?1:0],0,Math.floor(h)); }
@@ -1713,9 +1715,9 @@ window.LightlySphere=(function(){
 
   /* Start fast during time off: looks unavailable but a tap shakes it (no movement under Reduce Motion), taps twice lightly, and says to end the break first */
   var nudgeT=0, nudgeBarT=0, nudgeA=null;
-  function onBreak(){ return !!window.LIGHTLY_OFF&&mode!=='fast'; }
+  function onBreak(){ return (!!window.LIGHTLY_OFF&&mode!=='fast')||(!window.LIGHTLY_OFF&&!!window.LIGHTLY_CHEAT.used&&mode==='idle'); }
   function breakNudge(){ var t=$('toast'), bar=$('offBar'); buzz([8,70,8]);
-    t.textContent=L('Ready to fast? Tap End break at the top first.','准备好断食了吗？先点上方的“结束休息”。'); t.classList.add('on'); clearTimeout(nudgeT); nudgeT=setTimeout(function(){ t.classList.remove('on'); },3400);
+    t.textContent=window.LIGHTLY_OFF?L('Ready to fast? Tap End break at the top first.','准备好断食了吗？先点上方的“结束休息”。'):L('Today is a cheat day. Tap Take back at the top first.','今天是弹性日。先点上方的“收回”。'); t.classList.add('on'); clearTimeout(nudgeT); nudgeT=setTimeout(function(){ t.classList.remove('on'); },3400);
     bar.classList.add('nudge'); clearTimeout(nudgeBarT); nudgeBarT=setTimeout(function(){ bar.classList.remove('nudge'); },1400);
     if(act.animate&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){ if(nudgeA) nudgeA.cancel();
       nudgeA=act.animate([{transform:'translateX(0)'},{transform:'translateX(-9px)',offset:.16},{transform:'translateX(8px)',offset:.34},{transform:'translateX(-6px)',offset:.52},{transform:'translateX(4px)',offset:.7},{transform:'translateX(-2px)',offset:.86},{transform:'translateX(0)'}],{duration:480,easing:'cubic-bezier(.36,.07,.19,.97)'}); } }
@@ -2307,33 +2309,38 @@ window.LightlySphere=(function(){
   var $=function(i){ return document.getElementById(i); }, sh=$('cheatSheet'), sc=$('cScrim'), C=window.LIGHTLY_CHEAT;
   function L(en,zh){ return api.lang()==='zh'?zh:en; }
   function fasting(){ var a=api.state(); return a.mode==='saved'||a.mode==='eat'||(a.mode==='fast'&&a.h>=a.goal); }
+  function running(){ var a=api.state(); return a.mode==='fast'&&a.h<a.goal; }
   function reduceMs(){ return window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches?0:260; }
   function render(){
     $('chTitle').textContent=L('Cheat days','弹性日');
-    var off=fasting()&&!C.used, none=C.left<1&&!C.used;
+    var off=fasting()&&!C.used, run=running()&&!C.used, none=C.left<1&&!C.used;
     $('chNote').textContent=C.used?L('Today is a cheat day. Your streak is safe, and tomorrow is a fresh start.','今天是弹性日，连续天数不会断，明天重新开始。')
       :off?L('You fasted today, so there\u2019s nothing to cover.','今天你已经断食了，不需要弹性日。')
+      :run?L('You\u2019re fasting now. End the fast first.','你正在断食，先结束这次断食。')
       :none?L('None left this week. A new one arrives on Monday.','这周用完了，周一会再给你一个。')
       :L('A day off that keeps your streak going. A new one arrives every Monday, and you can keep two.','休息一天，连续记录不会断。每周一补充一个，最多存两个。');
     $('chMoons').innerHTML='<i class="'+(C.left>0?'on':'')+'"></i><i class="'+(C.left>1?'on':'')+'"></i><span>'+L(C.left+' of 2 held','存有 '+C.left+' 个，最多 2 个')+'</span>';
     $('chMoons').setAttribute('aria-label',L(C.left+' of 2 cheat days held','存有 '+C.left+' 个弹性日，最多 2 个'));
-    var g=$('chGo'); g.disabled=C.used||off||none;
-    g.textContent=C.used?L('Used for today','今天已使用'):L('Hold to use a cheat day','按住使用弹性日'); }
+    var g=$('chGo'); g.disabled=!C.used&&(off||run||none);
+    g.textContent=C.used?L('Take today\u2019s cheat day back','收回今天的弹性日'):L('Hold to use a cheat day','按住使用弹性日'); }
   function open(v){ if(v) render(); sh.classList.toggle('open',v); sh.setAttribute('aria-hidden',!v); sc.classList.toggle('on',v);
     if(v) $('chClose').focus({preventScroll:true}); else $('streak').focus({preventScroll:true}); }
-  $('streak').addEventListener('click',function(){ open(true); });
+  $('streak').addEventListener('click',function(){ open(true); }); window.openCheat=function(){ open(true); };
   $('chClose').addEventListener('click',function(){ open(false); }); sc.addEventListener('click',function(){ open(false); });
   sh.addEventListener('keydown',function(e){ if(e.key==='Escape') open(false); });
   /* press and hold to use it, the same gesture as ending a fast */
   var gr=0, gOn=false, gT=0;
   function gDone(){ C.left--; C.used=true; try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){}
-    render(); if(window.refreshStreak) window.refreshStreak(); setTimeout(function(){ open(false); },reduceMs()+300); }
+    render(); if(window.refreshStreak) window.refreshStreak(); if(window.refreshToday) window.refreshToday(); setTimeout(function(){ open(false); },reduceMs()+300); }
+  /* taking it back: a plain tap, the cheat day returns and Start fast opens again */
+  function takeBack(){ C.used=false; C.left=Math.min(2,C.left+1); render(); if(window.refreshStreak) window.refreshStreak(); if(window.refreshToday) window.refreshToday(); open(false); }
   function gEnd(){ if(!gOn) return; gOn=false; cancelAnimationFrame(gr); var g=$('chGo'); g.classList.remove('holding'); g.style.setProperty('--hold',0); render(); }
-  function gBegin(){ var g=$('chGo'); if(gOn||g.disabled) return; gOn=true; gT=performance.now(); g.classList.add('holding'); g.textContent=L('Keep holding…','继续按住…');
+  function gBegin(){ var g=$('chGo'); if(gOn||g.disabled||C.used) return; gOn=true; gT=performance.now(); g.classList.add('holding'); g.textContent=L('Keep holding…','继续按住…');
     (function st(){ if(!gOn) return; var f=Math.min((performance.now()-gT)/1200,1); g.style.setProperty('--hold',f); if(f>=1){ gOn=false; g.classList.remove('holding'); g.style.setProperty('--hold',0); gDone(); return; } gr=requestAnimationFrame(st); })(); }
   $('chGo').addEventListener('pointerdown',function(e){ e.preventDefault(); try{ this.setPointerCapture(e.pointerId); }catch(x){} gBegin(); });
   ['pointerup','pointercancel'].forEach(function(n){ $('chGo').addEventListener(n,gEnd); });
-  $('chGo').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); if(!e.repeat) gBegin(); } });
+  $('chGo').addEventListener('click',function(){ if(C.used) takeBack(); });
+  $('chGo').addEventListener('keydown',function(e){ if(C.used) return; if(e.key==='Enter'||e.key===' '){ e.preventDefault(); if(!e.repeat) gBegin(); } });
   $('chGo').addEventListener('keyup',function(e){ if(e.key==='Enter'||e.key===' ') gEnd(); });
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ if(sh.classList.contains('open')) render(); if(window.refreshStreak) window.refreshStreak(); },0); }); });
 })();
@@ -2430,7 +2437,12 @@ window.LightlySphere=(function(){
   $('meSignOut').addEventListener('click',function(){ signed=null; cname=''; pickOpen=false; crop=null; render(); });
   /* Time off: travel (1 to 14 days) or unwell (2 weeks), playable here */
   var off=null, offDays=3;
-  function offBar(){ var b=$('offBar'); b.hidden=!off; if(off) b.innerHTML=(off.kind==='travel'?L('Travelling · day 1 of '+off.days,'旅行中 · 第 1 天，共 '+off.days+' 天'):L('Resting · day 1 of '+off.days,'休养中 · 第 1 天，共 '+off.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>'; $('ph').classList.toggle('offon',!!off); window.LIGHTLY_OFF=off; if(window.refreshToday) window.refreshToday(!!off); if(window.refreshStreak) window.refreshStreak(); }
+  function paintBar(){ var b=$('offBar'), ck=window.LIGHTLY_CHEAT||{}, cheat=!off&&!!ck.used; b.hidden=!off&&!cheat; b.dataset.k=off?'off':'cheat';
+    if(off) b.innerHTML=(off.kind==='travel'?L('Travelling · day 1 of '+off.days,'旅行中 · 第 1 天，共 '+off.days+' 天'):L('Resting · day 1 of '+off.days,'休养中 · 第 1 天，共 '+off.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>';
+    else if(cheat) b.innerHTML=L('Cheat day today','今天是弹性日')+'<span>'+L('Take back','收回')+'</span>';
+    $('ph').classList.toggle('offon',!!off||cheat); }
+  window.paintRestBar=paintBar;
+  function offBar(){ window.LIGHTLY_OFF=off; paintBar(); if(window.refreshToday) window.refreshToday(!!off); if(window.refreshStreak) window.refreshStreak(); }
   /* Me settings: the same rows as the app; Language, Timer style, Plan and Cheat days really work here */
   function meRows(){ var zh=api.lang()==='zh';
     function v(id,t){ var e=$(id+'V'); if(e) e.textContent=t; }
@@ -2707,7 +2719,7 @@ function dyBloom(){
   [['meLegalP','../privacy/'],['meLegalT','../terms/']].forEach(function(r){ var go=function(){ window.open(r[1]+'?lang='+api.lang(),'_blank','noopener'); }; $(r[0]).addEventListener('click',go); $(r[0]).addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }); });
 
   $('meUnwell').addEventListener('click',function(){ impFrom=$('meUnwell'); impOpen(true,off?9:5); });
-  $('offBar').addEventListener('click',function(){ impFrom=$('offBar'); impOpen(true,9); });
+  $('offBar').addEventListener('click',function(){ if(this.dataset.k==='cheat'){ if(window.openCheat) window.openCheat(); return; } impFrom=$('offBar'); impOpen(true,9); });
   $('sub').addEventListener('click',function(){ impFrom=$('sub'); impOpen(true,10); });
   $('meImp').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); impOpen(true); } });
   $('impClose').addEventListener('click',function(){ impOpen(false); }); isc.addEventListener('click',function(){ impOpen(false); });

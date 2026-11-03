@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.67.0
+- **feature** When today is a cheat day, Start fast is closed, the same way it is during time off. Today says "Cheat day" with "Day off" in the middle, a pill at the top reads "Cheat day today · Take back" (今天是弹性日 · 收回), and tapping Start fast gives a short shake and a line telling you to take the cheat day back first. Tap the pill (or the streak card) and take the cheat day back: it returns to your count and Start fast opens again. Your streak is unchanged either way. It ends by itself at midnight.
+- **fix** A cheat day can no longer be used for today while a fast is running ("You're fasting now. End the fast first."), so a fast and a cheat day never land on the same day.
+- **chore** `flexBlock` in `js/core.js` has a new `fasting` reason, with unit tests (also that no cheat day can be set for a future date). Flow test covers the closed button, the nudge, Take back, and the running-fast case. The concept page matches: the demo phone closes Start fast on a cheat day, shows the same pill, and the Cheat days sheet now has a Take back button.
+
 ## 0.66.0
 - **design** The recap report opens on the 3D moon and sun from Today (when the 3D switch is on): the moon fills counter-clockwise, then turns into the sun with the soft goal bloom and sparks. With the 3D switch off, or on a phone without 3D, it does the same with the flat moon and sun. The first page is now a night sky so the sun shows up, and the card still grows from yellow into it. Concept page matches.
 

@@ -212,6 +212,7 @@ function flexBlock(k,state,now){
   if(state.flex.used.indexOf(k)>=0) return 'used';
   if(state.off&&(offActive(state.off,now)||offKeys(state.off).indexOf(k)>=0)) return 'break'; /* time off already holds the streak, so a cheat day is never spent during a break */
   if(dayStatus(k,state.fasts,[])==='done') return 'fasted';
+  if(state.cur&&k===today) return 'fasting'; /* a fast is running now, so today is not a day off */
   if(state.flex.bank<1) return 'bank';
   var recent=state.flex.used.filter(function(x){ var d=(keyToDate(k)-keyToDate(x))/D; return d>-7&&d<7; });
   if(recent.length>=2) return 'week';
