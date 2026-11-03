@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.65.0
+- **design** The recap report now opens on the real moon from the Today screen (soft craters, lit part filling counter-clockwise) instead of a plain white disc. When it has filled, it blooms with the same soft light and drifting sparks as reaching a goal. With Reduce Motion on it just shows the filled moon. The concept page matches.
+
 ## 0.64.0
 - **feature** The monthly recap is now a card you open. It reads "Your October recap" (你的10月回顾), with the month in dots and a "See your recap" button. Tap it and it grows from the card to fill the whole screen, and shrinks back into the card when you close it (X, Done, Esc, or pull down from the top).
 - **feature** The report is a short story of the month, in chapters: the hours fasted rolling up to the total next to a moon that fills with the days you fasted; your month in the sky (one disc a day, popping in as a wave); week by week average fasts; moon and sun (how many of your fasting hours fell at night and in daylight, by the real sunrise and sunset where you are); your rhythm (when you usually start and finish, on a 24-hour clock); highlights (goals reached, longest run of days, average, busiest week); and a closing line. It never compares months and never rewards longer fasts. With Reduce Motion on, everything shows at once with a simple fade.

@@ -558,7 +558,7 @@ function reportHtml(pm,r){
   return '<div class="rp-in" id="rpIn"><div class="rp-scroll" id="rpScroll" tabindex="-1">'+
     '<section class="rp-s rp-hero rv" aria-labelledby="rpT"><h2 id="rpT" class="rpi" style="--i:0">'+L('Your '+name+' recap','你的'+name+'回顾')+'</h2>'+
     '<div class="rp-big rpi" style="--i:1" role="img" aria-label="'+numTxt(r.hours)+' '+L('hours fasted','小时断食')+'"><span class="rn">'+numTxt(r.hours)+'</span></div><p class="rp-unit rpi" style="--i:2">'+L('hours fasted','小时断食')+'</p>'+
-    '<svg class="rp-disc rpi" style="--i:3" viewBox="-100 -100 200 200" aria-hidden="true"><circle r="92" class="u"/><path id="rpLit" class="l" d=""/><circle r="92" class="rim"/></svg>'+
+    '<svg class="rp-disc rpi" style="--i:3" viewBox="-100 -100 200 200" aria-hidden="true"><defs><radialGradient id="rpG" cx=".38" cy=".34" r=".78"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient><filter id="rpF" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.2"/></filter><mask id="rpM" maskUnits="userSpaceOnUse" x="-100" y="-100" width="200" height="200"><path id="rpLit" fill="#fff" filter="url(#rpF)"/></mask></defs><circle r="90" class="u"/><g mask="url(#rpM)"><circle r="90" fill="url(#rpG)"/><g class="cr"><circle cx="-34" cy="-30" r="17"/><circle cx="30" cy="-46" r="9"/><circle cx="46" cy="10" r="14"/><circle cx="-8" cy="34" r="19"/><circle cx="-56" cy="22" r="8"/><circle cx="14" cy="-8" r="6"/></g></g><circle r="90" class="rim"/></svg>'+
     '<p class="rp-sub rpi" style="--i:4">'+r.n+' '+L(r.n===1?'fast':'fasts','次断食')+' · '+r.daysWith+' '+L('of','/')+' '+r.dim+' '+L('days','天')+'</p>'+
     '<svg class="rp-more" viewBox="0 0 14 8" aria-hidden="true"><path d="M1.5 1.5 7 6.5l5.5-5"/></svg></section>'+
     '<section class="rp-s rv" aria-labelledby="rpT2"><h3 id="rpT2" class="rpi">'+L('Your month in the sky','这个月的天空')+'</h3><div class="rp-cal" role="img" aria-label="'+esc(gl.join(', '))+'">'+grid+'</div><p class="rp-cap rpi" style="--i:2">'+gl.join(' · ')+'</p></section>'+
@@ -572,8 +572,22 @@ function reportHtml(pm,r){
     '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?L('A steady month.','稳稳的一个月。'):L('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+L('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="btn rpi" style="--i:2" data-act="rpclose">'+L('Done','完成')+'</button></section></div><button type="button" class="rp-x" data-act="rpclose" aria-label="'+L('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>';
 }
 function rpDisc(p,play){
-  var lit=$('rpLit'); if(!lit) return; if(!play||reduce){ lit.setAttribute('d',wedgePath(p,92,false)); return; }
-  var t0=null, dur=1500; function f(t){ if(!$('rpLit')) return; if(t0===null) t0=t; var u=Math.min((t-t0)/dur,1), e=1-Math.pow(1-u,4); lit.setAttribute('d',wedgePath(p*e,92,false)); if(u<1) requestAnimationFrame(f); } requestAnimationFrame(f);
+  var lit=$('rpLit'); if(!lit) return; if(!play||reduce){ lit.setAttribute('d',wedgePath(p,90,false)); return; }
+  var t0=null, dur=1700; function f(t){ if(!$('rpLit')) return; if(t0===null) t0=t; var u=Math.min((t-t0)/dur,1), e=1-Math.pow(1-u,4); lit.setAttribute('d',wedgePath(p*e,90,false)); if(u<1) requestAnimationFrame(f); else rpBloom(); } requestAnimationFrame(f);
+}
+/* when the moon has filled, the same soft bloom and drifting lights as reaching a goal on Today (no check: this is not a goal) */
+function rpBloom(){
+  var svg=document.querySelector('#report .rp-disc'), hero=svg&&svg.parentNode; if(!hero||reduce||!hero.animate) return;
+  var hr=hero.getBoundingClientRect(), d=svg.getBoundingClientRect(), cx=d.left-hr.left+d.width/2, cy=d.top-hr.top+d.height/2, r=d.width/2, el=document.createElement('div');
+  el.setAttribute('aria-hidden','true'); el.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:0';
+  var glow=document.createElement('div'); glow.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+r*2+'px;height:'+r*2+'px;margin:'+(-r)+'px 0 0 '+(-r)+'px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,255,255,.45) 40%,rgba(255,255,255,0) 70%);opacity:0'; el.appendChild(glow);
+  hero.appendChild(el); glow.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1.4)',offset:.3},{opacity:0,transform:'scale(2.6)'}],{duration:1600,easing:'cubic-bezier(.22,.8,.3,1)',fill:'forwards'});
+  svg.animate([{transform:'scale(1)'},{transform:'scale(1.05)',offset:.3},{transform:'scale(1)'}],{duration:900,easing:'cubic-bezier(.2,1,.3,1)'});
+  var cols=['#FFFFFF','#FFF7D1','#F4EFE2','#FFFFFF'], n=20;
+  for(var i=0;i<n;i++){ var a=(i/n)*Math.PI*2+Math.random()*.25, dist=r*(1.35+Math.random()*1.3), s=3+Math.random()*4, dot=document.createElement('i');
+    dot.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+s+'px;height:'+s+'px;margin:'+(-s/2)+'px 0 0 '+(-s/2)+'px;border-radius:50%;background:'+cols[i%cols.length]+';box-shadow:0 0 '+s*2+'px '+cols[i%cols.length]+';opacity:0'; el.appendChild(dot);
+    dot.animate([{opacity:0,transform:'translate(0,0) scale(.4)'},{opacity:1,offset:.2},{opacity:0,transform:'translate('+(Math.cos(a)*dist).toFixed(0)+'px,'+(Math.sin(a)*dist-r*.2).toFixed(0)+'px) scale(1)'}],{duration:1400+Math.random()*600,delay:40+Math.random()*160,easing:'cubic-bezier(.15,.7,.2,1)',fill:'forwards'}); }
+  setTimeout(function(){ el.remove(); },2400);
 }
 function rpWatch(R,r){
   var sc=$('rpScroll'), els=[].slice.call(R.querySelectorAll('.rv')); rp.heroGo=null;
