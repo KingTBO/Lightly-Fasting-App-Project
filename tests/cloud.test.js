@@ -98,7 +98,7 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  // the same account is deleted on another phone: this phone finds out on its next backup, signs out, keeps its fasts and says why
  {const o=await device(base([f('keep',now-30*H)]),false);await o.p.goto(url+'#access_token=tok-other@example.com&refresh_token=r&expires_in=3600&type=magiclink');await o.p.reload();await o.p.waitForTimeout(1500);
  assert(await o.p.evaluate(()=>!!localStorage.getItem('lightly:auth')),'signed in on the other phone');
- goneTok.add('Bearer tok-other@example.com');await o.p.click('#tabs [data-tab=me]');await o.p.click('[data-act=syncnow]');await o.p.waitForTimeout(1500);
+ goneTok.add('Bearer tok-other@example.com');await o.p.click('#tabs [data-tab=me]');await o.p.click('#me [data-act=sw][data-k=sound]');await o.p.waitForTimeout(5500);
  assert(await o.p.evaluate(()=>!localStorage.getItem('lightly:auth')),'signed out after the account was deleted elsewhere');assert.match(await o.p.textContent('#toast'),/no longer exists/);
  assert((await o.p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).fasts.some(x=>x.id==='keep'),'fasts kept');assert(await o.p.$('[data-act=emailsheet]'),'signed-out card shown');ok('account deleted on another phone: this phone signs out, keeps its fasts, says why');}
  // the name on the Me tab: a Google first name by default, "Add your name" for email accounts, editable by anyone, saved in the backup

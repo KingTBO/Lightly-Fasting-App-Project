@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.70.0
+- **design** On the Me tab, the "Back up now" button is gone, since backup already runs by itself after every change, when you open Lightly and when you come back to it. If a backup fails, Lightly now tries again by itself a minute later (up to three times) and says so, instead of asking you to tap. Sign out moves from the profile card to an Account section at the very end of Me.
+
 ## 0.69.0
 - **design** The Me tab is livelier. Every row has a small icon tile (gold for fasting and care, navy for the app, grey for your data and About, red for erasing), the switches are sun yellow, and the profile card has a bigger picture and name. When you are signed in, "Backed up just now" gets a green dot. Every row and its order are the same as before. The concept page matches.
 
