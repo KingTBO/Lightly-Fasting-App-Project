@@ -450,6 +450,9 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 /* Days: totals header, swipeable month, month picker, average fast chart */
 .tot{padding:20px 16px 0}
 .tt{display:flex;flex-direction:column;gap:2px;padding-bottom:16px}
+.tmain{display:flex;align-items:center;justify-content:space-between;gap:12px}.tmain .tt{min-width:0}.tmain .tn{display:flex;flex-wrap:wrap;align-items:baseline}
+.tmoon{display:flex;flex-direction:column;align-items:center;gap:6px;flex:none;padding-bottom:16px}.tmoon svg{display:block;width:84px;height:84px;overflow:visible}.tmoon span{font:500 0.75rem var(--font);color:var(--label-2);white-space:nowrap}
+.tm-u{fill:var(--fill-2)}.tm-c{fill:rgba(120,90,20,.1)}.tm-r{fill:none;stroke:rgba(120,100,50,.45);stroke-width:.5}
 .tk{font:500 0.8125rem var(--font);color:var(--label-2)}
 .tn{font:700 3rem/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .tn small{font:600 1.25rem var(--font-r);color:var(--label-2);margin-left:8px;letter-spacing:0}

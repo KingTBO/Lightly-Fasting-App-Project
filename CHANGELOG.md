@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.68.0
+- **design** The Days header has a moon beside the total hours. It fills counter-clockwise, one slice for every day this month with a fast on it, and says "9 of 30 days" (本月 9 / 30 天). It fills in as the number rolls up. With Reduce Motion it just appears. Everything else on Days stays as it was. The concept page matches.
+
 ## 0.67.2
 - **fix** The sunrise time showed as NaN:NaN in the Moon and sun sheet, and the sky pill said "Sunrise NaN:NaN" (or counted down to NaN) whenever the moon was up. The timeline's turn marker also always said "Sunset", even where the moon turns into the sun. A typo in 0.65.0 looked up the sunrise under the wrong name. All three read the real sunrise again. Nothing to do with cheat days; it only showed up for people who opened the sheet or looked at Today at night.
 - **chore** The flow test now fails if the Moon and sun sheet or the sky pill ever shows NaN.
