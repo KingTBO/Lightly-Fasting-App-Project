@@ -1091,7 +1091,7 @@ function syncNow(silent){
     if(row&&row.data){ var before=JSON.stringify(S); applyRemote(merged); if(JSON.stringify(S)!==before){ cache={}; ticksKey=''; applyTheme(); applyLang(); } } else { quiet=true; S.cloudUid=au.uid; quiet=false; }
     if(S.onboarded&&!$('ob').hidden){ ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; showTab('today'); }
     return CL.push(S);
-  }).then(function(){ sync.at=Date.now(); if(!silent) toast(L('Backed up.','已备份。')); }).catch(function(e){ sync.err=e&&e.message||'error'; if(!silent) toast(L('Couldn’t back up: ','备份失败：')+sync.err);
+  }).then(function(){ sync.at=Date.now(); sync.retry=0; if(!silent) toast(L('Backed up.','已备份。')); }).catch(function(e){ sync.err=e&&e.message||'error'; sync.retry=(sync.retry||0)+1; if(sync.retry<=3){ clearTimeout(sync.t); sync.t=setTimeout(function(){ syncNow(true); },60000*sync.retry); } if(!silent) toast(L('Couldn’t back up: ','备份失败：')+sync.err);
       /* the account may be gone (deleted on another phone), or the sign-in expired: sign out here and say why. Offline or a server hiccup keeps you signed in. */
       if(!CL.getAuth()) return gone(false); return CL.alive().then(function(ok){ if(!ok) gone(true); }); })
     .then(function(){ sync.busy=false; if(curTab==='me') renderMe(); if(curTab==='today') updateToday(); avRefresh(); });
@@ -1108,8 +1108,7 @@ function nameSheet(){
 function accountHtml(){
   var zh=S.lang==='zh', au=CL&&CL.getAuth(), h='';
   if(au){
-    h+='<div class="group"><div class="me-card">'+avatarBtn()+'<button type="button" class="me-id" data-act="namesheet" aria-label="'+L('Edit your name','修改名字')+'">'+(dispName(au)?'<b>'+esc(dispName(au))+'</b>':'<b class="noname">'+L('Add your name','添加你的名字')+'</b>')+'<span>'+(sync.busy?L('Backing up…','正在备份…'):sync.err?L('Couldn’t back up. Tap Back up now to retry.','备份失败，点“立即备份”重试。'):sync.at?'<i class="bk">'+L('Backed up just now','刚刚已备份')+'</i>':L('Your fasts are backed up to your account.','你的记录会备份到账号。'))+'</span></button></div>'+
-      '<div class="signin"><button class="btn sec" data-act="syncnow"'+(sync.busy?' disabled':'')+'>'+L('Back up now','立即备份')+'</button><button class="btn sec" data-act="signout">'+L('Sign out','退出登录')+'</button></div></div>';
+    h+='<div class="group"><div class="me-card">'+avatarBtn()+'<button type="button" class="me-id" data-act="namesheet" aria-label="'+L('Edit your name','修改名字')+'">'+(dispName(au)?'<b>'+esc(dispName(au))+'</b>':'<b class="noname">'+L('Add your name','添加你的名字')+'</b>')+'<span>'+(sync.busy?L('Backing up…','正在备份…'):sync.err?L('Couldn’t back up. Lightly will try again soon.','备份失败，轻伴稍后会再试。'):sync.at?'<i class="bk">'+L('Backed up just now','刚刚已备份')+'</i>':L('Your fasts are backed up to your account.','你的记录会备份到账号。'))+'</span></button></div></div>';
     return h;
   }
   h+='<div class="group"><div class="me-card">'+avatarBtn()+'<div><b>'+L('Not signed in','未登录')+'</b><span>'+L('Everything works. Fasts stay on this phone.','所有功能都能用，断食记录保存在这台手机上。')+'</span></div></div>'+
@@ -1238,6 +1237,7 @@ function renderMe(){
   if(cloudOn()) h+='<div class="group"><button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button></div>'; /* only for someone who has an account; signed out there is nothing in the cloud, Erase everything covers the phone */
   if(C.ramadanDay()===0) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview,0,mi('moon','gold')))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
   h+='<div class="gh">'+L('About','关于')+'</div><div class="group"><a class="row" href="privacy/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('lock','grey')+'<span>'+L('Privacy Policy','隐私政策')+'</span>'+CHEV+'</a><a class="row" href="terms/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('doc','grey')+'<span>'+L('Terms of Use','使用条款')+'</span>'+CHEV+'</a></div>'; /* public pages, also the URLs entered in Google Play */
+  if(cloudOn()) h+='<div class="gh">'+L('Account','账号')+'</div><div class="group"><button class="row" data-act="signout">'+mi('out','grey')+'<span>'+L('Sign out','退出登录')+'</span></button></div>';
   h+='<p class="gf" data-act="diag" style="text-align:center">'+L('Lightly · web app · v','轻伴 · 网页版 · v')+(window.LIGHTLY_VERSION||'')+L(' · saved on this device',' · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
   $('me').innerHTML=h;
 }
@@ -1246,7 +1246,7 @@ var MI={sun:'M3 17h18M7 17a5 5 0 0 1 10 0M12 5v3M5 9l1.6 1.6M19 9l-1.6 1.6',cloc
   globe:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9S9.5 5.5 12 3Z',half:'M12 3a9 9 0 1 0 0 18V3Z',
   sound:'M4 10v4h4l5 4V6L8 10H4ZM16.5 9a4 4 0 0 1 0 6',vib:'M9 4h6v16H9zM5 8v8M19 8v8',moon:'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z',bell:'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16ZM10 21h4',
   heart:'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z',imp:'M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14',exp:'M12 15V4M7.5 8.5 12 4l4.5 4.5M5 20h14',
-  trash:'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13',lock:'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z',doc:'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',userx:'M16 20v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8l4 4M21 8l-4 4'};
+  trash:'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13',lock:'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z',doc:'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',out:'M10 4H5v16h5M15 8l4 4-4 4M19 12H9',userx:'M16 20v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8l4 4M21 8l-4 4'};
 function mi(k,tone){ return '<span class="mi '+tone+'" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="'+MI[k]+'"/></svg></span>'; }
 function sw(k,label,on,dis,ico){ return '<div class="row">'+(ico||'')+'<span>'+label+'</span><button class="sw" role="switch" aria-checked="'+!!on+'" aria-label="'+esc(label)+'" data-act="sw" data-k="'+k+'"'+(dis?' disabled':'')+'></button></div>'; }
 /* Light / Dark / Auto: every colour changes in the same frame. Any per-element transition is switched off for that frame, so text never sits half-way between black and white; the sheet's blur is untouched. */
@@ -1472,7 +1472,6 @@ var A={
   avgoogle:function(){ fx('select'); avSet({t:'google'}); },
   avremove:function(){ avSet(null); },
   avsave:function(){ var c=$('cropC'); if(!c||!crop) return; cropDraw(); var d=c.toDataURL('image/jpeg',.86); fx('success'); avSet({t:'photo',d:d}); },
-  syncnow:function(){ syncNow(false); },
   lang:function(b){ S.lang=b.dataset.v; save(); applyLang(); cache={}; if(!$('ob').hidden){ obRefresh(); } else renderMe(); updateToday(); },
   choice:function(b){ choiceSheet(b.dataset.k); },
   pick:function(b){ var f=A[b.dataset.k]; if(f) f(b); if(b.dataset.k!=='theme') setTimeout(closeSheet,180); /* appearance stays open so you can see the change behind it */ },
