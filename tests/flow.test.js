@@ -186,7 +186,7 @@ const H=3600000,D=24*H;
  // the end time of a finished fast can be edited from Today
  await q.click('#sheet [data-act=close]');await q.waitForTimeout(300);await q.click('#endA');assert.match(await q.textContent('#sheet h3'),/Edit fast/);ok('end time editable from the eating window');
  // signed out Me offers email only
- q=await fresh(seed({}));await q.click('#tabs [data-tab=me]');assert(await q.$('[data-act=emailsheet]'));assert(!(await q.$('#me [data-act=soon]')),'no placeholder sign-in buttons');ok('Me offers only email sign-in');
+ q=await fresh(seed({}));await q.click('#tabs [data-tab=me]');assert(await q.$('[data-act=emailsheet]'));assert(!(await q.$('#me [data-act=soon]')),'no placeholder sign-in buttons');assert((await q.$$('#me .group .row .mi')).length>=10,'Me rows carry an icon tile');assert.strictEqual(await q.evaluate(()=>[...document.querySelectorAll('#me .row')].filter(r=>r.scrollWidth>r.clientWidth+1).length),0,'no Me row is wider than its card');ok('Me offers only email sign-in');
  // a shooting star crosses the night sky, then removes itself
  q=await fresh(seed({}));assert(await q.evaluate(()=>window.lightlyShoot(true)),'shooting star starts');await q.waitForTimeout(100);assert(await q.$('#stars line.shoot'),'streak drawn');await q.waitForFunction(()=>!document.querySelector('#stars line.shoot'),null,{timeout:5000}).catch(()=>{});assert(!(await q.$('#stars line.shoot')),'streak removed when done');ok('shooting star appears and cleans up');
  // the tab bar steps aside when scrolling down and returns when scrolling up
