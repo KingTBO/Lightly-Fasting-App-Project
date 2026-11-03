@@ -105,13 +105,10 @@ html:lang(zh-Hans) .lt{letter-spacing:0}
 .strip .sdash{border:1.5px dashed var(--ink);opacity:.55}
 .strip .sfill{background:var(--tint)}
 .strip .sfill.eat{background:var(--ink);opacity:.3}
-.strip .sgoal{left:0;top:-5px;bottom:-5px;width:2px;margin-left:-1px;border-radius:1px;background:var(--ink);opacity:.6}
 .strip .sbar .snow{top:50%;bottom:auto;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--ink);border:3px solid var(--sky)}
-.track.tls .ends{position:relative;display:block;height:44px;margin-top:8px}
 .track.tls .ends .cap{display:none}
-.track.tls .ends>span{position:absolute;top:0;min-height:0;padding:0 2px}
-.track.tls #endA{left:0}
-.track.tls #endB{left:var(--gx,66%);transform:translateX(-50%);align-items:center}
+.track.tls .ends>span{min-height:0;padding:0 2px}
+.track.tls .ends{margin-top:8px}
 .ph.tight .track.tls .strip{display:none}
 .ph.tight .track.tls .ends{margin-top:0}
 .ends .cap{font:600 .65625rem/1.2 var(--font);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
