@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.71.2
+- **design** On the Me tab, Sign out is now a plain red button of its own at the very end (signed in only), and Delete account is back in the Your data group, below Erase everything. The Account heading is gone.
+
 ## 0.71.1
 - **fix** On the Day strip, the finish time now sits at the right end of the strip, as the end of your fast, instead of under the goal mark. The strip runs from your start to your finish, with the sunrise and sunset marked inside it.
 
