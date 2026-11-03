@@ -182,13 +182,10 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .strip .sdash{border:1.5px dashed var(--ink);opacity:.55}
 .strip .sfill{background:var(--tint)}
 .strip .sfill.eat{background:var(--ink);opacity:.3}
-.strip .sgoal{left:0;top:-5px;bottom:-5px;width:2px;margin-left:-1px;border-radius:1px;background:var(--ink);opacity:.6}
 .strip .sbar .snow{top:50%;bottom:auto;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--ink);border:3px solid var(--sky)}
-.track.tls .ends{position:relative;display:block;height:44px;margin-top:8px}
 .track.tls .ends .cap{display:none}
-.track.tls .ends>span{position:absolute;top:0;padding:0 2px}
-.track.tls #endA{left:0}
-.track.tls #endB{left:var(--gx,66%);transform:translateX(-50%);align-items:center}
+.track.tls .ends>span{min-height:0;padding:0 2px}
+.track.tls .ends{margin-top:8px}
 .stars{position:absolute;left:0;right:0;top:0;width:100%;height:420px;z-index:-1;pointer-events:none;opacity:var(--stars,0);transition:opacity 1.2s ease}
 .stars circle{fill:#fff;transition:opacity .6s ease}
 /* text that changes meaning fades up into place */
@@ -987,7 +984,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
           <g id="evt" opacity="0"><line id="evtL" y1="0" y2="0" stroke-width="1.5" stroke-linecap="round" style="stroke:var(--ink-2)"/><text id="evtT" text-anchor="middle" font-size="10.5" font-weight="600" style="fill:var(--ink-2);font-family:var(--font)"></text></g>
           <circle id="marker" r="9" stroke-width="3" style="stroke:var(--sky)"/>
         </svg>
-        <div class="strip" aria-hidden="true"><div class="sev" id="sEv"></div><div class="sbar" id="sBar"><i class="sdash" id="sDash"></i><i class="sfill" id="sFill"></i><i class="sgoal" id="sGoal"></i><i class="snow" id="sNow"></i></div></div>
+        <div class="strip" aria-hidden="true"><div class="sev" id="sEv"></div><div class="sbar" id="sBar"><i class="sdash" id="sDash"></i><i class="sfill" id="sFill"></i><i class="snow" id="sNow"></i></div></div>
         <div class="ends"><span id="endA"></span><span id="endB"></span></div>
       </div>
       <button type="button" class="streak" id="streak" aria-haspopup="dialog"><div class="tx"><b id="stA"></b><span id="stB"></span></div><div class="dots" id="stDots" role="img"><i></i><i></i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.3l1.45 3 3.25.4-2.4 2.25.62 3.25L6 8.55 3.08 10.2l.62-3.25-2.4-2.25 3.25-.4z"/></svg><i></i><i></i><i></i><i class="now"></i></div></button>
@@ -1631,13 +1628,12 @@ window.LightlySphere=(function(){
     var tr=$('track'); tr.setAttribute('aria-valuenow',(mode==='eat'?e:h).toFixed(1));
     tr.setAttribute('aria-valuemax',mode==='eat'?EAT:GOAL);
     tr.classList.toggle('tls',tls); if(tls){
-      var wl=mode==='eat'?EAT:GOAL, span=Math.max(24,wl+4), gx=wl/span*100, spent=mode==='eat'?e:mode==='idle'?0:h, n=Math.round(span), i;
-      if(cache.stripK!==startKey+mode+SUN.rise+SUN.set){ cache.stripK=startKey+mode+SUN.rise+SUN.set; var st=[]; for(i=0;i<=n;i++) st.push(SKYLOW[skyAt(a0+i/n*span)[1]]+' '+(i/n*100).toFixed(1)+'%'); $('sBar').style.background='linear-gradient(90deg,'+st.join(',')+')'; }
-      var t=0, evh=''; for(i=0;i<4;i++){ var tn=nextTurn(a0+t,span-t); if(!tn) break; t+=tn.d+.001; var x=Math.min(Math.max(t/span*100,9),91); evh+='<span style="left:'+x.toFixed(1)+'%">'+(tn.k==='rise'?SUN_I:MOON_I)+clock(tn.at)+'</span>'; }
+      var wl=mode==='eat'?EAT:GOAL, spent=mode==='eat'?e:mode==='idle'?0:h, n=wl*2, i, f=(Math.min(Math.max(spent,0),wl)/wl*100).toFixed(2)+'%';
+      if(cache.stripK!==startKey+mode+SUN.rise+SUN.set){ cache.stripK=startKey+mode+SUN.rise+SUN.set; var st=[]; for(i=0;i<=n;i++) st.push(SKYLOW[skyAt(a0+i/n*wl)[1]]+' '+(i/n*100).toFixed(1)+'%'); $('sBar').style.background='linear-gradient(90deg,'+st.join(',')+')'; }
+      var t=0, evh=''; for(i=0;i<4;i++){ var tn=nextTurn(a0+t,wl-t); if(!tn) break; t+=tn.d+.001; var x=Math.min(Math.max(t/wl*100,8),92); evh+='<span style="left:'+x.toFixed(1)+'%">'+(tn.k==='rise'?SUN_I:MOON_I)+clock(tn.at)+'</span>'; }
       put($('sEv'),'sev',evh,1);
-      $('sDash').style.width=mode==='idle'?gx.toFixed(2)+'%':'0'; $('sFill').style.width=(Math.min(spent,span)/span*100).toFixed(2)+'%'; $('sFill').classList.toggle('eat',mode==='eat');
-      $('sGoal').style.left=gx.toFixed(2)+'%'; $('sNow').style.left=(Math.min(spent,span)/span*100).toFixed(2)+'%'; $('sNow').style.display=mode==='idle'?'none':'';
-      tr.style.setProperty('--gx',Math.min(Math.max(gx,14),86).toFixed(1)+'%'); }
+      $('sDash').style.width=mode==='idle'?'100%':'0'; $('sFill').style.width=mode==='idle'?'0':f; $('sFill').classList.toggle('eat',mode==='eat');
+      $('sNow').style.left=f; $('sNow').style.display=mode==='idle'?'none':''; }
     act.setAttribute('aria-disabled',brk); tr.style.visibility=brk?'hidden':'';
   }
 
@@ -1791,7 +1787,7 @@ window.LightlySphere=(function(){
   /* ---------- drag along the timeline: 1:1, velocity handoff, projection, snap to the hour ---------- */
   var track=$('track');
   var tls=false, SKYLOW={night:'#1A2250',first:'#5A5A92',dawn:'#F0B48C',morning:'#CDE6F6',day:'#E1F0FA',sunset:'#F3B07C',evening:'#6C5A88'};
-  function tFromX(x){ if(tls){ var rb=$('sBar').getBoundingClientRect(), wl0=mode==='eat'?EAT:GOAL; return Math.min(Math.max((x-rb.left)/rb.width*Math.max(24,wl0+4)/wl0,0),1); } var r=$('trackSvg').getBoundingClientRect(); var vx=(x-r.left)*342/r.width; return Math.min(Math.max((vx-8)/326,0),1); }
+  function tFromX(x){ if(tls){ var rb=$('sBar').getBoundingClientRect(); return Math.min(Math.max((x-rb.left)/rb.width,0),1); } var r=$('trackSvg').getBoundingClientRect(); var vx=(x-r.left)*342/r.width; return Math.min(Math.max((vx-8)/326,0),1); }
   track.addEventListener('pointerdown',function(ev){ if(mode!=='fast'&&mode!=='eat') return; cancelAuto(); lapse=null;
     track.setPointerCapture(ev.pointerId); var span=mode==='eat'?EAT:GOAL, cur=mode==='eat'?e:h;
     dragging={span:span,off:tFromX(ev.clientX)*span-cur,hist:[{t:ev.timeStamp,v:cur}]}; track.style.cursor='grabbing'; });

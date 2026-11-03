@@ -270,14 +270,14 @@ function updateToday(){
 var SKYLOW={night:'#1A2250',first:'#5A5A92',dawn:'#F0B48C',morning:'#CDE6F6',day:'#E1F0FA',sunset:'#F3B07C',evening:'#6C5A88'};
 var SUN_I='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg>', MOON_I='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>';
 function drawStrip(a0,wl,spent,kind){
-  var span=Math.max(24,wl+4), gx=wl/span*100, n=Math.round(span), key=Math.floor(a0/600000)+'|'+n+'|'+pi.off, i;
-  if(cache.stripK!==key){ cache.stripK=key; var st=[]; for(i=0;i<=n;i++){ var sk=C.skyAt(C.placeHour(pi,a0+i/n*span*H),sun)[1]; st.push(SKYLOW[sk]+' '+(i/n*100).toFixed(1)+'%'); } $('sBar').style.background='linear-gradient(90deg,'+st.join(',')+')'; }
+  var n=Math.max(2,Math.min(Math.round(wl*2),72)), key=Math.floor(a0/600000)+'|'+wl.toFixed(2)+'|'+pi.off, i;
+  if(cache.stripK!==key){ cache.stripK=key; var st=[]; for(i=0;i<=n;i++){ var sk=C.skyAt(C.placeHour(pi,a0+i/n*wl*H),sun)[1]; st.push(SKYLOW[sk]+' '+(i/n*100).toFixed(1)+'%'); } $('sBar').style.background='linear-gradient(90deg,'+st.join(',')+')'; }
   var h0=C.placeHour(pi,a0), t=0, ev='';
-  for(i=0;i<4;i++){ var tn=C.nextTurn(h0+t,sun); t+=tn.inH+.001; if(t>=span) break; var x=Math.min(Math.max(t/span*100,9),91); ev+='<span style="left:'+x.toFixed(1)+'%">'+(tn.k==='rise'?SUN_I:MOON_I)+clockH(tn.at)+'</span>'; }
+  for(i=0;i<4;i++){ var tn=C.nextTurn(h0+t,sun); t+=tn.inH+.001; if(t>=wl) break; var x=Math.min(Math.max(t/wl*100,8),92); ev+='<span style="left:'+x.toFixed(1)+'%">'+(tn.k==='rise'?SUN_I:MOON_I)+clockH(tn.at)+'</span>'; }
   put($('sEv'),'sev',ev,1);
-  $('sDash').style.width=kind==='idle'?gx.toFixed(2)+'%':'0'; $('sFill').style.width=(kind==='idle'?0:Math.min(spent,span)/span*100).toFixed(2)+'%'; $('sFill').classList.toggle('eat',kind==='eat');
-  $('sGoal').style.left=gx.toFixed(2)+'%'; var nw=$('sNow'); nw.style.left=(Math.min(spent,span)/span*100).toFixed(2)+'%'; nw.style.display=kind==='idle'?'none':'';
-  $('track').style.setProperty('--gx',Math.min(Math.max(gx,14),86).toFixed(1)+'%');
+  var f=(Math.min(Math.max(spent,0),wl)/wl*100).toFixed(2)+'%';
+  $('sDash').style.width=kind==='idle'?'100%':'0'; $('sFill').style.width=kind==='idle'?'0':f; $('sFill').classList.toggle('eat',kind==='eat');
+  var nw=$('sNow'); nw.style.left=f; nw.style.display=kind==='idle'?'none':'';
 }
 
 var holdOn=false;
