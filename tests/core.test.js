@@ -62,4 +62,11 @@ const w=C.weekAvgs(fs,2026,9);assert.strictEqual(w.length,5,'October 2026 spans 
 assert.strictEqual(w[1].n,2);assert.strictEqual(w[1].h,17.5);assert.strictEqual(w[2].n,0);assert.strictEqual(w[2].h,0);assert.strictEqual(w[3].n,1);assert.strictEqual(w[3].h,10);assert.strictEqual(w.reduce((a,x)=>a+x.n,0),5,'every fast of the month lands in exactly one week');
 const mo=C.monthAvgs(fs,2026,10,6);assert.deepStrictEqual(mo.map(x=>[x.m,x.n]),[[8,1],[9,5],[10,0]],'months start at the first fast and end at the viewed month');assert(Math.abs(mo[1].h-15.4)<1e-9,'October average');
 assert.strictEqual(C.monthAvgs(fs,2026,9,1).length,1);assert.strictEqual(C.monthAvgs([],2026,9,6).length,1,'no fasts: just the viewed month');}
+// monthly recap
+{const at=(d,h,g)=>{const e=new Date(2026,9,d,12).getTime();return{id:'r'+d,start:e-h*H,end:e,goalH:g||16};};
+const fs=[at(2,16),at(6,17),at(7,18),at(8,10),at(20,16)],r=C.monthRecap(fs,2026,9,['2026-10-10'],[]);
+assert.strictEqual(r.n,5);assert.strictEqual(r.hours,77);assert.strictEqual(r.reached,4,'the 10 h fast ended short of its goal');assert.strictEqual(r.days.length,31);
+assert.strictEqual(r.days[1],'done');assert.strictEqual(r.days[7],'early');assert.strictEqual(r.days[9],'flex');assert.strictEqual(r.days[0],'none');
+assert.strictEqual(r.busy.s,'2026-10-05','week of the 5th has three fasts');assert.strictEqual(r.busy.n,3);
+assert.strictEqual(C.monthRecap([at(2,16)],2026,9).busy,null,'one fast in a week is not a busy week');assert.strictEqual(C.monthRecap([],2026,9).n,0);}
 console.log('core ok',s);

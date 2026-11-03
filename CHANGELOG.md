@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.62.0
+- **feature** Monthly recap. From the 1st to the 7th of a month, the top of Days shows last month in review: total hours, a dot for every day (gold when you reached your goal, ring when you ended early, dashed for a cheat day or time off), fasts, how many reached the goal, the average, and the week with the most fasts. It only appears if the month had at least three fasts, never sends a notification, and goes away for good with the X. For example, on 1 Nov it shows October.
+- **chore** `monthRecap` in `js/core.js` with unit tests, and a flow test that checks the recap shows on 3 Nov, is gone after the X, and is not there on 10 Nov.
+
 ## 0.61.0
 - **feature** The top of Days now shows how many hours you have fasted in all, as the big number ("2,218 hours, since April 2026"). Under it sit your day streak, your number of fasts and your average fast. Every finished fast counts, also one ended early or imported from another app, so the total only ever goes up. It replaces the ring toward the next streak milestone and the row of milestone badges.
 - **feature** New chart under the calendar: Average fast. Weeks shows one bar per week of the month you are viewing (swipe the calendar and the bars follow), each bar is the average length of the fasts you ended that week. Months shows the last six months. Tap a bar for its exact figure; a dashed line marks your plan. A week without a fast stays empty, and bars above the plan line get no extra praise. Hidden until your first fast.

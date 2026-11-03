@@ -488,6 +488,10 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .ts{font:400 14px var(--font);color:var(--label-2)}
 .tstats{display:grid;grid-template-columns:repeat(3,1fr);border-top:.5px solid var(--sep);margin:0 -16px}.tstats div{padding:12px 4px 14px;text-align:center;min-width:0}.tstats div+div{border-left:.5px solid var(--sep)}
 .tstats b{display:block;font:700 20px/1.15 var(--font-r);font-variant-numeric:tabular-nums}.tstats span{font:400 12px var(--font);color:var(--label-2)}
+.dy-rc{background:var(--card);border-radius:14px;margin-bottom:10px;overflow:hidden;padding:20px 16px 0}.dy-rc .rch{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.dy-rc .rcx{position:relative;flex:none;border:0;background:none;color:var(--label-2);width:44px;height:44px;margin:-14px -14px -6px 0;display:grid;place-items:center;cursor:pointer}.dy-rc .rcx::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--fill)}.dy-rc .rcx svg{position:relative;width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.dy-rc .rcd{display:flex;justify-content:space-between;align-items:center;padding:14px 0 16px}.dy-rc .rcd i{width:7px;height:7px;border-radius:50%;background:var(--fill-2);flex:none}.dy-rc .rcd i.d{background:var(--tint)}.dy-rc .rcd i.f{background:none;border:1.2px dashed var(--label-2)}.dy-rc .rcd i.e{background:none;border:1.5px solid var(--orange)}
+.dy-rc .rcb{margin:0 -16px;padding:10px 16px 14px;border-top:.5px solid var(--sep);font:400 13px var(--font);color:var(--label-2)}
 .avgh{font:500 13px var(--font);color:var(--label-2);padding:16px 16px 6px}
 .avg{background:var(--card);border-radius:14px;overflow:hidden;padding-top:12px}.avgseg{padding:0 12px}.avgseg .seg{display:flex;background:var(--fill);border-radius:9px;padding:2px}
 .avgseg .seg button{flex:1;border:0;background:transparent;min-height:44px;border-radius:7px;font:500 14px/1.2 var(--font);color:var(--label);cursor:pointer}.avgseg .seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);font-weight:600}
@@ -814,7 +818,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <div class="ps-scroll"><div id="impBody"></div></div>
       </div>
       <div class="me" id="daysScr" aria-hidden="true" aria-label="Days">
-        <div class="tot" id="dyHead"></div>
+        <div id="dyHead"></div>
         <div class="dy-th"><button type="button" class="dy-ar" id="dyPrev" aria-label="Previous month"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button><button type="button" class="dy-t" id="dyMonth" aria-haspopup="dialog"></button><button type="button" class="dy-ar" id="dyNext" aria-label="Next month"><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>
         <div class="dy-v" id="dyV"><div class="dy-cal" id="dyCal"></div></div>
         <p class="dy-key" id="dyKey"></p>
@@ -2276,9 +2280,14 @@ window.LightlySphere=(function(){
   function dyMonthDate(o){ var d=new Date(); return new Date(d.getFullYear(),d.getMonth()-o,1); }
   /* Days: total hours first, then streak, fasts and the average; the chart under the calendar (sample data) */
   var dyMode='weeks', dySelBar=null, DY_FNUM=function(h){ var big=h>=100; return new Intl.NumberFormat(api.lang()==='zh'?'zh-CN':'en',{minimumFractionDigits:big||!h?0:1,maximumFractionDigits:big?0:1}).format(h); };
+  var dyRcOff=false;
+  function dyRecap(){ var zh=api.lang()==='zh', now=new Date(), pm=new Date(now.getFullYear(),now.getMonth()-1,1), name=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long'}).format(pm), dim=new Date(pm.getFullYear(),pm.getMonth()+1,0).getDate(), dots='';
+    for(var i=1;i<=dim;i++){ var c=(i%9===4)?'e':(i%11===6)?'f':(i%7===0)?'':'d'; dots+='<i class="'+c+'"></i>'; }
+    return '<div class="dy-rc"><div class="rch"><span class="tk">'+(zh?'你的'+name:'Your '+name)+'</span><button type="button" class="rcx" id="dyRcX" aria-label="'+(zh?'关闭回顾':'Dismiss recap')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><b class="tn">428<small>'+(zh?'小时':'hours')+'</small></b><div class="rcd" role="img" aria-label="'+(zh?'示例':'Sample')+'">'+dots+'</div>'+
+      '<div class="tstats"><div><b>25</b><span>'+(zh?'次断食':'fasts')+'</span></div><div><b>18</b><span>'+(zh?'达成目标':'reached goal')+'</span></div><div><b>17.1 '+(zh?'小时':'h')+'</b><span>'+(zh?'平均':'average')+'</span></div></div><p class="rcb">'+(zh?'断食最多的一周 12–18日，6 次':'Busiest week 12–18, 6 fasts')+'</p></div>'; }
   function dyTotals(st,done){ var zh=api.lang()==='zh', n=77+done, hrs=Math.round(1268+done*16.5), avg=hrs/n;
-    return '<div class="tt"><span class="tk">'+(zh?'累计断食':'Total fasted')+'</span><b class="tn">'+DY_FNUM(hrs)+'<small>'+(zh?'小时':'hours')+'</small></b><span class="ts">'+(zh?'自 2026年4月 起':'Since April 2026')+'</span></div>'+
-      '<div class="tstats"><div><b>'+st+'</b><span>'+(zh?'天连续':'day streak')+'</span></div><div><b>'+n+'</b><span>'+(zh?'次断食':'fasts')+'</span></div><div><b>'+DY_FNUM(avg)+' '+(zh?'小时':'h')+'</b><span>'+(zh?'平均':'average')+'</span></div></div>'; }
+    return '<div class="tot"><div class="tt"><span class="tk">'+(zh?'累计断食':'Total fasted')+'</span><b class="tn">'+DY_FNUM(hrs)+'<small>'+(zh?'小时':'hours')+'</small></b><span class="ts">'+(zh?'自 2026年4月 起':'Since April 2026')+'</span></div>'+
+      '<div class="tstats"><div><b>'+st+'</b><span>'+(zh?'天连续':'day streak')+'</span></div><div><b>'+n+'</b><span>'+(zh?'次断食':'fasts')+'</span></div><div><b>'+DY_FNUM(avg)+' '+(zh?'小时':'h')+'</b><span>'+(zh?'平均':'average')+'</span></div></div></div>'; }
   function dyAvgData(){ var zh=api.lang()==='zh', now=new Date(), md=dyMonthDate(dyOff), y=md.getFullYear(), m=md.getMonth(), bars=[], fmt=function(d,o){ return new Intl.DateTimeFormat(zh?'zh-CN':'en',o).format(d); };
     if(dyMode==='months'){ var vals=[15.8,16.2,16.1,16.6,16.9,17.1]; for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(),now.getMonth()-i,1); bars.push({n:10+i*2,h:vals[5-i],lab:fmt(d,{month:'short'}),full:fmt(d,{month:'long',year:'numeric'}),cur:5-i===5-dyOff}); } return bars; }
     var dim=new Date(y,m+1,0).getDate(), lastDay=dyOff===0?now.getDate()-1:dim, d1=new Date(y,m,1), wk=1-((d1.getDay()+6)%7), wi=0;
@@ -2306,7 +2315,7 @@ window.LightlySphere=(function(){
     for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=((i+dyOff)%9===4)?'early':((i+dyOff)%11===6)?'flex':(isNow&&i===today-2&&today>3)?'off':'done'; } else if(i===today) c='today'; h+='<button type="button" class="'+c+(dySel&&dySel[0]===dyOff&&dySel[1]===i?' sel':'')+'" data-d="'+i+'" aria-label="'+i+'">'+i+'</button>'; }
     /* the header always shows the sample streak for today */
     var nd=now.getDate(), st=0, done=0; for(var j=1;j<nd;j++){ var cc=(j%9===4)?'early':(j%11===6)?'flex':(j===nd-2&&nd>3)?'off':'done'; if(cc==='done'){ st++; done++; } else if(cc==='early') st=0; } st=Math.min(st,nd); var best=Math.max(st,12), total=done+31;
-    $('dyHead').innerHTML=dyTotals(st,done); dyAvgDraw(false);
+    $('dyHead').innerHTML=(dyOff===0&&!dyRcOff?dyRecap():'')+dyTotals(st,done); var rx=$('dyRcX'); if(rx) rx.addEventListener('click',function(){ dyRcOff=true; daysRender(); }); dyAvgDraw(false);
     $('dyCal').innerHTML=h; dyPlay=false; var mn=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long',year:'numeric'}).format(md);
     $('dyMonth').innerHTML=mn+'<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg>';
     $('dyPrev').disabled=dyOff>=DY_BACK; $('dyNext').disabled=dyOff<=0; $('dyPrev').setAttribute('aria-label',zh?'上个月':'Previous month'); $('dyNext').setAttribute('aria-label',zh?'下个月':'Next month');
