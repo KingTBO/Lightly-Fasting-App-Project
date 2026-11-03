@@ -202,7 +202,7 @@ function updateToday(){
   var moonNow=moonV>=.5;
   var skyName=S.lang==='zh'?sk[3]:sk[2];
   /* sky pill: the stage and what the sky does next. While you fast or eat the progress line already shows the turn's clock time (not in Ramadan), so the pill counts down instead */
-  var turnAt=moonNow?sun.rpi:sun.set, countDown=(mode==='fast'||mode==='eat')&&!(cur&&cur.planId==='ramadan')&&!(S.planId==='ramadan'), left=Math.max(1,Math.round((((turnAt-hp)%24+24)%24)*60));
+  var turnAt=moonNow?sun.rise:sun.set, countDown=(mode==='fast'||mode==='eat')&&!(cur&&cur.planId==='ramadan')&&!(S.planId==='ramadan'), left=Math.max(1,Math.round((((turnAt-hp)%24+24)%24)*60));
   if(cache.skgs!==(moonNow?'m':'s')){ cache.skgs=moonNow?'m':'s'; $('skyG').innerHTML=skyGlyph(moonNow); $('skyG').className='sg '+(moonNow?'moon':'sun'); }
   put($('skyStage'),'sub',skyName);
   /* the pill always names the sky event, so it can't be read as your fast: "Sunrise 06:12" before you start, "Sunrise in 1 h 22 m" while you fast or eat */
@@ -245,7 +245,7 @@ function updateToday(){
   var wl=mode==='eat'?eatLen:goal, tn=mode==='idle'||ram||ramadan?null:C.nextTurn(C.placeHour(pi,a0),sun);
   if(tn&&tn.inH<wl){ var eq=tPt(tn.inH/wl), ex=Math.min(Math.max(eq.x,34),308).toFixed(1);
     $('evtL').setAttribute('x1',eq.x.toFixed(1)); $('evtL').setAttribute('x2',eq.x.toFixed(1)); $('evtL').setAttribute('y1',(eq.y-14).toFixed(1)); $('evtL').setAttribute('y2',(eq.y-6).toFixed(1));
-    $('evtT').setAttribute('x',ex); $('evtT').setAttribute('y',(eq.y-18).toFixed(1)); put($('evtT'),'ev',(tn.k==='rpi'?L('Sunrise ','日出 '):L('Sunset ','日落 '))+clockH(tn.at)); $('evt').setAttribute('opacity','1'); } else $('evt').setAttribute('opacity','0');
+    $('evtT').setAttribute('x',ex); $('evtT').setAttribute('y',(eq.y-18).toFixed(1)); put($('evtT'),'ev',(tn.k==='rise'?L('Sunrise ','日出 '):L('Sunset ','日落 '))+clockH(tn.at)); $('evt').setAttribute('opacity','1'); } else $('evt').setAttribute('opacity','0');
   var done=mode==='idle'?0:Math.floor(tt*n+1e-6); tickEls.forEach(function(c,i){ c.style.fill=i<done?'var(--ink)':''; });
   /* streak card */
   var st=curStreak(); $('streakBtn').hidden=!streakFasts().length; $('streakBtn').disabled=!!offA; /* during time off the card only shows the streak; cheat days are not offered */
@@ -1047,9 +1047,9 @@ function pickPlan(id){
 /* ---------- sunrise and sunset: location, or a nearby city ---------- */
 /* the sky pill's explanation: one line and today's two times */
 function skySheet(){
-  var pol=!!sun.polar, rpi=pol?'–':clockH(sun.rpi), set=pol?'–':clockH(sun.set);
+  var pol=!!sun.polar, rise=pol?'–':clockH(sun.rise), set=pol?'–':clockH(sun.set);
   openSheet('<h3>'+L('Moon and sun','月亮和太阳')+'</h3><p class="lede">'+L('The pill counts to the next sunrise or sunset. It’s not your fast.','胶囊里是距离下一次日出或日落的时间，不是你的断食时间。')+'</p>'+
-   '<div class="group"><div class="row"><span>'+L('Sunrise','日出')+'</span><span class="v">'+rpi+'</span></div><div class="row"><span>'+L('Sunset','日落')+'</span><span class="v">'+set+'</span></div></div>');
+   '<div class="group"><div class="row"><span>'+L('Sunrise','日出')+'</span><span class="v">'+rise+'</span></div><div class="row"><span>'+L('Sunset','日落')+'</span><span class="v">'+set+'</span></div></div>');
 }
 function placeSheet(){
   var h='<h3>'+L('Sunrise and sunset','日出日落')+'</h3><p class="lede">'+L('Lightly uses your location on this phone only to find your local sunrise and sunset. It is never uploaded or shared. Prefer not to share? Choose a nearby city.','轻伴只在这台手机上用你的位置来算当地的日出日落，不会上传，也不会分享。不想分享？选一个附近的城市就行。')+'</p>';
