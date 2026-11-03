@@ -241,8 +241,18 @@ function monthAvgs(fasts,y,m,count){
   for(var i=start;i<=end;i++){ var a=by[i]||[]; out.push({y:Math.floor(i/12),m:i%12,n:a.length,h:avgOf(a)}); }
   return out; }
 
+/* the month in review, shown at the start of the next month: totals, how many reached the goal, the week with the most fasts, and one status per day.
+   The "busy" week is about showing up, not about fasting longer, and needs at least two fasts. */
+function monthRecap(fasts,y,m,flexUsed,offKeys){
+  var first=dayKey(new Date(y,m,1).getTime()), dim=new Date(y,m+1,0).getDate(), last=dayKey(new Date(y,m,dim).getTime());
+  var l=finished(fasts).filter(function(f){ var k=dayKey(f.end); return k>=first&&k<=last; }), h=0, days=[], busy=null;
+  l.forEach(function(f){ h+=hours(f); });
+  for(var d=0;d<dim;d++) days.push(dayStatus(addDays(first,d),fasts,flexUsed||[],offKeys||[]));
+  weekAvgs(fasts,y,m).forEach(function(w){ if(w.n>=2&&(!busy||w.n>busy.n)) busy=w; });
+  return {n:l.length,hours:h,avg:l.length?h/l.length:0,reached:l.filter(isDone).length,days:days,busy:busy};
+}
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,planStatusLabel:planStatusLabel,
-  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs};
+  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);

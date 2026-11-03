@@ -459,6 +459,16 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .tstats div+div{border-left:.5px solid var(--sep)}
 .tstats b{display:block;font:700 1.25rem/1.15 var(--font-r);font-variant-numeric:tabular-nums}
 .tstats span{font:400 0.75rem var(--font);color:var(--label-2)}
+.rch{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.rcx{position:relative;flex:none;border:0;background:none;color:var(--label-2);width:44px;height:44px;margin:-14px -14px -6px 0;display:grid;place-items:center}
+.rcx::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--fill)}
+.rcx svg{position:relative;width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.rcd{display:flex;justify-content:space-between;align-items:center;padding:14px 0 16px}
+.rcd i{width:7px;height:7px;border-radius:50%;background:var(--fill-2);flex:none}
+.rcd i.d{background:var(--tint);box-shadow:0 0 0 .5px var(--bar-edge)}
+.rcd i.f{background:none;border:1.2px dashed var(--label-2)}
+.rcd i.e{background:none;border:1.5px solid var(--orange)}
+.rcb{margin:0 -16px;padding:10px 16px 14px;border-top:.5px solid var(--sep);font:400 0.8125rem var(--font);color:var(--label-2)}
 .avg{padding-top:12px}
 .avgseg{padding:0 12px}
 .avgsum{padding:14px 16px 0;min-height:72px}

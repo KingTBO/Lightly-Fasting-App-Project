@@ -92,7 +92,7 @@ const H=3600000,D=24*H;
  // Days: totals header, average-fast chart, swipe between months, month picker, no cheat row
  {const old=Date.now()-75*D;const fl=Array.from({length:6},(_,i)=>({id:'dd'+i,start:Date.now()-(i+1)*D-16*H,end:Date.now()-(i+1)*D,goalH:16,plan:'16'})).concat([{id:'dold',start:old-16*H,end:old,goalH:16,plan:'16'}]);
  const q=await fresh(seed({planId:'16',fasts:fl}));await q.click('#tabs [data-tab=days]');await q.waitForTimeout(900);
- assert.match(await q.textContent('#days .tot .tn'),/^\d[\d,.]*\s*hours$/,'total hours is the headline');assert.match(await q.textContent('#days .tstats'),/day streak.*fasts.*average/,'streak, fasts and average sit under it');assert.strictEqual(Number((await q.textContent('#days .tot .tn')).replace(/[^\d.]/g,'')),112,'seven 16 h fasts add up to 112 h');
+ assert.match(await q.textContent('#days .tot:not(.recap) .tn'),/^\d[\d,.]*\s*hours$/,'total hours is the headline');assert.match(await q.textContent('#days .tot:not(.recap) .tstats'),/day streak.*fasts.*average/,'streak, fasts and average sit under it');assert.strictEqual(Number((await q.textContent('#days .tot:not(.recap) .tn')).replace(/[^\d.]/g,'')),112,'seven 16 h fasts add up to 112 h');
  assert(await q.$('#days .avg'),'average fast chart under the calendar');assert(await q.$('#days .avg .avgcol'),'bars can be tapped');{const w0=await q.textContent('#days .avgsum');await q.click('#days [data-act=avgmode][data-m=months]');await q.waitForTimeout(700);assert.strictEqual(await q.getAttribute('#days [data-act=avgmode][data-m=months]','aria-pressed'),'true','Months switch');assert(await q.$('#days .avg .avgcol'),'months bars');await q.click('#days [data-act=avgmode][data-m=weeks]');await q.waitForTimeout(500);assert.strictEqual(await q.textContent('#days .avgsum'),w0,'back to weeks');}
  assert(!(await q.$('#days .mrow')),'no tile row');assert(!(await q.$('#days [data-act=usecheat]')),'no cheat row on Days');
  const t0=await q.textContent('#days .cal-t');const g=await q.locator('#days .cal-g').boundingBox();
@@ -109,6 +109,17 @@ const H=3600000,D=24*H;
  await q.click('#sheet .pm:not([disabled]):not(.on)');await q.waitForTimeout(600);assert.notStrictEqual(await q.textContent('#days .cal-t'),t0,'picker jumps to the month');
  const q2=await fresh(seed({planId:'16',fasts:[{id:'one',start:Date.now()-2*H,end:Date.now()-H,goalH:16,plan:'16'}]}));await q2.click('#tabs [data-tab=days]');await q2.waitForTimeout(700);assert(!(await q2.$('#days .cal-t')),'no picker with one month of data');
  await q.context().close();await q2.context().close();ok('Days header, swipe, picker, no cheat row');}
+ // Days monthly recap: last month's recap shows on the 1st to the 7th, only with 3 or more fasts, and stays dismissed
+ for(const [when,expect] of [['2026-11-03T09:00:00+08:00',true],['2026-11-10T09:00:00+08:00',false]]){
+  const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});await c.clock.install({time:new Date(when)});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));
+  const oct=[3,6,9,12].map(d=>{const e=new Date('2026-10-'+String(d).padStart(2,'0')+'T12:00:00+08:00').getTime();return{id:'rc'+d,start:e-17*H,end:e,goalH:16,plan:'16'}});
+  await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(seed({planId:'16',fasts:oct})));await q.goto(url);await q.waitForTimeout(600);
+  await q.click('#tabs [data-tab=days]');await q.waitForTimeout(800);
+  assert.strictEqual(!!(await q.$('#days .recap')),expect,'recap '+(expect?'shows':'is hidden')+' on '+when);
+  if(expect){assert.match(await q.textContent('#days .recap .tk'),/Your October/);assert.match(await q.textContent('#days .recap .tn'),/^68/,'four 17 h fasts add up to 68 h');assert.match(await q.textContent('#days .recap .tstats'),/4fasts4reached goal17.0 haverage/);
+   await q.click('#days [data-act=recapx]');await q.waitForTimeout(400);assert(!(await q.$('#days .recap')),'dismissed');assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).prefs.recapSeen,'2026-10');}
+  await c.close();}
+ ok('Days monthly recap: 1st to 7th, dismissible, hidden later');
  // appearance: the sheet stays open, the whole app switches, the sheet shows the new choice
  {const q=await fresh(seed({theme:'light'}));await q.click('#tabs [data-tab=me]');await q.click('#me [data-act=choice][data-k=theme]');await q.waitForTimeout(500);
  await q.evaluate(()=>{window.__pick=()=>[...document.querySelectorAll('#me .group,#me .row,#me .row *,#sheet,#sheet *,.tabs,.tabs *,.scrim,.btn')].map(e=>getComputedStyle(e).backgroundColor+'|'+getComputedStyle(e).color);});

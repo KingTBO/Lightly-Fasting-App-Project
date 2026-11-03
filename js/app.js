@@ -498,6 +498,17 @@ function totalsHtml(){
   return '<div class="group tot"><div class="tt"><span class="tk">'+L('Total fasted','累计断食')+'</span><b class="tn" aria-label="'+numTxt(t.hours)+' '+L('hours','小时')+'">'+numTxt(t.hours)+'<small>'+L('hours','小时')+'</small></b><span class="ts">'+L('Since '+since,'自 '+since+' 起')+'</span></div>'+
     '<div class="tstats"><div><b>'+st+'</b><span>'+L('day streak','天连续')+'</span></div><div><b>'+t.n+'</b><span>'+L(t.n===1?'fast':'fasts','次断食')+'</span></div><div><b>'+numTxt(t.avg)+' '+L('h','小时')+'</b><span>'+L('average','平均')+'</span></div></div></div>';
 }
+/* the month in review: on the 1st to the 7th, last month's recap sits above the totals until it is dismissed. It needs at least three fasts, and nothing is sent. */
+function recapMonth(){ var d=new Date(); if(d.getDate()>7) return null; var pm=new Date(d.getFullYear(),d.getMonth()-1,1); return {y:pm.getFullYear(),m:pm.getMonth(),key:pm.getFullYear()+'-'+('0'+(pm.getMonth()+1)).slice(-2)}; }
+function recapHtml(){
+  var pm=recapMonth(); if(!pm||S.prefs.recapSeen===pm.key) return '';
+  var r=C.monthRecap(S.fasts,pm.y,pm.m,S.flex.used,C.offKeys(S.off)); if(r.n<3) return '';
+  var name=new Intl.DateTimeFormat(loc(),{month:'long'}).format(new Date(pm.y,pm.m,1)), dots=r.days.map(function(s){ return '<i class="'+(s==='done'?'d':s==='flex'||s==='off'?'f':s==='early'?'e':'')+'"></i>'; }).join('');
+  var busy=r.busy?'<p class="rcb">'+L('Busiest week '+dateLbl(C.keyToDate(r.busy.s).getTime(),{month:'short',day:'numeric'})+'–'+dateLbl(C.keyToDate(r.busy.e).getTime(),{day:'numeric'})+', '+r.busy.n+' fasts','断食最多的一周 '+dateLbl(C.keyToDate(r.busy.s).getTime(),{month:'short',day:'numeric'})+'–'+dateLbl(C.keyToDate(r.busy.e).getTime(),{day:'numeric'})+'，'+r.busy.n+' 次')+'</p>':'';
+  return '<div class="group tot recap"><div class="rch"><span class="tk">'+L('Your '+name,'你的'+name)+'</span><button type="button" class="rcx" data-act="recapx" aria-label="'+L('Dismiss recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>'+
+    '<b class="tn">'+numTxt(r.hours)+'<small>'+L('hours','小时')+'</small></b><div class="rcd" role="img" aria-label="'+L(r.n+' fasts in '+name,name+'共 '+r.n+' 次断食')+'">'+dots+'</div>'+
+    '<div class="tstats"><div><b>'+r.n+'</b><span>'+L(r.n===1?'fast':'fasts','次断食')+'</span></div><div><b>'+r.reached+'</b><span>'+L('reached goal','达成目标')+'</span></div><div><b>'+numTxt(r.avg)+' '+L('h','小时')+'</b><span>'+L('average','平均')+'</span></div></div>'+busy+'</div>';
+}
 /* average fast under the calendar: Weeks follows the month you are viewing, Months looks back over the last six */
 var avgMode='weeks', avgSel=null, avgPlay=true;
 function avgData(){
@@ -580,7 +591,7 @@ function gridInner(y,m){ var h='', t=today(), all=S.fasts;
 function renderDays(){
   var fs=streakFasts(), all=S.fasts, t=today(), first=all.length?new Date(Math.min.apply(null,all.map(function(f){return f.start;}))):new Date();
   var canPrev=calY*12+calM>first.getFullYear()*12+first.getMonth()-0, canNext=calY*12+calM<new Date().getFullYear()*12+new Date().getMonth();
-    var first1=!C.finished(all).length, h=first1?'<div class="group firstuse"><p>'+L('Fasts you finish show up here as filled days.','完成的断食会在这里显示为实心的日子。')+'</p><button class="btn sec" data-act="gotoday">'+L('Start a fast','开始断食')+'</button></div>':totalsHtml();
+    var first1=!C.finished(all).length, h=first1?'<div class="group firstuse"><p>'+L('Fasts you finish show up here as filled days.','完成的断食会在这里显示为实心的日子。')+'</p><button class="btn sec" data-act="gotoday">'+L('Start a fast','开始断食')+'</button></div>':recapHtml()+totalsHtml();
   var mname=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(calY,calM,1));
   h+='<div class="group'+(first1?' dim':'')+'"><div class="cal"><div class="cal-h"><button data-act="calprev" aria-label="'+L('Previous month','上个月')+'"'+(canPrev?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button>'+(monthRange()[0]<monthRange()[1]?'<button class="cal-t" data-act="calpick" aria-haspopup="dialog"><span class="mn">'+mname+'</span><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg></button>':'<b class="cal-t0"><span class="mn">'+mname+'</span></b>')+'<button data-act="calnext" aria-label="'+L('Next month','下个月')+'"'+(canNext?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>';
   h+='<div class="cal-v"><div class="cal-g">'+gridInner(calY,calM);
@@ -1243,6 +1254,7 @@ var A={
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
   day:function(b){ selDay=b.dataset.k; fabOn=true; renderDays(); },
   gotoday:function(){ showTab('today'); },
+  recapx:function(){ var pm=recapMonth(); if(pm){ S.prefs.recapSeen=pm.key; save(); renderDays(); } },
   avgmode:function(b){ if(avgMode===b.dataset.m) return; avgMode=b.dataset.m; avgSel=null; avgDraw(true); var n=$('avgBox').querySelector('[data-act=avgmode][aria-pressed=true]'); if(n) n.focus({preventScroll:true}); },
   avgbar:function(b){ avgSel=+b.dataset.i; avgDraw(false); var n=$('avgBox').querySelector('[data-i="'+avgSel+'"]'); if(n) n.focus({preventScroll:true}); },
   addday:function(){ fastSheet(null,selDay); },

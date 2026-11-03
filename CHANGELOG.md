@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.62.0
+- **feature** Monthly recap. From the 1st to the 7th of a month, the top of Days shows last month in review: total hours, a dot for every day (gold when you reached your goal, ring when you ended early, dashed for a cheat day or time off), fasts, how many reached the goal, the average, and the week with the most fasts. It only appears if the month had at least three fasts, never sends a notification, and goes away for good with the X. For example, on 1 Nov it shows October.
+- **chore** `monthRecap` in `js/core.js` with unit tests, and a flow test that checks the recap shows on 3 Nov, is gone after the X, and is not there on 10 Nov.
+
 ## 0.61.1
 - **docs** Rule written down: on Android, Lightly's vibration must keep working when the phone is on silent, like the system keyboard, and only the Vibration switch on the Me tab turns it off (`docs/haptics.md`, plus a Vibration row on the concept notes page). Checked the app code: nothing in Lightly looks at silent mode, the Me tab switch is the only condition. **But the web app cannot deliver this:** Chrome on Android skips `navigator.vibrate()` when the phone is on silent, and a web page cannot override that (iPhone Safari has no vibrate at all). It will come with the Android app, which uses the system touch-feedback path the keyboard uses. The notes say how, and what to test on real phones. No change to how the app behaves today.
 
