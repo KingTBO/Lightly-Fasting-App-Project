@@ -171,6 +171,17 @@ a.row{text-decoration:none;color:var(--label)}
 .me-card b.noname{color:var(--label-2);font-weight:500}
 .me-card span{font-size:0.9375rem;color:var(--label-2)}
 .signin{padding:0 16px 16px;display:grid;gap:10px}
+/* Me: icon tiles, gold switches, a bigger profile card */
+.mi{width:30px;height:30px;border-radius:9px;flex:none;display:grid;place-items:center}
+.mi svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.mi.gold{background:#FFE48A;color:#4A3A00}.mi.navy{background:#0E1430;color:#F4EFE2}.mi.grey{background:var(--fill-2);color:var(--label-2)}.mi.red{background:rgba(199,0,18,.12);color:var(--red)}
+#me .group .row+.row::before,#me .pk+.row::before,#me .row+.pk::before,#me .pk+.pk::before{left:58px}
+#me .row>span:not(.v):not(.mi)+.chev{margin-left:auto}
+#me .sw[aria-checked="true"]{background:var(--tint)}
+.me-card .av{width:72px;height:72px}.me-card .avw{width:72px;height:72px}.me-card .av svg.def{width:40px;height:40px}
+.me-card b{font-size:1.5rem;font-weight:700;letter-spacing:-.02em}
+.me-card .me-id .bk{display:flex;align-items:center;gap:6px;font-style:normal;font-weight:600;font-size:0.8125rem;color:#1D7A33}
+.me-card .me-id .bk::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
 
 /* Days */
 .cal{padding:14px 16px 12px}
@@ -620,6 +631,8 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .btn.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1F1F1F;box-shadow:inset 0 0 0 1px #747775}
 .btn.gbtn svg{width:20px;height:20px;flex:none}
 .btn.gbtn:disabled{opacity:.6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mi.gold{background:rgba(255,214,10,.22);color:#FFD60A}:root:not([data-theme="light"]) .mi.navy{background:#262B4D}:root:not([data-theme="light"]) .me-card .bk{color:var(--green)}}
+:root[data-theme="dark"] .mi.gold{background:rgba(255,214,10,.22);color:#FFD60A}:root[data-theme="dark"] .mi.navy{background:#262B4D}:root[data-theme="dark"] .me-card .bk{color:var(--green)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.gbtn{background:#131314;color:#E3E3E3;box-shadow:inset 0 0 0 1px #8E918F}}
 :root[data-theme="dark"] .btn.gbtn{background:#131314;color:#E3E3E3;box-shadow:inset 0 0 0 1px #8E918F}
 /* theme switch: every colour changes in one frame, no element fades on its own */
