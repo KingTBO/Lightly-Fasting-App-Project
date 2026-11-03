@@ -80,6 +80,20 @@ const H=3600000,D=24*H;
    assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).flex.used.length,0,'a short press does nothing');
    await q.mouse.down();await q.waitForTimeout(1500);await q.mouse.up();await q.waitForTimeout(300);}
   assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).flex.used.length,1);ok('streak card opens the cheat days sheet; a short press does nothing, holding uses one');}
+ // cheat day today closes Start fast like time off, and taking it back opens it again
+ {const f0=Date.now()-2*D;const q=await fresh(seed({fasts:[{id:'a1',start:f0,end:f0+16*H,goalH:16,plan:'16'}]}));await q.waitForTimeout(400);
+  const qs=()=>q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')));
+  assert(!(await q.isVisible('#offBar')),'no banner before a cheat day');assert.strictEqual(await q.getAttribute('#act','aria-disabled'),'false');
+  await q.click('#streakBtn');await q.waitForTimeout(700);{const bx=await q.locator('#sheet [data-hold=usecheat]').boundingBox();await q.mouse.move(bx.x+bx.width/2,bx.y+bx.height/2);await q.mouse.down();await q.waitForTimeout(1500);await q.mouse.up();await q.waitForTimeout(500);}
+  const bankUsed=(await qs()).flex.bank;assert.strictEqual((await qs()).flex.used.length,1);
+  assert(await q.isVisible('#offBar'),'a banner shows on a cheat day');assert.match(await q.textContent('#offBar'),/Cheat day today[\s\S]*Take back/);assert.strictEqual(await q.getAttribute('#act','aria-disabled'),'true','Start fast is closed on a cheat day');assert.match(await q.textContent('#readK'),/Cheat day/);
+  {const bx=await q.locator('#act').boundingBox();await q.mouse.click(bx.x+bx.width/2,bx.y+bx.height/2);}await q.waitForTimeout(250);
+  assert.match(await q.textContent('#toast'),/cheat day[\s\S]*Take back/i,'tapping Start fast says to take the cheat day back');assert(await q.evaluate(()=>document.getElementById('offBar').classList.contains('nudge')),'the Take back pill lights up');assert.strictEqual((await qs()).cur,null,'no fast starts on a cheat day');
+  await q.click('#offBar');assert(await q.$('#sheet [data-act=undocheat]'),'the banner opens the cheat days sheet with Take back');await q.click('#sheet [data-act=undocheat]');await q.waitForTimeout(400);
+  const s2=await qs();assert.strictEqual(s2.flex.used.length,0);assert.strictEqual(s2.flex.bank,bankUsed+1,'taking it back returns the cheat day');assert(!(await q.isVisible('#offBar')));assert.strictEqual(await q.getAttribute('#act','aria-disabled'),'false','Start fast is back');
+  {const bx=await q.locator('#act').boundingBox();await q.mouse.click(bx.x+bx.width/2,bx.y+bx.height/2);}await q.waitForTimeout(400);assert((await qs()).cur,'a fast starts once the cheat day is taken back');
+  await q.click('#streakBtn');assert(await q.$eval('#sheet [data-hold=usecheat]',e=>e.disabled),'a cheat day cannot be used while a fast is running');assert.match(await q.textContent('#sheet'),/fasting now|End the fast/);
+  ok('cheat day closes Start fast like time off; Take back opens it; no cheat day while fasting');}
  {const q=await fresh(seed({}));await q.click('#tabs [data-tab=days]');await q.waitForTimeout(700);
   assert(await q.$('#days .firstuse'),'first use shows one line and one action');assert(!(await q.$('#days .tot')),'no totals before the first fast');assert(!(await q.$('#days .avg')),'no chart before the first fast');assert(!(await q.$('#days .legend')),'no legend before the first fast');
   await q.click('#days .firstuse [data-act=gotoday]');await q.waitForTimeout(500);assert.strictEqual(await q.getAttribute('#tabs [data-tab=today]','aria-current'),'page');ok('Days first use: one line, one action, no empty stats');}

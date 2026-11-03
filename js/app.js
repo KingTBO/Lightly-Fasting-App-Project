@@ -190,7 +190,7 @@ function updateToday(){
   var hp=C.placeHour(pi,now), sk=C.skyAt(hp,sun), p=plan(), cur=S.cur, le=lastFast();
   moonV=C.moonAmt(hp,sun);
   mode=cur?'fast':(le&&now-le.end<eatH(le)*H?'eat':'idle');
-  var offA=offNow(), brk=!!offA&&!cur; if(brk) mode='idle';
+  var offA=offNow(), brk=!!offA&&!cur, chd=cheatToday(); if(brk||chd) mode='idle';
   setSky(sk[1]);
   if(S.planId==='ramadan'&&!inRamadan()){ S.planId='16'; normalisePlan(); p=plan(); save(); }
   var ram=S.planId==='ramadan'&&!cur, goal=cur?cur.goalH:(mode==='eat'?le.goalH:p.fast), eatLen=le?eatH(le):0, eatEl=mode==='eat'?(now-le.end)/H:0;
@@ -209,12 +209,13 @@ function updateToday(){
   var evEn=moonNow?'Sunrise':'Sunset', evZh=moonNow?'日出':'日落', skyTxt=countDown?L(evEn+' in '+hmTxt(left),hmTxt(left)+'后'+evZh):L(evEn+' ',evZh+' ')+clockH(turnAt);
   put($('skyTx'),'skx',skyTxt);
   var skyAria=skyName+', '+skyTxt+'. '+L('Opens an explanation.','打开说明。'); if(cache.skal!==skyAria){ cache.skal=skyAria; $('sub').setAttribute('aria-label',skyAria); }
-  var bar=$('offBar'); bar.hidden=!offA; if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
+  var bar=$('offBar'); bar.hidden=!offA&&!chd; bar.dataset.act=chd&&!offA?'cheat':'timeoff'; if(chd&&!offA) put(bar,'ob',L('Cheat day today','今天是弹性日')+'<span>'+L('Take back','收回')+'</span>',1); else if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
   put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):chipHours(cur?C.planById(cur.planId,cur.goalH):p));
   var ramadan=cur&&cur.planId==='ramadan';
   if(brk){ var dn=Math.min(C.offDayNo(offA),offA.days);
       put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Break','休息'):L('Rest','静养'));
       tip(L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
+  else if(chd){ put($('readK'),'k',L('Cheat day','弹性日')); setBigText(L('Day off','休息')); tip(L('Your streak holds. Take back the cheat day above to start a fast.','连续记录保持。想断食，请先收回上方的弹性日。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(mode==='idle'){
     put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); setBigText(L('Ready','准备好了')); put(altEl,'alt','');
     tip(ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。'),1); put($('actLbl'),'a',L('Start fast','开始断食'));
@@ -227,7 +228,7 @@ function updateToday(){
     put($('readK'),'k',L('Eating window left','进食窗口还剩')); setBigTime(Math.max(0,Math.ceil((eatLen-eatEl)*3600))); put(altEl,'alt','');
     tip(L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start fast','开始断食'));
   }
-  act.setAttribute('aria-disabled',brk); /* stays tappable during a break: a tap shakes it and says why (see breakNudge) */ $('track').style.visibility=brk?'hidden':'';
+  act.setAttribute('aria-disabled',brk||chd); /* stays tappable during a break or a cheat day: a tap shakes it and says why (see restNudge) */ $('track').style.visibility=brk||chd?'hidden':'';
   /* timeline */
   var a0=mode==='eat'?le.end:mode==='fast'?cur.start:now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:ram?placeMs(sun.set,now):now+p.fast*H;
   var n=Math.min(Math.round(mode==='eat'?eatLen:ram?13:goal),36)||1; buildTicks(n);
@@ -294,19 +295,19 @@ var act=$('act'), holdT0=0, holdRaf=0, HOLD_MS=1200, swallow=false;
 function holdStep(){ if(!holdOn) return; var f=Math.min((performance.now()-holdT0)/HOLD_MS,1); act.style.setProperty('--hold',f); if(f>=1){ holdEnd(false); swallow=true; fx('medium'); endFast(); return; } holdRaf=requestAnimationFrame(holdStep); }
 function holdBegin(){ if(!S.cur||holdOn) return; holdOn=true; holdT0=performance.now(); act.classList.add('holding','pressed'); put($('actLbl'),'a',L('Keep holding…','继续按住…')); fx('light'); holdRaf=requestAnimationFrame(holdStep); }
 function holdEnd(cancel){ if(!holdOn) return; holdOn=false; cancelAnimationFrame(holdRaf); act.classList.remove('holding','pressed'); act.style.setProperty('--hold',0); if(cancel) cache.a=null; }
-act.addEventListener('pointerdown',function(e){ if(S.cur){ e.preventDefault(); try{ act.setPointerCapture(e.pointerId); }catch(x){} holdBegin(); } else if(!offNow()) act.classList.add('pressed'); });
+act.addEventListener('pointerdown',function(e){ if(S.cur){ e.preventDefault(); try{ act.setPointerCapture(e.pointerId); }catch(x){} holdBegin(); } else if(!restNow()) act.classList.add('pressed'); });
 ['pointerup','pointercancel','pointerleave'].forEach(function(n){ act.addEventListener(n,function(){ holdEnd(true); act.classList.remove('pressed'); if(S.cur) updateToday(); if(swallow) setTimeout(function(){ swallow=false; },80); }); });
 act.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&S.cur){ e.preventDefault(); if(!e.repeat) holdBegin(); } });
 act.addEventListener('keyup',function(e){ if((e.key==='Enter'||e.key===' ')&&S.cur){ holdEnd(true); updateToday(); } if(swallow) setTimeout(function(){ swallow=false; },80); });
 /* Start fast during time off: the button looks unavailable but is still a real control. A tap gives a short Apple-style shake (still under Reduce Motion: no movement, just the words), two light haptic taps, and says what to do; the End break pill lights up so the eye goes there. */
-function breakMsg(){ return L('Ready to fast? Tap End break at the top first.','准备好断食了吗？先点上方的“结束休息”。'); }
+function breakMsg(){ return offNow()?L('Ready to fast? Tap End break at the top first.','准备好断食了吗？先点上方的“结束休息”。'):L('Today is a cheat day. Tap Take back at the top first.','今天是弹性日。先点上方的“收回”。'); }
 function breakNudge(){
   fx('nope'); toast(breakMsg());
   var bar=$('offBar'); bar.classList.add('nudge'); clearTimeout(breakNudge.t); breakNudge.t=setTimeout(function(){ bar.classList.remove('nudge'); },1400);
   if(act.animate&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){ if(breakNudge.a) breakNudge.a.cancel();
     breakNudge.a=act.animate([{transform:'translateX(0)'},{transform:'translateX(-9px)',offset:.16},{transform:'translateX(8px)',offset:.34},{transform:'translateX(-6px)',offset:.52},{transform:'translateX(4px)',offset:.7},{transform:'translateX(-2px)',offset:.86},{transform:'translateX(0)'}],{duration:480,easing:'cubic-bezier(.36,.07,.19,.97)'}); }
 }
-act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } if(!S.cur){ if(offNow()) breakNudge(); else startFlow(); } });
+act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } if(!S.cur){ if(restNow()) breakNudge(); else startFlow(); } });
 
 /* a button in a sheet that must be held to confirm, the same press-and-hold as ending a fast */
 var HB=null;
@@ -320,7 +321,7 @@ document.addEventListener('keyup',function(e){ if(e.key==='Enter'||e.key===' ') 
 
 /* ---------- start and end ---------- */
 function startFlow(planId){
-  if(offNow()){ breakNudge(); return; }
+  if(restNow()){ breakNudge(); return; }
   var id=planId||S.planId, p=C.planById(id,S.customH);
   if(id==='ramadan'){ return startRamadan(); }
   if(!p.long&&!planOk(id)){ normalisePlan(); p=plan(); toast(L('That plan opens later. Starting '+C.planLabel(p)+' instead.','那个计划稍后开放，先用 '+C.planLabel(p)+'。')); }
@@ -335,12 +336,12 @@ function longSafety(p){
    '<div class="btns"><button class="btn" id="lsGo" data-act="lsgo" data-p="'+p.id+'" disabled>'+L('Start '+p.fast+'-hour fast','开始 '+p.fast+' 小时断食')+'</button><button class="btn sec" data-act="close">'+L('Not now','以后再说')+'</button></div>');
 }
 function beginFast(p,start,extra){
-  if(offNow()) return; /* a break holds the streak; no fast starts until it ends */
+  if(restNow()) return; /* a break or a cheat day holds the streak; no fast starts until it ends or is taken back */
   S.cur=Object.assign({start:start,goalH:p.fast,planId:p.id,reached:false},extra||{}); save(); closeSheet(); fx('medium'); lastHour=-1; shownP=-1; cache={}; updateToday(); scheduleGoal();
   toast(L('Fast started. Hold the button when you want to end it.','断食开始了。想结束时按住按钮。'));
 }
 function startRamadan(){
-  if(offNow()){ breakNudge(); return; }
+  if(restNow()){ breakNudge(); return; }
   var now=Date.now(), f=C.fajrHour(pi,now); if(f==null){ toast(L('Dawn can’t be worked out at this latitude yet.','这个纬度暂时算不出黎明时间。')); return; }
   var s=placeMs(f,now), e=placeMs(sun.set,now);
   if(now>=e){ toast(L('The fast has already ended for today. Come back before dawn.','今天的斋戒已经结束，黎明前再来。')); return; }
@@ -433,6 +434,9 @@ function tabLabels(){ $('tabT').textContent=L('Today','今天'); $('tabD').textC
 /* ---------- time off ---------- */
 var offDays=3;
 function offNow(){ return C.offActive(S.off); }
+/* today is a cheat day and no fast is running: like time off, Start fast stays closed until the cheat day is taken back */
+function cheatToday(){ return !S.cur&&!offNow()&&S.flex.used.indexOf(today())>=0; }
+function restNow(){ return !!offNow()||cheatToday(); }
 function offIco(k){ return k==='travel'?'<svg viewBox="-3 -3 30 30" width="32" height="32" aria-hidden="true"><g transform="rotate(45 12 12)"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="translate(1 -0.5)"/></g></svg>':'<svg viewBox="2 3.4 20 19.2" width="34" height="33" aria-hidden="true"><path fill="currentColor" d="M12 20.3s-7.6-4.6-7.6-10.3A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.6 10c0 5.7-7.6 10.3-7.6 10.3Z"/></svg>'; }
 function offBackLbl(o){ var e=C.keyToDate(C.addDays(C.dayKey(o.start),o.days)).getTime(); return dateLbl(e); }
 function timeOffSheet(){
@@ -748,7 +752,7 @@ function renderDays(){
   var list=C.fastDays(all)[selDay]||[], fl=S.flex.used.indexOf(selDay)>=0;
   h+='<div class="gh">'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</div><div class="group">';
   if(!list.length&&!fl){ if(selDay>t) h+='<div class="empty">'+L('Nothing here yet.','这天还没有记录。')+'</div>';
-    else h+='<div class="row nolog"><span>'+L('Nothing logged','没有记录')+'</span></div><button class="row" data-act="addday">'+IC_PLUS+'<span>'+L('Add a fast','补记断食')+'</span></button>'+(C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex,off:S.off})?'':'<button class="row" data-act="cheatday" data-k="'+selDay+'">'+IC_MOON+'<span>'+L('Use a cheat day','使用弹性日')+'</span></button>'); }
+    else h+='<div class="row nolog"><span>'+L('Nothing logged','没有记录')+'</span></div><button class="row" data-act="addday">'+IC_PLUS+'<span>'+L('Add a fast','补记断食')+'</span></button>'+(C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur})?'':'<button class="row" data-act="cheatday" data-k="'+selDay+'">'+IC_MOON+'<span>'+L('Use a cheat day','使用弹性日')+'</span></button>'); }
   list.sort(function(a,b){return a.end-b.end;}).forEach(function(f){ h+='<button class="row fast-row" data-act="edit" data-id="'+f.id+'"><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(C.isDone(f)?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+'</small></span>'+CHEV.replace('class="chev"','class="chev" style="margin-left:auto"')+'</button>'; });
   if(fl) h+='<div class="row"><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
   h+='</div>';
@@ -989,15 +993,15 @@ document.addEventListener('change',function(e){
 function flexTick(){ C.flexRefill(S.flex,S.startedAt||Date.now()); }
 function cheatSheet(day){
   if(offNow()) return; /* no cheat days during time off: the break already holds the streak */
-  flexTick(); var k=typeof day==='string'?day:today(), used=S.flex.used.indexOf(k)>=0, blk=C.flexBlock(k,{fasts:S.fasts,flex:S.flex,off:S.off}), b=S.flex.bank;
+  flexTick(); var k=typeof day==='string'?day:today(), used=S.flex.used.indexOf(k)>=0, blk=C.flexBlock(k,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur}), b=S.flex.bank;
   var moons=''; for(var i=0;i<2;i++) moons+='<svg width="30" height="30" viewBox="-15 -15 30 30" style="margin-right:6px" aria-hidden="true"><circle r="12" style="fill:'+(i<b?'var(--moon)':'none')+';stroke:'+(i<b?'var(--moon-edge)':'var(--label-2)')+'" stroke-width="1.5"/></svg>';
-  var why={used:'',fasted:L('You fasted today, so you don’t need one.','今天你已经断食了，不需要使用。'),bank:L('None left. A new one arrives every Monday.','已经用完。每周一会补一个。'),week:L('Two in a week is the limit, so you still fast at least five days.','一周最多两个，这样每周至少断食五天。'),window:''}[blk]||'';
+  var why={used:'',fasted:L('You fasted today, so you don’t need one.','今天你已经断食了，不需要使用。'),fasting:L('You’re fasting now. End the fast first.','你正在断食，先结束这次断食。'),bank:L('None left. A new one arrives every Monday.','已经用完。每周一会补一个。'),week:L('Two in a week is the limit, so you still fast at least five days.','一周最多两个，这样每周至少断食五天。'),window:''}[blk]||'';
   openSheet('<h3>'+L('Cheat days','弹性日')+'</h3><p class="lede">'+L('A day off that keeps your streak going.','休息一天，连续记录不会断。')+'</p>'+
     '<div class="group"><div class="row" style="min-height:60px"><span style="display:flex">'+moons+'</span><span class="v">'+L(b+' left',b+' 个可用')+'</span></div></div>'+
     '<p class="note">'+(why||L('A new one arrives every Monday. You can keep two.','每周一补充一个，最多存两个。'))+'</p>'+
     '<div class="btns">'+(used?'<button class="btn sec" data-act="undocheat" data-k="'+k+'">'+(k===today()?L('Take today’s cheat day back','收回今天的弹性日'):L('Take this cheat day back','收回这天的弹性日'))+'</button>':'<button class="btn hold" data-hold="usecheat" data-k="'+k+'"'+(blk?' disabled':'')+'><span class="hl">'+L('Hold to use a cheat day','按住使用弹性日')+'</span></button>')+'<button class="btn sec" data-act="close">'+L('Close','关闭')+'</button></div>');
 }
-function useCheat(k){ flexTick(); var b=C.flexBlock(k,{fasts:S.fasts,flex:S.flex,off:S.off}); if(b) return toast(L('A cheat day can’t be used for that day.','这天不能使用弹性日。')); S.flex.used.push(k); S.flex.bank--; save(); closeSheet(); cache={}; updateToday(); if(curTab==='days') renderDays(); toast(L('Cheat day used. Your streak holds.','已使用弹性日，连续记录保持。')); }
+function useCheat(k){ flexTick(); var b=C.flexBlock(k,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur}); if(b) return toast(L('A cheat day can’t be used for that day.','这天不能使用弹性日。')); S.flex.used.push(k); S.flex.bank--; save(); closeSheet(); cache={}; updateToday(); if(curTab==='days') renderDays(); toast(L('Cheat day used. Your streak holds.','已使用弹性日，连续记录保持。')); }
 
 /* ---------- plan sheet ---------- */
 var moreOpen=false;
