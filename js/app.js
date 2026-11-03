@@ -499,8 +499,20 @@ function initCal(){ var d=new Date(); calY=d.getFullYear(); calM=d.getMonth(); s
 function numTxt(h){ var r=h>=100; return new Intl.NumberFormat(loc(),{minimumFractionDigits:r||!h?0:1,maximumFractionDigits:r?0:1}).format(h); }
 function totalsHtml(){
   var t=C.totals(S.fasts), st=curStreak(), since=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(t.since));
-  return '<div class="group tot"><div class="tt"><span class="tk">'+L('Total fasted','累计断食')+'</span><b class="tn" aria-label="'+numTxt(t.hours)+' '+L('hours','小时')+'"><span class="rn">'+numTxt(t.hours)+'</span><small>'+L('hours','小时')+'</small></b><span class="ts">'+L('Since '+since,'自 '+since+' 起')+'</span></div>'+
+  return '<div class="group tot"><div class="tmain"><div class="tt"><span class="tk">'+L('Total fasted','累计断食')+'</span><b class="tn" aria-label="'+numTxt(t.hours)+' '+L('hours','小时')+'"><span class="rn">'+numTxt(t.hours)+'</span><small>'+L('hours','小时')+'</small></b><span class="ts">'+L('Since '+since,'自 '+since+' 起')+'</span></div>'+monthMoon()+'</div>'+
     '<div class="tstats"><div><b>'+st+'</b><span>'+L('day streak','天连续')+'</span></div><div><b>'+t.n+'</b><span>'+L(t.n===1?'fast':'fasts','次断食')+'</span></div><div><b>'+numTxt(t.avg)+' '+L('h','小时')+'</b><span>'+L('average','平均')+'</span></div></div></div>';
+}
+/* the moon beside the total: it fills counter-clockwise, one slice for every day this month that has a fast on it (the same way the timer disc fills) */
+function monthMoon(){
+  var d=new Date(), r=C.monthRecap(S.fasts,d.getFullYear(),d.getMonth(),S.flex.used,C.offKeys(S.off)), n=r.days.filter(function(s){ return s==='done'||s==='early'; }).length, dim=r.days.length, p=n/dim;
+  return '<div class="tmoon"><svg viewBox="-18 -18 36 36" role="img" aria-label="'+L(n+' of '+dim+' days fasted this month','本月已断食 '+n+' / '+dim+' 天')+'"><defs><radialGradient id="tmG" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FFF4C8"/><stop offset=".55" stop-color="#F5DE8C"/><stop offset="1" stop-color="#E8C867"/></radialGradient></defs>'+
+    '<circle r="16" class="tm-u"/><path class="tm-l" data-p="'+p.toFixed(4)+'" d="'+wedgePath(p,16)+'" fill="url(#tmG)"/><circle cx="-5.6" cy="-4.8" r="2.6" class="tm-c"/><circle cx="4.4" cy="4.6" r="3.4" class="tm-c"/><circle cx="3.6" cy="-7.6" r="1.6" class="tm-c"/><circle r="16" class="tm-r"/></svg>'+
+    '<span aria-hidden="true">'+L(n+' of '+dim+' days',n+' / '+dim+' 天')+'</span></div>';
+}
+function moonFill(el){
+  var l=el&&el.querySelector('.tm-l'); if(!l||reduce) return;
+  var p=+l.getAttribute('data-p'); if(!p) return; var t0=performance.now(), D=1100;
+  (function step(t){ var k=Math.min((t-t0)/D,1), e=1-Math.pow(1-k,3); if(!document.body.contains(l)) return; l.setAttribute('d',wedgePath(p*e,16)); if(k<1) requestAnimationFrame(step); })(t0);
 }
 /* the month in review: on the 1st to the 7th, last month's recap sits above the totals until it is dismissed. It needs at least three fasts, and nothing is sent. */
 function recapMonth(){ var d=new Date(); if(d.getDate()>7) return null; var pm=new Date(d.getFullYear(),d.getMonth()-1,1); return {y:pm.getFullYear(),m:pm.getMonth(),key:pm.getFullYear()+'-'+('0'+(pm.getMonth()+1)).slice(-2)}; }
@@ -759,7 +771,7 @@ function renderDays(){
   }
   if(!first1) h+='<div class="gh avgh">'+L('Average fast','平均断食时长')+'</div><div id="avgBox">'+avgHtml(avgPlay)+'</div>';
   $('days').innerHTML=h; avgPlay=false; fabSync();
-  if(numPlay){ numPlay=false; odo($('days').querySelector('.tot .rn')); }
+  if(numPlay){ numPlay=false; odo($('days').querySelector('.tot .rn')); moonFill($('days').querySelector('.tot')); }
 }
 
 /* ---------- in-app wheel pickers: they replace the browser's date, time and select controls ----------

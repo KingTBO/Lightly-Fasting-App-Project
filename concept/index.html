@@ -486,6 +486,9 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .tt{display:flex;flex-direction:column;gap:2px;padding-bottom:16px}.tk{font:500 13px var(--font);color:var(--label-2)}
 .tn{font:700 48px/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.tn small{font:600 20px var(--font-r);color:var(--label-2);margin-left:8px;letter-spacing:0}
 .ts{font:400 14px var(--font);color:var(--label-2)}
+.tmain{display:flex;align-items:center;justify-content:space-between;gap:12px}.tmain .tt{min-width:0}.tmain .tn{display:flex;flex-wrap:wrap;align-items:baseline}
+.tmoon{display:flex;flex-direction:column;align-items:center;gap:6px;flex:none;padding-bottom:16px}.tmoon svg{display:block;width:84px;height:84px;overflow:visible}.tmoon span{font:500 12px var(--font);color:var(--label-2);white-space:nowrap}
+.tm-u{fill:var(--fill-2)}.tm-c{fill:rgba(120,90,20,.1)}.tm-r{fill:none;stroke:rgba(120,100,50,.45);stroke-width:.5}
 .tstats{display:grid;grid-template-columns:repeat(3,1fr);border-top:.5px solid var(--sep);margin:0 -16px}.tstats div{padding:12px 4px 14px;text-align:center;min-width:0}.tstats div+div{border-left:.5px solid var(--sep)}
 .tstats b{display:block;font:700 20px/1.15 var(--font-r);font-variant-numeric:tabular-nums}.tstats span{font:400 12px var(--font);color:var(--label-2)}
 /* the recap card on Days: a tinted card that opens into the report */
@@ -2550,8 +2553,14 @@ function dyBloom(){
   $('dyHead').addEventListener('click',function(e){ if(e.target.closest('#dyRcOpen')) dyRpOpen(); });
   $('dyReport').addEventListener('click',function(e){ if(e.target.closest('[data-rpclose]')) dyRpClose(); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&dyRp.open) dyRpClose(); });
-  function dyTotals(st,done){ var zh=api.lang()==='zh', n=77+done, hrs=Math.round(1268+done*16.5), avg=hrs/n;
-    return '<div class="tot"><div class="tt"><span class="tk">'+(zh?'累计断食':'Total fasted')+'</span><b class="tn"><span class="rn">'+DY_FNUM(hrs)+'</span><small>'+(zh?'小时':'hours')+'</small></b><span class="ts">'+(zh?'自 2026年4月 起':'Since April 2026')+'</span></div>'+
+  function dyWedge(p,r){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; if(p>=.999) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z'; var a=p*2*Math.PI; return 'M0 0 L0 '+(-r)+' A'+r+' '+r+' 0 '+(a>Math.PI?1:0)+' 0 '+(-r*Math.sin(a)).toFixed(2)+' '+(-r*Math.cos(a)).toFixed(2)+'Z'; }
+  /* the moon beside the total: one slice for every day this month that has a fast on it */
+  function dyMoon(fd,dim){ var zh=api.lang()==='zh', p=fd/dim;
+    return '<div class="tmoon"><svg viewBox="-18 -18 36 36" role="img" aria-label="'+(zh?'本月已断食 '+fd+' / '+dim+' 天':fd+' of '+dim+' days fasted this month')+'"><defs><radialGradient id="tmG" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FFF4C8"/><stop offset=".55" stop-color="#F5DE8C"/><stop offset="1" stop-color="#E8C867"/></radialGradient></defs><circle r="16" class="tm-u"/><path class="tm-l" data-p="'+p.toFixed(4)+'" d="'+dyWedge(p,16)+'" fill="url(#tmG)"/><circle cx="-5.6" cy="-4.8" r="2.6" class="tm-c"/><circle cx="4.4" cy="4.6" r="3.4" class="tm-c"/><circle cx="3.6" cy="-7.6" r="1.6" class="tm-c"/><circle r="16" class="tm-r"/></svg><span aria-hidden="true">'+(zh?fd+' / '+dim+' 天':fd+' of '+dim+' days')+'</span></div>'; }
+  function dyMoonFill(el){ var l=el&&el.querySelector('.tm-l'); if(!l||reduce) return; var p=+l.getAttribute('data-p'); if(!p) return; var t0=performance.now();
+    (function step(t){ var k=Math.min((t-t0)/1100,1), e=1-Math.pow(1-k,3); if(!document.body.contains(l)) return; l.setAttribute('d',dyWedge(p*e,16)); if(k<1) requestAnimationFrame(step); })(t0); }
+  function dyTotals(st,done,fd,dim){ var zh=api.lang()==='zh', n=77+done, hrs=Math.round(1268+done*16.5), avg=hrs/n;
+    return '<div class="tot"><div class="tmain"><div class="tt"><span class="tk">'+(zh?'累计断食':'Total fasted')+'</span><b class="tn"><span class="rn">'+DY_FNUM(hrs)+'</span><small>'+(zh?'小时':'hours')+'</small></b><span class="ts">'+(zh?'自 2026年4月 起':'Since April 2026')+'</span></div>'+dyMoon(fd,dim)+'</div>'+
       '<div class="tstats"><div><b>'+st+'</b><span>'+(zh?'天连续':'day streak')+'</span></div><div><b>'+n+'</b><span>'+(zh?'次断食':'fasts')+'</span></div><div><b>'+DY_FNUM(avg)+' '+(zh?'小时':'h')+'</b><span>'+(zh?'平均':'average')+'</span></div></div></div>'; }
   function dyAvgData(){ var zh=api.lang()==='zh', now=new Date(), md=dyMonthDate(dyOff), y=md.getFullYear(), m=md.getMonth(), bars=[], fmt=function(d,o){ return new Intl.DateTimeFormat(zh?'zh-CN':'en',o).format(d); };
     if(dyMode==='months'){ var vals=[15.8,16.2,16.1,16.6,16.9,17.1]; for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(),now.getMonth()-i,1); bars.push({n:10+i*2,h:vals[5-i],lab:fmt(d,{month:'short'}),full:fmt(d,{month:'long',year:'numeric'}),cur:5-i===5-dyOff}); } return bars; }
@@ -2579,8 +2588,8 @@ function dyBloom(){
     ['S','M','T','W','T','F','S'].forEach(function(w){ h+='<i>'+w+'</i>'; }); for(var k=0;k<first;k++) h+='<span></span>';
     for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=((i+dyOff)%9===4)?'early':((i+dyOff)%11===6)?'flex':(isNow&&i===today-2&&today>3)?'off':'done'; } else if(i===today) c='today'; h+='<button type="button" class="'+c+(dySel&&dySel[0]===dyOff&&dySel[1]===i?' sel':'')+'" data-d="'+i+'" aria-label="'+i+'">'+i+'</button>'; }
     /* the header always shows the sample streak for today */
-    var nd=now.getDate(), st=0, done=0; for(var j=1;j<nd;j++){ var cc=(j%9===4)?'early':(j%11===6)?'flex':(j===nd-2&&nd>3)?'off':'done'; if(cc==='done'){ st++; done++; } else if(cc==='early') st=0; } st=Math.min(st,nd); var best=Math.max(st,12), total=done+31;
-    $('dyHead').innerHTML=(dyOff===0&&!dyRcOff?dyRecap():'')+dyTotals(st,done); var rx=$('dyRcX'); if(rx) rx.addEventListener('click',function(){ dyRcOff=true; daysRender(); }); dyAvgDraw(false); if(dyPlay) dyOdo($('dyHead').querySelector('.tot .rn'));
+    var nd=now.getDate(), st=0, done=0, fd=0; for(var j=1;j<nd;j++){ var cc=(j%9===4)?'early':(j%11===6)?'flex':(j===nd-2&&nd>3)?'off':'done'; if(cc==='done'){ st++; done++; fd++; } else if(cc==='early'){ st=0; fd++; } } st=Math.min(st,nd); var best=Math.max(st,12), total=done+31;
+    $('dyHead').innerHTML=(dyOff===0&&!dyRcOff?dyRecap():'')+dyTotals(st,done,fd,new Date(now.getFullYear(),now.getMonth()+1,0).getDate()); var rx=$('dyRcX'); if(rx) rx.addEventListener('click',function(){ dyRcOff=true; daysRender(); }); dyAvgDraw(false); if(dyPlay){ dyOdo($('dyHead').querySelector('.tot .rn')); dyMoonFill($('dyHead').querySelector('.tot')); }
     $('dyCal').innerHTML=h; dyPlay=false; var mn=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long',year:'numeric'}).format(md);
     $('dyMonth').innerHTML=mn+'<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg>';
     $('dyPrev').disabled=dyOff>=DY_BACK; $('dyNext').disabled=dyOff<=0; $('dyPrev').setAttribute('aria-label',zh?'上个月':'Previous month'); $('dyNext').setAttribute('aria-label',zh?'下个月':'Next month');
