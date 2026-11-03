@@ -526,7 +526,7 @@ function odo(el){
 var numPlay=false;
 
 /* ---------- the recap report: the card on Days grows into a full screen of the month, in chapters ---------- */
-var rp={open:false,busy:false,src:null,io:null};
+var rp={open:false,busy:false,src:null,io:null,h:null};
 var RP_EASE='cubic-bezier(.32,.72,0,1)';
 function rngLab(s,e){ var a=C.keyToDate(s), b=C.keyToDate(e);
   if(S.lang==='zh') return (a.getMonth()+1)+'/'+a.getDate()+(s===e?'':'–'+(a.getMonth()===b.getMonth()?'':(b.getMonth()+1)+'/')+b.getDate());
@@ -558,7 +558,7 @@ function reportHtml(pm,r){
   return '<div class="rp-in" id="rpIn"><div class="rp-scroll" id="rpScroll" tabindex="-1">'+
     '<section class="rp-s rp-hero rv" aria-labelledby="rpT"><h2 id="rpT" class="rpi" style="--i:0">'+L('Your '+name+' recap','你的'+name+'回顾')+'</h2>'+
     '<div class="rp-big rpi" style="--i:1" role="img" aria-label="'+numTxt(r.hours)+' '+L('hours fasted','小时断食')+'"><span class="rn">'+numTxt(r.hours)+'</span></div><p class="rp-unit rpi" style="--i:2">'+L('hours fasted','小时断食')+'</p>'+
-    '<svg class="rp-disc rpi" style="--i:3" viewBox="-100 -100 200 200" aria-hidden="true"><defs><radialGradient id="rpG" cx=".38" cy=".34" r=".78"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient><filter id="rpF" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.2"/></filter><mask id="rpM" maskUnits="userSpaceOnUse" x="-100" y="-100" width="200" height="200"><path id="rpLit" fill="#fff" filter="url(#rpF)"/></mask></defs><circle r="90" class="u"/><g mask="url(#rpM)"><circle r="90" fill="url(#rpG)"/><g class="cr"><circle cx="-34" cy="-30" r="17"/><circle cx="30" cy="-46" r="9"/><circle cx="46" cy="10" r="14"/><circle cx="-8" cy="34" r="19"/><circle cx="-56" cy="22" r="8"/><circle cx="14" cy="-8" r="6"/></g></g><circle r="90" class="rim"/></svg>'+
+    '<div class="rp-orb rpi" style="--i:3" aria-hidden="true"><svg class="rp-disc" viewBox="-118 -118 236 236"><defs><radialGradient id="rpG" cx=".38" cy=".34" r=".78"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient><radialGradient id="rpGs" cx=".4" cy=".36" r=".78"><stop offset="0" stop-color="#FFF6C2"/><stop offset=".5" stop-color="#FFD21F"/><stop offset="1" stop-color="#F5A800"/></radialGradient><filter id="rpF" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.4"/></filter><mask id="rpM" maskUnits="userSpaceOnUse" x="-120" y="-120" width="240" height="240"><path id="rpLit" fill="#fff" filter="url(#rpF)"/></mask></defs><circle r="84" class="u"/><g mask="url(#rpM)"><circle r="84" fill="url(#rpG)" id="rpMoon"/><g class="cr" id="rpCr"><circle cx="-32" cy="-28" r="16"/><circle cx="28" cy="-43" r="8"/><circle cx="43" cy="9" r="13"/><circle cx="-7" cy="32" r="18"/><circle cx="-52" cy="20" r="7"/><circle cx="13" cy="-7" r="5"/></g><circle r="84" fill="url(#rpGs)" id="rpSun" opacity="0"/></g><circle r="84" class="rim"/></svg></div>'+
     '<p class="rp-sub rpi" style="--i:4">'+r.n+' '+L(r.n===1?'fast':'fasts','次断食')+' · '+r.daysWith+' '+L('of','/')+' '+r.dim+' '+L('days','天')+'</p>'+
     '<svg class="rp-more" viewBox="0 0 14 8" aria-hidden="true"><path d="M1.5 1.5 7 6.5l5.5-5"/></svg></section>'+
     '<section class="rp-s rv" aria-labelledby="rpT2"><h3 id="rpT2" class="rpi">'+L('Your month in the sky','这个月的天空')+'</h3><div class="rp-cal" role="img" aria-label="'+esc(gl.join(', '))+'">'+grid+'</div><p class="rp-cap rpi" style="--i:2">'+gl.join(' · ')+'</p></section>'+
@@ -571,14 +571,34 @@ function reportHtml(pm,r){
     '<section class="rp-s rv" aria-labelledby="rpT6"><h3 id="rpT6" class="rpi">'+L('Highlights','亮点')+'</h3><div class="rp-tiles">'+tiles+'</div></section>'+
     '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?L('A steady month.','稳稳的一个月。'):L('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+L('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="btn rpi" style="--i:2" data-act="rpclose">'+L('Done','完成')+'</button></section></div><button type="button" class="rp-x" data-act="rpclose" aria-label="'+L('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>';
 }
+/* the hero disc is the same moon and sun as Today: the real 3D ball when the 3D switch is on (and WebGL works), the flat drawing otherwise.
+   The lit part fills counter-clockwise like the moon on Today, then the moon turns into the sun, with the goal bloom. */
+var rpOrb=null, rpOrbCv=null, rpOrbTried=false;
+function rpOrbGet(){
+  var wrap=document.querySelector('#report .rp-orb'); if(!wrap||!S.prefs.d3||!window.LightlySphere) return null;
+  try{ if(!rpOrbTried){ rpOrbTried=true; rpOrb=window.LightlySphere(wrap.querySelector('svg')); rpOrbCv=wrap.querySelector('canvas.orb'); }
+    else if(rpOrb&&rpOrbCv) wrap.appendChild(rpOrbCv); }catch(e){ rpOrb=null; }
+  if(rpOrb){ rpOrb.set(true); if(!rpOrb.ok()) return null; } return rpOrb;
+}
+function rpHeroDraw(){
+  var h=rp.h, svg=document.querySelector('#report .rp-disc'); if(!h||!svg) return;
+  if(h.orb&&h.orb.ok()){ svg.style.visibility='hidden'; h.orb.draw({p:h.p,wane:false,moon:h.moon,tx:0,ty:0,ox:0,oy:0,scale:1,alpha:1,night:1,glow:(1-h.moon)*h.p*(.35+.65*h.boost)+h.boost*.3,halo:h.moon*h.boost}); return; }
+  svg.style.visibility=''; $('rpLit').setAttribute('d',wedgePath(h.p,84,false)); $('rpMoon').style.opacity=1; $('rpSun').style.opacity=1-h.moon; $('rpCr').style.opacity=h.moon;
+}
 function rpDisc(p,play){
-  var lit=$('rpLit'); if(!lit) return; if(!play||reduce){ lit.setAttribute('d',wedgePath(p,90,false)); return; }
-  var t0=null, dur=1700; function f(t){ if(!$('rpLit')) return; if(t0===null) t0=t; var u=Math.min((t-t0)/dur,1), e=1-Math.pow(1-u,4); lit.setAttribute('d',wedgePath(p*e,90,false)); if(u<1) requestAnimationFrame(f); else rpBloom(); } requestAnimationFrame(f);
+  if(!$('rpLit')) return; rp.h={p:play?0:p,moon:play||p<=0?1:0,boost:0,orb:rpOrbGet()}; rpHeroDraw();
+  if(!play||reduce) return;
+  var t0=null, FILL=1700, TURN=1300, bloomed=false;
+  function f(t){ var h=rp.h; if(!rp.open||!h||!$('rpLit')) return; if(t0===null) t0=t; var el=t-t0;
+    var u=Math.min(el/FILL,1); h.p=p*(1-Math.pow(1-u,4));
+    if(el>FILL){ var v=Math.min((el-FILL)/TURN,1), e=v*v*(3-2*v); h.moon=1-e; h.boost=Math.max(0,1-v*1.15); if(!bloomed){ bloomed=true; rpBloom(); } }
+    rpHeroDraw(); if(el<FILL+TURN+80||h.orb) requestAnimationFrame(f); }
+  requestAnimationFrame(f);
 }
 /* when the moon has filled, the same soft bloom and drifting lights as reaching a goal on Today (no check: this is not a goal) */
 function rpBloom(){
-  var svg=document.querySelector('#report .rp-disc'), hero=svg&&svg.parentNode; if(!hero||reduce||!hero.animate) return;
-  var hr=hero.getBoundingClientRect(), d=svg.getBoundingClientRect(), cx=d.left-hr.left+d.width/2, cy=d.top-hr.top+d.height/2, r=d.width/2, el=document.createElement('div');
+  var svg=document.querySelector('#report .rp-orb'), hero=svg&&svg.parentNode; if(!hero||reduce||!hero.animate) return;
+  var hr=hero.getBoundingClientRect(), d=svg.getBoundingClientRect(), cx=d.left-hr.left+d.width/2, cy=d.top-hr.top+d.height/2, r=d.width*.36, el=document.createElement('div');
   el.setAttribute('aria-hidden','true'); el.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:0';
   var glow=document.createElement('div'); glow.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+r*2+'px;height:'+r*2+'px;margin:'+(-r)+'px 0 0 '+(-r)+'px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,255,255,.45) 40%,rgba(255,255,255,0) 70%);opacity:0'; el.appendChild(glow);
   hero.appendChild(el); glow.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1.4)',offset:.3},{opacity:0,transform:'scale(2.6)'}],{duration:1600,easing:'cubic-bezier(.22,.8,.3,1)',fill:'forwards'});
@@ -609,7 +629,7 @@ function openReport(btn){
   var sc=$('rpScroll'); sc.scrollTop=0;
   if(reduce||!R.animate){ R.animate&&R.animate([{opacity:0},{opacity:1}],{duration:220,fill:'none'}); if(rp.heroGo) rp.heroGo(); sc.focus({preventScroll:true}); return; }
   rp.busy=true;
-  var a=R.animate([{clipPath:rpRect()},{clipPath:'inset(0px 0px 0px 0px round 0px)'}],{duration:620,easing:RP_EASE,fill:'both'});
+  var bg0=getComputedStyle(R).backgroundColor, a=R.animate([{clipPath:rpRect(),backgroundColor:bg0},{clipPath:'inset(0px 0px 0px 0px round 0px)',backgroundColor:'#0E1430'}],{duration:620,easing:RP_EASE,fill:'both'});
   $('rpIn').animate([{opacity:0},{opacity:0,offset:.3},{opacity:1}],{duration:620,easing:'linear',fill:'both'});
   D.animate([{transform:'scale(1)',opacity:1},{transform:'scale(.94)',opacity:.5}],{duration:620,easing:RP_EASE,fill:'both'});
   setTimeout(function(){ if(rp.heroGo) rp.heroGo(); },300);
@@ -620,7 +640,7 @@ function closeReport(fromDrag){
   function done(){ R.getAnimations({subtree:true}).forEach(function(x){ x.cancel(); }); rp.busy=false; rp.open=false; R.hidden=true; R.innerHTML=''; R.style.cssText=''; D.getAnimations().forEach(function(x){ x.cancel(); }); if(rp.io) rp.io.disconnect(); rp.heroGo=null; if(rp.src&&document.body.contains(rp.src)){ var b=rp.src.querySelector('.rcmain'); if(b) b.focus({preventScroll:true}); } }
   if(reduce||!R.animate){ var f=R.animate([{opacity:1},{opacity:0}],{duration:180,fill:'both'}); f.onfinish=done; return; }
   var from=getComputedStyle(R).transform, rad=R.style.borderRadius||'0px'; R.getAnimations().forEach(function(x){ x.cancel(); }); R.style.clipPath='inset(0px 0px 0px 0px round 0px)';
-  var a=R.animate([{clipPath:'inset(0px 0px 0px 0px round 0px)',transform:from==='none'?'none':from},{clipPath:rpRect(),transform:'none'}],{duration:440,easing:RP_EASE,fill:'both'});
+  var bg1=getComputedStyle(R).backgroundColor, a=R.animate([{clipPath:'inset(0px 0px 0px 0px round 0px)',transform:from==='none'?'none':from,backgroundColor:'#0E1430'},{clipPath:rpRect(),transform:'none',backgroundColor:bg1}],{duration:440,easing:RP_EASE,fill:'both'});
   $('rpIn').animate([{opacity:1},{opacity:0}],{duration:200,easing:'ease-out',fill:'both'});
   D.getAnimations().forEach(function(x){ x.cancel(); }); D.animate([{transform:'scale(.94)',opacity:.5},{transform:'scale(1)',opacity:1}],{duration:440,easing:RP_EASE,fill:'both'});
   a.onfinish=done;

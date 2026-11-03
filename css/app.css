@@ -496,14 +496,14 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .rp-cap{font:400 1rem/1.4 var(--font);color:var(--label-2);margin-top:6px}
 .rp-line{font:500 1.1875rem/1.4 var(--font);margin-top:10px}
 .rp-line b{font-weight:700;font-variant-numeric:tabular-nums}
-.rp-hero{min-height:100%;overflow:hidden;background:var(--tint);color:var(--on-tint);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(max(var(--sat),14px) + 56px) 20px 64px;position:relative}
+.rp-hero{min-height:100%;overflow:hidden;background:#0E1430;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(max(var(--sat),14px) + 56px) 20px 64px;position:relative}
 .rp-hero h2{font:700 1.5rem/1.2 var(--font-d);letter-spacing:-.015em}
 .rp-big{font:700 clamp(4.75rem,26vw,6.75rem)/1.05 var(--font-r);letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin-top:18px}
 .rp-unit{font:600 1.25rem var(--font-r);opacity:.72;margin-top:2px}
-.rp-disc{width:min(200px,52vw);height:auto;margin:28px 0 20px;display:block}
-.rp-disc .u{fill:rgba(0,0,0,.14)}.rp-disc .rim{fill:none;stroke:rgba(0,0,0,.3);stroke-width:1.5}.rp-disc .cr circle{fill:rgba(120,108,84,.16)}
+.rp-orb{position:relative;width:236px;height:236px;margin:16px 0 8px;flex:none}.rp-disc{display:block;width:236px;height:236px;overflow:visible}
+.rp-disc .u{fill:rgba(255,255,255,.1);stroke:rgba(255,255,255,.28);stroke-width:1.5}.rp-disc .rim{fill:none}.rp-disc .cr circle{fill:rgba(120,108,84,.16)}
 .rp-sub{font:500 1.0625rem var(--font);opacity:.78}
-.rp-more{position:absolute;bottom:22px;left:50%;width:18px;height:11px;margin-left:-9px;fill:none;stroke:var(--on-tint);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.rp-more{position:absolute;bottom:22px;left:50%;width:18px;height:11px;margin-left:-9px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
 .rp-card{background:var(--card)}
 /* month in the sky */
 .rp-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px 0;justify-items:center;margin-top:22px}

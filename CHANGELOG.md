@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.66.0
+- **design** The recap report opens on the 3D moon and sun from Today (when the 3D switch is on): the moon fills counter-clockwise, then turns into the sun with the soft goal bloom and sparks. With the 3D switch off, or on a phone without 3D, it does the same with the flat moon and sun. The first page is now a night sky so the sun shows up, and the card still grows from yellow into it. Concept page matches.
+
 ## 0.65.0
 - **design** The recap report now opens on the real moon from the Today screen (soft craters, lit part filling counter-clockwise) instead of a plain white disc. When it has filled, it blooms with the same soft light and drifting sparks as reaching a goal. With Reduce Motion on it just shows the filled moon. The concept page matches.
 
