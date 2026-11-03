@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.71.0
+- **design** Today now has a living sky. The background shades from a deeper colour at the top to a lighter one at the bottom as the hours of the day pass, and soft clouds drift by in the daytime (still when Reduce Motion is on). Nothing else on Today moves or changes.
+- **feature** A new "Timeline" setting on the Me tab (Arc or Day strip). The Day strip shows your 24 hours from the start of the fast in the colours of the sky, with your fast on it in gold, the goal mark, a small sun and moon at sunrise and sunset, and your start and finish times. Arc stays the default.
+
 ## 0.70.1
 - **design** Delete account now sits in the Account section at the end of the Me tab, below Sign out, instead of in the middle of the page.
 
