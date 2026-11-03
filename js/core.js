@@ -251,8 +251,29 @@ function monthRecap(fasts,y,m,flexUsed,offKeys){
   weekAvgs(fasts,y,m).forEach(function(w){ if(w.n>=2&&(!busy||w.n>busy.n)) busy=w; });
   return {n:l.length,hours:h,avg:l.length?h/l.length:0,reached:l.filter(isDone).length,days:days,busy:busy};
 }
+/* the full recap report: everything in monthRecap plus the longest run, where the hours fell (moon or sun, by the real sunrise and sunset of the place),
+   and the usual start and finish. Nothing here rewards a longer fast: the run counts days that reached the goal, the sky split is only a description. */
+function circMean(hs){ var x=0,y=0; hs.forEach(function(h){ var a=h/24*2*Math.PI; x+=Math.cos(a); y+=Math.sin(a); }); if(!hs.length) return null; var a=Math.atan2(y,x); if(a<0) a+=2*Math.PI; return Math.round(a/(2*Math.PI)*24*12)/12%24; }
+function clockHour(ms){ var d=new Date(ms); return d.getHours()+d.getMinutes()/60; }
+function skySplit(list,place){
+  var moon=0, sun=0, step=10*60000, cache={};
+  list.forEach(function(f){ var pi=placeInfo(place,f.start);
+    for(var t=f.start; t<f.end; t+=step){ var seg=Math.min(step,f.end-t), dk=Math.floor((t/H+pi.off)/24), su=cache[dk]||(cache[dk]=sunTimes(pi,t));
+      if(moonAmt(placeHour(pi,t+seg/2),su)>=.5) moon+=seg/H; else sun+=seg/H; } });
+  return {moon:moon,sun:sun};
+}
+function monthReport(fasts,y,m,flexUsed,offKeys,place){
+  var r=monthRecap(fasts,y,m,flexUsed,offKeys), first=dayKey(new Date(y,m,1).getTime()), dim=r.days.length, last=dayKey(new Date(y,m,dim).getTime());
+  var l=finished(fasts).filter(function(f){ var k=dayKey(f.end); return k>=first&&k<=last; }), run=0, best=0, withFast=0;
+  r.days.forEach(function(s){ if(s==='done'||s==='early') withFast++; if(s==='done'){ run++; if(run>best) best=run; } else if(s!=='flex'&&s!=='off') run=0; });
+  var sp=skySplit(l,place);
+  r.dim=dim; r.daysWith=withFast; r.run=best; r.moonH=sp.moon; r.sunH=sp.sun;
+  r.start=circMean(l.map(function(f){ return clockHour(f.start); })); r.finish=circMean(l.map(function(f){ return clockHour(f.end); }));
+  r.flex=r.days.filter(function(s){ return s==='flex'; }).length; r.weeks=weekAvgs(fasts,y,m);
+  return r;
+}
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,planStatusLabel:planStatusLabel,
-  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap};
+  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);

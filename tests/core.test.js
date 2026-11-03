@@ -69,4 +69,15 @@ assert.strictEqual(r.n,5);assert.strictEqual(r.hours,77);assert.strictEqual(r.re
 assert.strictEqual(r.days[1],'done');assert.strictEqual(r.days[7],'early');assert.strictEqual(r.days[9],'flex');assert.strictEqual(r.days[0],'none');
 assert.strictEqual(r.busy.s,'2026-10-05','week of the 5th has three fasts');assert.strictEqual(r.busy.n,3);
 assert.strictEqual(C.monthRecap([at(2,16)],2026,9).busy,null,'one fast in a week is not a busy week');assert.strictEqual(C.monthRecap([],2026,9).n,0);}
+// full recap report
+{const at=(d,h,g)=>{const e=new Date(2026,9,d,12).getTime();return{id:'q'+d,start:e-h*H,end:e,goalH:g||16};};
+const fs=[at(9,16),at(11,16),at(12,16),at(14,16),at(15,10)],r=C.monthReport(fs,2026,9,['2026-10-10'],[],{key:'shanghai'});
+assert.strictEqual(r.dim,31);assert.strictEqual(r.run,3,'a cheat day holds the run: 9, cheat 10, 11, 12; the 13th breaks it');assert.strictEqual(r.daysWith,5);assert.strictEqual(r.flex,1);assert.strictEqual(r.weeks.length,5);
+assert.ok(Math.abs(r.moonH+r.sunH-r.hours)<1e-6,'sky split adds up to the hours');
+const sh=[{id:'s1',start:Date.UTC(2026,9,12,12,0),end:Date.UTC(2026,9,13,4,0),goalH:16}],k=C.skySplit(sh,{key:'shanghai'});
+assert.ok(k.moon>9.3&&k.moon<10.7,'20:00 to 12:00 in Shanghai is about 10 h under the moon, got '+k.moon);assert.ok(Math.abs(k.moon+k.sun-16)<1e-6);
+const mid=[{id:'m1',start:new Date(2026,9,3,22,0).getTime(),end:new Date(2026,9,4,14,0).getTime(),goalH:16},{id:'m2',start:new Date(2026,9,4,23,0).getTime(),end:new Date(2026,9,5,15,0).getTime(),goalH:16},{id:'m3',start:new Date(2026,9,5,21,0).getTime(),end:new Date(2026,9,6,13,0).getTime(),goalH:16}];
+const mr=C.monthReport(mid,2026,9,[],[],{key:'shanghai'});assert.ok(Math.abs(mr.start-22)<1e-6,'usual start across midnight, got '+mr.start);assert.ok(Math.abs(mr.finish-14)<1e-6);
+const wrap=C.monthReport([{id:'w1',start:new Date(2026,9,3,23,30).getTime(),end:new Date(2026,9,4,15,30).getTime(),goalH:16},{id:'w2',start:new Date(2026,9,5,0,30).getTime(),end:new Date(2026,9,5,16,30).getTime(),goalH:16},{id:'w3',start:new Date(2026,9,6,0,0).getTime(),end:new Date(2026,9,6,16,0).getTime(),goalH:16}],2026,9,[],[],{key:'shanghai'});
+assert.ok(Math.abs(wrap.start-0)<.01||Math.abs(wrap.start-24)<.01,'23:30, 00:30 and 00:00 average near midnight, got '+wrap.start);}
 console.log('core ok',s);

@@ -488,10 +488,111 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .ts{font:400 14px var(--font);color:var(--label-2)}
 .tstats{display:grid;grid-template-columns:repeat(3,1fr);border-top:.5px solid var(--sep);margin:0 -16px}.tstats div{padding:12px 4px 14px;text-align:center;min-width:0}.tstats div+div{border-left:.5px solid var(--sep)}
 .tstats b{display:block;font:700 20px/1.15 var(--font-r);font-variant-numeric:tabular-nums}.tstats span{font:400 12px var(--font);color:var(--label-2)}
-.dy-rc{background:var(--card);border-radius:14px;margin-bottom:10px;overflow:hidden;padding:20px 16px 0}.dy-rc .rch{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.dy-rc .rcx{position:relative;flex:none;border:0;background:none;color:var(--label-2);width:44px;height:44px;margin:-14px -14px -6px 0;display:grid;place-items:center;cursor:pointer}.dy-rc .rcx::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--fill)}.dy-rc .rcx svg{position:relative;width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
-.dy-rc .rcd{display:flex;justify-content:space-between;align-items:center;padding:14px 0 16px}.dy-rc .rcd i{width:7px;height:7px;border-radius:50%;background:var(--fill-2);flex:none}.dy-rc .rcd i.d{background:var(--tint)}.dy-rc .rcd i.f{background:none;border:1.2px dashed var(--label-2)}.dy-rc .rcd i.e{background:none;border:1.5px solid var(--orange)}
-.dy-rc .rcb{margin:0 -16px;padding:10px 16px 14px;border-top:.5px solid var(--sep);font:400 13px var(--font);color:var(--label-2)}
+/* the recap card on Days: a tinted card that opens into the report */
+.rcard{position:relative;margin:0 var(--m) var(--group-gap);border-radius:14px;background:var(--tint);color:var(--on-tint);transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.rcard:has(.rcmain:active){transform:scale(.975);transition-duration:.12s}
+.rcmain{cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;border:0;background:none;color:inherit;text-align:left;padding:18px 16px 16px;border-radius:14px}
+.rcmain:focus-visible,.rcx:focus-visible{outline:3px solid var(--on-tint);outline-offset:-5px}
+.rct{font:700 1.375rem/1.2 var(--font-d);letter-spacing:-.01em;padding-right:40px}
+.rcs{font:500 0.9375rem var(--font);opacity:.72}
+.rcd{display:flex;justify-content:space-between;align-items:center;align-self:stretch;padding:16px 0 18px}
+.rcd i{width:7px;height:7px;border-radius:50%;background:rgba(0,0,0,.2);flex:none}
+.rcd i.d{background:var(--on-tint)}
+.rcd i.f{background:none;border:1.2px dashed var(--on-tint)}
+.rcd i.e{background:none;border:1.5px solid var(--on-tint)}
+.rcgo{display:inline-flex;align-items:center;gap:6px;background:var(--on-tint);color:var(--tint);border-radius:999px;padding:8px 14px 8px 16px;font:600 0.9375rem var(--font)}
+.rcgo svg{width:7px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.rcx{cursor:pointer;position:absolute;top:2px;right:2px;border:0;background:none;color:var(--on-tint);width:44px;height:44px;display:grid;place-items:center}
+.rcx::before{content:"";position:absolute;inset:10px;border-radius:50%;background:rgba(0,0,0,.1)}
+.rcx svg{position:relative;width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+/* rolling number */
+.rlo{display:inline-block;height:1.05em;overflow:hidden;vertical-align:top;line-height:1.05}
+.rlc{display:block;will-change:transform}
+.rlc i{display:block;font-style:normal;height:1.05em;line-height:1.05}
+.tn .rn,.rp-big .rn{display:inline-block;line-height:1.05;vertical-align:top}
+/* the report: full screen, in chapters */
+.report{position:absolute;inset:0;z-index:20;background:var(--tint);color:var(--label);--card:#FFFFFF;--bg:#F2F2F7;--label:#000;--label-2:rgba(60,60,67,.75);--fill:rgba(120,120,128,.12);--fill-2:rgba(120,120,128,.2);will-change:clip-path}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .report{--card:#1C1C1E;--bg:#000;--label:#fff;--label-2:rgba(235,235,245,.6);--fill:rgba(118,118,128,.24);--fill-2:rgba(118,118,128,.32)}}
+:root[data-theme="dark"] .report{--card:#1C1C1E;--bg:#000;--label:#fff;--label-2:rgba(235,235,245,.6);--fill:rgba(118,118,128,.24);--fill-2:rgba(118,118,128,.32)}
+.report[hidden]{display:none}
+.rp-scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;background:var(--bg);outline:0;-webkit-overflow-scrolling:touch}
+.rp-in{position:absolute;inset:0}
+.rp-x{cursor:pointer;position:absolute;top:calc(14px + 2px);right:10px;z-index:2;width:44px;height:44px;border:0;background:none;color:var(--label);display:grid;place-items:center}
+.rp-x::before{content:"";position:absolute;inset:6px;border-radius:50%;background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.rp-x svg{position:relative;width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.rp-s{padding:48px 20px 40px}
+.rp-s h3{font:700 1.75rem/1.15 var(--font-d);letter-spacing:-.02em}
+.rp-cap{font:400 1rem/1.4 var(--font);color:var(--label-2);margin-top:6px}
+.rp-line{font:500 1.1875rem/1.4 var(--font);margin-top:10px}
+.rp-line b{font-weight:700;font-variant-numeric:tabular-nums}
+.rp-hero{min-height:100%;background:var(--tint);color:var(--on-tint);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:70px 20px 64px;position:relative}
+.rp-hero h2{font:700 1.5rem/1.2 var(--font-d);letter-spacing:-.015em}
+.rp-big{font:700 clamp(4.75rem,26vw,6.75rem)/1.05 var(--font-r);letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin-top:18px}
+.rp-unit{font:600 1.25rem var(--font-r);opacity:.72;margin-top:2px}
+.rp-disc{width:min(200px,52vw);height:auto;margin:28px 0 20px;display:block}
+.rp-disc .u{fill:rgba(0,0,0,.13)}.rp-disc .l{fill:#F4EFE2}.rp-disc .rim{fill:none;stroke:rgba(0,0,0,.28);stroke-width:2}
+.rp-sub{font:500 1.0625rem var(--font);opacity:.78}
+.rp-more{position:absolute;bottom:22px;left:50%;width:18px;height:11px;margin-left:-9px;fill:none;stroke:var(--on-tint);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.rp-card{background:var(--card)}
+/* month in the sky */
+.rp-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px 0;justify-items:center;margin-top:22px}
+.rp-wd{font:600 0.75rem var(--font);color:var(--label-2);padding-bottom:2px}
+.rp-day{width:min(40px,11.2vw);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font:600 0.8125rem var(--font-r);font-variant-numeric:tabular-nums;box-sizing:border-box}
+.rp-day.n{background:var(--fill);color:var(--label-2)}
+.rp-day.d{background:var(--tint);color:var(--on-tint);box-shadow:0 0 0 .5px var(--bar-edge)}
+.rp-day.f{border:1.5px dashed var(--label-2);color:var(--label-2)}
+.rp-day.o{border:1.5px dotted var(--label-2);color:var(--label-2)}
+.rp-day.e{border:2px solid var(--orange);color:var(--label)}
+/* weeks */
+.rp-wk{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+.rp-wk li{display:grid;grid-template-columns:84px 1fr 66px;align-items:center;gap:10px}
+.rp-wl{font:500 0.8125rem var(--font);color:var(--label-2);white-space:nowrap}
+.rp-bar{position:relative;display:block;height:22px;border-radius:7px;background:var(--fill)}
+.rp-bar i{display:block;height:100%;border-radius:7px;background:var(--tint);box-shadow:inset 0 0 0 .5px var(--bar-edge);transform-origin:left}
+.rp-bar u{position:absolute;top:-3px;bottom:-3px;width:0;border-left:2px dashed var(--label-2);opacity:.7}
+.rp-wk b{font:700 1.0625rem var(--font-r);text-align:right;font-variant-numeric:tabular-nums}
+.rp-wk b{white-space:nowrap}.rp-wk b small{font:500 0.75rem var(--font);color:var(--label-2)}
+/* moon and sun, on the night ground */
+.rp-night{background:#0E1430;color:#fff;--label-2:rgba(235,235,245,.7)}
+.rp-sky{display:flex;height:34px;border-radius:12px;overflow:hidden;margin-top:26px;background:rgba(255,255,255,.1);gap:3px}
+.rp-sky i{display:block;height:100%;transform-origin:left}
+.rp-sky .m,.rp-skyl .m{background:#F4EFE2}
+.rp-sky .s,.rp-skyl .s{background:#FFD60A}
+.rp-skyl{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+.rp-skyl b{display:block;font:700 2.25rem/1.1 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.rp-skyl b small{font:600 1rem var(--font-r);color:var(--label-2)}
+.rp-skyl span:not(.rn){display:flex;align-items:center;gap:8px;font:500 0.9375rem var(--font);color:var(--label-2);margin-top:2px}
+.rp-skyl span i{width:10px;height:10px;border-radius:50%}
+.rp-skyl .rn{display:inline-block}
+/* rhythm */
+.rp-24{margin-top:26px}
+.rp-24 .trk{position:relative;height:30px;border-radius:10px;background:var(--fill);overflow:hidden}
+.rp-24 .trk i{position:absolute;top:0;bottom:0;background:var(--tint);box-shadow:inset 0 0 0 .5px var(--bar-edge);transform-origin:left}
+.rp-24 .lbl{display:flex;justify-content:space-between;margin-top:8px;font:500 0.75rem var(--font);color:var(--label-2);font-variant-numeric:tabular-nums}
+/* highlights */
+.rp-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.rp-t{background:var(--card);border-radius:18px;padding:18px 16px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.rp-t b{font:700 2.5rem/1.1 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.rp-t b small{font:600 1.0625rem var(--font-r);color:var(--label-2);letter-spacing:0}
+.rp-t b.rp-bw{font-size:1.5rem;line-height:1.25;padding:6px 0}
+.rp-t>span{font:500 0.875rem/1.3 var(--font);color:var(--label-2)}
+.rp-t .rn{display:inline-block;line-height:1.1}
+/* closing */
+.rp-end{background:var(--tint);color:var(--on-tint);text-align:center;padding:72px 20px calc(48px + 0px)}
+.rp-bye{font:700 2rem/1.15 var(--font-d);letter-spacing:-.02em}
+.rp-end .rp-line{opacity:.78}
+.rp-end .rpdone{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:0;border-radius:999px;margin:32px auto 0;max-width:260px;background:var(--on-tint);color:var(--tint);font:600 17px var(--font);cursor:pointer}
+/* reveals: only hidden while the script is ready to show them */
+.rpi,.rp-bar i,.rp-sky i,.rp-24 .trk i{transition:opacity .6s ease calc(var(--i,0)*80ms),transform .8s cubic-bezier(.16,1,.3,1) calc(var(--i,0)*80ms)}
+.rp-bar i,.rp-sky i,.rp-24 .trk i{transition:transform 1s cubic-bezier(.16,1,.3,1) calc(var(--i,0)*100ms + 120ms)}
+.mv .rv:not(.in) .rpi{opacity:0;transform:translateY(22px)}
+.mv .rv:not(.in) .rp-bar i,.mv .rv:not(.in) .rp-sky i,.mv .rv:not(.in) .rp-24 .trk i{transform:scaleX(0)}
+.mv .rv:not(.in) .rp-day{opacity:0;transform:scale(.3)}
+.mv .rv.in .rp-day{animation:rpPop .55s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(var(--i)*16ms)}
+@keyframes rpPop{from{opacity:0;transform:scale(.3)}}
+@media (prefers-reduced-motion:no-preference){.rp-more{animation:rpNudge 2.4s ease-in-out infinite}.rp-hero:not(.in) .rp-more{opacity:0}}
+@keyframes rpNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@media (prefers-reduced-motion:reduce){.rpi,.rp-bar i,.rp-sky i,.rp-24 .trk i,.rcard{transition:none}}
 .avgh{font:500 13px var(--font);color:var(--label-2);padding:16px 16px 6px}
 .avg{background:var(--card);border-radius:14px;overflow:hidden;padding-top:12px}.avgseg{padding:0 12px}.avgseg .seg{display:flex;background:var(--fill);border-radius:9px;padding:2px}
 .avgseg .seg button{flex:1;border:0;background:transparent;min-height:44px;border-radius:7px;font:500 14px/1.2 var(--font);color:var(--label);cursor:pointer}.avgseg .seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);font-weight:600}
@@ -879,6 +980,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
       </div>
       <div class="dy-fabw"><button type="button" class="dy-fab" id="dyFab" aria-hidden="true" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
       <div class="scrim" id="dScrim"></div>
+      <div class="report" id="dyReport" role="dialog" aria-modal="true" aria-hidden="true" hidden></div>
       <div class="dy-pop" id="dyPop" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Go to a month"></div>
       <div class="me" id="frScr" aria-hidden="true" aria-label="Friends"></div>
       <div class="scrim" id="frScrim"></div>
@@ -2343,13 +2445,75 @@ window.LightlySphere=(function(){
   function dyMonthDate(o){ var d=new Date(); return new Date(d.getFullYear(),d.getMonth()-o,1); }
   /* Days: total hours first, then streak, fasts and the average; the chart under the calendar (sample data) */
   var dyMode='weeks', dySelBar=null, DY_FNUM=function(h){ var big=h>=100; return new Intl.NumberFormat(api.lang()==='zh'?'zh-CN':'en',{minimumFractionDigits:big||!h?0:1,maximumFractionDigits:big?0:1}).format(h); };
-  var dyRcOff=false;
-  function dyRecap(){ var zh=api.lang()==='zh', now=new Date(), pm=new Date(now.getFullYear(),now.getMonth()-1,1), name=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long'}).format(pm), dim=new Date(pm.getFullYear(),pm.getMonth()+1,0).getDate(), dots='';
-    for(var i=1;i<=dim;i++){ var c=(i%9===4)?'e':(i%11===6)?'f':(i%7===0)?'':'d'; dots+='<i class="'+c+'"></i>'; }
-    return '<div class="dy-rc"><div class="rch"><span class="tk">'+(zh?'你的'+name:'Your '+name)+'</span><button type="button" class="rcx" id="dyRcX" aria-label="'+(zh?'关闭回顾':'Dismiss recap')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><b class="tn">428<small>'+(zh?'小时':'hours')+'</small></b><div class="rcd" role="img" aria-label="'+(zh?'示例':'Sample')+'">'+dots+'</div>'+
-      '<div class="tstats"><div><b>25</b><span>'+(zh?'次断食':'fasts')+'</span></div><div><b>18</b><span>'+(zh?'达成目标':'reached goal')+'</span></div><div><b>17.1 '+(zh?'小时':'h')+'</b><span>'+(zh?'平均':'average')+'</span></div></div><p class="rcb">'+(zh?'断食最多的一周 12–18日，6 次':'Busiest week 12–18, 6 fasts')+'</p></div>'; }
+  var dyRcOff=false, DY_EASE='cubic-bezier(.32,.72,0,1)', dyRp={open:false,busy:false,io:null,heroGo:null};
+  function LL(en,zh){ return api.lang()==='zh'?zh:en; }
+  function dyMonthName(){ var now=new Date(), pm=new Date(now.getFullYear(),now.getMonth()-1,1); return new Intl.DateTimeFormat(LL('en','zh-CN')==='en'?'en':'zh-CN',{month:'long'}).format(pm); }
+  /* sample month: the same pattern the calendar uses, so the card and the report agree */
+  function dySample(){ var now=new Date(), py=now.getFullYear(), pmI=now.getMonth()-1, pm=new Date(py,pmI,1), dim=new Date(py,pmI+1,0).getDate(), days=[], dw=0, fl=0, run=0, best=0, i;
+    for(i=1;i<=dim;i++){ var s=(i%9===4)?'early':(i%11===6)?'flex':(i%7===0)?'none':'done'; days.push(s); if(s==='done'||s==='early') dw++; if(s==='flex') fl++; if(s==='done'){ run++; best=Math.max(best,run); } else if(s!=='flex') run=0; }
+    var wk=[], first=(pm.getDay()+6)%7, d0=1-first, wi=0; for(;d0<=dim;d0+=7,wi++){ var s0=Math.max(1,d0), e0=Math.min(dim,d0+6); wk.push({s:new Date(py,pmI,s0),e:new Date(py,pmI,e0),n:3+(wi*2)%4,h:16.1+((wi*5+3)%9)/6}); }
+    return {y:py,m:pmI,n:25,hours:428,avg:17.1,reached:18,days:days,dim:dim,daysWith:dw,flex:fl,run:best,moonH:171,sunH:257,start:20,finish:12,weeks:wk,busy:{s:wk[2].s,e:wk[2].e,n:6}}; }
+  function dyClock(h){ var m=Math.round(h*60)%1440, a=Math.floor(m/60), b=m%60; return (a<10?'0':'')+a+':'+(b<10?'0':'')+b; }
+  function dyRng(a,b){ var zh=api.lang()==='zh', f=function(d,o){ return new Intl.DateTimeFormat(zh?'zh-CN':'en',o).format(d); };
+    if(zh) return (a.getMonth()+1)+'/'+a.getDate()+(+a===+b?'':'–'+(a.getMonth()===b.getMonth()?'':(b.getMonth()+1)+'/')+b.getDate());
+    return f(a,{month:'short',day:'numeric'})+(+a===+b?'':'–'+f(b,a.getMonth()===b.getMonth()?{day:'numeric'}:{month:'short',day:'numeric'})); }
+  function dyRecap(){ var name=dyMonthName(), s=dySample(), dots='';
+    s.days.forEach(function(d){ dots+='<i class="'+(d==='done'?'d':d==='flex'?'f':d==='early'?'e':'')+'"></i>'; });
+    return '<div class="rcard"><button type="button" class="rcmain" id="dyRcOpen"><b class="rct">'+LL('Your '+name+' recap','你的'+name+'回顾')+'</b><span class="rcs">'+s.n+' '+LL('fasts','次断食')+' · '+DY_FNUM(s.hours)+' '+LL('hours','小时')+'</span><span class="rcd" aria-hidden="true">'+dots+'</span><span class="rcgo">'+LL('See your recap','查看回顾')+'<svg viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5 7 7l-5.5 5.5"/></svg></span></button>'+
+      '<button type="button" class="rcx" id="dyRcX" aria-label="'+LL('Dismiss recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>'; }
+  /* the rolling number */
+  function dyOdo(el){ if(reduce||!el||!el.animate) return; var txt=el.textContent; if(!/\d/.test(txt)) return;
+    var chars=txt.split(''), nd=chars.filter(function(c){ return /\d/.test(c); }).length, di=0, html='', cols=[];
+    chars.forEach(function(c){ if(!/\d/.test(c)){ html+='<span class="rls">'+c+'</span>'; return; } var k=nd-1-di, loops=Math.max(1,3-k), s=''; for(var i=0;i<(loops+1)*10;i++) s+='<i>'+(i%10)+'</i>'; html+='<span class="rlo"><span class="rlc">'+s+'</span></span>'; cols.push({d:+c,loops:loops,rank:di}); di++; });
+    el.innerHTML=html; var cs=el.querySelectorAll('.rlc'), left=cols.length;
+    cols.forEach(function(c,i){ var total=(c.loops+1)*10, to=-100*(c.loops*10+c.d)/total, a=cs[i].animate([{transform:'translateY(0)'},{transform:'translateY('+to+'%)'}],{duration:850+c.rank*130,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'}); a.onfinish=function(){ if(--left===0) el.textContent=txt; }; }); }
+  function dyWedge(p,r){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; if(p>=.999) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z'; var a1=p*2*Math.PI, ex=-r*Math.sin(a1), ey=-r*Math.cos(a1); return 'M0 0 L0 '+(-r)+' A'+r+' '+r+' 0 '+(a1>Math.PI?1:0)+' 0 '+ex.toFixed(2)+' '+ey.toFixed(2)+'Z'; }
+  function dyDisc(p,play){ var lit=$('dyLit'); if(!lit) return; if(!play||reduce){ lit.setAttribute('d',dyWedge(p,92)); return; } var t0=null; function f(t){ if(!$('dyLit')) return; if(t0===null) t0=t; var u=Math.min((t-t0)/1500,1), e=1-Math.pow(1-u,4); lit.setAttribute('d',dyWedge(p*e,92)); if(u<1) requestAnimationFrame(f); } requestAnimationFrame(f); }
+  function dyReportHtml(r){ var name=dyMonthName(), nxt=new Intl.DateTimeFormat(api.lang()==='zh'?'zh-CN':'en',{month:'long'}).format(new Date(r.y,r.m+1,1)), goal=16, i, steady=r.reached/r.n>=.8;
+    var off=(new Date(r.y,r.m,1).getDay()+6)%7, grid='', heads=api.lang()==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S'];
+    heads.forEach(function(x){ grid+='<span class="rp-wd" aria-hidden="true">'+x+'</span>'; }); for(i=0;i<off;i++) grid+='<span></span>';
+    r.days.forEach(function(s,d){ grid+='<span class="rp-day '+(s==='done'?'d':s==='flex'?'f':s==='early'?'e':'n')+'" style="--i:'+d+'">'+(d+1)+'</span>'; });
+    var gl=r.daysWith+' '+LL('days with a fast','天有断食')+(r.flex?' · '+r.flex+' '+LL(r.flex===1?'cheat day':'cheat days','天弹性日'):'');
+    var mx=r.weeks.reduce(function(a,w){ return Math.max(a,w.h); },goal)*1.08, wh=''; r.weeks.forEach(function(w,j){ wh+='<li style="--i:'+j+'"><span class="rp-wl">'+dyRng(w.s,w.e)+'</span><span class="rp-bar"><i style="width:'+(100*w.h/mx).toFixed(1)+'%"></i><u style="left:'+(100*goal/mx).toFixed(1)+'%"></u></span><b>'+DY_FNUM(w.h)+'<small> '+LL('h','小时')+'</small></b></li>'; });
+    var tot=r.moonH+r.sunH, mp=Math.round(100*r.moonH/tot), bands='<i style="left:'+(100*r.start/24).toFixed(2)+'%;width:'+(100*(24-r.start)/24).toFixed(2)+'%"></i><i style="left:0;width:'+(100*r.finish/24).toFixed(2)+'%"></i>';
+    var tiles='<div class="rp-t rpi" style="--i:0"><b><span class="rn">'+r.reached+'</span><small> / '+r.n+'</small></b><span>'+LL('reached your goal','达成目标')+'</span></div><div class="rp-t rpi" style="--i:1"><b><span class="rn">'+r.run+'</span></b><span>'+LL('days in a row','天连续达成')+'</span></div>'+
+      '<div class="rp-t rpi" style="--i:2"><b><span class="rn">'+DY_FNUM(r.avg)+'</span><small> '+LL('h','小时')+'</small></b><span>'+LL('average fast','平均每次')+'</span></div><div class="rp-t rpi" style="--i:3"><b class="rp-bw">'+dyRng(r.busy.s,r.busy.e)+'</b><span>'+LL('busiest week, '+r.busy.n+' fasts','最忙的一周 · '+r.busy.n+' 次')+'</span></div>';
+    return '<div class="rp-in" id="dyRpIn"><div class="rp-scroll" id="dyRpScroll" tabindex="-1">'+
+      '<section class="rp-s rp-hero rv" aria-labelledby="dyRpT"><h2 id="dyRpT" class="rpi" style="--i:0">'+LL('Your '+name+' recap','你的'+name+'回顾')+'</h2><div class="rp-big rpi" style="--i:1" role="img" aria-label="'+DY_FNUM(r.hours)+' '+LL('hours fasted','小时断食')+'"><span class="rn">'+DY_FNUM(r.hours)+'</span></div><p class="rp-unit rpi" style="--i:2">'+LL('hours fasted','小时断食')+'</p>'+
+      '<svg class="rp-disc rpi" style="--i:3" viewBox="-100 -100 200 200" aria-hidden="true"><circle r="92" class="u"/><path id="dyLit" class="l" d=""/><circle r="92" class="rim"/></svg><p class="rp-sub rpi" style="--i:4">'+r.n+' '+LL('fasts','次断食')+' · '+r.daysWith+' '+LL('of','/')+' '+r.dim+' '+LL('days','天')+'</p><svg class="rp-more" viewBox="0 0 14 8" aria-hidden="true"><path d="M1.5 1.5 7 6.5l5.5-5"/></svg></section>'+
+      '<section class="rp-s rv"><h3 class="rpi">'+LL('Your month in the sky','这个月的天空')+'</h3><div class="rp-cal" role="img" aria-label="'+gl+'">'+grid+'</div><p class="rp-cap rpi" style="--i:2">'+gl+'</p></section>'+
+      '<section class="rp-s rp-card rv"><h3 class="rpi">'+LL('Week by week','每周一览')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('Average length of each fast','每次断食的平均时长')+'</p><ul class="rp-wk">'+wh+'</ul></section>'+
+      '<section class="rp-s rp-night rv"><h3 class="rpi">'+LL('Moon and sun','月亮与太阳')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('Where your fasting hours fell','断食的时间落在哪里')+'</p><div class="rp-sky" role="img" aria-label="'+r.moonH+' / '+r.sunH+'"><i class="m" style="width:'+mp+'%"></i><i class="s" style="width:'+(100-mp)+'%"></i></div>'+
+      '<div class="rp-skyl rpi" style="--i:3"><div><b><span class="rn">'+r.moonH+'</span><small> '+LL('h','小时')+'</small></b><span><i class="m"></i>'+LL('under the moon','月下')+'</span></div><div><b><span class="rn">'+r.sunH+'</span><small> '+LL('h','小时')+'</small></b><span><i class="s"></i>'+LL('under the sun','日下')+'</span></div></div></section>'+
+      '<section class="rp-s rv"><h3 class="rpi">'+LL('Your rhythm','你的节奏')+'</h3><p class="rp-line rpi" style="--i:1">'+LL('You usually start around <b>'+dyClock(r.start)+'</b> and finish around <b>'+dyClock(r.finish)+'</b>.','你通常在 <b>'+dyClock(r.start)+'</b> 左右开始，<b>'+dyClock(r.finish)+'</b> 左右结束。')+'</p><div class="rp-24" aria-hidden="true"><div class="trk">'+bands+'</div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div></section>'+
+      '<section class="rp-s rv"><h3 class="rpi">'+LL('Highlights','亮点')+'</h3><div class="rp-tiles">'+tiles+'</div></section>'+
+      '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?LL('A steady month.','稳稳的一个月。'):LL('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+LL('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="rpdone rpi" style="--i:2" data-rpclose>'+LL('Done','完成')+'</button></section></div>'+
+      '<button type="button" class="rp-x" data-rpclose aria-label="'+LL('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>'; }
+  function dyRpWatch(R,r){ var sc=$('dyRpScroll'), els=[].slice.call(R.querySelectorAll('.rv')), p=r.dim?r.daysWith/r.dim:0; dyRp.heroGo=null;
+    if(reduce||!('IntersectionObserver' in window)){ els.forEach(function(e){ e.classList.add('in'); }); dyDisc(p,false); return; }
+    R.classList.add('mv'); if(dyRp.io) dyRp.io.disconnect();
+    dyRp.io=new IntersectionObserver(function(es){ es.forEach(function(en){ if(!en.isIntersecting||en.target.classList.contains('in')) return; var e=en.target; e.classList.add('in'); dyRp.io.unobserve(e); [].forEach.call(e.querySelectorAll('.rn'),function(n,j){ setTimeout(function(){ dyOdo(n); },260+j*90); }); }); },{root:sc,threshold:.3});
+    els.forEach(function(e,i){ if(i>0) dyRp.io.observe(e); }); dyDisc(0,false);
+    dyRp.heroGo=function(){ var h=els[0]; if(!h||h.classList.contains('in')) return; h.classList.add('in'); dyOdo(h.querySelector('.rn')); dyDisc(p,true); }; }
+  function dyRpRect(){ var R=$('ph').getBoundingClientRect(), c=$('dyRcOpen'); c=c?c.parentNode.getBoundingClientRect():{top:R.top+40,left:R.left+16,right:R.right-16,bottom:R.top+200}; return 'inset('+Math.max(0,c.top-R.top).toFixed(1)+'px '+Math.max(0,R.right-c.right).toFixed(1)+'px '+Math.max(0,R.bottom-c.bottom).toFixed(1)+'px '+Math.max(0,c.left-R.left).toFixed(1)+'px round 14px)'; }
+  function dyRpOpen(){ if(dyRp.open||dyRp.busy) return; var R=$('dyReport'), D=$('daysScr'), r=dySample(); R.getAnimations({subtree:true}).forEach(function(x){ x.cancel(); }); R.innerHTML=dyReportHtml(r); R.hidden=false; R.setAttribute('aria-hidden','false'); R.style.clipPath=''; dyRp.open=true; dyRpWatch(R,r);
+    var sc=$('dyRpScroll'); sc.scrollTop=0;
+    if(reduce||!R.animate){ if(R.animate) R.animate([{opacity:0},{opacity:1}],{duration:220}); if(dyRp.heroGo) dyRp.heroGo(); sc.focus({preventScroll:true}); return; }
+    dyRp.busy=true; var a=R.animate([{clipPath:dyRpRect()},{clipPath:'inset(0px 0px 0px 0px round 0px)'}],{duration:620,easing:DY_EASE,fill:'both'});
+    $('dyRpIn').animate([{opacity:0},{opacity:0,offset:.3},{opacity:1}],{duration:620,easing:'linear',fill:'both'}); D.animate([{transform:'scale(1)',opacity:1},{transform:'scale(.94)',opacity:.5}],{duration:620,easing:DY_EASE,fill:'both'});
+    setTimeout(function(){ if(dyRp.heroGo) dyRp.heroGo(); },300);
+    a.onfinish=function(){ dyRp.busy=false; a.cancel(); $('dyRpIn').getAnimations().forEach(function(x){ x.cancel(); }); R.style.clipPath='none'; sc.focus({preventScroll:true}); }; }
+  function dyRpClose(){ if(!dyRp.open||dyRp.busy) return; var R=$('dyReport'), D=$('daysScr'); dyRp.busy=true;
+    function done(){ R.getAnimations({subtree:true}).forEach(function(x){ x.cancel(); }); dyRp.busy=false; dyRp.open=false; R.hidden=true; R.setAttribute('aria-hidden','true'); R.innerHTML=''; R.style.clipPath=''; D.getAnimations().forEach(function(x){ x.cancel(); }); if(dyRp.io) dyRp.io.disconnect(); var b=$('dyRcOpen'); if(b) b.focus({preventScroll:true}); }
+    if(reduce||!R.animate){ R.animate([{opacity:1},{opacity:0}],{duration:180,fill:'both'}).onfinish=done; return; }
+    R.getAnimations().forEach(function(x){ x.cancel(); }); R.style.clipPath='inset(0px 0px 0px 0px round 0px)';
+    var a=R.animate([{clipPath:'inset(0px 0px 0px 0px round 0px)'},{clipPath:dyRpRect()}],{duration:440,easing:DY_EASE,fill:'both'}); $('dyRpIn').animate([{opacity:1},{opacity:0}],{duration:200,easing:'ease-out',fill:'both'});
+    D.getAnimations().forEach(function(x){ x.cancel(); }); D.animate([{transform:'scale(.94)',opacity:.5},{transform:'scale(1)',opacity:1}],{duration:440,easing:DY_EASE,fill:'both'}); a.onfinish=done; }
+  $('dyHead').addEventListener('click',function(e){ if(e.target.closest('#dyRcOpen')) dyRpOpen(); });
+  $('dyReport').addEventListener('click',function(e){ if(e.target.closest('[data-rpclose]')) dyRpClose(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&dyRp.open) dyRpClose(); });
   function dyTotals(st,done){ var zh=api.lang()==='zh', n=77+done, hrs=Math.round(1268+done*16.5), avg=hrs/n;
-    return '<div class="tot"><div class="tt"><span class="tk">'+(zh?'累计断食':'Total fasted')+'</span><b class="tn">'+DY_FNUM(hrs)+'<small>'+(zh?'小时':'hours')+'</small></b><span class="ts">'+(zh?'自 2026年4月 起':'Since April 2026')+'</span></div>'+
+    return '<div class="tot"><div class="tt"><span class="tk">'+(zh?'累计断食':'Total fasted')+'</span><b class="tn"><span class="rn">'+DY_FNUM(hrs)+'</span><small>'+(zh?'小时':'hours')+'</small></b><span class="ts">'+(zh?'自 2026年4月 起':'Since April 2026')+'</span></div>'+
       '<div class="tstats"><div><b>'+st+'</b><span>'+(zh?'天连续':'day streak')+'</span></div><div><b>'+n+'</b><span>'+(zh?'次断食':'fasts')+'</span></div><div><b>'+DY_FNUM(avg)+' '+(zh?'小时':'h')+'</b><span>'+(zh?'平均':'average')+'</span></div></div></div>'; }
   function dyAvgData(){ var zh=api.lang()==='zh', now=new Date(), md=dyMonthDate(dyOff), y=md.getFullYear(), m=md.getMonth(), bars=[], fmt=function(d,o){ return new Intl.DateTimeFormat(zh?'zh-CN':'en',o).format(d); };
     if(dyMode==='months'){ var vals=[15.8,16.2,16.1,16.6,16.9,17.1]; for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(),now.getMonth()-i,1); bars.push({n:10+i*2,h:vals[5-i],lab:fmt(d,{month:'short'}),full:fmt(d,{month:'long',year:'numeric'}),cur:5-i===5-dyOff}); } return bars; }
@@ -2378,7 +2542,7 @@ window.LightlySphere=(function(){
     for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=((i+dyOff)%9===4)?'early':((i+dyOff)%11===6)?'flex':(isNow&&i===today-2&&today>3)?'off':'done'; } else if(i===today) c='today'; h+='<button type="button" class="'+c+(dySel&&dySel[0]===dyOff&&dySel[1]===i?' sel':'')+'" data-d="'+i+'" aria-label="'+i+'">'+i+'</button>'; }
     /* the header always shows the sample streak for today */
     var nd=now.getDate(), st=0, done=0; for(var j=1;j<nd;j++){ var cc=(j%9===4)?'early':(j%11===6)?'flex':(j===nd-2&&nd>3)?'off':'done'; if(cc==='done'){ st++; done++; } else if(cc==='early') st=0; } st=Math.min(st,nd); var best=Math.max(st,12), total=done+31;
-    $('dyHead').innerHTML=(dyOff===0&&!dyRcOff?dyRecap():'')+dyTotals(st,done); var rx=$('dyRcX'); if(rx) rx.addEventListener('click',function(){ dyRcOff=true; daysRender(); }); dyAvgDraw(false);
+    $('dyHead').innerHTML=(dyOff===0&&!dyRcOff?dyRecap():'')+dyTotals(st,done); var rx=$('dyRcX'); if(rx) rx.addEventListener('click',function(){ dyRcOff=true; daysRender(); }); dyAvgDraw(false); if(dyPlay) dyOdo($('dyHead').querySelector('.tot .rn'));
     $('dyCal').innerHTML=h; dyPlay=false; var mn=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long',year:'numeric'}).format(md);
     $('dyMonth').innerHTML=mn+'<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg>';
     $('dyPrev').disabled=dyOff>=DY_BACK; $('dyNext').disabled=dyOff<=0; $('dyPrev').setAttribute('aria-label',zh?'上个月':'Previous month'); $('dyNext').setAttribute('aria-label',zh?'下个月':'Next month');
