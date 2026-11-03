@@ -173,7 +173,7 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .sheet.open .row{opacity:1;transform:none;transition-delay:.08s}.sheet.open p{opacity:1;transform:none;transition-delay:.14s}.sheet.open .done{opacity:1;transform:none;transition-delay:.2s}
 #lit{transition:fill .5s ease}
 .tabs{position:absolute;left:16px;right:16px;bottom:24px;height:64px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
-  box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--ink) 14%,transparent),inset 0 .5px 0 rgba(255,255,255,.45),0 8px 24px rgba(0,0,0,.12);display:grid;grid-template-columns:repeat(3,1fr);align-items:center;padding:0 6px}
+  box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--ink) 14%,transparent),inset 0 .5px 0 rgba(255,255,255,.45),0 8px 24px rgba(0,0,0,.12);display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding:0 6px}
 /* one tab = icon + label as a single unit, 1px apart (iOS 26 style) */
 .tabs>span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;height:52px;font:500 10px/1.1 var(--font);letter-spacing:.01em;color:var(--ink-2);border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .25s ease,color .25s ease}
 .tabs>span>span{display:block}
@@ -183,7 +183,7 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:var(--tint)}
 .ph[data-sky="dawn"],.ph[data-sky="morning"],.ph[data-sky="day"],.ph[data-sky="sunset"]{--tabsel:#1C1C1E;--tabfill:rgba(255,255,255,.55)}
 .ph[data-me]{--tabsel:var(--label);--tabfill:color-mix(in srgb,var(--tint) 40%,transparent)}
-.tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/3);border-radius:999px;background:var(--tabfill);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s cubic-bezier(.2,1,.3,1),background .3s ease;will-change:transform;pointer-events:none}
+.tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/4);border-radius:999px;background:var(--tabfill);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s cubic-bezier(.2,1,.3,1),background .3s ease;will-change:transform;pointer-events:none}
 @supports (transition-timing-function:linear(0,1)){.tab-ind{transition-timing-function:linear(0,.18 6%,.52 13%,.82 21%,1.03 30%,1.07 38%,1.04 46%,1.01 56%,.995 70%,1),ease}}
 @media (prefers-reduced-motion:reduce){.tab-ind{transition:background .2s}}
 @media (prefers-contrast:more){.tab-ind{background:var(--tabfill);box-shadow:inset 0 0 0 1.5px var(--tabsel)}}
@@ -800,6 +800,59 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .ba img{width:100%;height:auto;display:block;aspect-ratio:1}
 .ba span{position:absolute;left:10px;bottom:10px;line-height:1;font:600 12px var(--font);padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.66);color:#fff;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 @media (max-width:560px){.ba{grid-template-columns:1fr}}
+/* Friends tab (a preview: Friends is not built in the app yet) */
+.fr-t{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.fr-t .lt{margin:0}
+.fr-sub{font:400 13px/1.3 var(--font);color:var(--label-2);margin-top:2px}
+.fr-inv{flex:none;min-height:44px;padding:0 18px;border:0;border-radius:999px;background:var(--fill);color:var(--label);font:600 15px var(--font);cursor:pointer;transition:transform .1s ease-out}
+.fr-inv:active,.fr-go:active{transform:scale(.97)}
+.fr-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 8px 0}
+.fr-trio{display:flex;gap:18px;align-items:center}
+.fr-trio svg{width:46px;height:46px;display:block}
+.fr-hero h3{font:700 22px/1.2 var(--font-d);letter-spacing:-.01em;margin:26px 0 8px;max-width:16ch}
+html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
+.fr-hero p{font:400 15px/1.4 var(--font);color:var(--label-2);margin:0 0 24px;max-width:27ch}
+.fr-go{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out}
+.fr-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:0 -6px 10px}
+.fr-days button{min-height:56px;border:0;border-radius:16px;background:none;color:var(--label);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:inherit;cursor:pointer;transition:background .25s ease,color .25s ease}
+.fr-days button span{font:500 11px/1 var(--font);color:var(--label-2)}
+.fr-days button b{font:600 17px/1 var(--font-r,var(--font));font-variant-numeric:tabular-nums}
+.fr-days button[aria-pressed="true"]{background:var(--tint);color:var(--on-tint)}
+.fr-days button[aria-pressed="true"] span{color:inherit;opacity:.72}
+.fr-sum{font:500 13px/1.35 var(--font);color:var(--label-2);margin:0 4px 8px}
+.fr-card{background:var(--card);border-radius:16px;overflow:hidden}
+.fr-row{display:flex;align-items:center;gap:6px;padding-right:14px}
+.fr-row+.fr-row{border-top:.5px solid var(--sep)}
+.fr-tap{flex:1;min-width:0;display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 0 8px 14px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.fr-av{width:38px;height:38px;flex:none;display:block}
+.fr-nm{min-width:0}
+.fr-nm b{display:block;font:500 16px/1.25 var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fr-nm b i{font-style:normal;font-weight:400;font-size:13px;color:var(--label-2);margin-left:6px}
+.fr-nm small{display:block;font:400 13px/1.3 var(--font);color:var(--label-2)}
+.fr-ch{flex:none;min-height:44px;padding:0 2px;border:0;background:none;cursor:pointer;display:flex;align-items:center}
+.fr-ch span{font:600 13px/1 var(--font);color:var(--label-2);background:var(--fill);border-radius:999px;padding:7px 12px;transition:background .25s ease,color .25s ease}
+.fr-ch[aria-pressed="true"]{cursor:default}
+.fr-ch[aria-pressed="true"] span{color:var(--label);background:color-mix(in srgb,var(--tint) 38%,transparent)}
+.fr-disc{width:30px;height:30px;flex:none;display:block}
+.fr-disc.glow{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--tint) 70%,transparent))}
+.fr-qr{background:#fff;border-radius:16px;padding:14px;width:140px;margin:2px auto 12px}
+.fr-qr svg{display:block;width:112px;height:112px}
+.fr-code{color:var(--label);text-align:center;font:600 30px/1.1 var(--font-r,var(--font));letter-spacing:.08em;font-variant-numeric:tabular-nums;margin:0 0 4px}
+.fr-cap{text-align:center;font:400 13px/1.3 var(--font);color:var(--label-2);margin:0 0 16px}
+.fr-btns{display:grid;grid-template-columns:1fr auto;gap:10px}
+.fr-btns button,.fr-sbtn{min-height:52px;border:0;border-radius:999px;font:600 17px var(--font);cursor:pointer;padding:0 22px;background:var(--tint);color:var(--on-tint)}
+.fr-btns button+button{background:var(--fill);color:var(--label)}
+.fr-sbtn{display:flex;align-items:center;justify-content:center;width:100%;margin-top:16px}
+.fr-sbtn[aria-pressed="true"]{background:var(--fill);color:var(--label);cursor:default}
+.fr-who{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.fr-who .fr-av{width:44px;height:44px}
+.fr-who .fr-disc{width:44px;height:44px;margin-left:auto}
+.fr-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:var(--bg);border-radius:14px;padding:12px 6px 10px}
+.fr-wk div{display:flex;flex-direction:column;align-items:center;gap:6px}
+.fr-wk .fr-disc{width:28px;height:28px}
+.fr-wk span{font:500 11px/1 var(--font);color:var(--label-2)}
+.fr-h{font:400 13px var(--font);color:var(--label-2);margin:0 4px 6px}
+@media (prefers-reduced-motion:reduce){.fr-days button,.fr-ch span{transition:none}}
 </style>
 
 <div class="wrap">
@@ -929,6 +982,14 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div class="scrim" id="dScrim"></div>
       <div class="report" id="dyReport" role="dialog" aria-modal="true" aria-hidden="true" hidden></div>
       <div class="dy-pop" id="dyPop" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Go to a month"></div>
+      <div class="me" id="frScr" aria-hidden="true" aria-label="Friends"></div>
+      <div class="scrim" id="frScrim"></div>
+      <div class="sheet psheet" id="frSheet" role="dialog" aria-modal="true" aria-labelledby="frTitle" aria-hidden="true">
+        <div class="grab"></div>
+        <div class="ps-h"><h4 id="frTitle"></h4><button type="button" class="x" id="frClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>
+        <p class="ps-note" id="frNote"></p>
+        <div class="ps-scroll"><div id="frBody"></div></div>
+      </div>
       <div class="me" id="meScr" aria-hidden="true" aria-label="Me">
         <div class="me-card">
           <span class="me-avw"><button type="button" class="me-avb" id="meAvB" aria-label="Change profile picture" aria-expanded="false"><span class="me-av" id="meAv"></span></button><i class="me-edit" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.4-2h5l1.4 2h1.6A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.3"/></svg></i></span>
@@ -959,6 +1020,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <i class="tab-ind" aria-hidden="true"></i>
         <span class="sel"><svg class="ico-moon" viewBox="0 0 24 24"><path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.8 6.8 0 0 0 9.7 9.7z"/></svg><svg class="ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg><span data-zh="今天">Today</span></span>
         <span><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3.5"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span data-zh="日子">Days</span></span>
+        <span><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8M17.5 14.2a6 6 0 0 1 3.5 5.3"/></svg><span data-zh="朋友">Friends</span></span>
         <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6.2 18.6a6.5 6.5 0 0 1 11.6 0"/></svg><span data-zh="我">Me</span></span>
       </nav>
       <span class="home"></span>
@@ -1141,6 +1203,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
         <i class="tab-ind" aria-hidden="true"></i>
         <span class="sel"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg><span data-zh="今天">Today</span></span>
         <span><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3.5"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span data-zh="日子">Days</span></span>
+        <span><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8M17.5 14.2a6 6 0 0 1 3.5 5.3"/></svg><span data-zh="朋友">Friends</span></span>
         <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6.2 18.6a6.5 6.5 0 0 1 11.6 0"/></svg><span data-zh="我">Me</span></span>
       </nav>
         <div class="home"></div>
@@ -1190,13 +1253,13 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
       <div>
         <span class="tag" data-zh="之后上线，可选">Coming later · optional</span>
         <h2 id="f-h" data-zh="想要人陪时，叫上朋友">Fast with friends, when you want company</h2>
-        <p data-zh="一个人断食就是完整的体验，“今天”页面从不催你邀请别人。想要人陪时，给朋友发一个链接就行。">A solo fast is the whole app, and the Today screen never asks you to invite anyone. When you want company, you will be able to send a friend one link.</p>
-        <p data-zh="朋友只会看到你在断食、进食还是弹性日，以及连续天数。看不到你用了几个弹性日，也永远看不到体重，更不能改你的计划。">Friends will see whether you're fasting, eating or on a cheat day, and your streak. Never how many cheat days you've used, never your weight, and they can't change your plan.</p>
+        <p data-zh="一个人断食就是完整的体验，“今天”页面从不催你邀请别人。小组只看到你的状态和计划，看不到体重、时间，也看不到你已断食多久。">A solo fast is the whole app, and Today never asks you to invite anyone. A group sees your status and plan, never your weight, times or how long you've fasted.</p>
+        <button type="button" class="try" id="tryFr" data-zh="在手机里试试">Try it in the phone</button>
       </div>
       <ul class="flist" aria-label="Friends example">
-        <li><svg viewBox="-12 -12 24 24" data-p=".85"></svg><div><b>Mei</b><span data-zh="18:6 · 断食中">18:6 · Fasting</span></div><span class="ch2" data-zh="加油">Cheer</span></li>
-        <li><svg viewBox="-12 -12 24 24" data-p=".55"></svg><div><b>Arjun</b><span data-zh="16:8 · 断食中">16:8 · Fasting</span></div><span class="ch2" data-zh="加油">Cheer</span></li>
-        <li><svg viewBox="-12 -12 24 24" data-p="0"></svg><div><b>Sam</b><span data-zh="弹性日 · 连续 9 天">Cheat day · 9-day streak</span></div></li>
+        <li><svg viewBox="-12 -12 24 24" data-p=".85"></svg><div><b>Mei</b><span data-zh="断食中 · 18小时">Fasting · 18h</span></div><span class="ch2" data-zh="加油">Cheer</span></li>
+        <li><svg viewBox="-12 -12 24 24" data-p=".55"></svg><div><b>Arjun</b><span data-zh="断食中 · 16小时">Fasting · 16h</span></div><span class="ch2" data-zh="加油">Cheer</span></li>
+        <li><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="rgba(142,142,147,.1)" stroke="rgba(142,142,147,.6)" stroke-width="1.2" stroke-dasharray="2.2 2.2"/></svg><div><b>Sam</b><span data-zh="休息中">Resting</span></div></li>
       </ul>
     </div>
   </section>
@@ -2608,7 +2671,7 @@ window.LightlySphere=(function(){
     if((b=$('impDays'))) b.onclick=function(){ impOpen(false); select(1); }; }
   function impOpen(v,step){ if(!v){ resT.forEach(clearTimeout); clearInterval(erT); cancelAnimationFrame(erRaf); }  isc.classList.remove('peek'); if(v){ impStep=step||0; impRender(); } imp.classList.toggle('open',v); imp.setAttribute('aria-hidden',!v); isc.classList.toggle('on',v); if(v) $('impClose').focus({preventScroll:true}); else if(impFrom) impFrom.focus({preventScroll:true}); }
   var impFrom=null; $('meImp').addEventListener('click',function(){ impFrom=$('meImp'); impOpen(true); });
-  $('ph').addEventListener('click',function(ev){ var e=document.elementsFromPoint(ev.clientX,ev.clientY).filter(function(x){ return x.id==='endA'||x.id==='endB'; })[0]; if(e&&!imp.classList.contains('open')){ impFrom=e; impOpen(true,3); } });
+  $('ph').addEventListener('click',function(ev){ var e=document.elementsFromPoint(ev.clientX,ev.clientY).filter(function(x){ return x.id==='endA'||x.id==='endB'; })[0]; if(e&&!ph.hasAttribute('data-me')&&!imp.classList.contains('open')){ impFrom=e; impOpen(true,3); } });
   var infoT='', infoN=''; function info(t,n,from){ infoT=t; infoN=n; impFrom=from; impOpen(true,4); }
   $('meExp').addEventListener('click',function(){ info(L('Export my fasts','导出我的记录'),L('The app downloads a file with all your fasts, so you can keep a copy or move to another phone.','应用会下载一个包含所有断食记录的文件，方便备份或换手机。'),$('meExp')); });
   $('meErase').addEventListener('click',function(){ impFrom=$('meErase'); impOpen(true,11); });
@@ -2629,15 +2692,123 @@ window.LightlySphere=(function(){
   /* try-it buttons in the New section */
   (function(){ var ph=document.getElementById('ph'); function view(){ var d=document.getElementById('ph'); if(d&&d.scrollIntoView) d.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'}); }
     document.getElementById('tryFin').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(1)'); if(t) t.click(); setTimeout(function(){ var b=document.querySelector('#moments [data-go=finish]'); if(b) b.click(); },500); });
-    document.getElementById('tryImp').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(3)'); if(t) t.click(); setTimeout(function(){ var m=document.getElementById('meImp'); if(m) m.click(); },500); }); })();
+    document.getElementById('tryImp').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(4)'); if(t) t.click(); setTimeout(function(){ var m=document.getElementById('meImp'); if(m) m.click(); },500); }); })();
   function select(i){ ph.style.setProperty('--ti',i); tabs.forEach(function(t,k){ t.classList.toggle('sel',k===i); t.setAttribute('aria-selected',k===i); });
-    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ dyPlay=true; daysRender(); dsc.scrollTop=0; } else { dySel=null; fabSync(); } var open=i===2; me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(ph.hasAttribute('data-me')!==!!(open||dopen)){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); } if(open||dopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
+    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ dyPlay=true; daysRender(); dsc.scrollTop=0; } else { dySel=null; fabSync(); } var fopen=i===2, open=i===3; if(window.LightlyFriends) window.LightlyFriends.show(fopen); me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(ph.hasAttribute('data-me')!==!!(open||dopen||fopen)){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); } if(open||dopen||fopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
   tabs.forEach(function(t,i){ t.setAttribute('role','tab'); t.tabIndex=0;
     t.addEventListener('click',function(){ select(i); });
     t.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); t.click(); } }); });
   ph.querySelector('.tabs').setAttribute('role','tablist');
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(render,0); }); });
   render();
+})();
+</script>
+
+<script>
+/* ---------- Friends tab: a preview only. Friends is not built in the app yet; the sample group, names and days are made up ---------- */
+(function(){
+  var api=window.LightlyAPI; if(!api) return;
+  var $=function(i){ return document.getElementById(i); }, ph=$('ph'), fr=$('frScr'), sh=$('frSheet'), sc=$('frScrim'); if(!fr||!sh) return;
+  function L(en,zh){ return api.lang()==='zh'?zh:en; }
+  function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+  var shown=false, has=false, day=6, cheered={}, from=null, sheetFn=null;
+  function signedIn(){ return $('meOut').hidden===true; }
+
+  /* the disc is the same counter-clockwise wedge as on Today; every friend is a sun (see the Friends brief) */
+  function wedge(p,r){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; if(p>=.999) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z';
+    var a=p*2*Math.PI, ex=-r*Math.sin(a), ey=-r*Math.cos(a); return 'M0 0 L0 '+(-r)+' A'+r+' '+r+' 0 '+(a>Math.PI?1:0)+' 0 '+ex.toFixed(2)+' '+ey.toFixed(2)+'Z'; }
+  function disc(kind,p,cls){
+    var ring='rgba(142,142,147,.6)', o;
+    if(kind==='rest') o='<circle r="10" fill="rgba(142,142,147,.1)" stroke="'+ring+'" stroke-width="1.2" stroke-dasharray="2.2 2.2"/>';
+    else if(kind==='none') o='<circle r="10" fill="rgba(142,142,147,.14)" stroke="'+ring+'" stroke-width="1"/>';
+    else o='<circle r="10" fill="rgba(142,142,147,.18)" stroke="'+ring+'" stroke-width="1"/><path d="'+wedge(kind==='done'?1:p,10)+'" fill="url(#mdSun)"/>';
+    return '<svg class="fr-disc'+(kind==='done'?' glow':'')+(cls?' '+cls:'')+'" viewBox="-12 -12 24 24" aria-hidden="true">'+o+'</svg>'; }
+
+  /* placeholder sky avatars, flat and calm (the real set is still to be drawn) */
+  var AV={you:['#F3C58E','<path d="M6 16a6 6 0 0 1 12 0z" fill="#fff"/><path d="M4 18.2h16" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>'],
+    mei:['#2C3762','<path d="M15 5a8 8 0 1 0 4 11 7 7 0 0 1-4-11z" fill="#F4EFE2"/>'],
+    arjun:['#E7915A','<path d="M6 16a6 6 0 0 1 12 0z" fill="#FFE9A8"/><path d="M4 18.2h16" stroke="#FFE9A8" stroke-width="1.6" stroke-linecap="round"/>'],
+    lena:['#5BA4CF','<path d="M12 4c3 4 5 6.5 5 9.5a5 5 0 0 1-10 0C7 10.5 9 8 12 4z" fill="#fff"/>'],
+    sam:['#33406E','<path d="M12 4l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#F4EFE2"/>'],
+    diego:['#0E1430','<circle cx="12" cy="12" r="6" fill="#F4EFE2"/>']};
+  function av(k){ var a=AV[k]; return '<svg class="fr-av" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="'+a[0]+'"/>'+a[1]+'</svg>'; }
+  var NAME={you:['Alex','Alex'],mei:['Mei','美琪'],arjun:['Arjun','阿杰'],lena:['Lena','乐乐'],sam:['Sam','小山'],diego:['Diego','大卫']};
+  var ORDER=['you','mei','arjun','lena','sam','diego'];
+  var PLAN={you:16,mei:18,arjun:16,lena:13,sam:16,diego:20};
+  /* the last seven days, today last: [status, share of their own plan] */
+  var WEEK={you:[['done',1],['done',1],['part',.7],['done',1],['done',1],['done',1],['fasting',.62]],
+    mei:[['done',1],['done',1],['done',1],['done',1],['part',.8],['done',1],['fasting',.85]],
+    arjun:[['none',0],['done',1],['done',1],['rest',0],['done',1],['done',1],['fasting',.55]],
+    lena:[['done',1],['done',1],['done',1],['done',1],['done',1],['done',1],['done',1]],
+    sam:[['rest',0],['rest',0],['done',1],['done',1],['part',.6],['done',1],['rest',0]],
+    diego:[['none',0],['part',.5],['none',0],['done',1],['none',0],['part',.7],['none',0]]};
+  var WORD={fasting:['Fasting','断食中'],done:['Reached goal','达成目标'],part:['Fasted','已断食'],rest:['Resting','休息中'],none:['Not fasting','没有断食']};
+  var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], DOW=[['S','日'],['M','一'],['T','二'],['W','三'],['T','四'],['F','五'],['S','六']];
+  function dateOf(i){ var d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()-(6-i)); return d; }
+  function dow(i){ return DOW[dateOf(i).getDay()][api.lang()==='zh'?1:0]; }
+  function dayLong(i){ if(i===6) return L('Today','今天'); var d=dateOf(i); return L(MON[d.getMonth()]+' '+d.getDate(),(d.getMonth()+1)+' 月 '+d.getDate()+' 日'); }
+  function nm(k){ return NAME[k][api.lang()==='zh'?1:0]; }
+  function hrs(k){ return PLAN[k]+L('h','小时'); }
+  function word(x){ var w=WORD[x.s][api.lang()==='zh'?1:0]; return (x.s==='fasting'||x.s==='done'||x.s==='part')?w+' · '+hrs(x.k):w; }
+  function board(i){ return ORDER.map(function(k){ var w=WEEK[k][i]; return {k:k,s:w[0],p:w[1]}; }); }
+  function summary(b){ var c={fasting:0,done:0,part:0,rest:0}, o=[]; b.forEach(function(x){ if(c[x.s]!==undefined) c[x.s]++; });
+    if(c.fasting) o.push(c.fasting+L(' fasting',' 人断食中')); if(c.done) o.push(c.done+L(' reached goal',' 人达成目标')); if(c.part) o.push(c.part+L(' fasted',' 人断食过')); if(c.rest) o.push(c.rest+L(' resting',' 人休息中'));
+    return o.join(' · ')||L('Nobody fasted','没有人断食'); }
+  function canCheer(x,i){ return i===6&&x.k!=='you'&&(x.s==='fasting'||x.s==='done'); }
+
+  function hero(out){
+    return '<div class="fr-t"><h3 class="lt">'+L('Friends','朋友')+'</h3></div><div class="fr-hero"><div class="fr-trio">'+disc('none',0)+disc('fasting',.6)+disc('done',1)+'</div>'+
+      '<h3>'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h3>'+
+      '<p>'+(out?L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不用账号也能用。'):L('Start a group and send one link. Your fasts stay yours.','建一个小组，发一个链接。你的断食数据仍然只属于你。'))+'</p>'+
+      '<button type="button" class="fr-go" data-a="'+(out?'in':'new')+'">'+(out?L('Sign in','登录'):L('Start a group','建一个小组'))+'</button></div>'; }
+
+  function group(){
+    var b=board(day), rows=b.map(function(x){ var me=x.k==='you', ch='';
+      if(canCheer(x,day)) ch='<button type="button" class="fr-ch" data-a="cheer" data-k="'+x.k+'" aria-pressed="'+!!cheered[x.k]+'" aria-label="'+(cheered[x.k]?L('Cheered ','已给')+nm(x.k)+L('','加油'):L('Cheer ','给')+nm(x.k)+L('','加油'))+'"><span>'+(cheered[x.k]?L('Cheered','已加油'):L('Cheer','加油'))+'</span></button>';
+      return '<div class="fr-row"><button type="button" class="fr-tap" data-a="who" data-k="'+x.k+'" aria-label="'+nm(x.k)+', '+word(x)+'">'+av(x.k)+'<span class="fr-nm"><b>'+nm(x.k)+(me?'<i>'+L('You','我')+'</i>':'')+'</b><small>'+word(x)+'</small></span></button>'+ch+disc(x.s,x.p)+'</div>'; }).join('');
+    var strip=DOW.map(function(_,i){ return '<button type="button" data-a="day" data-i="'+i+'" aria-pressed="'+(i===day)+'" aria-label="'+dayLong(i)+'"><span>'+dow(i)+'</span><b>'+dateOf(i).getDate()+'</b></button>'; }).join('');
+    return '<div class="fr-t"><div><h3 class="lt">'+L('Morning crew','晨光小组')+'</h3><div class="fr-sub">'+L('6 people','6 人')+'</div></div><button type="button" class="fr-inv" data-a="invite">'+L('Invite','邀请')+'</button></div>'+
+      '<div class="fr-days" role="group" aria-label="'+L('Days','日子')+'">'+strip+'</div><p class="fr-sum">'+dayLong(day)+' · '+summary(b)+'</p><div class="fr-card">'+rows+'</div>'; }
+
+  function render(){ fr.innerHTML=!signedIn()?hero(true):!has?hero(false):group(); }
+
+  /* the sheet: invite, or one person */
+  function qr(){ var n=21,i,j,o='',h=1234567; function fin(x,y,ox,oy){ var dx=x-ox,dy=y-oy; if(dx<0||dy<0||dx>6||dy>6) return null; return dx===0||dx===6||dy===0||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4); }
+    for(i=0;i<n;i++) for(j=0;j<n;j++){ var v, a=fin(i,j,0,0), b=fin(i,j,n-7,0), c=fin(i,j,0,n-7);
+      if(a!==null||b!==null||c!==null) v=!!(a||b||c); else if((i<8&&j<8)||(i>=n-8&&j<8)||(i<8&&j>=n-8)) v=false; else { h=(h*1103515245+12345+i*31+j*17)&0x7fffffff; v=(h>>8)%2===0; }
+      if(v) o+='<rect x="'+i+'" y="'+j+'" width="1" height="1"/>'; }
+    return '<svg viewBox="-.5 -.5 22 22" role="img" aria-label="'+L('QR code','二维码')+'" fill="#111">'+o+'</svg>'; }
+  function inviteSheet(){ return [L('Invite friends','邀请朋友'),L('Valid for 7 days · 3 of 10 spots used','7 天内有效 · 已用 3 / 10 个名额'),
+    '<div class="fr-qr">'+qr()+'</div><p class="fr-cap">'+L('Invite code','邀请码')+'</p><p class="fr-code">K7QM 4XD9</p><div class="fr-btns" style="margin-top:16px"><button type="button" data-a="copy">'+L('Share link','分享链接')+'</button><button type="button" data-a="copy">'+L('Copy','复制')+'</button></div>']; }
+  function whoSheet(k){ var x=board(day)[ORDER.indexOf(k)], wk=DOW.map(function(_,i){ var w=WEEK[k][i]; return '<div>'+disc(w[0],w[1])+'<span>'+dow(i)+'</span></div>'; }).join('');
+    var cheer=canCheer(x,day)?'<button type="button" class="fr-sbtn" data-a="cheer" data-k="'+k+'" aria-pressed="'+!!cheered[k]+'">'+(cheered[k]?L('Cheered','已加油'):L('Cheer ','给')+nm(k)+L('','加油'))+'</button>':'';
+    return [nm(k),word(x),'<div class="fr-h">'+L('Last 7 days','过去 7 天')+'</div><div class="fr-wk">'+wk+'</div>'+cheer]; }
+  function setSheet(fn){ sheetFn=fn; var s=fn(); $('frTitle').textContent=s[0]; $('frNote').textContent=s[1]; $('frBody').innerHTML=s[2]; }
+  function openSheet(fn,f){ from=f||null; setSheet(fn); sh.classList.add('open'); sh.setAttribute('aria-hidden','false'); sc.classList.add('on'); $('frClose').focus({preventScroll:true}); }
+  function closeSheet(){ if(!sh.classList.contains('open')) return; sh.classList.remove('open'); sh.setAttribute('aria-hidden','true'); sc.classList.remove('on'); sheetFn=null; var f=from; from=null; if(f&&shown&&document.contains(f)) f.focus({preventScroll:true}); }
+
+  function act(el){ var a=el.dataset.a, k=el.dataset.k;
+    if(a==='in'){ $('meLogin').click(); render(); }
+    else if(a==='new'){ has=true; day=6; render(); openSheet(inviteSheet,null); }
+    else if(a==='day'){ day=+el.dataset.i; render(); var b=fr.querySelector('.fr-days [aria-pressed="true"]'); if(b) b.focus({preventScroll:true}); }
+    else if(a==='invite') openSheet(inviteSheet,el);
+    else if(a==='who') openSheet(function(){ return whoSheet(k); },el);
+    else if(a==='cheer'){ if(cheered[k]) return; cheered[k]=true; buzz(10); var fn=sheetFn; render(); if(fn) setSheet(fn); }
+    else if(a==='copy'){ buzz(10); [].forEach.call($('frBody').querySelectorAll('[data-a="copy"]'),function(b){ if(!b.dataset.t) b.dataset.t=b.textContent; b.textContent=L('Copied','已复制'); setTimeout(function(){ b.textContent=b.dataset.t; delete b.dataset.t; },1600); }); } }
+  fr.addEventListener('click',function(e){ var el=e.target.closest('[data-a]'); if(el) act(el); });
+  $('frBody').addEventListener('click',function(e){ var el=e.target.closest('[data-a]'); if(el) act(el); });
+  $('frClose').addEventListener('click',closeSheet); sc.addEventListener('click',closeSheet);
+  sh.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSheet(); });
+  ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ if(shown) render(); if(sheetFn) setSheet(sheetFn); },0); }); });
+  $('meSignOut').addEventListener('click',function(){ has=false; cheered={}; });
+
+  window.LightlyFriends={ show:function(v){ if(v){ if(!signedIn()) has=false; day=6; render(); fr.scrollTop=0; } else closeSheet(); shown=v; fr.classList.toggle('open',v); fr.setAttribute('aria-hidden',!v); } };
+
+  /* "Try it" in the Friends section: sign in as a demo, jump to the phone, open Friends on the sample group */
+  var tryB=$('tryFr'); if(tryB) tryB.addEventListener('click',function(){
+    if(!signedIn()) $('meLogin').click(); has=true;
+    if(ph.scrollIntoView) ph.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+    var t=ph.querySelector('.tabs>span:nth-of-type(3)'); if(t) t.click(); });
 })();
 </script>
 

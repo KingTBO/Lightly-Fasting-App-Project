@@ -4,11 +4,17 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
-## 0.63.0
+## 0.64.0
 - **feature** The monthly recap is now a card you open. It reads "Your October recap" (你的10月回顾), with the month in dots and a "See your recap" button. Tap it and it grows from the card to fill the whole screen, and shrinks back into the card when you close it (X, Done, Esc, or pull down from the top).
 - **feature** The report is a short story of the month, in chapters: the hours fasted rolling up to the total next to a moon that fills with the days you fasted; your month in the sky (one disc a day, popping in as a wave); week by week average fasts; moon and sun (how many of your fasting hours fell at night and in daylight, by the real sunrise and sunset where you are); your rhythm (when you usually start and finish, on a 24-hour clock); highlights (goals reached, longest run of days, average, busiest week); and a closing line. It never compares months and never rewards longer fasts. With Reduce Motion on, everything shows at once with a simple fade.
 - **feature** The total hours at the top of Days now roll up from 0 like an odometer every time you open the Days tab.
 - **chore** `monthReport` and `skySplit` in `js/core.js` with unit tests; flow test opens and closes the report. Concept page shows the same card, report and rolling number with sample data.
+
+## 0.63.0
+- **design** The concept page now has a Friends tab. The demo phone gets a fourth tab, Friends, between Days and Me. Signed out it says Friends needs an account and everything else works without one; signed in it offers Start a group, then shows a sample group, "Morning crew": the last seven days to tap through, one line of who is fasting, and one row per person with a name, a one-word status, their plan in hours (for example "Fasting · 18h") and the same counter-clockwise sun disc as Today. You can send a silent Cheer, tap a person for their week, and open Invite for a code and QR. In English and 中文, light and dark. The "Fast with friends" section is rewritten to one line, now says friends see your status and plan (never weight, times or how long you've fasted), drops the old "9-day streak" example, and has a "Try it in the phone" button.
+- **fix** On the concept page, tapping where the "ends" time sits on Today no longer opens the edit-start sheet while Days or Me is open.
+- **chore** `qa/run.js` walks the new Friends screens on the concept page.
+- **Not in the app.** Friends is still a design preview: the sample group, names and days are made up, and nothing is sent anywhere. Defaults used where TEEBO has not decided yet (see `docs/friends` in PR 143): friends do not see streaks, discs are always a sun (never a moon at night), Cheer is kept, Friends is the third of four tabs, and an account is required. Past days show the share reached with the word Fasted.
 
 ## 0.62.0
 - **feature** Monthly recap. From the 1st to the 7th of a month, the top of Days shows last month in review: total hours, a dot for every day (gold when you reached your goal, ring when you ended early, dashed for a cheat day or time off), fasts, how many reached the goal, the average, and the week with the most fasts. It only appears if the month had at least three fasts, never sends a notification, and goes away for good with the X. For example, on 1 Nov it shows October.
