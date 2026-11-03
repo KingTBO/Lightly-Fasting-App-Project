@@ -25,13 +25,14 @@
   --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --bar-edge:transparent; --indigo:#5E5CE6; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A}
 
 /* local-time skies (screen only). Ink pairs follow HIG label / secondary label. */
-[data-sky="night"]  {--stars:1;--sky:#0E1430;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.78);--unlit:rgba(255,255,255,.10);--rim:rgba(255,255,255,.28);--glass:rgba(40,44,70,.55);--moon:#F4EFE2}
-[data-sky="first"]  {--stars:0.45;--sky:#33406E;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.12);--rim:rgba(255,255,255,.3);--glass:rgba(60,68,110,.5);--moon:#F4EFE2}
-[data-sky="dawn"]   {--sky:#F0B48C;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.7);--moon:#FFFFFF}
-[data-sky="morning"]{--sky:#A8D5F0;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.09);--rim:rgba(28,28,30,.24);--glass:rgba(255,255,255,.72);--moon:#FFFFFF}
-[data-sky="day"]    {--sky:#CDE6F6;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.08);--rim:rgba(28,28,30,.22);--glass:rgba(255,255,255,.74);--moon:#FFFFFF}
-[data-sky="sunset"] {--sky:#F3C58E;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.7);--moon:#FFFFFF}
-[data-sky="evening"]{--stars:0.7;--sky:#2C3762;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.11);--rim:rgba(255,255,255,.3);--glass:rgba(56,64,104,.5);--moon:#F4EFE2}
+@property --sky2{syntax:'<color>';inherits:true;initial-value:#1A2250}
+[data-sky="night"]  {--sky2:#1A2250;--stars:1;--sky:#0E1430;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.78);--unlit:rgba(255,255,255,.10);--rim:rgba(255,255,255,.28);--glass:rgba(40,44,70,.55);--moon:#F4EFE2}
+[data-sky="first"]  {--sky2:#5A5A92;--stars:0.45;--sky:#33406E;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.12);--rim:rgba(255,255,255,.3);--glass:rgba(60,68,110,.5);--moon:#F4EFE2}
+[data-sky="dawn"]   {--sky:#8FB4DE;--sky2:#F0B48C;--clouds:.55;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.7);--moon:#FFFFFF}
+[data-sky="morning"]{--sky:#8FC3EA;--sky2:#CDE6F6;--clouds:.85;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.09);--rim:rgba(28,28,30,.24);--glass:rgba(255,255,255,.72);--moon:#FFFFFF}
+[data-sky="day"]    {--sky:#A9D6F2;--sky2:#E1F0FA;--clouds:.85;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.08);--rim:rgba(28,28,30,.22);--glass:rgba(255,255,255,.74);--moon:#FFFFFF}
+[data-sky="sunset"] {--sky:#9DB4D8;--sky2:#F3B07C;--clouds:.55;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.8);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.7);--moon:#FFFFFF}
+[data-sky="evening"]{--sky2:#6C5A88;--stars:0.7;--sky:#2C3762;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.11);--rim:rgba(255,255,255,.3);--glass:rgba(56,64,104,.5);--moon:#F4EFE2}
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -99,7 +100,7 @@ html:lang(zh-Hans) .group .k{text-transform:none}
 
 /* ---------- phone ---------- */
 .ph{width:min(390px,100%);height:800px;border-radius:48px;overflow:hidden;position:relative;justify-self:center;
-  background:var(--sky);color:var(--ink);box-shadow:0 0 0 10px #000,0 30px 60px -20px rgba(0,0,0,.35);transition:background-color 1.2s ease,color .3s ease;isolation:isolate;touch-action:manipulation}
+  background:var(--sky);color:var(--ink);box-shadow:0 0 0 10px #000,0 30px 60px -20px rgba(0,0,0,.35);transition:background-color 1.2s ease,color .3s ease,--sky2 1.2s ease;isolation:isolate;touch-action:manipulation}
 .ph .sb{height:50px;display:flex;align-items:center;justify-content:space-between;padding:6px 32px 0;font:600 16px var(--font);letter-spacing:-.02em}
 .ph .sb .ic{display:flex;gap:6px;align-items:center}.ph .sb .ic b{display:block;width:18px;height:11px;border-radius:3px;background:currentColor;opacity:.9}.ph .sb .ic b:first-child{width:16px;height:11px;border-radius:2px;opacity:.6}
 .ph .nav{padding:4px 16px 0;display:flex;align-items:flex-end;justify-content:space-between}
@@ -163,6 +164,31 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .act::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.16);transform-origin:left;transform:scaleX(var(--hold,0));z-index:-1;transition:transform .35s cubic-bezier(.16,1,.3,1)}
 .act.holding::before{transition:none}
 /* stars: only in dark skies, fade with the sky */
+.ph::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;background:linear-gradient(180deg,transparent 14%,var(--sky2))}
+.clouds{position:absolute;left:0;right:0;top:0;height:420px;z-index:-1;pointer-events:none;overflow:hidden;opacity:var(--clouds,0);transition:opacity 1.2s ease}
+.clouds i{position:absolute;border-radius:60px;background:rgba(255,255,255,.7);filter:blur(12px);animation:cdrift 48s ease-in-out infinite alternate}
+.clouds i:nth-child(1){left:30px;top:150px;width:150px;height:40px}
+.clouds i:nth-child(2){left:230px;top:236px;width:130px;height:34px;animation-duration:62s}
+@keyframes cdrift{from{transform:translateX(-30px)}to{transform:translateX(40px)}}
+@media (prefers-reduced-motion:reduce){.clouds i{animation:none}}
+.track .strip{display:none}
+.track.tls>svg{display:none}
+.track.tls .strip{display:block;padding:0 2px}
+.strip .sev{position:relative;height:16px;font:500 12px/16px var(--font);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.strip .sev span{position:absolute;top:0;transform:translateX(-50%);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.strip .sev svg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.strip .sbar{position:relative;height:12px;margin-top:10px;border-radius:6px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent)}
+.strip .sbar i{position:absolute;top:0;bottom:0;left:0;border-radius:6px;box-sizing:border-box}
+.strip .sdash{border:1.5px dashed var(--ink);opacity:.55}
+.strip .sfill{background:var(--tint)}
+.strip .sfill.eat{background:var(--ink);opacity:.3}
+.strip .sgoal{left:0;top:-5px;bottom:-5px;width:2px;margin-left:-1px;border-radius:1px;background:var(--ink);opacity:.6}
+.strip .sbar .snow{top:50%;bottom:auto;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--ink);border:3px solid var(--sky)}
+.track.tls .ends{position:relative;display:block;height:44px;margin-top:8px}
+.track.tls .ends .cap{display:none}
+.track.tls .ends>span{position:absolute;top:0;padding:0 2px}
+.track.tls #endA{left:0}
+.track.tls #endB{left:var(--gx,66%);transform:translateX(-50%);align-items:center}
 .stars{position:absolute;left:0;right:0;top:0;width:100%;height:420px;z-index:-1;pointer-events:none;opacity:var(--stars,0);transition:opacity 1.2s ease}
 .stars circle{fill:#fff;transition:opacity .6s ease}
 /* text that changes meaning fades up into place */
@@ -903,12 +929,21 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
         <p class="why" id="sunWhy"></p>
       </div>
       <div class="group row2"><div><b data-zh="声音">Sound</b><span data-zh="达成目标或导入成功时一声轻轻的铃，转动时间滚轮时有很轻的滴答声。应用里会跟随手机的静音设置。">A soft chime when you reach your goal or finish an import, and a very quiet tick as you turn the time wheels. In the app it follows your phone's silent mode.</span></div><button class="sw" type="button" role="switch" aria-checked="true" id="sndSw" aria-label="Sound"></button></div>
+      <div class="group">
+        <span class="k" data-zh="时间线">Timeline</span>
+        <div class="seg wide" role="group" aria-label="Timeline">
+          <button type="button" id="tl-arc" aria-pressed="true"><span data-zh="弧线">Arc</span></button>
+          <button type="button" id="tl-strip" aria-pressed="false"><span data-zh="日条">Day strip</span></button>
+        </div>
+        <p class="why" data-zh="日条把你的 24 小时画成天空的颜色，标出日出和日落。在“我的”页的“时间线”里切换。">The day strip draws your 24 hours in the colours of the sky, with sunrise and sunset marked. In the app: Me, then Timeline.</p>
+      </div>
       <div class="group row2"><div><b data-zh="3D 月亮和太阳">3D moon and sun</b><span id="d3Note" data-zh="一个真正被照亮的球体。关掉可以和平面版对比，老手机会自动用平面版。">A real lit sphere. Turn it off to compare with the flat version, which older phones get automatically.</span></div><button class="sw" type="button" role="switch" aria-checked="true" id="d3Sw" aria-label="3D moon and sun"></button></div>
       <button class="play" type="button" id="playBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg><span id="playLbl" data-zh="从头播放">Play the Whole Fast</span></button>
     </div>
 
     <div class="ph" id="ph" data-sky="night" aria-label="Lightly Today screen demo">
       <svg class="stars" viewBox="0 0 390 420" aria-hidden="true"><circle cx="177" cy="187" r="1.5" opacity="0.71"/><circle cx="49" cy="384" r="0.8" opacity="0.55"/><circle cx="41" cy="369" r="1.0" opacity="0.37"/><circle cx="234" cy="324" r="0.8" opacity="0.48"/><circle cx="294" cy="327" r="0.8" opacity="0.80"/><circle cx="75" cy="224" r="0.8" opacity="0.67"/><circle cx="215" cy="135" r="1.0" opacity="0.38"/><circle cx="80" cy="258" r="1.5" opacity="0.43"/><circle cx="72" cy="402" r="1.2" opacity="0.66"/><circle cx="361" cy="202" r="0.8" opacity="0.67"/><circle cx="339" cy="206" r="1.2" opacity="0.40"/><circle cx="376" cy="142" r="0.8" opacity="0.69"/><circle cx="266" cy="382" r="1.5" opacity="0.78"/><circle cx="250" cy="409" r="1.5" opacity="0.55"/><circle cx="139" cy="202" r="1.0" opacity="0.40"/><circle cx="165" cy="378" r="1.5" opacity="0.83"/><circle cx="241" cy="257" r="0.8" opacity="0.41"/><circle cx="226" cy="194" r="1.2" opacity="0.43"/><circle cx="262" cy="325" r="0.8" opacity="0.88"/><circle cx="51" cy="395" r="1.2" opacity="0.54"/><circle cx="191" cy="364" r="1.5" opacity="0.39"/><circle cx="59" cy="248" r="1.5" opacity="0.73"/></svg>
+      <div class="clouds" aria-hidden="true"><i></i><i></i></div>
       <div class="sb"><span id="sbClock">09:41</span><span class="ic"><b></b><b></b></span></div>
       <div class="nav">
         <button type="button" class="skypill" id="sub" aria-haspopup="dialog"><span class="sg" id="skyG" aria-hidden="true"></span><b id="skyStage">Night</b><i aria-hidden="true"></i><span class="sx" id="skyTx">Sunrise 06:12</span><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.2"/><circle cx="12" cy="7.9" r=".6" fill="currentColor"/></svg></button>
@@ -952,6 +987,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
           <g id="evt" opacity="0"><line id="evtL" y1="0" y2="0" stroke-width="1.5" stroke-linecap="round" style="stroke:var(--ink-2)"/><text id="evtT" text-anchor="middle" font-size="10.5" font-weight="600" style="fill:var(--ink-2);font-family:var(--font)"></text></g>
           <circle id="marker" r="9" stroke-width="3" style="stroke:var(--sky)"/>
         </svg>
+        <div class="strip" aria-hidden="true"><div class="sev" id="sEv"></div><div class="sbar" id="sBar"><i class="sdash" id="sDash"></i><i class="sfill" id="sFill"></i><i class="sgoal" id="sGoal"></i><i class="snow" id="sNow"></i></div></div>
         <div class="ends"><span id="endA"></span><span id="endB"></span></div>
       </div>
       <button type="button" class="streak" id="streak" aria-haspopup="dialog"><div class="tx"><b id="stA"></b><span id="stB"></span></div><div class="dots" id="stDots" role="img"><i></i><i></i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.3l1.45 3 3.25.4-2.4 2.25.62 3.25L6 8.55 3.08 10.2l.62-3.25-2.4-2.25 3.25-.4z"/></svg><i></i><i></i><i></i><i class="now"></i></div></button>
@@ -1594,9 +1630,20 @@ window.LightlySphere=(function(){
     put($('endB'),'eb','<span class="cap">'+(mode==='eat'?L('Next fast','下次断食'):L('Finish','完成'))+'</span><span class="trow">'+egl(a1)+'<span class="tm">'+clock(a1)+'</span></span>',1);
     var tr=$('track'); tr.setAttribute('aria-valuenow',(mode==='eat'?e:h).toFixed(1));
     tr.setAttribute('aria-valuemax',mode==='eat'?EAT:GOAL);
+    tr.classList.toggle('tls',tls); if(tls){
+      var wl=mode==='eat'?EAT:GOAL, span=Math.max(24,wl+4), gx=wl/span*100, spent=mode==='eat'?e:mode==='idle'?0:h, n=Math.round(span), i;
+      if(cache.stripK!==startKey+mode+SUN.rise+SUN.set){ cache.stripK=startKey+mode+SUN.rise+SUN.set; var st=[]; for(i=0;i<=n;i++) st.push(SKYLOW[skyAt(a0+i/n*span)[1]]+' '+(i/n*100).toFixed(1)+'%'); $('sBar').style.background='linear-gradient(90deg,'+st.join(',')+')'; }
+      var t=0, evh=''; for(i=0;i<4;i++){ var tn=nextTurn(a0+t,span-t); if(!tn) break; t+=tn.d+.001; var x=Math.min(Math.max(t/span*100,9),91); evh+='<span style="left:'+x.toFixed(1)+'%">'+(tn.k==='rise'?SUN_I:MOON_I)+clock(tn.at)+'</span>'; }
+      put($('sEv'),'sev',evh,1);
+      $('sDash').style.width=mode==='idle'?gx.toFixed(2)+'%':'0'; $('sFill').style.width=(Math.min(spent,span)/span*100).toFixed(2)+'%'; $('sFill').classList.toggle('eat',mode==='eat');
+      $('sGoal').style.left=gx.toFixed(2)+'%'; $('sNow').style.left=(Math.min(spent,span)/span*100).toFixed(2)+'%'; $('sNow').style.display=mode==='idle'?'none':'';
+      tr.style.setProperty('--gx',Math.min(Math.max(gx,14),86).toFixed(1)+'%'); }
     act.setAttribute('aria-disabled',brk); tr.style.visibility=brk?'hidden':'';
   }
 
+  var SUN_I='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg>', MOON_I='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>';
+  function setTl(v){ tls=v; $('tl-arc').setAttribute('aria-pressed',!v); $('tl-strip').setAttribute('aria-pressed',v); cache={}; setText(); }
+  $('tl-arc').addEventListener('click',function(){ setTl(false); }); $('tl-strip').addEventListener('click',function(){ setTl(true); });
   window.refreshToday=function(forceIdle){ if(forceIdle&&mode==='fast'){ setMode('idle'); return; } cache={}; setText(); };
   function setMode(m){ mode=m;
     sSheet.t=m==='saved'?1:0; sSheet.r=m==='saved'?.42:.3; sheet.classList.toggle('open',m==='saved');
@@ -1743,7 +1790,8 @@ window.LightlySphere=(function(){
 
   /* ---------- drag along the timeline: 1:1, velocity handoff, projection, snap to the hour ---------- */
   var track=$('track');
-  function tFromX(x){ var r=$('trackSvg').getBoundingClientRect(); var vx=(x-r.left)*342/r.width; return Math.min(Math.max((vx-8)/326,0),1); }
+  var tls=false, SKYLOW={night:'#1A2250',first:'#5A5A92',dawn:'#F0B48C',morning:'#CDE6F6',day:'#E1F0FA',sunset:'#F3B07C',evening:'#6C5A88'};
+  function tFromX(x){ if(tls){ var rb=$('sBar').getBoundingClientRect(), wl0=mode==='eat'?EAT:GOAL; return Math.min(Math.max((x-rb.left)/rb.width*Math.max(24,wl0+4)/wl0,0),1); } var r=$('trackSvg').getBoundingClientRect(); var vx=(x-r.left)*342/r.width; return Math.min(Math.max((vx-8)/326,0),1); }
   track.addEventListener('pointerdown',function(ev){ if(mode!=='fast'&&mode!=='eat') return; cancelAuto(); lapse=null;
     track.setPointerCapture(ev.pointerId); var span=mode==='eat'?EAT:GOAL, cur=mode==='eat'?e:h;
     dragging={span:span,off:tFromX(ev.clientX)*span-cur,hist:[{t:ev.timeStamp,v:cur}]}; track.style.cursor='grabbing'; });

@@ -246,6 +246,7 @@ function updateToday(){
   if(tn&&tn.inH<wl){ var eq=tPt(tn.inH/wl), ex=Math.min(Math.max(eq.x,34),308).toFixed(1);
     $('evtL').setAttribute('x1',eq.x.toFixed(1)); $('evtL').setAttribute('x2',eq.x.toFixed(1)); $('evtL').setAttribute('y1',(eq.y-14).toFixed(1)); $('evtL').setAttribute('y2',(eq.y-6).toFixed(1));
     $('evtT').setAttribute('x',ex); $('evtT').setAttribute('y',(eq.y-18).toFixed(1)); put($('evtT'),'ev',(tn.k==='rise'?L('Sunrise ','日出 '):L('Sunset ','日落 '))+clockH(tn.at)); $('evt').setAttribute('opacity','1'); } else $('evt').setAttribute('opacity','0');
+  var tls=S.prefs.tl==='strip'; $('track').classList.toggle('tls',tls); if(tls) drawStrip(a0,(a1-a0)/H,mode==='fast'?el:mode==='eat'?eatEl:0,mode);
   var done=mode==='idle'?0:Math.floor(tt*n+1e-6); tickEls.forEach(function(c,i){ c.style.fill=i<done?'var(--ink)':''; });
   /* streak card */
   var st=curStreak(); $('streakBtn').hidden=!streakFasts().length; $('streakBtn').disabled=!!offA; /* during time off the card only shows the streak; cheat days are not offered */
@@ -263,6 +264,20 @@ function updateToday(){
   firstTick=false;
   fullS+=(((mode==='fast'&&el>=goal)?1:0)-fullS)*.12;
   fitDisc();
+}
+
+/* day strip (Me > Timeline): your 24 hours from the start of the window, painted in the sky colours of each hour, with the fast on it, the goal mark and a small sun or moon at each sunrise and sunset */
+var SKYLOW={night:'#1A2250',first:'#5A5A92',dawn:'#F0B48C',morning:'#CDE6F6',day:'#E1F0FA',sunset:'#F3B07C',evening:'#6C5A88'};
+var SUN_I='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg>', MOON_I='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>';
+function drawStrip(a0,wl,spent,kind){
+  var span=Math.max(24,wl+4), gx=wl/span*100, n=Math.round(span), key=Math.floor(a0/600000)+'|'+n+'|'+pi.off, i;
+  if(cache.stripK!==key){ cache.stripK=key; var st=[]; for(i=0;i<=n;i++){ var sk=C.skyAt(C.placeHour(pi,a0+i/n*span*H),sun)[1]; st.push(SKYLOW[sk]+' '+(i/n*100).toFixed(1)+'%'); } $('sBar').style.background='linear-gradient(90deg,'+st.join(',')+')'; }
+  var h0=C.placeHour(pi,a0), t=0, ev='';
+  for(i=0;i<4;i++){ var tn=C.nextTurn(h0+t,sun); t+=tn.inH+.001; if(t>=span) break; var x=Math.min(Math.max(t/span*100,9),91); ev+='<span style="left:'+x.toFixed(1)+'%">'+(tn.k==='rise'?SUN_I:MOON_I)+clockH(tn.at)+'</span>'; }
+  put($('sEv'),'sev',ev,1);
+  $('sDash').style.width=kind==='idle'?gx.toFixed(2)+'%':'0'; $('sFill').style.width=(kind==='idle'?0:Math.min(spent,span)/span*100).toFixed(2)+'%'; $('sFill').classList.toggle('eat',kind==='eat');
+  $('sGoal').style.left=gx.toFixed(2)+'%'; var nw=$('sNow'); nw.style.left=(Math.min(spent,span)/span*100).toFixed(2)+'%'; nw.style.display=kind==='idle'?'none':'';
+  $('track').style.setProperty('--gx',Math.min(Math.max(gx,14),86).toFixed(1)+'%');
 }
 
 var holdOn=false;
@@ -1209,6 +1224,7 @@ function fastSub(p){ return L('Fast '+p.fast+' hours','断食 '+p.fast+' 小时'
 var CHOICES={
   lang:{title:['Language','语言'],opts:[['en','English',''],['zh','中文','']],cur:function(){ return S.lang; }},
   theme:{title:['Appearance','外观'],opts:[['auto',['Auto','自动'],['Follows your phone','跟随手机']],['light',['Light','浅色'],''],['dark',['Dark','深色'],'']],cur:function(){ return S.theme; }},
+  tl:{title:['Timeline','时间线'],opts:[['arc',['Arc','弧线'],['A curve from start to finish','从开始到完成的一条弧线']],['strip',['Day strip','日条'],['Your 24 hours, with sunrise and sunset','你的 24 小时，含日出日落']]],cur:function(){ return S.prefs.tl||'arc'; }},
   tstyle:{title:['Timer style','计时样式'],opts:[['a',['Classic','经典'],['Bold rounded numerals','圆润粗体数字']],['b',['Hero','大字'],['Very large, light numerals','超大轻体数字']]],cur:function(){ return S.prefs.timerStyle||'b'; }}
 };
 function cl(x){ return typeof x==='string'?x:L(x[0],x[1]); }
@@ -1229,6 +1245,7 @@ function renderMe(){
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
    '<button class="row" data-act="choice" data-k="lang">'+mi('globe','navy')+'<span>'+L('Language','语言')+'</span><span class="v">'+(S.lang==='zh'?'中文':'English')+'</span>'+CHEV+'</button>'+
    '<button class="row" data-act="choice" data-k="theme">'+mi('half','navy')+'<span>'+L('Appearance','外观')+'</span><span class="v">'+choiceLabel('theme',S.theme)+'</span>'+CHEV+'</button>'+
+   '<button class="row" data-act="choice" data-k="tl">'+mi('arc','navy')+'<span>'+L('Timeline','时间线')+'</span><span class="v">'+choiceLabel('tl',S.prefs.tl||'arc')+'</span>'+CHEV+'</button>'+
    sw('sound',L('Sound','声音'),S.prefs.sound,0,mi('sound','navy'))+(canTick()?sw('haptics',L('Vibration','振动'),S.prefs.haptics,0,mi('vib','navy')):'')+sw('d3',L('3D moon and sun','3D 月亮和太阳'),S.prefs.d3&&!!orb,!orb,mi('moon','navy'))+
    sw('notify',L('Reminders','提醒'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window),mi('bell','navy'))+'</div>';
   h+='<div class="gf">'+L('You’ll hear when you reach your goal, as long as Lightly was opened recently.','只要最近打开过轻伴，达成目标时就会提醒你。')+'</div>';
@@ -1241,7 +1258,7 @@ function renderMe(){
   $('me').innerHTML=h;
 }
 /* Me rows: a small tile with a drawn icon (gold for fasting, navy for the app, grey for data and about, red for erase) */
-var MI={sun:'M3 17h18M7 17a5 5 0 0 1 10 0M12 5v3M5 9l1.6 1.6M19 9l-1.6 1.6',clock:'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z',cal:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+var MI={arc:'M3 17C7 6 17 6 21 17M3 17h.01M21 17h.01',sun:'M3 17h18M7 17a5 5 0 0 1 10 0M12 5v3M5 9l1.6 1.6M19 9l-1.6 1.6',clock:'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z',cal:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
   globe:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9S9.5 5.5 12 3Z',half:'M12 3a9 9 0 1 0 0 18V3Z',
   sound:'M4 10v4h4l5 4V6L8 10H4ZM16.5 9a4 4 0 0 1 0 6',vib:'M9 4h6v16H9zM5 8v8M19 8v8',moon:'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z',bell:'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16ZM10 21h4',
   heart:'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z',imp:'M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14',exp:'M12 15V4M7.5 8.5 12 4l4.5 4.5M5 20h14',
@@ -1509,6 +1526,7 @@ var A={
   eraseok:function(){ try{ localStorage.removeItem(KEY); localStorage.removeItem(AVG); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
   usualset:function(){ S.prefs.usualStart='20:00'; save(); cache={}; updateToday(); renderMe(); pkToggle('usualStart'); },
   pktog:function(b){ pkToggle(b.dataset.id); },
+  tl:function(b){ S.prefs.tl=b.dataset.v; save(); cache={}; renderMe(); updateToday(); },
   tstyle:function(b){ S.prefs.timerStyle=b.dataset.v; ph.dataset.ts=b.dataset.v; save(); renderMe(); cache={}; fitDisc(); },
   obnext:function(){ if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ if(ob.step>0){ ob.step--; obRender(-1); } },
