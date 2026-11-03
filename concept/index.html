@@ -2318,7 +2318,7 @@ window.LightlySphere=(function(){
       :off?L('You fasted today, so there\u2019s nothing to cover.','今天你已经断食了，不需要弹性日。')
       :run?L('You\u2019re fasting now. End the fast first.','你正在断食，先结束这次断食。')
       :none?L('None left this week. A new one arrives on Monday.','这周用完了，周一会再给你一个。')
-      :L('A day off that keeps your streak going. A new one arrives every Monday, and you can keep two.','休息一天，连续记录不会断。每周一补充一个，最多存两个。');
+      :L('A calendar day off, midnight to midnight. Your streak keeps going. A new one arrives every Monday, and you can keep two.','一个日历天，午夜到午夜，连续不会断。每周一补充一个，最多存两个。');
     $('chMoons').innerHTML='<i class="'+(C.left>0?'on':'')+'"></i><i class="'+(C.left>1?'on':'')+'"></i><span>'+L(C.left+' of 2 held','存有 '+C.left+' 个，最多 2 个')+'</span>';
     $('chMoons').setAttribute('aria-label',L(C.left+' of 2 cheat days held','存有 '+C.left+' 个弹性日，最多 2 个'));
     var g=$('chGo'); g.disabled=!C.used&&(off||run||none);
