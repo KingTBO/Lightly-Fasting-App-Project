@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.71.4
+- **design** The concept page's phone now matches the app's Me tab: a Timeline row (Arc or Day strip) that really switches the Today timeline, Delete account inside Your data (signed in only), and Sign out written as "Sign out".
+
 ## 0.71.3
 - **design** The Day strip shows the small Start (or Now) and Finish captions above the two times again, the same as the arc, so it reads as complete.
 
