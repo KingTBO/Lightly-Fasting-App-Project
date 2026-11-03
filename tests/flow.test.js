@@ -91,8 +91,8 @@ const H=3600000,D=24*H;
  const fz=(n,h)=>Array.from({length:n},(_,i)=>({id:'f'+i+'-'+h,start:Date.now()-(i+2)*D,end:Date.now()-(i+2)*D+h*H,goalH:h,plan:String(h)}));
  // Days: totals header, average-fast chart, swipe between months, month picker, no cheat row
  {const old=Date.now()-75*D;const fl=Array.from({length:6},(_,i)=>({id:'dd'+i,start:Date.now()-(i+1)*D-16*H,end:Date.now()-(i+1)*D,goalH:16,plan:'16'})).concat([{id:'dold',start:old-16*H,end:old,goalH:16,plan:'16'}]);
- const q=await fresh(seed({planId:'16',fasts:fl}));await q.click('#tabs [data-tab=days]');await q.waitForTimeout(900);
- assert.match(await q.textContent('#days .tot:not(.recap) .tn'),/^\d[\d,.]*\s*hours$/,'total hours is the headline');assert.match(await q.textContent('#days .tot:not(.recap) .tstats'),/day streak.*fasts.*average/,'streak, fasts and average sit under it');assert.strictEqual(Number((await q.textContent('#days .tot:not(.recap) .tn')).replace(/[^\d.]/g,'')),112,'seven 16 h fasts add up to 112 h');
+ const q=await fresh(seed({planId:'16',fasts:fl}));await q.click('#tabs [data-tab=days]');await q.waitForTimeout(500);await q.waitForFunction(()=>!document.querySelector('[data-rolling]'));
+ assert.match(await q.textContent('#days .tot .tn'),/^\d[\d,.]*\s*hours$/,'total hours is the headline');assert.match(await q.textContent('#days .tot .tstats'),/day streak.*fasts.*average/,'streak, fasts and average sit under it');assert.strictEqual(Number((await q.textContent('#days .tot .tn')).replace(/[^\d.]/g,'')),112,'seven 16 h fasts add up to 112 h');
  assert(await q.$('#days .avg'),'average fast chart under the calendar');assert(await q.$('#days .avg .avgcol'),'bars can be tapped');{const w0=await q.textContent('#days .avgsum');await q.click('#days [data-act=avgmode][data-m=months]');await q.waitForTimeout(700);assert.strictEqual(await q.getAttribute('#days [data-act=avgmode][data-m=months]','aria-pressed'),'true','Months switch');assert(await q.$('#days .avg .avgcol'),'months bars');await q.click('#days [data-act=avgmode][data-m=weeks]');await q.waitForTimeout(500);assert.strictEqual(await q.textContent('#days .avgsum'),w0,'back to weeks');}
  assert(!(await q.$('#days .mrow')),'no tile row');assert(!(await q.$('#days [data-act=usecheat]')),'no cheat row on Days');
  const t0=await q.textContent('#days .cal-t');const g=await q.locator('#days .cal-g').boundingBox();
@@ -115,11 +115,17 @@ const H=3600000,D=24*H;
   const oct=[3,6,9,12].map(d=>{const e=new Date('2026-10-'+String(d).padStart(2,'0')+'T12:00:00+08:00').getTime();return{id:'rc'+d,start:e-17*H,end:e,goalH:16,plan:'16'}});
   await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(seed({planId:'16',fasts:oct})));await q.goto(url);await q.waitForTimeout(600);
   await q.click('#tabs [data-tab=days]');await q.waitForTimeout(800);
-  assert.strictEqual(!!(await q.$('#days .recap')),expect,'recap '+(expect?'shows':'is hidden')+' on '+when);
-  if(expect){assert.match(await q.textContent('#days .recap .tk'),/Your October/);assert.match(await q.textContent('#days .recap .tn'),/^68/,'four 17 h fasts add up to 68 h');assert.match(await q.textContent('#days .recap .tstats'),/4fasts4reached goal17.0 haverage/);
-   await q.click('#days [data-act=recapx]');await q.waitForTimeout(400);assert(!(await q.$('#days .recap')),'dismissed');assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).prefs.recapSeen,'2026-10');}
+  assert.strictEqual(!!(await q.$('#days .rcard')),expect,'recap '+(expect?'shows':'is hidden')+' on '+when);
+  if(expect){assert.match(await q.textContent('#days .rcard .rct'),/^Your October recap$/);assert.match(await q.textContent('#days .rcard .rcs'),/4 fasts · 68.0 hours/);
+   await q.click('#days [data-act=recap]');await q.waitForSelector('#report:not([hidden])');await q.waitForTimeout(800);await q.waitForFunction(()=>!document.querySelector('[data-rolling]'),null,{timeout:5000});
+   assert.match(await q.textContent('#rpT'),/^Your October recap$/);assert.match(await q.textContent('#report .rp-big'),/^68\.0$/,'hours roll to the right total');assert.strictEqual(await q.getAttribute('#report .rp-big','aria-label'),'68.0 hours fasted');
+   assert.strictEqual(await q.locator('#report .rp-day').count(),31,'one disc a day');assert.strictEqual(await q.locator('#report .rp-day.d').count(),4,'four days reached');assert((await q.getAttribute('#rpLit','d')||'').length>10,'the month disc is drawn');
+   assert.match(await q.textContent('#report .rp-tiles'),/4 \/ 4reached your goal/);assert.match(await q.textContent('#report .rp-24 .lbl'),/00:0006:0012:0018:0024:00/,'24 hour clock');assert(await q.$('#report .rp-night'),'moon and sun chapter');
+   await q.keyboard.press('Escape');await q.waitForSelector('#report[hidden]',{state:'attached'});assert(await q.$('#days .rcard'),'card is still there after closing');
+   await q.click('#days [data-act=recap]');await q.waitForSelector('#report:not([hidden])');await q.waitForTimeout(700);await q.click('#report .rp-x');await q.waitForSelector('#report[hidden]',{state:'attached'});
+   await q.click('#days [data-act=recapx]');await q.waitForTimeout(400);assert(!(await q.$('#days .rcard')),'dismissed');assert.strictEqual((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).prefs.recapSeen,'2026-10');}
   await c.close();}
- ok('Days monthly recap: 1st to 7th, dismissible, hidden later');
+ ok('Days monthly recap card, report opens and closes, dismissible, hidden later');
  // appearance: the sheet stays open, the whole app switches, the sheet shows the new choice
  {const q=await fresh(seed({theme:'light'}));await q.click('#tabs [data-tab=me]');await q.click('#me [data-act=choice][data-k=theme]');await q.waitForTimeout(500);
  await q.evaluate(()=>{window.__pick=()=>[...document.querySelectorAll('#me .group,#me .row,#me .row *,#sheet,#sheet *,.tabs,.tabs *,.scrim,.btn')].map(e=>getComputedStyle(e).backgroundColor+'|'+getComputedStyle(e).color);});
