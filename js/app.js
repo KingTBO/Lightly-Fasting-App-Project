@@ -9,7 +9,7 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
 function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null},
   planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
-  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,startedAt:null,mod:0,del:[]}; }
+  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,body:null,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
   try{ var raw=localStorage.getItem(KEY); if(raw){ var o=JSON.parse(raw), f=fresh(); for(var k in f) if(o[k]!==undefined) S[k]=o[k];
@@ -570,6 +570,14 @@ var RP_EASE='cubic-bezier(.32,.72,0,1)';
 function rngLab(s,e){ var a=C.keyToDate(s), b=C.keyToDate(e);
   if(S.lang==='zh') return (a.getMonth()+1)+'/'+a.getDate()+(s===e?'':'–'+(a.getMonth()===b.getMonth()?'':(b.getMonth()+1)+'/')+b.getDate());
   return dateLbl(a.getTime(),{month:'short',day:'numeric'})+(s===e?'':'–'+dateLbl(b.getTime(),a.getMonth()===b.getMonth()?{day:'numeric'}:{month:'short',day:'numeric'})); }
+/* optional monthly check-in (only if weight was given in setup, never in Care mode): one weight, saved on the phone and in the backup, shown with no judgement */
+function rpWeightHtml(pm){
+  var b=S.body, u=b.unit||'kg', ck=b.checks||[], cur=ck.filter(function(c){ return c.key===pm.key; })[0], prev=ck.filter(function(c){ return c.key<pm.key; }).pop()||{kg:b.kg},
+      num=function(kg){ return Math.round(C.kgTo(kg,u))+' '+uLbl(u); };
+  if(cur) return '<h3 id="rpTw" class="rpi">'+L('Your check-in','你的记录')+'</h3><p class="rp-line rpi" style="--i:1">'+L('Before <b>'+num(prev.kg)+'</b> · now <b>'+num(cur.kg)+'</b>','之前 <b>'+num(prev.kg)+'</b> · 现在 <b>'+num(cur.kg)+'</b>')+'</p><button type="button" class="btn quiet rpi" style="--i:2" data-act="rpwedit">'+L('Change it','修改')+'</button>';
+  rp.wkg=prev.kg;
+  return '<h3 id="rpTw" class="rpi">'+L('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="group rpi" style="--i:2">'+pkField('rpWt',L('Weight now','现在的体重'),Math.round(C.kgTo(prev.kg,u)),'sel',wtOpts(u))+'</div><button type="button" class="btn rpi" style="--i:3" data-act="rpwsave">'+L('Save','保存')+'</button>';
+}
 function reportHtml(pm,r){
   var name=monthName(pm,true), nxt=monthName({y:pm.m===11?pm.y+1:pm.y,m:(pm.m+1)%12},true), goal=S.planId==='ramadan'?0:plan().fast, i;
   var steady=r.n&&r.reached/r.n>=.8;
@@ -608,6 +616,7 @@ function reportHtml(pm,r){
     (bands?'<section class="rp-s rv" aria-labelledby="rpT5"><h3 id="rpT5" class="rpi">'+L('Your rhythm','你的节奏')+'</h3><p class="rp-line rpi" style="--i:1">'+L('You usually start around <b>'+clockH(s0)+'</b> and finish around <b>'+clockH(f0)+'</b>.','你通常在 <b>'+clockH(s0)+'</b> 左右开始，<b>'+clockH(f0)+'</b> 左右结束。')+'</p>'+
       '<div class="rp-24" aria-hidden="true"><div class="trk">'+bands+'</div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div></section>':'')+
     '<section class="rp-s rv" aria-labelledby="rpT6"><h3 id="rpT6" class="rpi">'+L('Highlights','亮点')+'</h3><div class="rp-tiles">'+tiles+'</div></section>'+
+    (S.body&&!care()?'<section class="rp-s rp-card rv" id="rpW" aria-labelledby="rpTw">'+rpWeightHtml(pm)+'</section>':'')+
     '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?L('A steady month.','稳稳的一个月。'):L('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+L('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="btn rpi" style="--i:2" data-act="rpclose">'+L('Done','完成')+'</button></section></div><button type="button" class="rp-x" data-act="rpclose" aria-label="'+L('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>';
 }
 /* the hero disc is the same moon and sun as Today: the real 3D ball when the 3D switch is on (and WebGL works), the flat drawing otherwise.
@@ -885,6 +894,7 @@ function pkTune(col){
 function pkChange(id,v){
   if(id==='obStart'){ ob.start=v; var o=$('obPrev'); if(o){ var t=document.createElement('div'); t.innerHTML=obPrev(ob.plan||'16',v); o.querySelector('small').textContent=t.querySelector('small').textContent; } }
   else if(id==='obCity') setPlace({key:v});
+  else if(id==='rpWt') rp.wkg=C.toKg(+v,S.body.unit||'kg');
   else if(id==='obAge') ob.age=+v;
   else if(id==='obWt') ob.kg=C.toKg(+v,ob.unit);
   else if(id==='obHt') ob.cm=ob.unit==='lb'?+v*2.54:+v;
@@ -1065,7 +1075,7 @@ function careSheet(){
 }
 function bodySheet(){
   var b=S.body; if(!b) return closeSheet(); var u=b.unit||'kg';
-  openSheet('<h3>'+L('Weight and height','体重和身高')+'</h3><p class="lede">'+L('Saved only for your first-30-days estimate. Never shared.','只用于头 30 天的估算，绝不分享。')+'</p><div class="group"><div class="row"><span>'+L('Age','年龄')+'</span><b>'+b.age+'</b></div><div class="row"><span>'+L('Weight','体重')+'</span><b>'+Math.round(C.kgTo(b.kg,u))+' '+uLbl(u)+'</b></div><div class="row"><span>'+L('Height','身高')+'</span><b>'+b.cm+' cm</b></div></div>'+
+  openSheet('<h3>'+L('Weight and height','体重和身高')+'</h3><p class="lede">'+L('Saved for your estimate and monthly check-ins. Never shared.','只用于你的估算和每月记录，绝不分享。')+'</p><div class="group"><div class="row"><span>'+L('Age','年龄')+'</span><b>'+b.age+'</b></div><div class="row"><span>'+L('Weight','体重')+'</span><b>'+Math.round(C.kgTo(b.kg,u))+' '+uLbl(u)+'</b></div><div class="row"><span>'+L('Height','身高')+'</span><b>'+b.cm+' cm</b></div></div>'+
     '<div class="btns"><button class="btn red" data-act="bodyrm">'+L('Remove them','删除')+'</button><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
 }
 function careRow(b){
@@ -1350,7 +1360,8 @@ function uLbl(u){ return u==='kg'?L('kg','公斤'):u==='lb'?L('lb','磅'):'斤';
 function obEstIn(){ return {age:ob.age,kg:ob.kg,cm:ob.cm,fastH:C.planById(ob.plan||'13',S.customH).fast,boosts:ob.boost.length}; }
 function ftIn(i){ return Math.floor(i/12)+'′ '+(i%12)+'″'; }
 function obAgeOpts(){ var a=[],i; for(i=13;i<=90;i++) a.push([i,S.lang==='zh'?i+' 岁':String(i)]); return a; }
-function obWtOpts(){ var u=ob.unit, r={kg:[30,250],lb:[66,551],jin:[60,500]}[u], a=[],i; for(i=r[0];i<=r[1];i++) a.push([i,i+' '+uLbl(u)]); return a; }
+function wtOpts(u){ var r={kg:[30,250],lb:[66,551],jin:[60,500]}[u], a=[],i; for(i=r[0];i<=r[1];i++) a.push([i,i+' '+uLbl(u)]); return a; }
+function obWtOpts(){ return wtOpts(ob.unit); }
 function obHtOpts(){ var a=[],i; if(ob.unit==='lb'){ for(i=47;i<=87;i++) a.push([i,ftIn(i)]); } else for(i=120;i<=220;i++) a.push([i,i+' cm']); return a; }
 function obHtKey(){ return ob.unit==='lb'?Math.round(ob.cm/2.54):Math.round(ob.cm); }
 function wNum(kg){ var x=Math.round(C.kgTo(kg,ob.unit)*2)/2; return String(x); }
@@ -1460,7 +1471,7 @@ function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.l
 function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),dinner:0,soda:0,boost:[],skip:false,bodyDone:false}; $('ob').innerHTML=''; obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
-  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.fasted==='before'&&!risky&&ob.start) S.prefs.usualStart=ob.start; if(!risky&&ob.bodyDone&&!ob.skip){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,dinner:ob.dinner,soda:ob.soda,at:Date.now()}; } else delete S.body;
+  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.fasted==='before'&&!risky&&ob.start) S.prefs.usualStart=ob.start; if(!risky&&ob.bodyDone&&!ob.skip){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,dinner:ob.dinner,soda:ob.soda,at:Date.now()}; } else S.body=null;
   S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
   save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today');
 }
@@ -1533,6 +1544,8 @@ var A={
   gotoday:function(){ showTab('today'); },
   recap:function(b){ openReport(b); },
   rpclose:function(){ closeReport(); },
+  rpwsave:function(){ var pm=recapMonth(); if(!pm||!S.body) return; var ck=S.body.checks=(S.body.checks||[]).filter(function(c){ return c.key!==pm.key; }); ck.push({key:pm.key,kg:Math.round(rp.wkg*10)/10,at:Date.now()}); ck.sort(function(a,b){ return a.key<b.key?-1:1; }); save(); fx('success'); var e=$('rpW'); if(e) e.innerHTML=rpWeightHtml(pm); },
+  rpwedit:function(){ var pm=recapMonth(); if(!pm||!S.body) return; S.body.checks=(S.body.checks||[]).filter(function(c){ return c.key!==pm.key; }); save(); var e=$('rpW'); if(e) e.innerHTML=rpWeightHtml(pm); },
   recapx:function(){ var pm=recapMonth(); if(pm){ S.prefs.recapSeen=pm.key; save(); renderDays(); } },
   avgmode:function(b){ if(avgMode===b.dataset.m) return; avgMode=b.dataset.m; avgSel=null; avgDraw(true); var n=$('avgBox').querySelector('[data-act=avgmode][aria-pressed=true]'); if(n) n.focus({preventScroll:true}); },
   avgbar:function(b){ avgSel=+b.dataset.i; avgDraw(false); var n=$('avgBox').querySelector('[data-i="'+avgSel+'"]'); if(n) n.focus({preventScroll:true}); },
@@ -1627,7 +1640,7 @@ var A={
   obnext:function(){ if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ if(ob.step>0){ ob.step--; obRender(-1); } },
   bodyinfo:bodySheet,
-  bodyrm:function(){ delete S.body; save(); closeSheet(); renderMe(); },
+  bodyrm:function(){ S.body=null; save(); closeSheet(); renderMe(); },
   obunit:function(b){ ob.unit=b.dataset.v; obRefresh(); },
   obbody:function(){ ob.bodyDone=true; A.obnext(); },
   obbodyskip:function(){ ob.skip=true; ob.bodyDone=false; obRender(); },

@@ -21,8 +21,9 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   await q.click('[data-act=obboost][data-k=dinner]');await q.click('[data-act=obboost][data-k=soda]');await q.waitForTimeout(400);t=await txt(q);assert.match(t,/About 0\.5–1\.5 kg|About 1–1\.5 kg|About 1–2 kg/,'two boosts raise the range: '+t);
   assert.match(t,/Not a promise/);await nx(q);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
   const s=await S(q);assert.strictEqual(s.body.age,30);assert.strictEqual(s.body.kg,70);assert.strictEqual(s.body.cm,170);assert.strictEqual(s.body.dinner,3);
+  await q.reload();await q.waitForTimeout(700);assert.strictEqual((await S(q)).body.kg,70,'the weight survives a reload');
   await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);assert.match(await q.textContent('#me'),/Weight and height/);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent('#sheet'),/Never shared/);await q.click('#sheet [data-act=bodyrm]');await q.waitForTimeout(500);
-  assert.strictEqual((await S(q)).body,undefined,'removed');assert(!/Weight and height/.test(await q.textContent('#me')));
+  assert(!(await S(q)).body,'removed');assert(!/Weight and height/.test(await q.textContent('#me')));
   ok('about you, how you eat, your first 30 days: a range, optional switches, saved, and removable from Me');await q.context().close();}
 
  // units
@@ -33,7 +34,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
 
  // skip: nothing saved, straight to the summary
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
-  assert.strictEqual((await S(q)).body,undefined);ok('skip: no weight saved');await q.context().close();}
+  assert(!(await S(q)).body);ok('skip: no weight saved');await q.context().close();}
 
  // a healthy BMI gets a page with no numbers; a low BMI gets nothing at all
  {const q=await toSafety('zh');await q.click('[data-act=obsafe][data-v=none]');await nx(q);assert.match(await txt(q),/关于你/);
@@ -47,7 +48,21 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/,'BMI under 18.5: no estimate, no page');await q.click('[data-act=obdone]');await q.waitForTimeout(800);ok('BMI under 18.5: nothing shown');await q.context().close();}
 
  // Care mode never sees the weight questions
- {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=ed]');await nx(q);assert.match(await txt(q),/You’re set/);assert.match(await txt(q),/Care mode is on/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert.strictEqual((await S(q)).body,undefined);ok('Care mode: no weight questions');await q.context().close();}
+ {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=ed]');await nx(q);assert.match(await txt(q),/You’re set/);assert.match(await txt(q),/Care mode is on/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert(!(await S(q)).body);ok('Care mode: no weight questions');await q.context().close();}
+
+ // the monthly check-in sits in the recap report: optional, one weight, no judgement; never in Care mode, never without a weight from setup
+ {const H=3600000,D=24*H,oct=[3,6,9,12].map(d=>{const e=new Date('2026-10-'+String(d).padStart(2,'0')+'T12:00:00+08:00').getTime();return{id:'rc'+d,start:e-17*H,end:e,goalH:16,plan:'16'};});
+  const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{fastedBefore:false,safety:false,care:[]},planId:'16',customH:16,place:{key:'shanghai'},cur:null,fasts:oct,flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},ramadanPreview:false,startedAt:Date.now()-30*D,mod:1,del:[]},o);
+  async function rep(state){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});await c.clock.install({time:new Date('2026-11-03T09:00:00+08:00')});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));
+   await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(state));await q.goto(url);await q.waitForTimeout(600);await q.click('#tabs [data-tab=days]');await q.waitForTimeout(800);await q.click('#days [data-act=recap]');await q.waitForSelector('#report:not([hidden])');await q.waitForTimeout(900);return q;}
+  let q=await rep(seed({body:{age:30,kg:82,cm:170,unit:'kg',dinner:0,soda:0,at:1}}));
+  await q.locator('#rpW').scrollIntoViewIfNeeded();await q.waitForTimeout(600);assert.match(await q.textContent('#rpW'),/A quick check-in/);assert.match(await q.textContent('#rpW'),/Only you see this/);
+  await pick(q,'rpWt',50);await q.click('#rpW [data-act=rpwsave]');await q.waitForTimeout(500);
+  assert.match(await q.textContent('#rpW'),/Before 82 kg · now 80 kg/,await q.textContent('#rpW'));let s=await S(q);assert.strictEqual(s.body.checks.length,1);assert.strictEqual(s.body.checks[0].key,'2026-10');assert.strictEqual(s.body.checks[0].kg,80);
+  await q.click('#rpW [data-act=rpwedit]');await q.waitForTimeout(400);assert.match(await q.textContent('#rpW'),/A quick check-in/);assert.strictEqual((await S(q)).body.checks.length,0);
+  ok('monthly check-in in the recap: one weight, saved, changeable');await q.context().close();
+  q=await rep(seed({body:{age:30,kg:82,cm:170,unit:'kg',at:1},profile:{fastedBefore:true,safety:true,care:['diab']}}));assert(!(await q.$('#rpW')),'no check-in in Care mode');await q.context().close();
+  q=await rep(seed({}));assert(!(await q.$('#rpW')),'no check-in without a weight from setup');ok('no check-in in Care mode or without a weight');await q.context().close();}
 
  assert.deepStrictEqual(errs,[],'no page errors: '+errs.join(' | '));
  await b.close();srv.close();console.log('body ok');

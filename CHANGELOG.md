@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.74.0
+- **feature** Monthly weight check-in. If you gave a weight in setup (and Care mode is off), your monthly recap ends with a quick, optional "A quick check-in": one weight wheel and Save. After saving it shows "Before 82 kg · now 80 kg" with no judgement and a Change button. Only you see it. The concept page's recap shows the same card.
+- **fix** The weight and height from setup were dropped when the app was reopened. They are now kept, and removing them in Me also reaches your other phones.
+- **docs** Privacy page (English and 中文) and legal notes cover the monthly check-in.
+
 ## 0.73.0
 - **feature** An optional 30-day weight estimate at the end of setup (not shown in Care mode). Three short steps: age, weight and height (kg, lb or 斤); how you eat (last meal of the day, sugary drinks); then "Your first 30 days", a modest range such as "About 0.5–1 kg" with optional habit switches that add a little. It is an estimate, never a single number, never above 2.5% of body weight, and not shown under 18 or when the BMI is under 18.5. A BMI under 24 gets "Weight isn't the point" with no numbers. Skip anywhere. There is no goal weight and no weight logging.
 - **feature** Me > Your data has a Weight and height row (once you have answered) where you can see what is saved and remove it. Weight, height and age are saved in the account backup but are left out of the email sign-in link.
