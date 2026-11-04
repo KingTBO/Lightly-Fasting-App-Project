@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.74.2
+- **fix** Setup screens no longer leave a finished animation on their content (it could keep the wheels and the page below it from responding on some iPhones), and the weight wheel is shorter (about 350 rows instead of up to 490 in lb), so it is easier for a phone to draw.
+
 ## 0.74.1
 - **fix** Erase everything now also empties your backup when you are signed in. Before, the next sync brought everything back and skipped setup. The sheet says "Your backup is erased too", and if the backup can't be reached nothing is erased.
 - **fix** A wheel (such as the weight wheel) could stop turning for good if the app never saw a finger lift. The next touch now takes over after a moment.

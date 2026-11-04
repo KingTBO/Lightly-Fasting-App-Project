@@ -410,7 +410,8 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .ob-step{will-change:transform;box-shadow:-10px 0 28px rgba(0,0,0,.08);transition:transform .55s var(--spr),opacity .4s ease}
 .ob-step.past,.ob-step.out{opacity:.72}
 @keyframes obin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.ob-step.on>:not(.ob-top){animation:obin .6s var(--spr) both;animation-delay:calc(var(--i,0)*55ms + 120ms)}
+/* backwards, not both: once it has played, nothing keeps an animation (and a composited layer) on the content, which on iPhone left the wheels inside it unresponsive */
+.ob-step.on>:not(.ob-top){animation:obin .6s var(--spr) backwards;animation-delay:calc(var(--i,0)*55ms + 120ms)}
 .ob-step.on.nostagger>*{animation:none}
 /* a step refreshed in place (picking an option) must not replay its entrance; only a note that appears fades in */
 .ob-step.on.nostagger>.obnote{animation:swap .36s var(--spring)}

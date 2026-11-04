@@ -36,6 +36,11 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
   assert(!(await S(q)).body);ok('skip: no weight saved');await q.context().close();}
 
+ // the weight wheel stays short enough to draw everywhere, and the setup content keeps no lingering animation
+ {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);
+  for(const u of ['kg','lb','jin']){await q.click('[data-act=obunit][data-v='+u+']');await q.waitForTimeout(300);const n=await q.evaluate(()=>document.querySelectorAll('#obWt .pk-i').length);assert(n>0&&n<=360,u+' wheel has '+n+' rows');}
+  assert.notStrictEqual(await q.evaluate(()=>getComputedStyle(document.querySelector('.ob-step.on .group')).animationFillMode),'both','no fill-forwards animation left on the content');
+  ok('weight wheels stay short and the setup content keeps no lingering animation');await q.context().close();}
  // a finger whose lift is never seen must not freeze the wheel (a touch that vanished left it dead until the app was restarted)
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await q.click('[data-act=pktog][data-id=obWt]');await q.waitForTimeout(600);
   await q.evaluate(()=>{const c=document.querySelector('#obWt .pk-c'),r=c.getBoundingClientRect();c.dispatchEvent(new PointerEvent('pointerdown',{pointerId:77,pointerType:'touch',clientX:r.x+50,clientY:r.y+90,bubbles:true}));});
