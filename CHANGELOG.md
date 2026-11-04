@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.74.3
+- **fix** In dark mode the chosen answer in a segmented control (the eating questions in setup, the kg/lb/斤 and language switches, the Days chart range) had the same colour as its track, so it looked as if nothing could be chosen. The chosen segment is now a lighter grey, like iOS.
+
 ## 0.74.2
 - **fix** Setup screens no longer leave a finished animation on their content (it could keep the wheels and the page below it from responding on some iPhones), and the weight wheel is shorter (about 350 rows instead of up to 490 in lb), so it is easier for a phone to draw.
 

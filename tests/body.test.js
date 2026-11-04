@@ -8,7 +8,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  const S=q=>q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')));
  const nx=async q=>{await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(550);};
  const txt=q=>q.textContent('.ob-step.on');
- async function toSafety(lang){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai',locale:lang==='zh'?'zh-CN':'en-GB'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));await q.goto(url);await q.waitForTimeout(500);
+ async function toSafety(lang,scheme){const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai',locale:lang==='zh'?'zh-CN':'en-GB',colorScheme:scheme||'light'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));await q.goto(url);await q.waitForTimeout(500);
   if(lang==='zh'){await q.click('[data-act=lang][data-v=zh]');await q.waitForTimeout(200);}
   await q.click('[data-act=obnext]');await q.waitForTimeout(550);await q.click('[data-act=obopt][data-v=first]');await q.waitForTimeout(300);await nx(q);await nx(q);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(300);await nx(q);return q;}
  async function pick(q,id,i){await q.click('[data-act=pktog][data-id='+id+']');await q.waitForTimeout(300);await q.click('#'+id+' .pk-i[data-i="'+i+'"]');await q.waitForTimeout(500);}
@@ -41,6 +41,14 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   for(const u of ['kg','lb','jin']){await q.click('[data-act=obunit][data-v='+u+']');await q.waitForTimeout(300);const n=await q.evaluate(()=>document.querySelectorAll('#obWt .pk-i').length);assert(n>0&&n<=360,u+' wheel has '+n+' rows');}
   assert.notStrictEqual(await q.evaluate(()=>getComputedStyle(document.querySelector('.ob-step.on .group')).animationFillMode),'both','no fill-forwards animation left on the content');
   ok('weight wheels stay short and the setup content keeps no lingering animation');await q.context().close();}
+ // in dark mode the chosen answer must be visible (it was the same colour as its track, so it looked as if nothing could be chosen)
+ {const q=await toSafety('en','dark');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(900);
+  await q.click('[data-act=obeat][data-k=dinner][data-v="3"]');await q.waitForTimeout(400);
+  const d=await q.evaluate(()=>{const rgba=c=>{const m=c.match(/[\d.]+/g).map(Number);return {r:m[0],g:m[1],b:m[2],a:m.length>3?m[3]:1};};
+    const bg=rgba(getComputedStyle(document.querySelector('.ob-step.on')).backgroundColor),tr=rgba(getComputedStyle(document.querySelector('.ob-step.on .seg')).backgroundColor),pill=rgba(getComputedStyle(document.querySelector('[data-k=dinner][data-v="3"]')).backgroundColor);
+    const lum=c=>.2126*c.r+.7152*c.g+.0722*c.b, track={r:tr.r*tr.a+bg.r*(1-tr.a),g:tr.g*tr.a+bg.g*(1-tr.a),b:tr.b*tr.a+bg.b*(1-tr.a)};return {track:lum(track),pill:lum(pill)};});
+  assert(Math.abs(d.pill-d.track)>20,'the chosen segment is clearly lighter or darker than its track: '+JSON.stringify(d));
+  ok('dark mode: the chosen eating answer is visible');await q.context().close();}
  // a finger whose lift is never seen must not freeze the wheel (a touch that vanished left it dead until the app was restarted)
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await q.click('[data-act=pktog][data-id=obWt]');await q.waitForTimeout(600);
   await q.evaluate(()=>{const c=document.querySelector('#obWt .pk-c'),r=c.getBoundingClientRect();c.dispatchEvent(new PointerEvent('pointerdown',{pointerId:77,pointerType:'touch',clientX:r.x+50,clientY:r.y+90,bubbles:true}));});
