@@ -1360,7 +1360,7 @@ function uLbl(u){ return u==='kg'?L('kg','公斤'):u==='lb'?L('lb','磅'):'斤';
 function obEstIn(){ return {age:ob.age,kg:ob.kg,cm:ob.cm,fastH:C.planById(ob.plan||'13',S.customH).fast,boosts:ob.boost.length}; }
 function ftIn(i){ return Math.floor(i/12)+'′ '+(i%12)+'″'; }
 function obAgeOpts(){ var a=[],i; for(i=13;i<=90;i++) a.push([i,S.lang==='zh'?i+' 岁':String(i)]); return a; }
-function wtOpts(u){ var r={kg:[30,250],lb:[66,551],jin:[60,500]}[u], a=[],i; for(i=r[0];i<=r[1];i++) a.push([i,i+' '+uLbl(u)]); return a; }
+function wtOpts(u){ var r={kg:[30,250],lb:[70,420],jin:[70,420]}[u]   /* at most about 350 rows: a taller wheel (36 px a row) risks exceeding what iPhone can draw */, a=[],i; for(i=r[0];i<=r[1];i++) a.push([i,i+' '+uLbl(u)]); return a; }
 function obWtOpts(){ return wtOpts(ob.unit); }
 function obHtOpts(){ var a=[],i; if(ob.unit==='lb'){ for(i=47;i<=87;i++) a.push([i,ftIn(i)]); } else for(i=120;i<=220;i++) a.push([i,i+' cm']); return a; }
 function obHtKey(){ return ob.unit==='lb'?Math.round(ob.cm/2.54):Math.round(ob.cm); }
