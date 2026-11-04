@@ -658,6 +658,7 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .ph.snap *,.ph.snap *::before,.ph.snap *::after{transition-property:transform,opacity,visibility!important}
 .dy-key{font-size:13px;color:var(--label-2);margin:10px 4px 14px}
 .ph[data-ts=a] .read .big{font:600 52px/1.05 var(--font-r);letter-spacing:-.02em}.ph[data-ts=a] .read .big .co{opacity:.5;width:.3em}
+.ph[data-ts] .read .big.greet{font:600 min(40px,10.5vw)/1.15 var(--font-r);letter-spacing:-.01em;padding-top:.2em}
 .me-h{font:400 13px var(--font);color:var(--label-2);text-transform:uppercase;letter-spacing:.02em;margin:22px 16px 8px}
 html:lang(zh-Hans) .me-h{text-transform:none}
 .me-btns{display:grid;gap:10px}
@@ -1611,8 +1612,9 @@ window.LightlySphere=(function(){
     var evEn=b==='moon'?'Sunrise':'Sunset', evZh=b==='moon'?'日出':'日落', skyTxt=cd?L(evEn+' in '+lt,lt+'后'+evZh):L(evEn+' ',evZh+' ')+clock(turnAt);
     put($('skyTx'),'skx',skyTxt); $('sub').setAttribute('aria-label',(lang==='zh'?sk[3]:sk[2])+', '+skyTxt+'. '+L('Opens an explanation.','打开说明。')); window.LIGHTLY_SUNTXT={rise:clock(SUN.rise),set:clock(SUN.set)};
     var off=window.LIGHTLY_OFF, chd=!off&&!!window.LIGHTLY_CHEAT.used&&mode==='idle', brk=(!!off&&mode!=='fast')||chd; if(brk||mode==='idle'||mode==='eat') put($('readAlt'),'alt','');
+    readBig.classList.toggle('greet',!chd&&brk);
     if(chd){ put(readK,'k',L('Cheat day','弹性日')); put(readBig,'b',L('Day off','休息')); tip(L('Your streak holds. Take back the cheat day above to start a fast.','连续记录保持。想断食，请先收回上方的弹性日。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
-    else if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Break','休息'):L('Rest','静养')); tip(L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
+    else if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Safe travels','旅途平安'):L('Get well soon','早日康复')); tip(off.kind==='travel'?L('Your streak will wait.','连续记录会等你。'):L('Rest up. Your streak is safe.','好好休息，连续记录不会断。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); tip(L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(mode==='fast'||mode==='saved'){
       if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmtS(GOAL-h),1); put($('readAlt'),'alt',L('Elapsed ','已断食 ')+hmsS(h)); var tp=tipFor(h,sk[1]); tip(tp[lang==='zh'?1:0],0,Math.floor(h)); }
