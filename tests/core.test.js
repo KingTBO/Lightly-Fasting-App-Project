@@ -56,6 +56,23 @@ assert.strictEqual(st('18',first,[f(13),f(13),f(13)]).st,'locked','18:6 needs th
 assert.strictEqual(st('20',first,[f(18),f(18),f(18)]).st,'ok');assert.strictEqual(st('23',first,[f(20),f(20),f(20)]).st,'ok');
 assert.strictEqual(st('16',first,[f(16)]).st,'ok','one completed 16 h fast opens 16:8');assert.strictEqual(st('ramadan',first,[]).st,'ok');
 assert.strictEqual(C.planStatusLabel(st('16',first,[f(13)])),'1 of 3 fasts of 13 h or more');}
+// Care mode: plans stop at 16:8, custom at 16 h, long fasts never open, and the way back depends on the answer
+{const care={fastedBefore:true,safety:true},f=(h)=>({id:String(Math.random()),start:0,end:h*H,goalH:h}),st=(id,pr,fs)=>C.planStatus(id,pr,{fasts:fs});
+assert.strictEqual(st('18',care,[f(16),f(16),f(16)]).st,'hidden');assert.strictEqual(st('20',care,[f(18),f(18),f(18)]).st,'hidden');assert.strictEqual(st('23',care,[f(20),f(20),f(20)]).st,'hidden');
+assert.strictEqual(st('16',care,[f(13),f(13),f(13)]).st,'ok','16:8 still opens by the ladder');assert.strictEqual(st('13',care,[]).st,'ok');
+assert.strictEqual(C.longStatus(24,care,{fasts:[f(16),f(16),f(16),f(24)],unwell:null,unlocked:{24:1}},now).st,'hidden','even with a 24 h fast on record');assert.strictEqual(C.longStatus(36,care,{fasts:[],unwell:null,unlocked:{}},now).st,'hidden');
+assert.strictEqual(C.customMax(care),16);assert.strictEqual(C.customMax({safety:false}),23);assert.strictEqual(C.careOn({safety:true}),true);assert.strictEqual(C.careOn({safety:false}),false);assert.strictEqual(C.careOn(null),false);
+assert.strictEqual(C.careEase('preg'),'now');assert.strictEqual(C.careEase('diab'),'wait');assert.strictEqual(C.careEase('earlier'),'wait');assert.strictEqual(C.careEase('ed'),'never');assert.strictEqual(C.CARE_WAIT,14*D);}
+// 30-day weight estimate: a modest range, never a single number, and none for the people it is not for
+{const we=C.weightEstimate,base={age:35,kg:82,cm:170,fastH:16,boosts:0};
+let r=we(base);assert.strictEqual(r.ok,true);assert.deepStrictEqual([r.low,r.high],[.5,1],'82 kg at 16:8: about 0.5 to 1 kg');
+r=we(Object.assign({},base,{boosts:1}));assert.deepStrictEqual([r.low,r.high],[.5,1.5]);r=we(Object.assign({},base,{boosts:2}));assert.deepStrictEqual([r.low,r.high],[1,2],'two boosts: about 1 to 2 kg');
+r=we(Object.assign({},base,{fastH:13}));assert(r.ok&&r.high<=1,'13:11 counts less');assert.deepStrictEqual(we(Object.assign({},base,{fastH:23})),we(Object.assign({},base,{fastH:16})),'a longer fast does not raise the number');
+r=we(Object.assign({},base,{kg:120,boosts:2}));assert(r.high<=.025*120+.25,'capped at 2.5% of body weight, got '+r.high);assert(r.low<r.high);
+assert.strictEqual(we(Object.assign({},base,{age:17})).why,'age');assert.strictEqual(we(Object.assign({},base,{age:18})).ok,true);
+assert.strictEqual(we(Object.assign({},base,{kg:50})).why,'bmi-low','BMI 17: no estimate');assert.strictEqual(we(Object.assign({},base,{kg:65})).why,'bmi-mid','BMI 22.5: a page with no numbers');assert.strictEqual(we(Object.assign({},base,{kg:69})).why,'bmi-mid');assert.strictEqual(we(Object.assign({},base,{kg:70})).ok,true,'BMI 24.2');
+assert.strictEqual(we(Object.assign({},base,{kg:20})).why,'input');assert.strictEqual(we(Object.assign({},base,{cm:100})).why,'input');assert.strictEqual(we({}).why,'input');
+for(const kg of [60,70,82,100,150,250]) for(const cm of [150,160,170,180,190]){ const x=we({age:30,kg,cm,fastH:20,boosts:2}); if(x.ok){ assert(x.low>=.5&&x.high>x.low,'always a range'); assert(kg-x.high>=18.5*(cm/100)**2,'never takes BMI under 18.5'); assert(x.high<=kg*.025+.25); } }}
 // Days totals and chart averages
 {const at=(y,m,d,h)=>{const e=new Date(y,m,d,12).getTime();return{id:'t'+e,start:e-h*H,end:e,goalH:16};};
 const fs=[at(2026,8,10,15),at(2026,9,2,16),at(2026,9,6,17),at(2026,9,7,18),at(2026,9,30,16),{id:'open',start:Date.now(),end:null,goalH:16},at(2026,9,20,10)];

@@ -66,7 +66,7 @@ The app writes one small JSON object, "the snapshot", to storage the widget can 
   "skyChanges": [1762121400000, 1762160400000],  // next sunrise and sunset times (epoch ms), 3 days
   "firstSky": "moon",          // moon or sun right now
   "weekDots": ["on","on","on","cheat","on","on","today"],   // second wave only
-  "streak": 7, "total": 42,    // second wave only
+  "streak": 7, "total": 42,    // second wave only; leave "streak" out in Care mode (it has none)
   "updatedMs": 1762152000000
 }
 ```
