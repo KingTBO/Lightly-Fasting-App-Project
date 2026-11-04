@@ -36,6 +36,13 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
   assert(!(await S(q)).body);ok('skip: no weight saved');await q.context().close();}
 
+ // a finger whose lift is never seen must not freeze the wheel (a touch that vanished left it dead until the app was restarted)
+ {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await q.click('[data-act=pktog][data-id=obWt]');await q.waitForTimeout(600);
+  await q.evaluate(()=>{const c=document.querySelector('#obWt .pk-c'),r=c.getBoundingClientRect();c.dispatchEvent(new PointerEvent('pointerdown',{pointerId:77,pointerType:'touch',clientX:r.x+50,clientY:r.y+90,bubbles:true}));});
+  await q.waitForTimeout(1400);const before=await q.textContent('#obWt .pk-v');const bx=await q.locator('#obWt .pk-c').boundingBox();
+  await q.mouse.move(bx.x+bx.width/2,bx.y+90);await q.mouse.down();for(let k=1;k<=10;k++){await q.mouse.move(bx.x+bx.width/2,bx.y+90-k*8);await q.waitForTimeout(15);}await q.mouse.up();await q.waitForTimeout(900);
+  assert.notStrictEqual(await q.textContent('#obWt .pk-v'),before,'the wheel still turns after a lost touch');ok('a lost touch does not freeze the wheel');await q.context().close();}
+
  // a healthy BMI gets a page with no numbers; a low BMI gets nothing at all
  {const q=await toSafety('zh');await q.click('[data-act=obsafe][data-v=none]');await nx(q);assert.match(await txt(q),/关于你/);
   await pick(q,'obWt',30);   // zh defaults to 斤: 90 斤 is 45 kg, BMI 15.6, so no estimate

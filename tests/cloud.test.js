@@ -118,6 +118,14 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
  const bb=await w.p.locator('#del').boundingBox();await w.p.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2);await w.p.mouse.down();await w.p.waitForTimeout(500);await w.p.mouse.up();assert.strictEqual(deleted.length,1,'a short press deletes nothing');
  await w.p.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2);await w.p.mouse.down();await w.p.waitForTimeout(2400);await w.p.mouse.up();await w.p.waitForSelector('#done:not([hidden])',{timeout:5000});
  assert.deepStrictEqual(deleted,['uid-link@example.com','uid-page@example.com']);assert(await w.p.evaluate(()=>!localStorage.getItem('lightly:auth')));await w.p.click('.lang [data-l=zh]');assert.match(await w.p.textContent('#done'),/账号已删除/);ok('public deletion page: hold to delete, then done, EN and ZH');}
+ // Erase everything while signed in also empties the backup: before this, the next sync brought it all back and the app skipped setup
+ {const e=await device(base([f('keep1',now-72*H),f('keep2',now-48*H)]));await e.p.click('#tabs [data-tab=me]');await e.p.click('[data-act=emailsheet]');await e.p.fill('#emIn','erase@example.com');await e.p.click('[data-act=emsend]');await e.p.waitForSelector('#emCode');await e.p.fill('#emCode','123456');await e.p.click('[data-act=emverify]');await e.p.waitForTimeout(1500);
+  assert.strictEqual(rows['uid-erase@example.com'].data.fasts.length,2,'backed up before erasing');
+  await e.p.evaluate(()=>{document.getElementById('me').scrollTop=0;});await e.p.click('[data-act=erase]');await e.p.waitForSelector('#eraseGo[disabled]');assert.match(await e.p.textContent('#sheet'),/Your backup is erased too/);
+  await e.p.waitForSelector('#eraseGo:not([disabled])',{timeout:6000});const eb=await e.p.locator('#eraseGo').boundingBox();await e.p.mouse.move(eb.x+eb.width/2,eb.y+eb.height/2);await e.p.mouse.down();await e.p.waitForTimeout(2400);await e.p.mouse.up();
+  await e.p.waitForTimeout(3500);
+  assert.strictEqual(rows['uid-erase@example.com'].data.fasts.length,0,'the backup is empty');assert(await e.p.isVisible('#ob'),'setup shows again');const se=await e.p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')||'null'));assert(!se||(!se.onboarded&&!(se.fasts||[]).length),'nothing came back');
+  ok('Erase everything while signed in empties the backup, so nothing comes back');e.errs.length&&console.log(e.errs);}
  assert.deepStrictEqual(d1.errs.concat(d2.errs,d3.errs,d4.errs,d5.errs,d6.errs),[]);console.log('cloud e2e ok');await b.close();mock.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});
 function ok(n){console.log('ok -',n);}
 

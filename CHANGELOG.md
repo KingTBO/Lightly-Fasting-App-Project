@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.74.1
+- **fix** Erase everything now also empties your backup when you are signed in. Before, the next sync brought everything back and skipped setup. The sheet says "Your backup is erased too", and if the backup can't be reached nothing is erased.
+- **fix** A wheel (such as the weight wheel) could stop turning for good if the app never saw a finger lift. The next touch now takes over after a moment.
+
 ## 0.74.0
 - **feature** Monthly weight check-in. If you gave a weight in setup (and Care mode is off), your monthly recap ends with a quick, optional "A quick check-in": one weight wheel and Save. After saving it shows "Before 82 kg · now 80 kg" with no judgement and a Change button. Only you see it. The concept page's recap shows the same card.
 - **fix** The weight and height from setup were dropped when the app was reopened. They are now kept, and removing them in Me also reaches your other phones.

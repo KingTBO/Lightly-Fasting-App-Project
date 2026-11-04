@@ -901,10 +901,10 @@ function pkChange(id,v){
   else if(id==='usualStart'){ clearTimeout(pkTimer); pkTimer=setTimeout(function(){ S.prefs.usualStart=v; save(); cache={}; updateToday(); },400); } }
 function pkBind(c){
   c.addEventListener('scroll',function(){ pkTune(c); if(!c._raf) c._raf=requestAnimationFrame(function(){ c._raf=0; pkDrum(c); }); },{passive:true});
-  c.addEventListener('pointerdown',function(e){ if(c._pid!=null||(e.pointerType==='mouse'&&e.button!==0)) return;
-    actx(); pkStop(c); clearTimeout(c._wt); pkCenter(c); c._y=c.scrollTop; c._pid=e.pointerId; c._py=e.clientY; c._moved=0; c._s=[[e.timeStamp,e.clientY]]; c.classList.add('drag');
+  c.addEventListener('pointerdown',function(e){ if((c._pid!=null&&performance.now()-(c._pt||0)<1200)||(e.pointerType==='mouse'&&e.button!==0)) return;   /* a finger whose lift was never seen must not freeze the wheel: after 1.2 s of silence the next touch takes over */
+    c._pt=performance.now(); actx(); pkStop(c); clearTimeout(c._wt); pkCenter(c); c._y=c.scrollTop; c._pid=e.pointerId; c._py=e.clientY; c._moved=0; c._s=[[e.timeStamp,e.clientY]]; c.classList.add('drag');
     try{ c.setPointerCapture(e.pointerId); }catch(x){} });
-  c.addEventListener('pointermove',function(e){ if(c._pid!==e.pointerId) return;
+  c.addEventListener('pointermove',function(e){ if(c._pid!==e.pointerId) return; c._pt=performance.now();
     var dy=e.clientY-c._py; c._py=e.clientY; c._moved+=Math.abs(dy); pkPut(c,c._y-dy); pkTune(c);   /* tick inside the touch event itself: iPhone only plays its tap from a real touch */
     var s=c._s; s.push([e.timeStamp,e.clientY]); while(s.length>2&&e.timeStamp-s[0][0]>90) s.shift(); });
   function up(e){ if(c._pid!==e.pointerId) return; c._pid=null; c.classList.remove('drag');
@@ -913,7 +913,7 @@ function pkBind(c){
     var s=c._s, a=s[0], z=s[s.length-1], v=0;
     if(e.type==='pointerup'&&s.length>1&&e.timeStamp-z[0]<70&&z[0]>a[0]) v=-(z[1]-a[1])/(z[0]-a[0]);   /* a finger that rested before lifting does not fling */
     pkFling(c,pkClamp(v*PK_GAIN,-PK_VMAX,PK_VMAX)); }
-  c.addEventListener('pointerup',up); c.addEventListener('pointercancel',up);
+  c.addEventListener('pointerup',up); c.addEventListener('pointercancel',up); c.addEventListener('lostpointercapture',up);
   c.addEventListener('wheel',function(e){ e.preventDefault();
     var dy=e.deltaMode===1?e.deltaY*PKH:e.deltaMode===2?e.deltaY*PKH*5:e.deltaY;
     if(Math.abs(dy)>=40){   /* a mouse-wheel notch: step a few rows */
@@ -1622,7 +1622,7 @@ var A={
   /* Erase everything: the one step that can't be undone. A red warning mark and a plain list of what goes, Cancel as the main button, and the erase button
      is locked for 3 seconds (counting down), then must be held for 2 seconds. An export is one tap away. */
   erase:function(){
-    openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Are you sure?','你确定吗？')+'</h3><p class="lede ctr">'+eraseLine(S.fasts.length,care()?0:curStreak())+'</p>'+
+    openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Are you sure?','你确定吗？')+'</h3><p class="lede ctr">'+eraseLine(S.fasts.length,care()?0:curStreak())+(cloudOn()?' '+L('Your backup is erased too.','云端备份也会一并清除。'):'')+'</p>'+
       '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button>'+lockedHold('eraseGo','eraseok',['Erase everything','清除所有数据'],['Hold to erase everything','按住清除所有数据'])+'<button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
     unlockHold('eraseGo',['Erase everything','清除所有数据'],['Hold to erase everything','按住清除所有数据']);
   },
@@ -1632,7 +1632,14 @@ var A={
     var go=$('delGo'); if(go){ go.disabled=true; go.querySelector('.hl').textContent=L('Deleting…','正在删除…'); }
     CL.deleteAccount().then(function(){ delAcctDone(); }).catch(function(x){ delAcctSheet(x&&(x.status===401||x.status===400)?L('Your sign-in has expired. Sign out, sign in again, then try again.','登录已过期。请退出后重新登录，再试一次。'):L('Couldn’t delete the account. Check your connection and try again.','没能删除账号，请检查网络后重试。')); });
   },
-  eraseok:function(){ try{ localStorage.removeItem(KEY); localStorage.removeItem(AVG); }catch(e){} S=fresh(); storageOk=true; location.reload(); },
+  eraseok:function(){
+    var done=function(){ try{ localStorage.removeItem(KEY); localStorage.removeItem(AVG); }catch(e){} S=fresh(); storageOk=true; location.reload(); };
+    if(!cloudOn()) return done();
+    /* signed in: the backup is part of "everything". Without this the next sync brings it all back. An empty, newest copy replaces it; the account stays. */
+    clearTimeout(sync.t); sync.busy=true; var go=$('eraseGo'), hl=go&&go.querySelector('.hl'); if(go) go.disabled=true; if(hl) hl.textContent=L('Erasing…','正在清除…');
+    var blank=fresh(); blank.mod=Date.now(); blank.cloudUid=CL.getAuth().uid;
+    CL.push(blank).then(done).catch(function(){ sync.busy=false; closeSheet(); toast(L('Couldn’t erase your backup. Check your connection and try again.','没能清除云端备份，请检查网络后重试。')); });
+  },
   usualset:function(){ S.prefs.usualStart='20:00'; save(); cache={}; updateToday(); renderMe(); pkToggle('usualStart'); },
   pktog:function(b){ pkToggle(b.dataset.id); },
   tl:function(b){ S.prefs.tl=b.dataset.v; save(); cache={}; renderMe(); updateToday(); },
