@@ -885,6 +885,9 @@ function pkTune(col){
 function pkChange(id,v){
   if(id==='obStart'){ ob.start=v; var o=$('obPrev'); if(o){ var t=document.createElement('div'); t.innerHTML=obPrev(ob.plan||'16',v); o.querySelector('small').textContent=t.querySelector('small').textContent; } }
   else if(id==='obCity') setPlace({key:v});
+  else if(id==='obAge') ob.age=+v;
+  else if(id==='obWt') ob.kg=C.toKg(+v,ob.unit);
+  else if(id==='obHt') ob.cm=ob.unit==='lb'?+v*2.54:+v;
   else if(id==='usualStart'){ clearTimeout(pkTimer); pkTimer=setTimeout(function(){ S.prefs.usualStart=v; save(); cache={}; updateToday(); },400); } }
 function pkBind(c){
   c.addEventListener('scroll',function(){ pkTune(c); if(!c._raf) c._raf=requestAnimationFrame(function(){ c._raf=0; pkDrum(c); }); },{passive:true});
@@ -1059,6 +1062,11 @@ function careSheet(){
   if(w) h+='<p class="note">'+L('Easing starts '+dateLbl(w.start+C.CARE_WAIT)+'. Nothing changes until then.','放宽将在 '+dateLbl(w.start+C.CARE_WAIT)+' 开始，在此之前一切照旧。')+'</p><div class="btns"><button class="btn sec" data-act="carecancel">'+L('Cancel the wait','取消等待')+'</button>';
   else h+='<p class="note">'+L('Tick one to add it now. To untick, tap it.','点选即可加入，点已选的可以调整。')+'</p><div class="btns">';
   openSheet(h+'<button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
+}
+function bodySheet(){
+  var b=S.body; if(!b) return closeSheet(); var u=b.unit||'kg';
+  openSheet('<h3>'+L('Weight and height','体重和身高')+'</h3><p class="lede">'+L('Saved only for your first-30-days estimate. Never shared.','只用于头 30 天的估算，绝不分享。')+'</p><div class="group"><div class="row"><span>'+L('Age','年龄')+'</span><b>'+b.age+'</b></div><div class="row"><span>'+L('Weight','体重')+'</span><b>'+Math.round(C.kgTo(b.kg,u))+' '+uLbl(u)+'</b></div><div class="row"><span>'+L('Height','身高')+'</span><b>'+b.cm+' cm</b></div></div>'+
+    '<div class="btns"><button class="btn red" data-act="bodyrm">'+L('Remove them','删除')+'</button><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
 }
 function careRow(b){
   var k=b.dataset.k, P=S.profile, on=(P.care||[]).indexOf(k)>=0;
@@ -1297,7 +1305,7 @@ function renderMe(){
   h+='<div class="gh">'+L('Care','关怀')+'</div><div class="group"><button class="row" data-act="timeoff">'+mi('heart','gold')+'<span class="stack"><span>'+L('Time off','休息一下')+'</span></span>'+(offNow()?'<span class="v">'+(offNow().kind==='travel'?L('Travelling','旅行中'):L('Resting','休养中'))+'</span>':'')+CHEV+'</button>'+
    '<button class="row" data-act="care">'+mi('shield','gold')+'<span>'+L('Health answers','健康回答')+'</span><span class="v">'+(care()?L('Care mode on','关怀模式已开启'):L('None','无'))+'</span>'+CHEV+'</button></div>'+
    (care()?'<div class="gf">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。')+'</div>':'');
-  h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group"><button class="row" data-act="import">'+mi('imp','grey')+'<span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export">'+mi('exp','grey')+'<span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase">'+mi('trash','red')+'<span>'+L('Erase everything','清除所有数据')+'</span></button>'+(cloudOn()?'<button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button>':'')+'</div>';
+  h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group">'+(S.body?'<button class="row" data-act="bodyinfo">'+mi('lock','grey')+'<span>'+L('Weight and height','体重和身高')+'</span><span class="v">'+L('Saved','已保存')+'</span>'+CHEV+'</button>':'')+'<button class="row" data-act="import">'+mi('imp','grey')+'<span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export">'+mi('exp','grey')+'<span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase">'+mi('trash','red')+'<span>'+L('Erase everything','清除所有数据')+'</span></button>'+(cloudOn()?'<button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button>':'')+'</div>';
   if(C.ramadanDay()===0&&!care()) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview,0,mi('moon','gold')))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
   h+='<div class="gh">'+L('About','关于')+'</div><div class="group"><a class="row" href="privacy/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('lock','grey')+'<span>'+L('Privacy Policy','隐私政策')+'</span>'+CHEV+'</a><a class="row" href="terms/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('doc','grey')+'<span>'+L('Terms of Use','使用条款')+'</span>'+CHEV+'</a></div>'; /* public pages, also the URLs entered in Google Play */
   if(cloudOn()) h+='<div class="group"><button class="row red so" data-act="signout"><span>'+L('Sign out','退出登录')+'</span></button></div>'; /* signed in only: a plain button at the very end */
@@ -1331,7 +1339,22 @@ function obLadder(){
 function obRisky(){ return !!(ob.safe.length&&ob.safe.indexOf('none')<0); }
 /* everyone: welcome, fasted before, safety, plan, where you are. People who have fasted before also get a step to make it theirs. */
 /* safety comes last, just before the summary; a flag then lowers the plan to 13:11 */
-function obFlow(){ var f=['welcome','fasted','plan']; if(ob.fasted==='before'){ f.push('custom'); f.push('import'); } f.push('set','safety','summary'); return f; }
+function obFlow(){ var f=['welcome','fasted','plan']; if(ob.fasted==='before'){ f.push('custom'); f.push('import'); } f.push('set','safety');
+  if(!obRisky()&&!ob.skip){ f.push('body'); var w=ob.bodyDone?C.weightEstimate(obEstIn()):null;   /* no weight questions in Care mode; none that lead nowhere */
+    if(!w||w.ok){ f.push('eat'); f.push('month'); } else if(w.why==='bmi-mid') f.push('month'); }
+  f.push('summary'); return f; }
+/* optional weight estimate (before the summary): about you, how you eat, your first 30 days */
+var BODY_BOOST=[['dinner','A lighter last meal','晚餐吃得清淡些'],['soda','Fewer sugary drinks','少喝含糖饮料']];
+function obUnit0(){ return S.lang==='zh'?'jin':((navigator.language||'').indexOf('en-US')===0?'lb':'kg'); }
+function uLbl(u){ return u==='kg'?L('kg','公斤'):u==='lb'?L('lb','磅'):'斤'; }
+function obEstIn(){ return {age:ob.age,kg:ob.kg,cm:ob.cm,fastH:C.planById(ob.plan||'13',S.customH).fast,boosts:ob.boost.length}; }
+function ftIn(i){ return Math.floor(i/12)+'′ '+(i%12)+'″'; }
+function obAgeOpts(){ var a=[],i; for(i=13;i<=90;i++) a.push([i,S.lang==='zh'?i+' 岁':String(i)]); return a; }
+function obWtOpts(){ var u=ob.unit, r={kg:[30,250],lb:[66,551],jin:[60,500]}[u], a=[],i; for(i=r[0];i<=r[1];i++) a.push([i,i+' '+uLbl(u)]); return a; }
+function obHtOpts(){ var a=[],i; if(ob.unit==='lb'){ for(i=47;i<=87;i++) a.push([i,ftIn(i)]); } else for(i=120;i<=220;i++) a.push([i,i+' cm']); return a; }
+function obHtKey(){ return ob.unit==='lb'?Math.round(ob.cm/2.54):Math.round(ob.cm); }
+function wNum(kg){ var x=Math.round(C.kgTo(kg,ob.unit)*2)/2; return String(x); }
+function obBoosts(){ return BODY_BOOST.filter(function(b){ return ob[b[0]]&&ob[b[0]]!==1; }); }
 /* the import step shows a plain file glyph, not look-alike tiles of other apps */
 var IMP_GLYPH='<div class="ob-hero imp-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11.5v5M9.5 14l2.5 2.5 2.5-2.5"/></svg></div>';
 /* a small moon that previews the plan: the lit wedge is the share of the day you fast, with when a fast would end */
@@ -1383,6 +1406,26 @@ function obHtml(i){
      (flow.indexOf('custom')<0?'<div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>':'')+'<div class="grow"></div>';
     cta=hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn quiet" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
       :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn quiet" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
+  }else if(key==='body'){
+    body='<h1>'+L('A little about you','关于你')+'</h1><p class="lede">'+L('Optional. It only gives a rough 30-day estimate.','可选。只用来粗略估算 30 天。')+'</p><div class="group">'+pkField('obAge',L('Age','年龄'),ob.age,'sel',obAgeOpts())+pkField('obWt',L('Weight','体重'),Math.round(C.kgTo(ob.kg,ob.unit)),'sel',obWtOpts())+pkField('obHt',L('Height','身高'),obHtKey(),'sel',obHtOpts())+'</div>'+
+      '<div class="seg" role="group" aria-label="'+L('Units','单位')+'">'+['kg','lb','jin'].map(function(u){ return '<button type="button" data-act="obunit" data-v="'+u+'" aria-pressed="'+(ob.unit===u)+'">'+uLbl(u)+'</button>'; }).join('')+'</div><div class="grow"></div>';
+    cta='<button class="btn" data-act="obbody">'+L('Continue','继续')+'</button><button class="btn quiet" data-act="obbodyskip">'+L('Skip','跳过')+'</button>';
+  }else if(key==='eat'){
+    function sg(k,label,items){ return '<p class="lede" style="margin:16px 0 8px">'+label+'</p><div class="seg" role="group" aria-label="'+esc(label)+'">'+items.map(function(t,j){ return '<button type="button" data-act="obeat" data-k="'+k+'" data-v="'+(j+1)+'" aria-pressed="'+(ob[k]===j+1)+'">'+t+'</button>'; }).join('')+'</div>'; }
+    body='<h1>'+L('How do you usually eat?','你平时怎么吃？')+'</h1>'+sg('dinner',L('Your last meal of the day','一天最后一餐'),[L('Light','清淡'),L('Usual','普通'),L('Big','丰盛')])+sg('soda',L('Sugary drinks','含糖饮料'),[L('Rarely','很少'),L('Sometimes','有时'),L('Daily','每天')])+'<div class="grow"></div>';
+    cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
+  }else if(key==='month'){
+    var we=C.weightEstimate(obEstIn());
+    if(!we.ok){
+      body='<div class="grow"></div><div class="ob-hero imp-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg></div><h1 style="text-align:center">'+L('Weight isn’t the point','体重不是重点')+'</h1><p class="lede" style="text-align:center">'+L('Steadier days and better sleep come first. No number needed.','更稳的日子、更好的睡眠才是重点，不需要数字。')+'</p><div class="grow"></div>';
+    }else{
+      var cap=ob.kg*.025, x1=Math.min(228,Math.max(0,we.low/cap*240)), x2=Math.min(240,we.high/cap*240), pl=C.planLabel(C.planById(ob.plan||'13',S.customH)), bs=obBoosts();
+      body='<h1>'+L('Your first 30 days','你的头 30 天')+'</h1><div class="wcard"><small>'+L('An estimate','估算')+'</small><b>'+L('About ','约 ')+wNum(we.low)+'–'+wNum(we.high)+' '+uLbl(ob.unit)+'</b>'+
+        '<svg viewBox="0 0 240 14" aria-hidden="true"><rect width="240" height="14" rx="7" fill="var(--fill)"/><rect x="'+x1.toFixed(1)+'" width="'+Math.max(10,x2-x1).toFixed(1)+'" height="14" rx="7" fill="var(--tint)"/></svg>'+
+        '<p>'+L('At '+pl+' on most days. Not a promise: everyone is different.','按 '+pl+' 大多数日子来算。不是承诺，每个人都不同。')+'</p></div>'+
+        (bs.length?'<p class="lede" style="margin:16px 0 8px">'+L('Small habits that can add a little.','这些小习惯能再多一点点。')+'</p><div class="group">'+bs.map(function(b){ return '<div class="row"><span>'+L(b[1],b[2])+'</span><button class="sw" role="switch" aria-checked="'+(ob.boost.indexOf(b[0])>=0)+'" aria-label="'+esc(L(b[1],b[2]))+'" data-act="obboost" data-k="'+b[0]+'"></button></div>'; }).join('')+'</div>':'')+'<div class="grow"></div>';
+    }
+    cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='summary'){
     var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.fasted==='before'&&!rk&&ob.start?ob.start:'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
     body='<div class="ob-hero"><svg viewBox="-70 -70 140 140" aria-hidden="true"><circle r="60" fill="rgba(142,142,147,.34)" stroke="rgba(142,142,147,.6)" stroke-width="2"/><path d="'+wedgePath(C.planById(pid,S.customH).fast/24,60)+'" fill="#F4EFE2" stroke="#B9AF96" stroke-width="2" stroke-linejoin="round"/></svg></div><h1>'+L('You’re set','准备好了')+'</h1>'+
@@ -1414,10 +1457,11 @@ function morph(o,n){
   for(i=0;i<o.childNodes.length;i++) morph(o.childNodes[i],n.childNodes[i]);
 }
 function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); heroStart(true); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement; morph(c,n); heroStart(true); }
-function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00'}; $('ob').innerHTML=''; obRender(); }
+function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),dinner:0,soda:0,boost:[],skip:false,bodyDone:false}; $('ob').innerHTML=''; obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
-  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.fasted==='before'&&!risky&&ob.start) S.prefs.usualStart=ob.start; S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
+  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.fasted==='before'&&!risky&&ob.start) S.prefs.usualStart=ob.start; if(!risky&&ob.bodyDone&&!ob.skip){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,dinner:ob.dinner,soda:ob.soda,at:Date.now()}; } else delete S.body;
+  S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
   save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today');
 }
 
@@ -1582,6 +1626,13 @@ var A={
   tstyle:function(b){ S.prefs.timerStyle=b.dataset.v; ph.dataset.ts=b.dataset.v; save(); renderMe(); cache={}; fitDisc(); },
   obnext:function(){ if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ if(ob.step>0){ ob.step--; obRender(-1); } },
+  bodyinfo:bodySheet,
+  bodyrm:function(){ delete S.body; save(); closeSheet(); renderMe(); },
+  obunit:function(b){ ob.unit=b.dataset.v; obRefresh(); },
+  obbody:function(){ ob.bodyDone=true; A.obnext(); },
+  obbodyskip:function(){ ob.skip=true; ob.bodyDone=false; obRender(); },
+  obeat:function(b){ ob[b.dataset.k]=+b.dataset.v; var ks=obBoosts().map(function(x){ return x[0]; }); ob.boost=ob.boost.filter(function(k){ return ks.indexOf(k)>=0; }); obRefresh(); },
+  obboost:function(b){ var k=b.dataset.k, i=ob.boost.indexOf(k); if(i>=0) ob.boost.splice(i,1); else ob.boost.push(k); obRefresh(); },
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
   obsafe:function(b){ var v=b.dataset.v, i=ob.safe.indexOf(v); if(v==='none') ob.safe=i>=0?[]:['none']; else{ ob.safe=ob.safe.filter(function(x){return x!=='none';}); if(i>=0) ob.safe.splice(ob.safe.indexOf(v),1); else ob.safe.push(v); } obRefresh(); },
   obplan:function(b){ if(b.disabled) return; var pv=$('obPrev'), from=pv?+pv.dataset.p:null; ob.plan=b.dataset.id; obRefresh(); obPrevAnim(from); },
