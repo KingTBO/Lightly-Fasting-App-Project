@@ -127,6 +127,10 @@ function careEase(key){ return key==='preg'?'now':key==='ed'?'never':'wait'; }
    so the number never rewards a longer fast. Each boost adds 0.3% to the low end and 0.6% to the high end. The total is capped at 2.5% (about 0.6% a week).
    No estimate for under 18, BMI under 18.5, or when the high end would take BMI under 18.5. BMI under 24 gets a page with no numbers instead.
    These numbers are product judgment, not medical advice. */
+/* weight units: kg, lb, and 斤 (jin, half a kilo) */
+var WUNIT={kg:1,lb:2.20462,jin:2};
+function kgTo(kg,u){ return kg*(WUNIT[u]||1); }
+function toKg(v,u){ return v/(WUNIT[u]||1); }
 function weightEstimate(o){
   var kg=+o.kg, cm=+o.cm, age=+o.age;
   if(!(kg>=30&&kg<=250&&cm>=120&&cm<=220&&age>=0)) return {ok:false,why:'input'};
@@ -304,7 +308,7 @@ function monthReport(fasts,y,m,flexUsed,offKeys,place){
   return r;
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,careOn:careOn,customMax:customMax,careEase:careEase,weightEstimate:weightEstimate,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,careOn:careOn,customMax:customMax,careEase:careEase,weightEstimate:weightEstimate,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);

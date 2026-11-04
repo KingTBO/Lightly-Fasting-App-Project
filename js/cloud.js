@@ -41,7 +41,7 @@ function b64(str){ return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,
 function unb64(x){ x=x.replace(/-/g,'+').replace(/_/g,'/'); while(x.length%4) x+='='; return decodeURIComponent(escape(atob(x))); }
 /* a precise location never leaves the phone: backups and sign-in links carry the place without its coordinates */
 function scrub(S){ var c=JSON.parse(JSON.stringify(S)); if(c.place&&c.place.key==='here') c.place={key:'here',lat:null,lon:null}; return c; }
-function pack(S){ if(!S||!S.onboarded) return ''; var c=scrub(S); delete c.cloudUid; delete c.del; delete c.avatar; /* a picked photo is far too big for a link */ var f=(c.fasts||[]).slice(); var out='';
+function pack(S){ if(!S||!S.onboarded) return ''; var c=scrub(S); delete c.cloudUid; delete c.del; delete c.avatar; delete c.body; /* weight stays out of the link */ /* a picked photo is far too big for a link */ var f=(c.fasts||[]).slice(); var out='';
   for(;;){ c.fasts=f; out=b64(JSON.stringify(c)); if(out.length<=1800||!f.length) break; f.shift(); } return out.length<=1800?out:''; }
 function unpack(x){ try{ var o=JSON.parse(unb64(x)); return o&&o.onboarded?o:null; }catch(e){ return null; } }
 function takeCarried(){ var m=/[?&]r=([\w-]+)/.exec(location.search); if(!m) return null; try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){} return unpack(m[1]); }

@@ -32,6 +32,7 @@ node tests/avatars.test.js                                    # profile pictures
 NODE_PATH=$(npm root -g) node tests/wheel.test.js             # wheel pickers: momentum, snap at rest, looping, 24-hour columns, haptic ticks (about 1 minute)
 NODE_PATH=$(npm root -g) node tests/cloud.test.js --e2e       # only if cloud or sign-in code changed
 NODE_PATH=$(npm root -g) node tests/signin-return.test.js     # coming back from a sign-in link never shows Today (a few seconds)
+NODE_PATH=$(npm root -g) node tests/body.test.js              # optional weight estimate in onboarding: about you, how you eat, 30-day range, units, skip, BMI rules (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/care.test.js              # Care mode: health answers, plan caps, no streaks or cheat days, the 14-day wait (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright
 NODE_PATH=$(npm root -g) node qa/run-app.js --screens=idle    # alignment check for one scenario (idle, mid, goal, eat, empty, ob)
