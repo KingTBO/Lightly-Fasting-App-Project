@@ -212,9 +212,10 @@ function updateToday(){
   var bar=$('offBar'); bar.hidden=!offA&&!chd; bar.dataset.act=chd&&!offA?'cheat':'timeoff'; if(chd&&!offA) put(bar,'ob',L('Cheat day today','今天是弹性日')+'<span>'+L('Take back','收回')+'</span>',1); else if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
   put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):chipHours(cur?C.planById(cur.planId,cur.goalH):p));
   var ramadan=cur&&cur.planId==='ramadan';
+  bigEl.classList.toggle('greet',!!brk); /* a break greets in words, set smaller than the numerals */
   if(brk){ var dn=Math.min(C.offDayNo(offA),offA.days);
-      put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Break','休息'):L('Rest','静养'));
-      tip(L('Your streak is safe. End the break above to start sooner.','连续记录不会断。想提前开始，请先结束上方的休息。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
+      put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Safe travels','旅途平安'):L('Get well soon','早日康复'));
+      tip(offA.kind==='travel'?L('Your streak will wait.','连续记录会等你。'):L('Rest up. Your streak is safe.','好好休息，连续记录不会断。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(chd){ put($('readK'),'k',L('Cheat day','弹性日')); setBigText(L('Day off','休息')); tip(L('Your streak holds. Take back the cheat day above to start a fast.','连续记录保持。想断食，请先收回上方的弹性日。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(mode==='idle'){
     put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); setBigText(L('Ready','准备好了')); put(altEl,'alt','');

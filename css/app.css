@@ -385,6 +385,9 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .ph[data-ts="b"] .read .k{letter-spacing:.01em}
 @media (prefers-contrast:more){.ph[data-ts="b"] .read .big{font-weight:400}}
 @media (max-height:700px){.ph[data-ts="b"] .read .big{font-size:min(4rem,15vw)}}
+/* time off greeting ("Safe travels", "Get well soon"): words, not numerals, so smaller and the same in every timer style */
+.ph[data-ts] .read .big.greet{font:600 min(2.5rem,10.5vw)/1.15 var(--font-r);letter-spacing:-.01em;padding-top:.2em}
+@media (max-height:700px){.ph[data-ts] .read .big.greet{font-size:min(2.25rem,10vw)}}
 /* ---------- tab bar: a selection pill that glides between tabs, accent-coloured selection ---------- */
 .ph{--tabsel:var(--tint);--tabfill:color-mix(in srgb,var(--tint) 24%,transparent);--spr:cubic-bezier(.2,1,.3,1)}
 .ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:var(--tint)}
