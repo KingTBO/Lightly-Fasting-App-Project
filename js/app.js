@@ -7,16 +7,18 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 
 /* ---------- state ---------- */
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
-function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false},
+function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null},
   planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
   prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
   try{ var raw=localStorage.getItem(KEY); if(raw){ var o=JSON.parse(raw), f=fresh(); for(var k in f) if(o[k]!==undefined) S[k]=o[k];
     ['profile','flex','prefs','unlocked'].forEach(function(k){ S[k]=Object.assign({},f[k],o[k]||{}); });
-    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; } }
+    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; careMigrate(); } }
   catch(e){ storageOk=false; }
 }
+/* Care mode keeps the three health answers in profile.care (profile.safety is true while any is ticked). People who answered before Care mode existed have safety true and no list: they are 'earlier'. */
+function careMigrate(){ var P=S.profile; if(!P) return; if(!Array.isArray(P.care)) P.care=[]; if(P.safety&&!P.care.length) P.care=['earlier']; P.safety=P.care.length>0; if(P.careOff===undefined) P.careOff=null; }
 var saveT=0;
 var quiet=false;
 function save(){ if(!quiet) S.mod=Date.now(); clearTimeout(saveT); saveT=setTimeout(saveNow,60); if(!quiet) cloudSoon(); }
@@ -66,7 +68,10 @@ function streakFasts(){ return S.fasts.filter(function(f){return f.plan!=='ramad
 function lastFast(){ var b=null; S.fasts.forEach(function(f){ if(!b||f.end>b.end) b=f; }); return b; }
 function eatH(f){ return f.goalH>=24?12:Math.max(24-f.goalH,1); }
 function today(){ return C.dayKey(Date.now()); }
-function inRamadan(){ return C.ramadanDay()>0||S.ramadanPreview; }
+function care(){ return C.careOn(S.profile); }
+/* a line that differs in Care mode (no streaks there) */
+function LC(en,zh,enc,zhc){ return care()?L(enc,zhc):L(en,zh); }
+function inRamadan(){ return !care()&&(C.ramadanDay()>0||S.ramadanPreview); }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function curStreak(){ return C.streak(streakFasts(),S.flex.used.concat(C.offKeys(S.off))); }
 function checkUnlocks(){ [24,36].forEach(function(k){ var r=C.longStatus(k,S.profile,{fasts:S.fasts,unwell:S.unwell,unlocked:S.unlocked}); if((r.st==='ok'||r.st==='wait'||r.st==='paused')&&!S.unlocked[k]){ S.unlocked[k]=Date.now(); save(); } }); }
@@ -186,7 +191,7 @@ function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-s
 /* the small moon or sun beside the stage name, drawn with the same gradients as the disc */
 function skyGlyph(moon){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="url(#'+(moon?'gMoon':'gSun')+')" stroke="var(--rim)" stroke-width=".8"/>'+(moon?'<circle cx="8.6" cy="9.4" r="2.1" fill="rgba(60,50,30,.10)"/><circle cx="14.6" cy="14.6" r="2.8" fill="rgba(60,50,30,.09)"/><circle cx="14" cy="7.4" r="1.2" fill="rgba(60,50,30,.08)"/>':'')+'</svg>'; }
 function updateToday(){
-  nowMs=Date.now(); var now=nowMs; refreshSun(now);
+  careTick(); nowMs=Date.now(); var now=nowMs; refreshSun(now);
   var hp=C.placeHour(pi,now), sk=C.skyAt(hp,sun), p=plan(), cur=S.cur, le=lastFast();
   moonV=C.moonAmt(hp,sun);
   mode=cur?'fast':(le&&now-le.end<eatH(le)*H?'eat':'idle');
@@ -215,7 +220,7 @@ function updateToday(){
   bigEl.classList.toggle('greet',!!brk); /* a break greets in words, set smaller than the numerals */
   if(brk){ var dn=Math.min(C.offDayNo(offA),offA.days);
       put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Safe travels','旅途平安'):L('Get well soon','早日康复'));
-      tip(offA.kind==='travel'?L('Your streak will wait.','连续记录会等你。'):L('Rest up. Your streak is safe.','好好休息，连续记录不会断。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
+      tip(offA.kind==='travel'?LC('Your streak will wait.','连续记录会等你。','Enjoy your trip.','旅途愉快。'):LC('Rest up. Your streak is safe.','好好休息，连续记录不会断。','Rest up. There is nothing to catch up on.','好好休息，没有什么需要补的。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(chd){ put($('readK'),'k',L('Cheat day','弹性日')); setBigText(L('Day off','休息')); tip(L('Your streak holds. Take back the cheat day above to start a fast.','连续记录保持。想断食，请先收回上方的弹性日。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(mode==='idle'){
     put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); setBigText(L('Ready','准备好了')); put(altEl,'alt','');
@@ -250,9 +255,9 @@ function updateToday(){
   var tls=S.prefs.tl==='strip'; $('track').classList.toggle('tls',tls); if(tls) drawStrip(a0,(a1-a0)/H,mode==='fast'?el:mode==='eat'?eatEl:0,mode);
   var done=mode==='idle'?0:Math.floor(tt*n+1e-6); tickEls.forEach(function(c,i){ c.style.fill=i<done?'var(--ink)':''; });
   /* streak card */
-  var st=curStreak(); $('streakBtn').hidden=!streakFasts().length; $('streakBtn').disabled=!!offA; /* during time off the card only shows the streak; cheat days are not offered */
-  put($('streakTx'),'st','<span>'+(st>0?L(st+(st===1?' day':' days')+' in a row',st+' 天连续'):L('No streak running','目前没有连续记录'))+'</span>',1);
-  var dots='', t0=today(), offK=C.offKeys(S.off); for(var i=6;i>=0;i--){ var k=C.addDays(t0,-i), s=C.dayStatus(k,streakFasts(),S.flex.used,offK); dots+='<i class="dot '+(s==='done'?'done':s==='flex'||s==='off'?'flex':'')+(i===0?' today':'')+'"></i>'; }
+  var st=curStreak(), cm=care(); $('streakBtn').hidden=!streakFasts().length; $('streakBtn').disabled=!!offA||cm; /* during time off the card only shows the streak; cheat days are not offered. In Care mode it is just "This week": no number, no cheat days */
+  put($('streakTx'),'st','<span>'+(cm?L('This week','这一周'):st>0?L(st+(st===1?' day':' days')+' in a row',st+' 天连续'):L('No streak running','目前没有连续记录'))+'</span>',1);
+  var dots='', t0=today(), offK=C.offKeys(S.off); for(var i=6;i>=0;i--){ var k=C.addDays(t0,-i), s=C.dayStatus(k,streakFasts(),S.flex.used,offK); dots+='<i class="dot '+(s==='done'||(cm&&s==='early')?'done':!cm&&(s==='flex'||s==='off')?'flex':'')+(i===0?' today':'')+'"></i>'; }
   put($('streakDots'),'sd',dots,1);
   $('disc').setAttribute('aria-label',L('Fast progress: ','断食进度：')+Math.round(tgtP*100)+'%');
   /* hour tick + goal moment */
@@ -373,8 +378,8 @@ function endFast(){
   var ask=!S.prefs.backupAsked&&S.fasts.filter(C.isDone).length===1&&CL&&CL.ready()&&!CL.getAuth(); if(ask){ S.prefs.backupAsked=true; save(); }
   if(done) celebrate();
   setTimeout(function(){ openSheet('<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span><span class="of">'+(done?L('Your '+durTxt(cur.goalH)+' goal, reached','你的 '+durTxt(cur.goalH).replace(' 小时','小时')+'目标，达成了'):L('of your '+durTxt(cur.goalH)+' goal','目标是 '+durTxt(cur.goalH).replace(' 小时','小时')))+'</span>'+
-    '<div class="facts"><div><b>'+(f.plan==='ramadan'?'–':st)+'</b><span>'+L('day streak','天连续')+'</span></div><div><b>'+clockMs(now)+'</b><span>'+L('ended','结束时间')+'</span></div></div>'+
-    '<p class="note">'+(done?L('You reached your goal. Eat gently and drink some water.','你达成了目标。慢慢吃，先喝点水。'):L('That still counts as a fast. Listening to your body is the point, and your streak is yours to keep going.','这也算一次断食。倾听身体才是重点，你的连续记录还可以继续。'))+'</p>'+
+    '<div class="facts"><div><b>'+(care()?C.totals(S.fasts).n:f.plan==='ramadan'?'–':st)+'</b><span>'+(care()?L('fasts','次断食'):L('day streak','天连续'))+'</span></div><div><b>'+clockMs(now)+'</b><span>'+L('ended','结束时间')+'</span></div></div>'+
+    '<p class="note">'+(done?L('You reached your goal. Eat gently and drink some water.','你达成了目标。慢慢吃，先喝点水。'):LC('That still counts as a fast. Listening to your body is the point, and your streak is yours to keep going.','这也算一次断食。倾听身体才是重点，你的连续记录还可以继续。','That still counts as a fast. Listening to your body is the point.','这也算一次断食。倾听身体才是重点。'))+'</p>'+
     (news.length?'<p class="note" style="color:var(--label)"><b>'+L(news.join(' and ')+' is now open.',news.join('、')+' 现已开放。')+'</b> '+L('Choose it from the plan button on Today.','在今天页面的计划按钮里选择。')+'</p>':'')+
     (ask?'<p class="note">'+L('Want to keep these fasts if you change phones? Back them up with your email. It’s optional, and everything works without it.','想在换手机时保留这些记录吗？可以用邮箱备份。这是可选的，不备份也能正常使用。')+'</p>':'')+
     '<div class="btns"><button class="btn dark" data-act="close">'+L('Start eating window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); countUp(document.querySelector('#sheet .big'),hrs); },beat);
@@ -451,7 +456,7 @@ function tabLabels(){ $('tabT').textContent=L('Today','今天'); $('tabD').textC
 var offDays=3;
 function offNow(){ return C.offActive(S.off); }
 /* today is a cheat day and no fast is running: like time off, Start fast stays closed until the cheat day is taken back */
-function cheatToday(){ return !S.cur&&!offNow()&&S.flex.used.indexOf(today())>=0; }
+function cheatToday(){ return !care()&&!S.cur&&!offNow()&&S.flex.used.indexOf(today())>=0; }
 function restNow(){ return !!offNow()||cheatToday(); }
 function offIco(k){ return k==='travel'?'<svg viewBox="-3 -3 30 30" width="32" height="32" aria-hidden="true"><g transform="rotate(45 12 12)"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="translate(1 -0.5)"/></g></svg>':'<svg viewBox="2 3.4 20 19.2" width="34" height="33" aria-hidden="true"><path fill="currentColor" d="M12 20.3s-7.6-4.6-7.6-10.3A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.6 10c0 5.7-7.6 10.3-7.6 10.3Z"/></svg>'; }
 function offBackLbl(o){ var e=C.keyToDate(C.addDays(C.dayKey(o.start),o.days)).getTime(); return dateLbl(e); }
@@ -459,18 +464,18 @@ function timeOffSheet(){
   var o=offNow();
   if(o){
     var n=Math.min(C.offDayNo(o),o.days), dots=''; for(var i=1;i<=o.days;i++) dots+='<i class="od'+(i<n?' past':i===n?' now':'')+'"></i>';
-    return openSheet('<h3>'+(o.kind==='travel'?L('Travelling','旅行中'):L('Taking a rest','好好休息'))+'</h3><p class="lede">'+(o.kind==='travel'?L('Your streak is waiting. Nothing to do until you are back.','连续记录在等你。回来之前什么都不用做。'):L('Rest well. Your streak is on hold and long fasts stay paused.','好好休息。连续记录暂停，长时间断食也保持暂停。'))+'</p>'+
+    return openSheet('<h3>'+(o.kind==='travel'?L('Travelling','旅行中'):L('Taking a rest','好好休息'))+'</h3><p class="lede">'+(o.kind==='travel'?LC('Your streak is waiting. Nothing to do until you are back.','连续记录在等你。回来之前什么都不用做。','Nothing to do until you are back.','回来之前什么都不用做。'):LC('Rest well. Your streak is on hold and long fasts stay paused.','好好休息。连续记录暂停，长时间断食也保持暂停。','Rest well. Fasting is on hold.','好好休息，断食先暂停。'))+'</p>'+
      '<div class="group"><div class="offcard"><b>'+L('Day '+n+' of '+o.days,'第 '+n+' 天，共 '+o.days+' 天')+'</b><div class="ods" aria-hidden="true">'+dots+'</div><small>'+L('Back to fasting on ','恢复断食：')+offBackLbl(o)+'</small></div></div>'+
      '<div class="btns"><button class="btn" data-act="offend">'+L('I’m back, end the break','我回来了，结束休息')+'</button><button class="btn sec" data-act="close">'+L('Keep resting','继续休息')+'</button></div>');
   }
-  openSheet('<h3>'+L('Time off','休息一下')+'</h3><p class="lede">'+L('Life comes first. Choose a break and your streak waits for you.','生活优先。选择休息，连续记录会等着你。')+'</p>'+
+  openSheet('<h3>'+L('Time off','休息一下')+'</h3><p class="lede">'+LC('Life comes first. Choose a break and your streak waits for you.','生活优先。选择休息，连续记录会等着你。','Life comes first. Choose a break and Lightly waits for you.','生活优先。选择休息，轻伴会等着你。')+'</p>'+
    '<div class="offopts"><button class="offopt" data-act="offtravel"><span class="oi">'+offIco('travel')+'</span><span class="stack"><b>'+L('Travel','旅行')+'</b><small>'+L('Away from your routine. You choose how many days, up to 14.','暂时离开日常节奏。选择天数，最多 14 天。')+'</small></span>'+CHEV+'</button>'+
    '<button class="offopt" data-act="offunwell"><span class="oi">'+offIco('unwell')+'</span><span class="stack"><b>'+L('I feel unwell','我感觉不舒服')+'</b><small>'+L('A two-week break starts right away. End it whenever you are ready.','立即开始两周休息，准备好了随时结束。')+'</small></span>'+CHEV+'</button></div>');
 }
 function offTravelSheet(){
   var d=offDays, end=C.keyToDate(C.addDays(today(),d)).getTime(), chips='';
   var OFF_PICKS=[3,7,10,14], pi0=OFF_PICKS.indexOf(d); OFF_PICKS.forEach(function(n){ chips+='<button type="button" data-act="offset" data-n="'+n+'" aria-pressed="'+(d===n)+'">'+n+'</button>'; });
-  openSheet('<h3>'+L('Travel','旅行')+'</h3><p class="lede">'+L('How long will you be away? Your streak keeps, and you can end the break early.','你要离开多久？连续记录会保留，也可以提前结束。')+'</p>'+
+  openSheet('<h3>'+L('Travel','旅行')+'</h3><p class="lede">'+LC('How long will you be away? Your streak keeps, and you can end the break early.','你要离开多久？连续记录会保留，也可以提前结束。','How long will you be away? You can end the break early.','你要离开多久？也可以提前结束。')+'</p>'+
    '<div class="group"><div class="stepper"><button type="button" data-act="offdays" id="offMinus" data-d="-1" aria-label="'+L('One day less','少一天')+'"'+(d<=1?' disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button><div class="sv" role="status" aria-live="polite"><b id="offN">'+d+'</b><span id="offUnit">'+L(d===1?'day':'days','天')+'</span></div><button type="button" data-act="offdays" id="offPlus" data-d="1" aria-label="'+L('One day more','多一天')+'"'+(d>=C.OFF_MAX?' disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg></button></div>'+
    '<div class="offchips seg" id="offChips" role="group" aria-label="'+L('Quick pick','快速选择')+'"><i class="thumb" style="--i:'+Math.max(pi0,0)+';opacity:'+(pi0<0?0:1)+'"></i>'+chips+'</div>'+
    '<div class="row"><span>'+L('Back to fasting','恢复断食')+'</span><span class="v" id="offDate">'+dateLbl(end)+'</span></div></div>'+
@@ -489,7 +494,7 @@ function offUnwellSheet(){
   var end=C.keyToDate(C.addDays(today(),14)).getTime();
   openSheet('<h3>'+L('I feel unwell','我感觉不舒服')+'</h3><p class="lede">'+L('Thank you for listening to your body. If you are fasting now, it is fine to stop and eat. If this feels serious, please see a doctor.','谢谢你倾听身体的声音。如果你正在断食，停下来吃点东西没有问题。如果情况严重，请就医。')+'</p>'+
    '<div class="group"><div class="row"><span>'+L('Break length','休息时长')+'</span><span class="v">'+L('2 weeks','两周')+'</span></div><div class="row"><span>'+L('Back to fasting','恢复断食')+'</span><span class="v">'+dateLbl(end)+'</span></div></div>'+
-   '<p class="note">'+L('Your streak is kept. Long fasts stay paused. You can end the break early from Me, Time off.','连续记录会保留，长时间断食保持暂停。你可以在“我的 · 休息一下”里提前结束。')+'</p>'+
+   '<p class="note">'+LC('Your streak is kept. Long fasts stay paused. You can end the break early from Me, Time off.','连续记录会保留，长时间断食保持暂停。你可以在“我的 · 休息一下”里提前结束。','You can end the break early from Me, Time off.','你可以在“我的 · 休息一下”里提前结束。')+'</p>'+
    '<div class="btns"><button class="btn" data-act="offgo" data-k="unwell">'+L('Start 2-week break','开始两周休息')+'</button><button class="btn sec" data-act="offback">'+L('Back','返回')+'</button></div>',timeOffSheet);
 }
 function startOff(kind,days){
@@ -497,12 +502,12 @@ function startOff(kind,days){
   S.off.push({id:uid(),kind:kind,start:Date.now(),days:Math.max(1,Math.min(C.OFF_MAX,days))});
   if(kind==='unwell'){ S.unwell=Date.now(); if(S.planId==='24'||S.planId==='36') S.planId=S.profile.safety||!S.profile.fastedBefore?'13':'16'; }
   save(); closeSheet(); cache={}; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe();
-  toast(kind==='travel'?L('Safe travels. Your streak will wait.','旅途平安，连续记录会等你。'):L('Take care. Your streak is on hold for two weeks.','多保重。连续记录暂停两周。'));
+  toast(kind==='travel'?LC('Safe travels. Your streak will wait.','旅途平安，连续记录会等你。','Safe travels.','旅途平安。'):LC('Take care. Your streak is on hold for two weeks.','多保重。连续记录暂停两周。','Take care. Rest for two weeks.','多保重，好好休息两周。'));
 }
 function endOff(){
   var o=offNow(); if(!o) return;
   o.endedAt=Date.now(); save(); closeSheet(); cache={}; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe();
-  toast(L('Welcome back. Your streak is where you left it.','欢迎回来。连续记录还在原来的位置。'));
+  toast(LC('Welcome back. Your streak is where you left it.','欢迎回来。连续记录还在原来的位置。','Welcome back.','欢迎回来。'));
 }
 
 var calY, calM, selDay, fabOn=false;
@@ -516,8 +521,10 @@ function numTxt(h){ var r=h>=100; return new Intl.NumberFormat(loc(),{minimumFra
 function totalsHtml(){
   var t=C.totals(S.fasts), st=curStreak(), since=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(t.since));
   return '<div class="group tot"><div class="tmain"><div class="tt"><span class="tk">'+L('Total fasted','累计断食')+'</span><b class="tn" aria-label="'+numTxt(t.hours)+' '+L('hours','小时')+'"><span class="rn">'+numTxt(t.hours)+'</span><small>'+L('hours','小时')+'</small></b><span class="ts">'+L('Since '+since,'自 '+since+' 起')+'</span></div>'+monthMoon()+'</div>'+
-    '<div class="tstats"><div><b>'+st+'</b><span>'+L('day streak','天连续')+'</span></div><div><b>'+t.n+'</b><span>'+L(t.n===1?'fast':'fasts','次断食')+'</span></div><div><b>'+numTxt(t.avg)+' '+L('h','小时')+'</b><span>'+L('average','平均')+'</span></div></div></div>';
+    '<div class="tstats"><div><b>'+(care()?monthDays():st)+'</b><span>'+(care()?L('days this month','本月天数'):L('day streak','天连续'))+'</span></div><div><b>'+t.n+'</b><span>'+L(t.n===1?'fast':'fasts','次断食')+'</span></div><div><b>'+numTxt(t.avg)+' '+L('h','小时')+'</b><span>'+L('average','平均')+'</span></div></div></div>';
 }
+/* Care mode: days this month with a fast, in place of the streak */
+function monthDays(){ var d=new Date(); return C.monthRecap(S.fasts,d.getFullYear(),d.getMonth(),[],[]).days.filter(function(s){ return s==='done'||s==='early'; }).length; }
 /* the moon beside the total: it fills counter-clockwise, one slice for every day this month that has a fast on it (the same way the timer disc fills) */
 function monthMoon(){
   var d=new Date(), r=C.monthRecap(S.fasts,d.getFullYear(),d.getMonth(),S.flex.used,C.offKeys(S.off)), n=r.days.filter(function(s){ return s==='done'||s==='early'; }).length, dim=r.days.length, p=n/dim;
@@ -571,7 +578,7 @@ function reportHtml(pm,r){
   heads.forEach(function(x){ grid+='<span class="rp-wd" aria-hidden="true">'+x+'</span>'; });
   for(i=0;i<off;i++) grid+='<span></span>';
   r.days.forEach(function(s,d){ grid+='<span class="rp-day '+(s==='done'?'d':s==='flex'?'f':s==='off'?'o':s==='early'?'e':'n')+'" style="--i:'+d+'">'+(d+1)+'</span>'; });
-  var gl=[]; if(r.daysWith) gl.push(r.daysWith+' '+L(r.daysWith===1?'day with a fast':'days with a fast','天有断食')); if(r.flex) gl.push(r.flex+' '+L(r.flex===1?'cheat day':'cheat days','天弹性日'));
+  var gl=[]; if(r.daysWith) gl.push(r.daysWith+' '+L(r.daysWith===1?'day with a fast':'days with a fast','天有断食')); if(r.flex&&!care()) gl.push(r.flex+' '+L(r.flex===1?'cheat day':'cheat days','天弹性日'));
   /* weeks */
   var wk=r.weeks.filter(function(w){ return w.n; }), mx=Math.max(goal,wk.reduce(function(a,w){ return Math.max(a,w.h); },0))*1.08||1, wh='';
   wk.forEach(function(w,j){ var lab=rngLab(w.s,w.e);
@@ -584,9 +591,9 @@ function reportHtml(pm,r){
     else bands='<i style="left:'+(100*s0/24).toFixed(2)+'%;width:'+(100*(24-s0)/24).toFixed(2)+'%"></i><i style="left:0;width:'+(100*f0/24).toFixed(2)+'%"></i>'; }
   var bw=r.busy?rngLab(r.busy.s,r.busy.e):'';
   var tiles='<div class="rp-t rpi" style="--i:0"><b><span class="rn">'+r.reached+'</span><small> / '+r.n+'</small></b><span>'+L('reached your goal','达成目标')+'</span></div>'+
-    '<div class="rp-t rpi" style="--i:1"><b><span class="rn">'+r.run+'</span></b><span>'+L(r.run===1?'day in a row':'days in a row','天连续达成')+'</span></div>'+
+    (care()?'<div class="rp-t rpi" style="--i:1"><b><span class="rn">'+r.daysWith+'</span><small> / '+r.dim+'</small></b><span>'+L('days with a fast','天有断食')+'</span></div>':'<div class="rp-t rpi" style="--i:1"><b><span class="rn">'+r.run+'</span></b><span>'+L(r.run===1?'day in a row':'days in a row','天连续达成')+'</span></div>')+
     '<div class="rp-t rpi" style="--i:2"><b><span class="rn">'+numTxt(r.avg)+'</span><small> '+L('h','小时')+'</small></b><span>'+L('average fast','平均每次')+'</span></div>'+
-    (r.busy?'<div class="rp-t rpi" style="--i:3"><b class="rp-bw">'+bw+'</b><span>'+L('busiest week, '+r.busy.n+' fasts','最忙的一周 · '+r.busy.n+' 次')+'</span></div>':'<div class="rp-t rpi" style="--i:3"><b><span class="rn">'+r.daysWith+'</span><small> / '+r.dim+'</small></b><span>'+L('days with a fast','天有断食')+'</span></div>');
+    (r.busy?'<div class="rp-t rpi" style="--i:3"><b class="rp-bw">'+bw+'</b><span>'+L('busiest week, '+r.busy.n+' fasts','最忙的一周 · '+r.busy.n+' 次')+'</span></div>':'<div class="rp-t rpi" style="--i:3"><b><span class="rn">'+(care()?r.n:r.daysWith)+'</span>'+(care()?'':'<small> / '+r.dim+'</small>')+'</b><span>'+(care()?L('fasts','次断食'):L('days with a fast','天有断食'))+'</span></div>');
   return '<div class="rp-in" id="rpIn"><div class="rp-scroll" id="rpScroll" tabindex="-1">'+
     '<section class="rp-s rp-hero rv" aria-labelledby="rpT"><h2 id="rpT" class="rpi" style="--i:0">'+L('Your '+name+' recap','你的'+name+'回顾')+'</h2>'+
     '<div class="rp-big rpi" style="--i:1" role="img" aria-label="'+numTxt(r.hours)+' '+L('hours fasted','小时断食')+'"><span class="rn">'+numTxt(r.hours)+'</span></div><p class="rp-unit rpi" style="--i:2">'+L('hours fasted','小时断食')+'</p>'+
@@ -773,14 +780,14 @@ function renderDays(){
   var mname=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(calY,calM,1));
   h+='<div class="group'+(first1?' dim':'')+'"><div class="cal"><div class="cal-h"><button data-act="calprev" aria-label="'+L('Previous month','上个月')+'"'+(canPrev?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button>'+(monthRange()[0]<monthRange()[1]?'<button class="cal-t" data-act="calpick" aria-haspopup="dialog"><span class="mn">'+mname+'</span><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg></button>':'<b class="cal-t0"><span class="mn">'+mname+'</span></b>')+'<button data-act="calnext" aria-label="'+L('Next month','下个月')+'"'+(canNext?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>';
   h+='<div class="cal-v"><div class="cal-g">'+gridInner(calY,calM);
-  h+='</div></div></div>'+(first1?'':'<div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i style="border-color:var(--orange)"></i>'+L('Ended early','提前结束')+'</span><span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span><span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div>')+'</div>';
+  h+='</div></div></div>'+(first1?'':'<div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i style="border-color:var(--orange)"></i>'+L('Ended early','提前结束')+'</span>'+(care()?'':'<span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span>')+'<span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div>')+'</div>';
   /* the chosen day */
   /* the chosen day: nothing is shown until a date is tapped */
   if(selDay){
   var list=C.fastDays(all)[selDay]||[], fl=S.flex.used.indexOf(selDay)>=0;
   h+='<div class="gh">'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</div><div class="group">';
   if(!list.length&&!fl){ if(selDay>t) h+='<div class="empty">'+L('Nothing here yet.','这天还没有记录。')+'</div>';
-    else h+='<div class="row nolog"><span>'+L('Nothing logged','没有记录')+'</span></div><button class="row" data-act="addday">'+IC_PLUS+'<span>'+L('Add a fast','补记断食')+'</span></button>'+(C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur})?'':'<button class="row" data-act="cheatday" data-k="'+selDay+'">'+IC_MOON+'<span>'+L('Use a cheat day','使用弹性日')+'</span></button>'); }
+    else h+='<div class="row nolog"><span>'+L('Nothing logged','没有记录')+'</span></div><button class="row" data-act="addday">'+IC_PLUS+'<span>'+L('Add a fast','补记断食')+'</span></button>'+(care()||C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur})?'':'<button class="row" data-act="cheatday" data-k="'+selDay+'">'+IC_MOON+'<span>'+L('Use a cheat day','使用弹性日')+'</span></button>'); }
   list.sort(function(a,b){return a.end-b.end;}).forEach(function(f){ h+='<button class="row fast-row" data-act="edit" data-id="'+f.id+'"><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(C.isDone(f)?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+'</small></span>'+CHEV.replace('class="chev"','class="chev" style="margin-left:auto"')+'</button>'; });
   if(fl) h+='<div class="row"><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
   h+='</div>';
@@ -1020,7 +1027,7 @@ document.addEventListener('change',function(e){
 /* ---------- cheat days (弹性日) ---------- */
 function flexTick(){ C.flexRefill(S.flex,S.startedAt||Date.now()); }
 function cheatSheet(day){
-  if(offNow()) return; /* no cheat days during time off: the break already holds the streak */
+  if(offNow()||care()) return; /* no cheat days during time off (the break already holds the streak), and none in Care mode */
   flexTick(); var k=typeof day==='string'?day:today(), used=S.flex.used.indexOf(k)>=0, blk=C.flexBlock(k,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur}), b=S.flex.bank;
   var moons=''; for(var i=0;i<2;i++) moons+='<svg width="30" height="30" viewBox="-15 -15 30 30" style="margin-right:6px" aria-hidden="true"><circle r="12" style="fill:'+(i<b?'var(--moon)':'none')+';stroke:'+(i<b?'var(--moon-edge)':'var(--label-2)')+'" stroke-width="1.5"/></svg>';
   var why={used:'',fasted:L('You fasted today, so you don’t need one.','今天你已经断食了，不需要使用。'),fasting:L('You’re fasting now. End the fast first.','你正在断食，先结束这次断食。'),bank:L('None left. A new one arrives every Monday.','已经用完。每周一会补一个。'),week:L('Two in a week is the limit, so you still fast at least five days.','一周最多两个，这样每周至少断食五天。'),window:''}[blk]||'';
@@ -1030,6 +1037,42 @@ function cheatSheet(day){
     '<div class="btns">'+(used?'<button class="btn sec" data-act="undocheat" data-k="'+k+'">'+(k===today()?L('Take today’s cheat day back','收回今天的弹性日'):L('Take this cheat day back','收回这天的弹性日'))+'</button>':'<button class="btn hold" data-hold="usecheat" data-k="'+k+'"'+(blk?' disabled':'')+'><span class="hl">'+L('Hold to use a cheat day','按住使用弹性日')+'</span></button>')+'<button class="btn sec" data-act="close">'+L('Close','关闭')+'</button></div>');
 }
 function useCheat(k){ flexTick(); var b=C.flexBlock(k,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur}); if(b) return toast(L('A cheat day can’t be used for that day.','这天不能使用弹性日。')); S.flex.used.push(k); S.flex.bank--; save(); closeSheet(); cache={}; updateToday(); if(curTab==='days') renderDays(); toast(L('Cheat day used. Your streak holds.','已使用弹性日，连续记录保持。')); }
+
+/* ---------- Care mode: Me, Health answers ----------
+   Adding an answer is instant. Pregnancy or breastfeeding ending is one tap. Diabetes medication (or an earlier answer) needs a health professional's OK and a 14 day wait.
+   An eating-disorder history cannot be eased here. When the last answer goes, Care mode ends and long fasts start again from zero (the first-timer ladder). */
+var CARE_TXT={preg:['Pregnant or breastfeeding','怀孕或哺乳期'],diab:['I take medication for diabetes','我在服用糖尿病药物'],ed:['I have had an eating disorder','我有过进食障碍'],earlier:['Answered earlier','之前的回答']};
+var CK_SVG='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function careTick(){ var P=S.profile, w=P.careOff; if(!w||!w.keys||Date.now()<w.start+C.CARE_WAIT) return; P.careOff=null; careDrop(w.keys,true); }
+/* make everything agree with the answers: Care mode stops at 16:8, has no Ramadan and no long fasts */
+function careApply(){ var P=S.profile; careMigrate(); if(!P.safety) return; S.ramadanPreview=false; if(S.customH>16) S.customH=16; if(S.planId==='24'||S.planId==='36'||S.planId==='ramadan') S.planId='13'; normalisePlan(); }
+function careDrop(keys,quiet0){
+  var P=S.profile; P.care=(P.care||[]).filter(function(k){ return keys.indexOf(k)<0; }); P.careOff=null;
+  if(P.care.length) careApply(); else{ P.safety=false; P.fastedBefore=false; S.unlocked={}; S.flex.mon=C.mondayOf(Date.now()); }
+  save(); if(quiet0) return; cache={}; ticksKey=''; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe();
+}
+function careSheet(){
+  careTick(); var P=S.profile, cur=P.care||[], w=P.careOff, h='<h3>'+L('Health answers','健康回答')+'</h3><p class="lede">'+L('These keep Lightly gentle for you.','这些回答让轻伴对你更温和。')+'</p><div class="group">';
+  ['preg','diab','ed','earlier'].forEach(function(k){ var on=cur.indexOf(k)>=0; if(k==='earlier'&&!on) return;
+    h+='<button class="check" role="checkbox" aria-checked="'+on+'" data-act="carerow" data-k="'+k+'"><span class="bx">'+CK_SVG+'</span><span>'+L(CARE_TXT[k][0],CARE_TXT[k][1])+'</span></button>'; });
+  h+='</div>';
+  if(w) h+='<p class="note">'+L('Easing starts '+dateLbl(w.start+C.CARE_WAIT)+'. Nothing changes until then.','放宽将在 '+dateLbl(w.start+C.CARE_WAIT)+' 开始，在此之前一切照旧。')+'</p><div class="btns"><button class="btn sec" data-act="carecancel">'+L('Cancel the wait','取消等待')+'</button>';
+  else h+='<p class="note">'+L('Tick one to add it now. To untick, tap it.','点选即可加入，点已选的可以调整。')+'</p><div class="btns">';
+  openSheet(h+'<button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
+}
+function careRow(b){
+  var k=b.dataset.k, P=S.profile, on=(P.care||[]).indexOf(k)>=0;
+  if(!on){ if(!Array.isArray(P.care)) P.care=[]; P.care.push(k); careApply(); save(); fx('select'); cache={}; updateToday(); if(curTab==='me') renderMe(); return careSheet(); }
+  var how=C.careEase(k);
+  if(how==='now') return openSheet('<h3>'+L('No longer pregnant or breastfeeding?','不再怀孕或哺乳了吗？')+'</h3><p class="lede">'+L('Care mode eases once nothing else is ticked. Please check with your doctor before longer fasts.','没有其他勾选时，关怀模式会放宽。想断食更久之前，请先咨询医生。')+'</p>'+
+    '<div class="btns"><button class="btn" data-act="careeasego" data-k="'+k+'">'+L('Yes, update','是的，更新')+'</button><button class="btn sec" data-act="care">'+L('Not now','先不用')+'</button></div>');
+  if(how==='never') return openSheet('<h3>'+L('We’ll keep this on for you','我们会一直为你保持')+'</h3><p class="lede">'+L('If a health professional supports a change, please contact us. Our details are on the Privacy page.','如果有医护人员支持你调整，请联系我们。联系方式在隐私政策页。')+'</p>'+
+    '<div class="btns"><a class="btn" href="privacy/?lang='+S.lang+'" target="_blank" rel="noopener">'+L('Privacy Policy','隐私政策')+'</a><button class="btn sec" data-act="care">'+L('Back','返回')+'</button></div>');
+  openSheet('<h3>'+L('My situation has changed','我的情况变了')+'</h3><p class="lede">'+L('Only a doctor, midwife or dietitian who knows you can say whether longer fasts are right for you.','只有了解你情况的医生、助产士或营养师，才能判断更长的断食是否适合你。')+'</p>'+
+    '<div class="group" id="lsChecks"><button class="check" role="checkbox" aria-checked="false" data-act="carepro"><span class="bx">'+CK_SVG+'</span><span>'+L('A health professional who knows my situation said it is fine','了解我情况的医护人员说可以')+'</span></button></div>'+
+    '<p class="note">'+L('Then a 14-day wait. Nothing changes meanwhile, and you can cancel any time. After it, long fasts start again from zero.','然后等待 14 天，期间一切照旧，随时可以取消。之后长时间断食要重新从零开始。')+'</p>'+
+    '<div class="btns"><button class="btn" id="careGo" data-act="carewait" data-k="'+k+'" disabled>'+L('Start the 14-day wait','开始 14 天等待')+'</button><button class="btn sec" data-act="care">'+L('Not now','先不用')+'</button></div>');
+}
 
 /* ---------- plan sheet ---------- */
 var moreOpen=false;
@@ -1047,19 +1090,20 @@ function planRow(p,selId){
   var pl=p.custom?C.planById('custom',S.customH):p, lab=C.planLabel(pl), sub='', dis=false, pill='', bar='';
   if(p.long){
     var st=longSt(p.fast);
-    if(st.st==='hidden') return '';
-    if(st.st==='locked'){ dis=true; pill='<span class="pill">'+L('Locked','未解锁')+'</span>'; sub=st.label; bar='<div class="bar"><i style="width:'+Math.round(st.pct*100)+'%"></i></div>'; if(S.lang==='zh') sub=zhProgress(st.label); }
+    if(st.st==='hidden'){ dis=true; pill='<span class="pill">'+L('Not offered','不提供')+'</span>'; } /* Care mode: nothing to unlock, so no progress bar */
+    else if(st.st==='locked'){ dis=true; pill='<span class="pill">'+L('Locked','未解锁')+'</span>'; sub=st.label; bar='<div class="bar"><i style="width:'+Math.round(st.pct*100)+'%"></i></div>'; if(S.lang==='zh') sub=zhProgress(st.label); }
     else if(st.st==='paused'){ dis=true; pill='<span class="pill">'+L('Paused','已暂停')+'</span>'; sub=L('You said you felt unwell. Available again ','你说过身体不适，可用时间：')+dateLbl(st.until); }
     else if(st.st==='wait'){ dis=true; pill='<span class="pill">'+L('Rest first','先休息')+'</span>'; sub=L('Available again ','可用时间：')+dateLbl(st.until); }
     else sub=L('Unlocked. Water and electrolytes recommended.','已解锁。建议补充水分和电解质。');
   }else{
     var ps=pst(p.id);
+    if(ps.st==='hidden') return ''; /* Care mode stops at 16:8 */
     if(ps.st==='locked'){ dis=true; pill='<span class="pill">'+L('Locked','未解锁')+'</span>'; sub=S.lang==='zh'?zhProgress(C.planStatusLabel(ps)):C.planStatusLabel(ps); bar='<div class="bar"><i style="width:'+Math.round(ps.pct*100)+'%"></i></div>'; }
-    else sub=p.custom?L('Choose 12 to 23 hours','12 到 23 小时之间'):fastSub(p);
+    else sub=p.custom?L('Choose 12 to '+C.customMax(S.profile)+' hours','12 到 '+C.customMax(S.profile)+' 小时之间'):fastSub(p);
   }
   var extra=p.custom&&!dis?'<span class="pr" style="min-width:0"></span>':'';
   var row='<button class="plan'+(selId===p.id?' sel':'')+'" data-act="pickplan" data-id="'+p.id+'"'+(dis?' disabled':'')+'><span class="pn"><b>'+esc(pName(p))+'</b><small>'+sub+'</small>'+bar+'</span>'+pill+'<span class="pr">'+lab+'</span>'+CHECK+'</button>';
-  if(p.custom&&selId==='custom') row+='<div class="field"><label for="cH">'+L('Fasting hours','断食小时数')+'</label><input id="cH" type="number" min="12" max="23" step="1" inputmode="numeric" value="'+S.customH+'" data-chg="custom"></div>';
+  if(p.custom&&selId==='custom') row+='<div class="field"><label for="cH">'+L('Fasting hours','断食小时数')+'</label><input id="cH" type="number" min="12" max="'+C.customMax(S.profile)+'" step="1" inputmode="numeric" value="'+S.customH+'" data-chg="custom"></div>';
   return row;
 }
 function zhProgress(l){ return l.replace(/(\d+) of (\d+) fasts of (\d+) h or more/,'$3 小时以上 $1/$2 次').replace(/(\d+) of (\d+) of 18 h or more/,'18 小时以上 $1/$2 次').replace(/week (\d+) of (\d+)/,'第 $1/$2 周').replace(/(\d+) of (\d+) fast of 24 h/,'24 小时断食 $1/$2 次').replace('First finish a 24 h fast, ','先完成一次 24 小时断食，').replace('24 h done, ','24 小时已完成，'); }
@@ -1096,7 +1140,7 @@ function geo(then){
 var CL=window.LightlyCloud, sync={busy:false,msg:'',at:0,err:'',t:0};
 function cloudOn(){ return CL&&CL.ready()&&CL.getAuth(); }
 function cloudSoon(){ if(!cloudOn()) return; clearTimeout(sync.t); sync.t=setTimeout(function(){ syncNow(true); },4000); }
-function applyRemote(m){ quiet=true; Object.keys(m).forEach(function(k){ S[k]=m[k]; }); if(S.place&&S.place.key==='here'&&S.place.lat==null) S.place={key:C.guessCity(tzGuess())}; /* coordinates stay on the phone */ quiet=false; saveNow(); }
+function applyRemote(m){ quiet=true; Object.keys(m).forEach(function(k){ S[k]=m[k]; }); careMigrate(); if(S.onboarded) careApply(); if(S.place&&S.place.key==='here'&&S.place.lat==null) S.place={key:C.guessCity(tzGuess())}; /* coordinates stay on the phone */ quiet=false; saveNow(); }
 function gone(deleted){ try{ localStorage.removeItem(AVG); }catch(e){} sync.err=''; sync.at=0; quiet=true; S.cloudUid=null; S.name=null; if(S.avatar&&S.avatar.t==='google') S.avatar=null; quiet=false; saveNow(); toast(deleted?L('This account no longer exists, so you’re signed out. Your fasts are still on this phone.','这个账号已不存在，已退出登录。断食记录仍在这台手机上。'):L('Your sign-in expired, so you’re signed out. Your fasts are still on this phone.','登录已过期，已退出登录。断食记录仍在这台手机上。')); }
 function syncNow(silent){
   if(!cloudOn()||sync.busy) return Promise.resolve(); sync.busy=true; sync.err=''; if(curTab==='me') renderMe();
@@ -1236,13 +1280,13 @@ function choiceSheet(k){
   openSheet(h+'</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'); scrim.classList.toggle('peek',k==='theme');
 }
 function renderMe(){
-  var zh=S.lang==='zh', h='';
+  careTick(); var zh=S.lang==='zh', h='';
   h+=accountHtml();
   var p=plan(), ls=S.cur?null:null;
   h+='<div class="gh">'+L('Fasting','断食')+'</div><div class="group">'+
    '<button class="row" data-act="place">'+mi('sun','gold')+'<span>'+L('Sunrise and sunset','日出日落')+'</span><span class="v">'+esc(placeName())+'</span>'+CHEV+'</button>'+
    (S.prefs.usualStart?pkField('usualStart',L('Usual start time','通常开始时间'),S.prefs.usualStart,'t').replace('aria-controls="usualStart-w"><span>','aria-controls="usualStart-w">'+mi('clock','gold')+'<span>'):'<button class="row" data-act="usualset">'+mi('clock','gold')+'<span>'+L('Usual start time','通常开始时间')+'</span><span class="v">'+L('Not set','未设置')+'</span>'+CHEV+'</button>')+
-   (offNow()?'':'<button class="row" data-act="cheat">'+mi('cal','gold')+'<span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button>')+'</div>';
+   (offNow()||care()?'':'<button class="row" data-act="cheat">'+mi('cal','gold')+'<span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button>')+'</div>';
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
    '<button class="row" data-act="choice" data-k="lang">'+mi('globe','navy')+'<span>'+L('Language','语言')+'</span><span class="v">'+(S.lang==='zh'?'中文':'English')+'</span>'+CHEV+'</button>'+
    '<button class="row" data-act="choice" data-k="theme">'+mi('half','navy')+'<span>'+L('Appearance','外观')+'</span><span class="v">'+choiceLabel('theme',S.theme)+'</span>'+CHEV+'</button>'+
@@ -1250,9 +1294,11 @@ function renderMe(){
    sw('sound',L('Sound','声音'),S.prefs.sound,0,mi('sound','navy'))+(canTick()?sw('haptics',L('Vibration','振动'),S.prefs.haptics,0,mi('vib','navy')):'')+sw('d3',L('3D moon and sun','3D 月亮和太阳'),S.prefs.d3&&!!orb,!orb,mi('moon','navy'))+
    sw('notify',L('Reminders','提醒'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window),mi('bell','navy'))+'</div>';
   h+='<div class="gf">'+L('You’ll hear when you reach your goal, as long as Lightly was opened recently.','只要最近打开过轻伴，达成目标时就会提醒你。')+'</div>';
-  h+='<div class="gh">'+L('Care','关怀')+'</div><div class="group"><button class="row" data-act="timeoff">'+mi('heart','gold')+'<span class="stack"><span>'+L('Time off','休息一下')+'</span></span>'+(offNow()?'<span class="v">'+(offNow().kind==='travel'?L('Travelling','旅行中'):L('Resting','休养中'))+'</span>':'')+CHEV+'</button></div>';
+  h+='<div class="gh">'+L('Care','关怀')+'</div><div class="group"><button class="row" data-act="timeoff">'+mi('heart','gold')+'<span class="stack"><span>'+L('Time off','休息一下')+'</span></span>'+(offNow()?'<span class="v">'+(offNow().kind==='travel'?L('Travelling','旅行中'):L('Resting','休养中'))+'</span>':'')+CHEV+'</button>'+
+   '<button class="row" data-act="care">'+mi('shield','gold')+'<span>'+L('Health answers','健康回答')+'</span><span class="v">'+(care()?L('Care mode on','关怀模式已开启'):L('None','无'))+'</span>'+CHEV+'</button></div>'+
+   (care()?'<div class="gf">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。')+'</div>':'');
   h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group"><button class="row" data-act="import">'+mi('imp','grey')+'<span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export">'+mi('exp','grey')+'<span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase">'+mi('trash','red')+'<span>'+L('Erase everything','清除所有数据')+'</span></button>'+(cloudOn()?'<button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button>':'')+'</div>';
-  if(C.ramadanDay()===0) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview,0,mi('moon','gold')))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
+  if(C.ramadanDay()===0&&!care()) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview,0,mi('moon','gold')))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
   h+='<div class="gh">'+L('About','关于')+'</div><div class="group"><a class="row" href="privacy/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('lock','grey')+'<span>'+L('Privacy Policy','隐私政策')+'</span>'+CHEV+'</a><a class="row" href="terms/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('doc','grey')+'<span>'+L('Terms of Use','使用条款')+'</span>'+CHEV+'</a></div>'; /* public pages, also the URLs entered in Google Play */
   if(cloudOn()) h+='<div class="group"><button class="row red so" data-act="signout"><span>'+L('Sign out','退出登录')+'</span></button></div>'; /* signed in only: a plain button at the very end */
   h+='<p class="gf" data-act="diag" style="text-align:center">'+L('Lightly · web app · v','轻伴 · 网页版 · v')+(window.LIGHTLY_VERSION||'')+L(' · saved on this device',' · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
@@ -1263,7 +1309,7 @@ var MI={arc:'M3 17C7 6 17 6 21 17M3 17h.01M21 17h.01',sun:'M3 17h18M7 17a5 5 0 0
   globe:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9S9.5 5.5 12 3Z',half:'M12 3a9 9 0 1 0 0 18V3Z',
   sound:'M4 10v4h4l5 4V6L8 10H4ZM16.5 9a4 4 0 0 1 0 6',vib:'M9 4h6v16H9zM5 8v8M19 8v8',moon:'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z',bell:'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16ZM10 21h4',
   heart:'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z',imp:'M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14',exp:'M12 15V4M7.5 8.5 12 4l4.5 4.5M5 20h14',
-  trash:'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13',lock:'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z',doc:'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',out:'M10 4H5v16h5M15 8l4 4-4 4M19 12H9',userx:'M16 20v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8l4 4M21 8l-4 4'};
+  shield:'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z',trash:'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13',lock:'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z',doc:'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',out:'M10 4H5v16h5M15 8l4 4-4 4M19 12H9',userx:'M16 20v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8l4 4M21 8l-4 4'};
 function mi(k,tone){ return '<span class="mi '+tone+'" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="'+MI[k]+'"/></svg></span>'; }
 function sw(k,label,on,dis,ico){ return '<div class="row">'+(ico||'')+'<span>'+label+'</span><button class="sw" role="switch" aria-checked="'+!!on+'" aria-label="'+esc(label)+'" data-act="sw" data-k="'+k+'"'+(dis?' disabled':'')+'></button></div>'; }
 /* Light / Dark / Auto: every colour changes in the same frame. Any per-element transition is switched off for that frame, so text never sits half-way between black and white; the sheet's blur is untouched. */
@@ -1315,7 +1361,7 @@ function obHtml(i){
   }else if(key==='safety'){
     function ck(v,label){ var on=ob.safe.indexOf(v)>=0; return '<button class="check" role="checkbox" aria-checked="'+on+'" data-act="obsafe" data-v="'+v+'"><span class="bx"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span>'+label+'</span></button>'; }
     body='<h1>'+L('Is any of this true for you?','下面有符合你的情况吗？')+'</h1><p class="lede">'+L('Pick all that apply.','可多选。')+'</p><div class="group">'+ck('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'))+ck('diab',L('I take medication for diabetes','我在服用糖尿病药物'))+ck('ed',L('I have had an eating disorder','我有过进食障碍'))+ck('none',L('None of these','都不是'))+'</div>'+
-      (ob.safe.length&&ob.safe.indexOf('none')<0?'<p class="gf obnote" style="padding:0 4px;color:var(--label)">'+L('We’ll keep you on the gentlest plan, with no long fasts. Please talk to your doctor first.','我们会让你保持最温和的计划，不提供长时间断食。请先咨询医生。')+'</p>':'')+'<div class="grow"></div>';
+      (ob.safe.length&&ob.safe.indexOf('none')<0?'<p class="gf obnote" style="padding:0 4px;color:var(--label)">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts. Please talk to your doctor first.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。请先咨询医生。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obnext"'+(ob.safe.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='plan'){
     var risky=obRisky(), sug=risky||ob.fasted==='first'?'13':'16', prof={fastedBefore:ob.fasted==='before',safety:risky}; if(!ob.plan||C.planStatus(ob.plan,prof,{fasts:[]}).st!=='ok') ob.plan=sug;
@@ -1341,7 +1387,7 @@ function obHtml(i){
     var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.fasted==='before'&&!rk&&ob.start?ob.start:'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
     body='<div class="ob-hero"><svg viewBox="-70 -70 140 140" aria-hidden="true"><circle r="60" fill="rgba(142,142,147,.34)" stroke="rgba(142,142,147,.6)" stroke-width="2"/><path d="'+wedgePath(C.planById(pid,S.customH).fast/24,60)+'" fill="#F4EFE2" stroke="#B9AF96" stroke-width="2" stroke-linejoin="round"/></svg></div><h1>'+L('You’re set','准备好了')+'</h1>'+
       '<div class="group"><div class="row"><span>'+L('Plan','计划')+'</span><b>'+esc(C.planLabel(C.planById(pid,S.customH)))+'</b></div><div class="row"><span>'+L('Sunrise and sunset','日出日落')+'</span><b>'+esc(placeName())+'</b></div><div class="row"><span>'+L('First fast','第一次断食')+'</span><b>'+(uh!=null?L('Tonight, ','今晚 ')+clockH(uh):L('When you’re ready','准备好时'))+'</b></div></div>'+
-      '<p class="gf" style="padding:0 4px">'+(rk?L('Your plan stays at 13:11, with no long fasts.','你的计划保持在 13:11，不提供长时间断食。'):L('Change anything later in Me.','之后可以在“我的”里修改。'))+'</p><div class="grow"></div>';
+      '<p class="gf" style="padding:0 4px">'+(rk?L('Care mode is on. You start at 13:11.','关怀模式已开启，从 13:11 开始。'):L('Change anything later in Me.','之后可以在“我的”里修改。'))+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obdone">'+L('Open Lightly','打开 Lightly')+'</button>';
   }
   return '<div class="ob-step" data-i="'+i+'">'+top+body+'<div class="ob-cta">'+cta+'</div></div>';
@@ -1371,7 +1417,7 @@ function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.l
 function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00'}; $('ob').innerHTML=''; obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
-  S.profile={fastedBefore:ob.fasted==='before',safety:!!risky}; S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.fasted==='before'&&!risky&&ob.start) S.prefs.usualStart=ob.start; S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
+  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.fasted==='before'&&!risky&&ob.start) S.prefs.usualStart=ob.start; S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
   save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today');
 }
 
@@ -1468,7 +1514,12 @@ var A={
   pickplan:function(b){ pickPlan(b.dataset.id); },
   geo:function(){ geo(function(){ placeSheet(); }); },
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
-  plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet,
+  plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet, care:careSheet,
+  carerow:careRow,
+  carepro:function(b){ var on=b.getAttribute('aria-checked')!=='true'; b.setAttribute('aria-checked',on); $('careGo').disabled=!on; },
+  carewait:function(b){ var P=S.profile, k=b.dataset.k, keys=(P.careOff&&P.careOff.keys||[]).filter(function(x){ return x!==k; }); keys.push(k); P.careOff={keys:keys,start:Date.now()}; save(); careSheet(); },
+  carecancel:function(){ S.profile.careOff=null; save(); careSheet(); },
+  careeasego:function(b){ careDrop([b.dataset.k]); careSheet(); },
   google:function(b){ if(b.disabled) return; var soon=function(){ b.disabled=false; toast(L('Google sign-in is not switched on yet. Email works now.','Google 登录还没开启，现在可用邮箱。')); };
     if(!CL.ready()) return soon(); b.disabled=true;
     CL.providerOn('google').then(function(on){ if(!on) return soon(); location.assign(CL.oauthUrl('google',S)); }).catch(soon); },
@@ -1514,7 +1565,7 @@ var A={
   /* Erase everything: the one step that can't be undone. A red warning mark and a plain list of what goes, Cancel as the main button, and the erase button
      is locked for 3 seconds (counting down), then must be held for 2 seconds. An export is one tap away. */
   erase:function(){
-    openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Are you sure?','你确定吗？')+'</h3><p class="lede ctr">'+eraseLine(S.fasts.length,curStreak())+'</p>'+
+    openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Are you sure?','你确定吗？')+'</h3><p class="lede ctr">'+eraseLine(S.fasts.length,care()?0:curStreak())+'</p>'+
       '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button>'+lockedHold('eraseGo','eraseok',['Erase everything','清除所有数据'],['Hold to erase everything','按住清除所有数据'])+'<button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
     unlockHold('eraseGo',['Erase everything','清除所有数据'],['Hold to erase everything','按住清除所有数据']);
   },
@@ -1541,7 +1592,7 @@ var A={
 document.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){ e.preventDefault(); A.namesave(); } });
 document.addEventListener('click',function(e){ var b=e.target.closest('[data-act]'); if(!b||!ph.contains(b)) return; var f=A[b.dataset.act]; if(f){ if(b.tagName==='BUTTON'&&b.disabled) return; f(b); } });
 document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!t.dataset.chg) return;
-  if(t.dataset.chg==='custom'){ var v=Math.min(23,Math.max(12,Math.round(+t.value)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; } save(); cache={}; ticksKey=''; updateToday(); planSheet(); }
+  if(t.dataset.chg==='custom'){ var v=Math.min(C.customMax(S.profile),Math.max(12,Math.round(+t.value)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; } save(); cache={}; ticksKey=''; updateToday(); planSheet(); }
   });
 /* the real viewport height, so a Home Screen launch fills the glass edge to edge on every phone (ignored while the keyboard is up) */
 (function(){ var sa=document.createElement('div'); sa.setAttribute('aria-hidden','true'); sa.style.cssText='position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding:var(--sat) 0 var(--sab)'; ph.appendChild(sa); function fit(){ var a=document.activeElement; if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
@@ -1585,7 +1636,7 @@ var dsNow=1;
 function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) return; var free=[].reduce.call(t.querySelectorAll('.sp'),function(a,e){ return a+e.offsetHeight; },0)-14, over=t.scrollHeight-t.clientHeight, d=(free>0?free:0)-(over>0?over:0);
   if(Math.abs(d)<2) return; var n=Math.max(ph.classList.contains('tight')?.3:.4,Math.min(1,dsNow+d/236)); if(Math.abs(n-dsNow)<.004) return; dsNow=n; $('discWrap').style.setProperty('--ds',n.toFixed(3)); }
 window.addEventListener('resize',fitDisc);
-if(S.onboarded) normalisePlan();
+if(S.onboarded){ careTick(); careApply(); normalisePlan(); }
 (function(){ var ti=['today','days','me'].indexOf(curTab||'today'); ph.style.setProperty('--ti',ti<0?0:ti); })();
 if(S.prefs.timerStyle==='c') S.prefs.timerStyle='b';
 ph.dataset.ts=S.prefs.timerStyle||'b';

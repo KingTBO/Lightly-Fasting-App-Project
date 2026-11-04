@@ -110,6 +110,35 @@ function mondayOf(ms){ var d=new Date(ms); d.setHours(0,0,0,0); d.setDate(d.getD
 function hours(f){ return (f.end-f.start)/H; }
 function isDone(f){ return hours(f)+1e-6>=f.goalH-0.0167; } /* one minute of grace */
 
+/* ---------- Care mode ----------
+   Ticking any of the three health answers (pregnant or breastfeeding, diabetes medication, eating disorder) turns Care mode on, and profile.safety is true while it is on.
+   Care mode: no 24 h or 36 h fast (never offered, nothing to unlock), plans stop at 16:8 and custom at 16 h, and no streaks, cheat days or Ramadan mode.
+   Tightening is instant. Easing: pregnancy or breastfeeding ending is one tap, diabetes medication (and an answer given before Care mode existed, 'earlier')
+   needs a health professional's OK and a 14 day wait you can cancel, and an eating-disorder history cannot be eased in the app. */
+var CARE_KEYS=['preg','diab','ed'], CARE_WAIT=14*D;
+function careOn(profile){ return !!(profile&&profile.safety); }
+function customMax(profile){ return careOn(profile)?16:23; }
+function careEase(key){ return key==='preg'?'now':key==='ed'?'never':'wait'; }
+
+/* ---------- the 30-day weight estimate (optional, from onboarding) ----------
+   in: {age, kg, cm, fastH (hours of the plan), boosts (0 to 2)}. Care mode never gets here (the app skips the steps).
+   out: {ok:true, low, high, bmi} in kg, a range rounded to 0.5 kg; or {ok:false, why:'input'|'age'|'bmi-low'|'bmi-mid'}.
+   Base range is 0.4% to 1.2% of body weight over 30 days for a daily 16:8 (most days, at least five a week); 13:11 counts 0.6x and anything from 16 h up counts the same,
+   so the number never rewards a longer fast. Each boost adds 0.3% to the low end and 0.6% to the high end. The total is capped at 2.5% (about 0.6% a week).
+   No estimate for under 18, BMI under 18.5, or when the high end would take BMI under 18.5. BMI under 24 gets a page with no numbers instead.
+   These numbers are product judgment, not medical advice. */
+function weightEstimate(o){
+  var kg=+o.kg, cm=+o.cm, age=+o.age;
+  if(!(kg>=30&&kg<=250&&cm>=120&&cm<=220&&age>=0)) return {ok:false,why:'input'};
+  if(age<18) return {ok:false,why:'age'};
+  var bmi=kg/Math.pow(cm/100,2); if(bmi<18.5) return {ok:false,why:'bmi-low',bmi:bmi}; if(bmi<24) return {ok:false,why:'bmi-mid',bmi:bmi};
+  var f=+o.fastH||16, m=f<=13?.6:f>=16?1:.6+.4*(f-13)/3, b=Math.max(0,Math.min(2,Math.round(o.boosts||0)));
+  var hi=Math.min(.012*m+.006*b,.025), lo=Math.min(.004*m+.003*b,hi), r5=function(x){ return Math.round(x*2)/2; };
+  var low=Math.max(.5,r5(lo*kg)), high=r5(hi*kg); if(high<=low) high=low+.5;
+  if(kg-high<18.5*Math.pow(cm/100,2)) return {ok:false,why:'bmi-low',bmi:bmi};
+  return {ok:true,low:low,high:high,bmi:bmi};
+}
+
 /* ---------- unlock rules for long fasts (24 h, 36 h) ----------
    profile = {fastedBefore:boolean, safety:boolean}
    state   = {fasts, unwell:ms|null, unlocked:{24:ms,36:ms}}   returns {st, label, pct, until}
@@ -160,6 +189,7 @@ var LADDER={'13':0,'16':13,'18':16,'20':18,'23':20,'custom':13};
 function planStatus(id,profile,state){
   if(id==='ramadan'||id==='24'||id==='36'||id==='24L'||id==='36L') return {st:'ok'};
   var from=LADDER[id]; if(from==null||from===0) return {st:'ok'};
+  if(careOn(profile)&&(id==='18'||id==='20'||id==='23')) return {st:'hidden'}; /* Care mode stops at 16:8 */
   if(profile&&profile.fastedBefore&&!profile.safety) return {st:'ok'};
   var done=(state.fasts||[]).filter(function(f){return f.end&&isDone(f);}), need=3;
   var n=done.filter(function(f){return f.goalH>=from&&hours(f)>=from-0.02;}).length;
@@ -274,7 +304,7 @@ function monthReport(fasts,y,m,flexUsed,offKeys,place){
   return r;
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,careOn:careOn,customMax:customMax,careEase:careEase,weightEstimate:weightEstimate,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);

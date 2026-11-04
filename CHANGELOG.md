@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.72.0
+- **feature** Care mode. If you tick pregnant or breastfeeding, diabetes medication or an eating-disorder history when you start, Lightly stays gentle for good: there are no streaks (Today shows a quiet "This week" row of dots, Days shows days this month, the recap drops "days in a row"), no cheat days and no Ramadan mode. Plans stop at 16:8, custom stops at 16 hours, and the 24 h and 36 h fasts show "Not offered" with no progress bar to climb. People who answered before this update are in Care mode automatically.
+- **feature** New "Health answers" row in Me, under Care. Adding an answer applies at once. Pregnancy or breastfeeding ending takes one tap. Diabetes medication (or an answer from before this update) needs "a health professional who knows my situation said it is fine" and then a 14-day wait you can cancel. An eating-disorder history is not changed in the app; the sheet points to the Privacy page to contact us. When the last answer is cleared, Care mode ends and long fasts start again from zero.
+- **docs** The concept page has a Care mode card, a Health answers row on Me and the new onboarding note.
+
 ## 0.71.5
 - **copy** While you are on a time-off break, Today now greets you in words instead of "Break" or "Rest": "Safe travels" (旅途平安) for a trip and "Get well soon" (早日康复) when you are unwell, with one quiet line beneath ("Your streak will wait." or "Rest up. Your streak is safe."). The concept page matches.
 
