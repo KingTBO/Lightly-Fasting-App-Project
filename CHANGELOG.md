@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.78.1
+- **fix** "Use my location" in setup no longer leaves you waiting with nothing on screen. The button turns into "Finding your location…" with a small spinner right away and can't be tapped twice, "Choose a city instead" stays one tap away, and after 8 seconds Lightly says it is taking a while and shows the city list (a late answer is still used, unless you picked a city). Under it, a bug is fixed: trying the location again after a refusal could stop the screen from updating, leaving the city list and the wrong buttons in place.
+- **copy** The location step now says why it asks: "Lightly uses your precise location only to match the moon and sun to your own sunrise and sunset. It stays on this phone and is never uploaded or shared." (English and 中文, concept page too)
+
 ## 0.78.0
 - **feature** In setup you can now swipe right to go back one step. The screen follows your finger and the one before slides in behind it, like going back in an iPhone app. Swiping forward does nothing: you move on only with the buttons. A swipe that starts on a wheel, a field or the welcome moon is left to that control, a short slow drag springs back, and under Reduce Motion nothing follows your finger but a clear swipe still goes back. Your earlier answers stay chosen and the moon in the header moves back with the step. The concept page's phone does the same.
 
