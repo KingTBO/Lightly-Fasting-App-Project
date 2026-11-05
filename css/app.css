@@ -326,21 +326,40 @@ a.row{text-decoration:none;color:var(--label)}
 .ob .grow{flex:1}
 .ob-hero{display:flex;justify-content:center;margin:0 0 20px}
 .ob-hero svg{width:132px;height:132px}
-.ob-orb{position:relative;width:236px;height:236px;border-radius:56px;background:var(--night);transition:background-color 1.4s ease,box-shadow 1.4s ease;flex:none}
-.ob-orb.dawn{background:#6B3A5E;box-shadow:0 12px 64px rgba(255,160,90,.5)}
-.ob-hero .ob-orb svg{position:absolute;left:0;top:0;width:236px;height:236px;overflow:visible}
+.ob-bslot{width:236px;height:236px;margin:0 auto 20px;flex:none}
+.ob-mslot{display:block;width:36px;height:36px}
+@media (max-height:720px){.ob-bslot{width:188px;height:188px;margin-bottom:14px}}
+/* the one moon, parked above the steps; it moves between the slots each step keeps for it */
+.ob-moonlayer{position:absolute;left:0;top:0;width:236px;height:236px;z-index:8;transform-origin:0 0;pointer-events:none;will-change:transform;transition:transform .95s cubic-bezier(.32,.72,0,1)}
+.ob-moonlayer[hidden]{display:none}
+.ob-moonlayer.touch{pointer-events:auto;touch-action:none;cursor:grab}
+.ob-moonlayer .in{position:absolute;inset:0}
+.ob-moonlayer .bg{position:absolute;inset:0;border-radius:50%;background:var(--night);opacity:0;transition:opacity .5s ease}
+.ob-moonlayer.head .bg{opacity:1}
+.ob-moonlayer .ob-disc{position:absolute;left:0;top:0;width:236px;height:236px;overflow:visible}
 .ob-disc .u{fill:rgba(255,255,255,.1);stroke:rgba(255,255,255,.28);stroke-width:1.5}.ob-disc .cr circle{fill:rgba(120,108,84,.16)}
-@media (max-height:720px){.ob-hero{margin:-20px 0 0}.ob-orb{transform:scale(.8)}}
-.ob-moon{display:flex;position:relative;width:36px;height:36px;border-radius:50%;background:var(--night);contain:paint}.ob-moon svg{width:36px;height:36px;display:block}
-.ob-moon .orb{transform:translate(-100px,-100px) scale(.167)}
-.ob-moon .mu{fill:rgba(255,255,255,.1);stroke:rgba(255,255,255,.28);stroke-width:1}.ob-moon .ml{fill:var(--moon);stroke:none}
+@media (prefers-reduced-motion:reduce){.ob-moonlayer{transition:none}}
+/* night welcome, and a You're set that goes from night to dawn */
+.ob-step.night{background:var(--night);color:#fff;isolation:isolate;--label:#fff;--label-2:rgba(235,235,245,.72);--label-3:rgba(235,235,245,.4);--fill:rgba(255,255,255,.14);--card:rgba(255,255,255,.1);--sep:rgba(255,255,255,.16);--link:#FFCC00;transition:transform .55s var(--spr),opacity .4s ease,background-color 1.6s ease,color .9s ease}
+.ob-stars{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.ob-step .dawnbg{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;background:linear-gradient(180deg,#D98A7B 0%,#F0B48C 55%,#F7D2A6 100%);transition:opacity 1.6s ease}
+.ob-step.dawn .dawnbg{opacity:1}
+.ob-step.fin.dawn{color:#1C1C1E;--label:#1C1C1E;--label-2:rgba(28,28,30,.72);--label-3:rgba(28,28,30,.4);--card:rgba(255,255,255,.55);--sep:rgba(28,28,30,.16);--link:#6B4F00}
+.ob-step.fin.dawn .btn{background:#1C1C1E;color:#fff}
+.ob-step.fin .stars,.ob-step.fin.dawn .ob-stars{opacity:0;transition:opacity 1.2s}
+@media (prefers-reduced-motion:no-preference){.ob-stars .tw circle{animation:twinkle 3.2s ease-in-out infinite}.ob-stars .tw circle:nth-child(2n){animation-delay:-.9s}.ob-stars .tw circle:nth-child(3n){animation-delay:-1.8s;animation-duration:4s}}
+/* plan: one big number and a 24-hour strip */
+.ob-big{display:flex;align-items:baseline;gap:8px;margin:2px 0 4px}
+.ob-big .rn{font:700 4.5rem/1.05 var(--font-d);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.ob-big small{font:600 1.375rem var(--font-d);color:var(--label-2)}
+.ob-win{font-size:.9375rem;color:var(--label-2);margin:10px 0 16px}
 .ob-times{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 14px}
 .ob-times>div{background:var(--card);border-radius:14px;padding:12px 16px}
 .ob-times b{display:block;font:600 1.75rem/1.2 var(--font-d);font-variant-numeric:tabular-nums}
 .ob-times>div>span{display:block;font-size:.8125rem;color:var(--label-2);margin-top:2px}
 .ob-day{margin:0 0 18px}
 .ob-day .trk{position:relative;height:24px;border-radius:9px;background:var(--fill);overflow:hidden}
-.ob-day .trk i{position:absolute;top:0;bottom:0;background:var(--tint);box-shadow:inset 0 0 0 .5px var(--bar-edge);transition:left .6s var(--spring),width .6s var(--spring)}
+.ob-day .trk i{position:absolute;top:0;bottom:0;background:var(--tint);box-shadow:inset 0 0 0 .5px var(--bar-edge);transition:left .6s var(--spring),width .6s var(--spring)}.ob-big+.ob-day{margin-top:4px}
 .ob-day .lbl{display:flex;justify-content:space-between;margin-top:6px;font:500 .75rem var(--font);color:var(--label-2);font-variant-numeric:tabular-nums}
 .ob-prev b .rlo{vertical-align:baseline}
 .wcard{background:var(--card);border-radius:14px;padding:16px;margin-top:12px}
