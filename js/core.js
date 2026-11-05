@@ -188,7 +188,9 @@ function longStatus(kind,profile,state,now){
    Everyone else starts at 13:11 and climbs one rung after 3 completed fasts at the rung below:
    16:8 after 3 fasts of 13 h or more, 18:6 after 3 of 16 h, 20:4 after 3 of 18 h, 23:1 and custom after 3 of 20 h (custom after 3 of 13 h).
    One completed fast at a plan's length or longer also opens it, so nobody loses a plan they have already done.
-   returns {st:'ok'|'locked', n, need, from, pct} */
+   First-timers (no safety flag) also start with 16:8 open, and 18:6 and 20:4 can be picked with a gentle warning ('soft'): they are never blocked, the app only says to start lower and step up.
+   Care mode (a safety flag) keeps the ladder and hides 18:6, 20:4 and 23:1. 23:1 and custom stay locked for first-timers.
+   returns {st:'ok'|'soft'|'locked'|'hidden', n, need, from, pct} */
 var LADDER={'13':0,'16':13,'18':16,'20':18,'23':20,'custom':13};
 function planStatus(id,profile,state){
   if(id==='ramadan'||id==='24'||id==='36'||id==='24L'||id==='36L') return {st:'ok'};
@@ -200,6 +202,7 @@ function planStatus(id,profile,state){
   var plan=planById(id,16), own=id==='custom'?16:plan.fast;
   if(id!=='custom'&&done.some(function(f){return hours(f)>=own-0.02&&f.goalH>=own;})) return {st:'ok',n:n,need:need,from:from,pct:1};
   if(n>=need) return {st:'ok',n:n,need:need,from:from,pct:1};
+  if(!careOn(profile)){ if(id==='16') return {st:'ok',n:n,need:need,from:from,pct:n/need}; if(id==='18'||id==='20') return {st:'soft',n:n,need:need,from:from,pct:n/need}; }
   return {st:'locked',n:n,need:need,from:from,pct:n/need};
 }
 function planStatusLabel(st){ return Math.min(st.n,st.need)+' of '+st.need+' fasts of '+st.from+' h or more'; }

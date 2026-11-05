@@ -12,13 +12,13 @@ const ok=n=>console.log('ok -',n);
   await p.goto(base+page);await p.waitForTimeout(600);
   const app=page==='';
   if(app){ // onboarding: "I've fasted before" opens the start-time wheel
-   await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('.ob-step.on [data-act=obnext]');await p.waitForTimeout(900);
+   await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);
    await p.click('#obStart .pk-row');
   } else { // concept page: same wheel in its onboarding demo
    await p.evaluate(()=>document.getElementById('obph').scrollIntoView({block:'center'}));await p.waitForTimeout(500);
    const nx=async()=>{await p.click('#obStage .ob-step.on [data-next], #obStage [data-next]');await p.waitForTimeout(1000);};
-   await nx(); await p.click('#obStage [data-v=some]'); await nx(); await nx();
-   assert(await p.$('#obStage .pk-row'),'concept has a wheel row'); await p.click('#obStage .pk-row');
+   await nx(); await p.click('#obStage [data-v=some]'); await nx();
+   assert(await p.$('#obStage .pk-row'),'concept has a wheel row'); await p.click('#obStage .pk[data-id=start] .pk-row');
   }
   await p.waitForTimeout(700);
   const sel=app?'#obStart':'#obStage .pk';
@@ -63,7 +63,7 @@ const ok=n=>console.log('ok -',n);
  }
  // Reduce Motion: follows the finger, jumps to a row instead of gliding
  {const ctx=await b.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});const p=await ctx.newPage();await p.goto(base);await p.waitForTimeout(600);
-  await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('.ob-step.on [data-act=obnext]');await p.waitForTimeout(900);await p.click('#obStart .pk-row');await p.waitForTimeout(700);
+  await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('#obStart .pk-row');await p.waitForTimeout(700);
   const box=await (await p.$('#obStart [data-c=m]')).boundingBox(), x=box.x+box.width/2, y0=box.y+box.height/2;
   await p.mouse.move(x,y0+50);await p.mouse.down();await p.mouse.move(x,y0-50,{steps:5});await p.mouse.up();await p.waitForTimeout(100);
   const t=await p.evaluate(()=>document.querySelector('#obStart [data-c=m]').scrollTop);assert.strictEqual(t%36,0,'Reduce Motion: lands on a row at once');ok('Reduce Motion: no gliding');await ctx.close();}
@@ -71,7 +71,7 @@ const ok=n=>console.log('ok -',n);
  {const ctx=await b.newContext({viewport:{width:390,height:844}});const p=await ctx.newPage();
   await p.addInitScript(()=>{localStorage.setItem('lightly:v1',JSON.stringify({v:1,onboarded:false,prefs:{sound:false}}));window.__osc=0;const A=window.AudioContext||window.webkitAudioContext,oc=A.prototype.createBufferSource;A.prototype.createBufferSource=function(){window.__osc++;return oc.call(this);};});
   await p.goto(base);await p.waitForTimeout(600);
-  await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('.ob-step.on [data-act=obnext]');await p.waitForTimeout(900);await p.click('#obStart .pk-row');await p.waitForTimeout(700);
+  await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('#obStart .pk-row');await p.waitForTimeout(700);
   const box=await (await p.$('#obStart [data-c=m]')).boundingBox(), x=box.x+box.width/2, y0=box.y+box.height/2;
   await p.mouse.move(x,y0+50);await p.mouse.down();for(let k=1;k<=10;k++){await p.mouse.move(x,y0+50-k*8);await p.waitForTimeout(50);}await p.mouse.up();
   assert.strictEqual(await p.evaluate(()=>window.__osc),0,'Sound off: no tick sound');ok('Sound setting off silences the wheel tick');await ctx.close();}
@@ -80,7 +80,7 @@ const ok=n=>console.log('ok -',n);
   await p.addInitScript(()=>{try{Object.defineProperty(Navigator.prototype,'vibrate',{value:undefined,configurable:true});}catch(e){}window.__c=[];const o=HTMLLabelElement.prototype.click;HTMLLabelElement.prototype.click=function(){window.__c.push({sw:!!this.querySelector('input[switch]'),inMove:window.__inMove===true});return o.call(this);};
    addEventListener('pointermove',()=>{window.__inMove=true;setTimeout(()=>{window.__inMove=false;},0);},true);});
   await p.goto(base);await p.waitForTimeout(600);
-  await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('.ob-step.on [data-act=obnext]');await p.waitForTimeout(900);await p.click('#obStart .pk-row');await p.waitForTimeout(700);
+  await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('[data-act=obopt][data-v=before]');await p.click('[data-act=obnext]');await p.waitForTimeout(900);await p.click('#obStart .pk-row');await p.waitForTimeout(700);
   const box=await (await p.$('#obStart [data-c=m]')).boundingBox(), x=box.x+box.width/2, y0=box.y+box.height/2;
   await p.mouse.move(x,y0+50);await p.mouse.down();for(let k=1;k<=10;k++){await p.mouse.move(x,y0+50-k*8);await p.waitForTimeout(25);}await p.mouse.up();
   const c=await p.evaluate(()=>window.__c);const live=await p.evaluate(()=>document.querySelectorAll('label input[switch]').length);

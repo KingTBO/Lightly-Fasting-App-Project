@@ -838,3 +838,13 @@ html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.btn .spin{animation:none}}
 .btn[aria-busy=true]:disabled{opacity:.75}
+
+/* a soft-gated plan (18:6, 20:4 for first-timers) bounces once when picked; under Reduce Motion the note below says it instead */
+@keyframes bump{0%{transform:scale(1)}18%{transform:scale(1.045)}38%{transform:scale(.975)}58%{transform:scale(1.02)}78%{transform:scale(.995)}100%{transform:scale(1)}}
+.plan.bump{animation:bump .6s cubic-bezier(.2,1,.3,1)}
+@media (prefers-reduced-motion:reduce){.plan.bump{animation:none}}
+.ob-step .tiles .plan small{color:var(--label-2)}
+.ob-step .tiles+.obnote,.ob-step .group+.obnote{margin:10px 0 0;font-size:.875rem;line-height:1.35}
+/* a long setup step scrolls instead of squeezing its cards (the plan step with its wheels on a short phone) */
+.ob-step>:not(.grow){flex-shrink:0}
+.ob-step .obnote+.group{margin-top:14px}

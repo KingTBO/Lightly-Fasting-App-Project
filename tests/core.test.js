@@ -48,11 +48,12 @@ bs.off=[{id:'a',kind:'travel',start:now-D,days:3,endedAt:now}];assert.strictEqua
 assert.strictEqual(C.guessCity('Asia/Shanghai'),'shanghai');
 // everyday plan ladder
 {const f=(h,g)=>({id:String(Math.random()),start:0,end:h*H,goalH:g==null?h:g}),first={fastedBefore:false,safety:false},exp={fastedBefore:true,safety:false},st=(id,pr,fs)=>C.planStatus(id,pr,{fasts:fs});
-assert.strictEqual(st('13',first,[]).st,'ok');assert.strictEqual(st('16',first,[]).st,'locked');assert.strictEqual(st('16',exp,[]).st,'ok');
-assert.strictEqual(st('16',{fastedBefore:true,safety:true},[]).st,'locked','a safety flag keeps the ladder on');
+assert.strictEqual(st('13',first,[]).st,'ok');assert.strictEqual(st('16',first,[]).st,'ok','16:8 is open for first-timers');assert.strictEqual(st('16',exp,[]).st,'ok');
+assert.strictEqual(st('18',first,[]).st,'soft','18:6 can be picked with a warning');assert.strictEqual(st('20',first,[]).st,'soft','20:4 can be picked with a warning');assert.strictEqual(st('23',first,[]).st,'locked','23:1 stays locked for first-timers');assert.strictEqual(st('custom',first,[]).st,'locked','custom stays locked for first-timers');assert.strictEqual(st('18',exp,[]).st,'ok');
+assert.strictEqual(st('16',{fastedBefore:true,safety:true},[]).st,'locked','a safety flag keeps the ladder on');assert.strictEqual(st('18',{fastedBefore:false,safety:true},[]).st,'hidden','Care mode never gets the soft 18:6');
 assert.strictEqual(st('16',first,[f(13),f(13),f(13)]).st,'ok');assert.strictEqual(st('16',first,[f(13),f(13),f(13,16)]).n,2,'a fast short of its own goal is not counted');
-assert.strictEqual(st('16',first,[f(13),f(13),f(10,13)]).st,'locked','a fast that missed its goal does not count');
-assert.strictEqual(st('18',first,[f(13),f(13),f(13)]).st,'locked','18:6 needs three 16 h fasts');assert.strictEqual(st('18',first,[f(16),f(16),f(16)]).st,'ok');
+assert.strictEqual(st('16',first,[f(13),f(13),f(10,13)]).n,2,'a fast that missed its goal does not count');
+assert.strictEqual(st('18',first,[f(13),f(13),f(13)]).st,'soft','18:6 still carries the warning until three 16 h fasts');assert.strictEqual(st('18',first,[f(13),f(13),f(13)]).n,0);assert.strictEqual(st('18',first,[f(16),f(16),f(16)]).st,'ok');
 assert.strictEqual(st('20',first,[f(18),f(18),f(18)]).st,'ok');assert.strictEqual(st('23',first,[f(20),f(20),f(20)]).st,'ok');
 assert.strictEqual(st('16',first,[f(16)]).st,'ok','one completed 16 h fast opens 16:8');assert.strictEqual(st('ramadan',first,[]).st,'ok');
 assert.strictEqual(C.planStatusLabel(st('16',first,[f(13)])),'1 of 3 fasts of 13 h or more');}
