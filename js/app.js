@@ -1147,11 +1147,20 @@ function placeSheet(){
   Object.keys(C.CITIES).forEach(function(k){ h+='<button class="plan'+(S.place.key===k?' sel':'')+'" data-act="city" data-k="'+k+'" style="min-height:48px"><span class="pn"><b style="font-weight:400">'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</b></span>'+CHECK+'</button>'; });
   h+='</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'; openSheet(h);
 }
-function setPlace(pl){ S.place=pl; sunDay=''; save(); cache={}; updateToday(); }
-function geo(then){
+function setPlace(pl){ if(pl.key!=='here') geoTok++; S.place=pl; sunDay=''; save(); cache={}; updateToday(); }
+/* A fix can take several seconds on a phone (the permission prompt, then the radio), so the person always sees that Lightly is working, and is never left waiting:
+   after 8 s it says so and offers the city list, and if the fix still arrives later (and no city was picked meanwhile) it is used quietly. */
+var geoTok=0;
+function geo(then,late){
   if(!navigator.geolocation){ toast(L('This browser can’t share a location. Pick a city instead.','这个浏览器无法获取位置，请选择城市。')); return then&&then(false); }
-  navigator.geolocation.getCurrentPosition(function(p){ setPlace({key:'here',lat:Math.round(p.coords.latitude*100)/100,lon:Math.round(p.coords.longitude*100)/100}); toast(L('Using your location.','已使用你的位置。')); then&&then(true); },
-    function(){ toast(L('Couldn’t get your location, so Lightly is using '+placeName()+'.','没能获取你的位置，先使用'+placeName()+'。')); then&&then(false); },{timeout:10000,maximumAge:3600000});
+  var tok=++geoTok, done=false;
+  var w=setTimeout(function(){ if(done||tok!==geoTok) return; done=true; toast(L('This is taking a while. Pick a city for now.','有点慢，先选一个城市吧。')); then&&then(false); },8000);
+  navigator.geolocation.getCurrentPosition(function(p){
+    clearTimeout(w); if(tok!==geoTok) return;
+    setPlace({key:'here',lat:Math.round(p.coords.latitude*100)/100,lon:Math.round(p.coords.longitude*100)/100}); toast(L('Using your location.','已使用你的位置。'));
+    if(done){ late&&late(); } else{ done=true; then&&then(true); } },
+    function(){ clearTimeout(w); if(tok!==geoTok||done) return; done=true; toast(L('Couldn’t get your location, so Lightly is using '+placeName()+'.','没能获取你的位置，先使用'+placeName()+'。')); then&&then(false); },
+    {timeout:30000,maximumAge:3600000});
 }
 
 /* ---------- account: email sign-in and backup (Supabase). Everything works signed out; an account only backs up. ---------- */
@@ -1402,11 +1411,12 @@ function obHtml(i){
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='set'){
     var hereOn=S.place.key==='here';
-    body='<h1>'+L('Match the sky to your day','让天空跟着你的一天')+'</h1><p class="lede">'+L('Sunrise and sunset set your moon and sun. Your location stays on this phone.','日出日落决定你的月亮和太阳。位置只留在这台手机上。')+'</p>'+
+    body='<h1>'+L('Match the sky to your day','让天空跟着你的一天')+'</h1><p class="lede">'+L('Lightly uses your precise location only to match the moon and sun to your own sunrise and sunset. It stays on this phone and is never uploaded or shared.','轻伴只用你的精确位置，让月亮和太阳对上你当地的日出日落。位置只留在这台手机上，不会上传或分享。')+'</p>'+
      obSkyHtml()+(hereOn?'<div class="group"><div class="row"><span>'+L('Using your location','正在使用你的位置')+'</span><span class="v">'+CHECK+'</span></div></div>':'')+
      (!hereOn&&ob.city?'<div class="group">'+pkField('obCity',L('Nearest city','最近的城市'),S.place.key,'sel',Object.keys(C.CITIES).map(function(k){ return [k,C.CITIES[k][S.lang==='zh'?'zh':'en']]; }))+'</div>':'')+
      (flow.indexOf('custom')<0?'<div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>':'')+'<div class="grow"></div>';
-    cta=hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn sec" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
+    cta=ob.geoBusy?'<button class="btn" disabled aria-busy="true"><i class="spin" aria-hidden="true"></i>'+L('Finding your location…','正在定位…')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>':
+      hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn sec" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
       :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
   }else if(key==='body'){
     body='<h1>'+L('A little about you','关于你')+'</h1><p class="lede">'+L('Optional. It only gives a rough 30-day estimate.','可选。只用来粗略估算 30 天。')+'</p><div class="group">'+pkField('obAge',L('Age','年龄'),ob.age,'sel',obAgeOpts())+pkField('obWt',L('Weight','体重'),Math.round(C.kgTo(ob.kg,ob.unit)),'sel',obWtOpts())+pkField('obHt',L('Height','身高'),obHtKey(),'sel',obHtOpts())+'</div>'+
@@ -1458,7 +1468,8 @@ function morph(o,n){
   for(i=0;i<n.attributes.length;i++){ var at=n.attributes[i]; if(o.getAttribute(at.name)!==at.value) o.setAttribute(at.name,at.value); }
   if((o.tagName==='INPUT'||o.tagName==='SELECT')&&document.activeElement!==o) o.value=n.value;
   if(o.childNodes.length!==n.childNodes.length){ o.innerHTML=n.innerHTML; return; }
-  for(i=0;i<o.childNodes.length;i++) morph(o.childNodes[i],n.childNodes[i]);
+  var ok=[].slice.call(o.childNodes), nk=[].slice.call(n.childNodes);   /* snapshots: replacing a node moves it out of its parent, which shifts the live lists */
+  for(i=0;i<ok.length;i++) morph(ok[i],nk[i]);
 }
 /* ---------- swipe right to go back ----------
    Only backwards: the step follows the finger and the one before slides in behind it, like an iOS navigation stack. Forward is only ever the buttons.
@@ -1699,7 +1710,7 @@ var A={
   undocheat:function(b){ var k=(b&&b.dataset.k)||today(), i=S.flex.used.indexOf(k); if(i>=0){ S.flex.used.splice(i,1); S.flex.bank=Math.min(2,S.flex.bank+1); save(); closeSheet(); cache={}; updateToday(); if(curTab==='me') renderMe(); } },
   more:function(){ moreOpen=!moreOpen; planSheet(); },
   pickplan:function(b){ pickPlan(b.dataset.id); },
-  geo:function(){ geo(function(){ placeSheet(); }); },
+  geo:function(){ toast(L('Finding your location…','正在定位…')); geo(function(){ placeSheet(); },function(){ if(sheetOpen) placeSheet(); }); },
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
   plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet, care:careSheet,
   carerow:careRow,
@@ -1786,8 +1797,10 @@ var A={
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
   obsafe:function(b){ var v=b.dataset.v, i=ob.safe.indexOf(v); if(v==='none') ob.safe=i>=0?[]:['none']; else{ ob.safe=ob.safe.filter(function(x){return x!=='none';}); if(i>=0) ob.safe.splice(ob.safe.indexOf(v),1); else ob.safe.push(v); } obRefresh(); },
   obplan:function(b){ if(b.disabled) return; ob.plan=b.dataset.id; obRefresh(); odo($('obBigN')); },
-  obgeo:function(){ geo(function(ok){ if(!ok) ob.city=true; obRefresh(); obRoll(); }); },
-  obcityshow:function(){ ob.city=true; obRefresh(); },
+  obgeo:function(){ if(ob.geoBusy) return; ob.geoBusy=true; obRefresh();
+    geo(function(ok){ ob.geoBusy=false; if(!ok) ob.city=true; obRefresh(); obRoll(); },
+      function(){ if(!$("ob").hidden&&obFlow()[ob.step]==="set"){ ob.geoBusy=false; obRefresh(); obRoll(); } }); },
+  obcityshow:function(){ geoTok++; ob.geoBusy=false; ob.city=true; obRefresh(); },
   obdone:obFinish
 };
 document.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){ e.preventDefault(); A.namesave(); } });

@@ -832,3 +832,9 @@ html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;
 
 /* swipe right to go back: horizontal moves reach the page, vertical ones still scroll */
 .ob-step{touch-action:pan-y;overscroll-behavior-x:none}
+
+/* a quiet spinner while the location is found (a still ring under Reduce Motion) */
+.btn .spin{display:inline-block;width:16px;height:16px;margin-right:10px;vertical-align:-3px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;opacity:.7;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.btn .spin{animation:none}}
+.btn[aria-busy=true]:disabled{opacity:.75}
