@@ -11,7 +11,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
 const H=3600000,D=24*H,probe=fs.readFileSync(path.join(__dirname,'probe.js'),'utf8')+fs.readFileSync(path.join(__dirname,'contrast.js'),'utf8');
 const mk=(n,h,goal=16,ago=n)=>{const e=new Date();e.setDate(e.getDate()-ago);e.setHours(12,0,0,0);return {id:'q'+n+'_'+h,start:e.getTime()-h*H,end:e.getTime(),goalH:goal,plan:'16'};};
 function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onboarded:kind!=='ob',profile:{fastedBefore:true,safety:false},planId:'16',customH:16,place:{key:'shanghai'},cur:null,
- fasts:[mk(1,16.5),mk(2,16),mk(3,15,16),mk(5,17),mk(6,18)],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:true,notify:false},ramadanPreview:false,startedAt:now-9*D};
+ fasts:[mk(1,16.5),mk(2,16),mk(3,15,16),mk(5,17),mk(6,18)],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:kind!=='ob',notify:false},ramadanPreview:false,startedAt:now-9*D};
  if(kind==='mid') s.cur={start:now-6*H,goalH:16,planId:'16',reached:false};
  if(kind==='goal') s.cur={start:now-17*H,goalH:16,planId:'16',reached:true};
  if(kind==='eat'){s.fasts.push({id:'z',start:now-17*H,end:now-2*H,goalH:16,plan:'16'});}

@@ -334,6 +334,23 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-hero.imp-glyph svg{width:72px;height:72px;fill:none;stroke:var(--label-2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .ob-cta:active{transform:scale(.97)}.ob-cta[disabled]{opacity:.35;cursor:not-allowed}
 .ob-hero{display:flex;justify-content:center;margin:26px 0 18px}.ob-hero svg{width:132px;height:132px}
+.ob-hero:has(.ob-orb){margin:8px 0 0}
+.ob-orb{position:relative;width:236px;height:236px;border-radius:56px;background:var(--night,#0E1430);transition:background-color 1.4s ease,box-shadow 1.4s ease;flex:none;transform:scale(.86);transform-origin:top center;margin-bottom:-33px}
+.ob-orb.dawn{background:#6B3A5E;box-shadow:0 12px 64px rgba(255,160,90,.5)}
+.ob-hero .ob-orb svg{position:absolute;left:0;top:0;width:236px;height:236px;overflow:visible}
+.ob-orb .orb{left:0;margin-left:0}
+.ob-disc .u{fill:rgba(255,255,255,.1);stroke:rgba(255,255,255,.28);stroke-width:1.5}.ob-disc .cr circle{fill:rgba(120,108,84,.16)}
+.ob-moon{display:flex;position:relative;width:36px;height:36px;border-radius:50%;background:var(--night,#0E1430);contain:paint}.ob-moon svg{width:36px;height:36px;display:block}
+.ob-moon .orb{left:0;margin-left:0;transform:translate(-100px,-100px) scale(.167)}
+.ob-moon .mu{fill:rgba(255,255,255,.1);stroke:rgba(255,255,255,.28);stroke-width:1}.ob-moon .ml{fill:#F4EFE2;stroke:none}
+.ob-times{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 14px}
+.ob-times>div{background:var(--card);border-radius:14px;padding:12px 16px}
+.ob-times b{display:block;font:600 1.75rem/1.2 var(--font-d,var(--font));font-variant-numeric:tabular-nums}
+.ob-times>div>span{display:block;font-size:.8125rem;color:var(--label-2);margin-top:2px}
+.ob-day{margin:0 0 14px}
+.ob-day .trk{position:relative;height:24px;border-radius:9px;background:var(--fill);overflow:hidden}
+.ob-day .trk i{position:absolute;top:0;bottom:0;background:var(--tint);box-shadow:inset 0 0 0 .5px var(--bar-edge)}
+.ob-day .lbl{display:flex;justify-content:space-between;margin-top:6px;font:500 .75rem var(--font);color:var(--label-2);font-variant-numeric:tabular-nums}
 @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
 @media (prefers-reduced-motion:no-preference){.ob-hero .tw circle{animation:twinkle 3.2s ease-in-out infinite}.ob-hero .tw circle:nth-child(2){animation-delay:-.7s}.ob-hero .tw circle:nth-child(3){animation-delay:-1.4s;animation-duration:4s}.ob-hero .tw circle:nth-child(4){animation-delay:-2.1s}.ob-hero .tw circle:nth-child(5){animation-delay:-.3s;animation-duration:3.8s}.ob-hero .tw circle:nth-child(6){animation-delay:-1.8s}}
 .ob-note{font-size:13px;color:var(--label-2);margin:12px 4px 0;line-height:1.4}
@@ -1856,7 +1873,7 @@ window.LightlySphere=(function(){
   document.querySelectorAll('[data-plan]').forEach(function(b){ b.addEventListener('click',function(){ cancelAuto(); setPlan(b.dataset.plan,b.classList.contains('plan-card')); }); });
   $('moreLink').addEventListener('click',function(){ $('morePlans').open=true; });
   window.LightlyAPI={ setPlan:function(id){ setPlan(id,true); }, setPlanHere:function(id){ cancelAuto(); setPlan(id,false); },
-    state:function(){ return {mode:mode,h:h,start:START[startKey],goal:GOAL,eat:EAT,plan:plan.id}; }, clock:function(x){ return clock(x); }, lang:function(){ return lang; }, plans:PLANS,
+    sunOf:function(k){ var c=CITIES[k]; return c?sunTimes(c.lat,c.lon,zoneOffset(c.zone)):null; }, state:function(){ return {mode:mode,h:h,start:START[startKey],goal:GOAL,eat:EAT,plan:plan.id}; }, clock:function(x){ return clock(x); }, lang:function(){ return lang; }, plans:PLANS,
     lock:function(ids,why){ document.querySelectorAll('.plan-card[data-plan]').forEach(function(c){ var on=ids.indexOf(c.dataset.plan)>=0; c.dataset.locked=on?'1':''; c.disabled=on; c.title=on?why:''; }); } };
 
   /* ---------- start time ---------- */
@@ -1964,7 +1981,7 @@ window.LightlySphere=(function(){
   function obPrev(pid,startStr){ var pl=api.plans.filter(function(x){return x.id===pid;})[0]; if(!pl) return ''; var line;
     if(startStr){ var uh=+startStr.split(':')[0]+ +startStr.split(':')[1]/60, eh=(uh+pl.fast)%24; line=L('From '+fmtClock(uh)+', a '+pl.fast+' h fast ends at '+fmtClock(eh)+'.','从 '+fmtClock(uh)+' 开始，'+pl.fast+' 小时后在 '+fmtClock(eh)+' 结束。'); }
     else { var d=new Date(Date.now()+pl.fast*36e5); line=L('Start now and you finish at ','现在开始，')+fmtClock(d.getHours()+d.getMinutes()/60)+L('.',' 结束。'); }
-    return '<div class="ob-prev">'+disc(pl.fast/24)+'<span class="tx"><b>'+(pl.fast>=24?L(pl.fast+' h of fasting',pl.fast+' 小时断食'):L(pl.fast+' h of fasting, '+(24-pl.fast)+' h to eat',pl.fast+' 小时断食，'+(24-pl.fast)+' 小时进食'))+'</b><small>'+line+'</small></span></div>'; }
+    return '<div class="ob-prev">'+disc(pl.fast/24)+'<span class="tx"><b><span class="rn" id="obPrevN">'+pl.fast+'</span>'+(pl.fast>=24?L(' h of fasting',' 小时断食'):L(' h of fasting, '+(24-pl.fast)+' h to eat',' 小时断食，'+(24-pl.fast)+' 小时进食'))+'</b><small>'+line+'</small></span></div>'; }
   function opt(id,label,sub,checked,extra,disabled){ return '<button type="button" class="ob-opt" role="'+(extra==='multi'?'checkbox':'radio')+'" data-v="'+id+'" aria-checked="'+(!!checked)+'"'+(disabled?' disabled':'')+'><span>'+label+(sub?'<small>'+sub+'</small>':'')+'</span><span class="ck"></span></button>'; }
   function risky(){ return st.safety.length&&st.safety.indexOf('none')<0; }
   /* nobody starts with long fasts unlocked: they unlock with progress, and never with a safety flag */
@@ -1973,20 +1990,76 @@ window.LightlySphere=(function(){
   function planName(id){ var p=api.plans.filter(function(x){return x.id===id;})[0]; return p?(p.grp==='long'?L(p.en,p.zh):p.fast+':'+p.eat+' '+L(p.en,p.zh)):''; }
   /* the welcome moon: waxes in, breathes, follows a sideways drag and springs home; pulses at full. Still under Reduce Motion. */
   function heroPath(p,r){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; var rx=r*Math.abs(1-2*p), s=p<.5?0:1; return 'M0 '+(-r)+' A'+r+' '+r+' 0 0 1 0 '+r+' A'+rx.toFixed(2)+' '+r+' 0 0 '+s+' 0 '+(-r)+'Z'; }
-  function heroSvg(){ return '<svg class="hero-moon" viewBox="-80 -80 160 160" role="img" aria-label="'+L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。')+'"><defs><radialGradient id="hmG" cx=".38" cy=".34" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient></defs><rect x="-80" y="-80" width="160" height="160" rx="36" fill="#0E1430"/><g fill="#fff" class="tw"><circle cx="-52" cy="-46" r="1.4" opacity=".7"/><circle cx="-30" cy="-60" r="1" opacity=".5"/><circle cx="46" cy="-52" r="1.5" opacity=".7"/><circle cx="58" cy="-22" r="1" opacity=".5"/><circle cx="-58" cy="30" r="1" opacity=".5"/><circle cx="50" cy="52" r="1.2" opacity=".6"/></g><circle class="hm-halo" r="52" fill="none" stroke="#F4EFE2" stroke-width="1.5" opacity="0"/><circle r="40" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.28)" stroke-width="1.2"/><path class="hm-lit" d="" fill="url(#hmG)"/></svg>'; }
-  function heroInit(el){ var sv=el.querySelector('.hero-moon'); if(!sv) return; var lit=sv.querySelector('.hm-lit'), halo=sv.querySelector('.hm-halo');
-    var p=0, drag=false, x0=0, pull=0, full=false, pulse=0, last=performance.now();
-    if(reduce){ lit.setAttribute('d',heroPath(.3,40)); return; }
-    sv.style.touchAction='none'; sv.style.cursor='grab';
-    sv.addEventListener('pointerdown',function(e){ drag=true; x0=e.clientX; try{ sv.setPointerCapture(e.pointerId); }catch(x){} sv.style.cursor='grabbing'; try{ if(navigator.vibrate) navigator.vibrate(6); }catch(x){} });
-    sv.addEventListener('pointermove',function(e){ if(drag) pull=(e.clientX-x0)/sv.getBoundingClientRect().width; });
-    function up(){ drag=false; pull=0; sv.style.cursor='grab'; } sv.addEventListener('pointerup',up); sv.addEventListener('pointercancel',up);
-    (function f(t){ if(!sv.isConnected) return; var dt=Math.min((t-last)/1000,.05); last=t;
+  /* the onboarding moon story: one moon carries the whole setup. Welcome: a big moon (the real 3D ball when the 3D switch is on) that waxes in, breathes and follows a drag.
+     Steps: a small moon in the header fills counter-clockwise as you answer. You're set: the moon fills to your plan window and turns into the sun at sunrise. */
+  var obP={p:0}, big={orb:null,cv:null,tried:false}, hd={orb:null,cv:null,tried:false,host:null,loop:false};
+  function d3on(){ var sw=document.getElementById('d3Sw'); return !!window.LightlySphere&&(!sw||sw.getAttribute('aria-checked')==='true'); }
+  function oOdo(el){ if(reduce||!el||!el.animate) return; var txt=el.textContent; if(!/\d/.test(txt)) return;
+    var chars=txt.split(''), nd=chars.filter(function(c){ return /\d/.test(c); }).length, di=0, html='', cols=[];
+    chars.forEach(function(c){ if(!/\d/.test(c)){ html+='<span class="rls">'+c+'</span>'; return; } var k=nd-1-di, loops=Math.max(1,3-k), s='', i; for(i=0;i<(loops+1)*10;i++) s+='<i>'+(i%10)+'</i>'; html+='<span class="rlo"><span class="rlc">'+s+'</span></span>'; cols.push({d:+c,loops:loops,rank:di}); di++; });
+    el.innerHTML=html; var cs=el.querySelectorAll('.rlc'), left=cols.length;
+    cols.forEach(function(c,i){ var total=(c.loops+1)*10, to=-100*(c.loops*10+c.d)/total, a=cs[i].animate([{transform:'translateY(0)'},{transform:'translateY('+to+'%)'}],{duration:850+c.rank*130,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'}); a.onfinish=function(){ if(--left===0) el.textContent=txt; }; }); }
+  function orbHtml(id,label,p){
+    return '<div class="ob-orb" id="'+id+'" data-keep="1" data-p="'+p.toFixed(4)+'"'+(label?' role="img" aria-label="'+label+'"':' aria-hidden="true"')+'>'+
+      '<svg class="tw" viewBox="-118 -118 236 236" aria-hidden="true"><g fill="#fff"><circle cx="-92" cy="-80" r="1.8" opacity=".7"/><circle cx="-52" cy="-102" r="1.3" opacity=".5"/><circle cx="84" cy="-88" r="2" opacity=".7"/><circle cx="100" cy="-34" r="1.3" opacity=".5"/><circle cx="-100" cy="50" r="1.3" opacity=".5"/><circle cx="86" cy="90" r="1.6" opacity=".6"/><circle cx="-70" cy="96" r="1.2" opacity=".45"/><circle cx="20" cy="-108" r="1.2" opacity=".5"/></g></svg>'+
+      '<svg class="ob-disc" viewBox="-118 -118 236 236" aria-hidden="true"><defs><radialGradient id="obG" cx=".38" cy=".34" r=".78"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient><radialGradient id="obGs" cx=".4" cy=".36" r=".78"><stop offset="0" stop-color="#FFF6C2"/><stop offset=".5" stop-color="#FFD21F"/><stop offset="1" stop-color="#F5A800"/></radialGradient><filter id="obF" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.4"/></filter><mask id="obM" maskUnits="userSpaceOnUse" x="-120" y="-120" width="240" height="240"><path class="obLit" fill="#fff" filter="url(#obF)"/></mask></defs>'+
+      '<circle class="obHalo" r="92" fill="none" stroke="#F4EFE2" stroke-width="1.5" opacity="0"/><circle r="84" class="u"/><g mask="url(#obM)"><circle r="84" fill="url(#obG)"/><g class="cr obCr"><circle cx="-32" cy="-28" r="16"/><circle cx="28" cy="-43" r="8"/><circle cx="43" cy="9" r="13"/><circle cx="-7" cy="32" r="18"/><circle cx="-52" cy="20" r="7"/><circle cx="13" cy="-7" r="5"/></g><circle class="obSun" r="84" fill="url(#obGs)" opacity="0"/></g></svg></div>'; }
+  function bigOrb(box){ if(!box||!d3on()) return null;
+    try{ if(!big.tried){ big.tried=true; big.orb=window.LightlySphere(box.querySelector('.ob-disc')); big.cv=box.querySelector('canvas.orb'); } else if(big.orb&&big.cv) box.appendChild(big.cv); }catch(e){ big.orb=null; }
+    if(big.orb){ big.orb.set(true); if(!big.orb.ok()) return null; } return big.orb; }
+  function drawDisc(box,h){ var svg=box.querySelector('.ob-disc'); if(!svg) return;
+    if(h.orb&&h.orb.ok()){ svg.style.opacity=0; h.orb.draw({p:h.p,wane:false,moon:h.moon,tx:0,ty:0,ox:0,oy:0,scale:1,alpha:1,night:1,glow:(1-h.moon)*h.p*(.35+.65*h.boost)+h.boost*.3,halo:Math.max(h.moon*h.boost,h.pulse*.8)}); return; }
+    svg.style.opacity=1; var q=function(c){ return svg.querySelector('.'+c); };
+    q('obLit').setAttribute('d',h.phase?heroPath(h.p,84):wedge(h.p,84)); q('obSun').style.opacity=1-h.moon; q('obCr').style.opacity=h.moon;
+    var ha=q('obHalo'); ha.setAttribute('r',(92+17*(1-h.pulse)).toFixed(1)); ha.setAttribute('opacity',(h.pulse*.8).toFixed(2)); }
+  function heroSvg(){ return orbHtml('obWel',L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。'),0); }
+  function heroInit(el){ var box=el.querySelector('#obWel'); if(!box) return; var orb=bigOrb(box);
+    var h={p:0,moon:1,boost:0,pulse:0,phase:true,orb:orb}, drag=false, x0=0, pull=0, full=false, last=performance.now();
+    if(reduce){ h.p=.3; drawDisc(box,h); return; }
+    box.style.touchAction='none'; box.style.cursor='grab';
+    box.addEventListener('pointerdown',function(e){ drag=true; x0=e.clientX; try{ box.setPointerCapture(e.pointerId); }catch(x){} box.style.cursor='grabbing'; try{ if(navigator.vibrate) navigator.vibrate(6); }catch(x){} });
+    box.addEventListener('pointermove',function(e){ if(drag) pull=(e.clientX-x0)/box.getBoundingClientRect().width; });
+    function up(){ drag=false; pull=0; box.style.cursor='grab'; } box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up);
+    (function f(t){ if(!box.isConnected) return; var dt=Math.min((t-last)/1000,.05); last=t;
       var target=drag?Math.min(1,Math.max(.04,.3+pull*1.6)):.3+Math.sin(t/1000*.9)*.035;
-      p+=(target-p)*(1-Math.exp(-dt*(drag?18:5))); lit.setAttribute('d',heroPath(p,40));
-      var isFull=p>.93; if(isFull&&!full){ pulse=1; try{ if(navigator.vibrate) navigator.vibrate([14,40,14]); }catch(x){} } full=isFull; pulse=Math.max(0,pulse-dt/1.4);
-      halo.setAttribute('r',(46+14*(1-pulse)).toFixed(1)); halo.setAttribute('opacity',(pulse*.8).toFixed(2)); requestAnimationFrame(f); })(last);
+      h.p+=(target-h.p)*(1-Math.exp(-dt*(drag?18:5)));
+      var isFull=h.p>.93; if(isFull&&!full){ h.pulse=1; try{ if(navigator.vibrate) navigator.vibrate([14,40,14]); }catch(x){} } full=isFull; h.pulse=Math.max(0,h.pulse-dt/1.4);
+      drawDisc(box,h); requestAnimationFrame(f); })(last);
   }
+  /* the header moon: a small 3D ball of its own, filling counter-clockwise from where it was to this step's share */
+  function moonHtml(p){ return '<span class="ob-moon" data-p="'+p.toFixed(3)+'" aria-hidden="true"><svg viewBox="-18 -18 36 36"><circle class="mu" r="14"/><path class="ml" d="'+wedge(obP.p,14)+'"/></svg></span>'; }
+  function headOrb(m){ if(!m||!d3on()) return null;
+    try{ if(hd.host&&hd.host!==m){ var os=hd.host.querySelector('svg'); if(os) os.style.opacity=1; }
+      if(!hd.tried){ hd.tried=true; hd.orb=window.LightlySphere(m.querySelector('svg')); hd.cv=m.querySelector('canvas.orb'); } else if(hd.orb&&hd.cv) m.appendChild(hd.cv); }catch(e){ hd.orb=null; }
+    if(hd.orb){ hd.orb.set(true); if(!hd.orb.ok()) return null; hd.host=m; } return hd.orb; }
+  function headLoop(){ if(hd.loop) return; hd.loop=true;
+    (function f(){ var m=dots.querySelector('.ob-moon'); if(!m||!hd.orb||!hd.orb.ok()||hd.host!==m||!m.isConnected){ hd.loop=false; return; }
+      m.querySelector('svg').style.opacity=0; hd.orb.draw({p:obP.p,wane:false,moon:1,tx:0,ty:0,ox:-100,oy:-100,scale:.167,alpha:1,night:1,glow:0,halo:0}); requestAnimationFrame(f); })(); }
+  function moonRun(){ var m=dots.querySelector('.ob-moon'); if(!m) return; var to=+m.dataset.p, from=obP.p, ml=m.querySelector('.ml');
+    setTimeout(function(){ if(m.isConnected&&headOrb(m)) headLoop(); },hd.tried?0:650);
+    if(reduce||from===to){ obP.p=to; ml.setAttribute('d',wedge(to,14)); return; }
+    if(m.animate) m.animate([{opacity:.4,transform:'scale(.7)'},{opacity:1,transform:'scale(1)'}],{duration:420,easing:'cubic-bezier(.2,1,.3,1)'});
+    var t0=performance.now(); (function f(t){ var k=Math.min((t-t0)/800,1), e=1-Math.pow(1-k,3); if(!ml.isConnected){ obP.p=to; return; } obP.p=from+(to-from)*e; ml.setAttribute('d',wedge(obP.p,14)); if(k<1) requestAnimationFrame(f); })(t0); }
+  /* sunrise and sunset for the chosen city, rolling in as 24-hour times, with the sun's part of the day marked */
+  function skyHtml(){ var sn=(api.sunOf&&api.sunOf(st.city))||{rise:6.2,set:17.8}, r=sn.rise, e=sn.set;
+    return '<div class="ob-times"><div><b class="rn">'+fmtClock(r)+'</b><span>'+L('Moon turns into sun','月亮变成太阳')+'</span></div><div><b class="rn">'+fmtClock(e)+'</b><span>'+L('Sun turns into moon','太阳变成月亮')+'</span></div></div>'+
+      '<div class="ob-day" aria-hidden="true"><div class="trk"><i style="left:'+(100*r/24).toFixed(1)+'%;width:'+Math.max(0,100*(e-r)/24).toFixed(1)+'%"></i></div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div>'; }
+  /* You're set: the moon fills to the plan window, turns into the sun, a soft bloom, the sky goes from night to sunrise. Care mode: no sparks. */
+  function finInit(el){ var box=el.querySelector('#obFin'); if(!box) return; var p=+box.dataset.p, h={p:reduce?p:0,moon:1,boost:0,pulse:0,phase:false,orb:bigOrb(box)}; drawDisc(box,h); if(reduce) return;
+    var FILL=1500, TURN=1200, t0=null, bloomed=false;
+    function f(t){ if(!box.isConnected||flow()[st.step]!==4) return; if(t0===null) t0=t+420; var e0=t-t0;
+      if(e0>=0){ h.p=p*(1-Math.pow(1-Math.min(e0/FILL,1),4));
+        if(e0>FILL){ var v=Math.min((e0-FILL)/TURN,1), e=v*v*(3-2*v); h.moon=1-e; h.boost=Math.max(0,1-v*1.15); if(!bloomed){ bloomed=true; box.classList.add('dawn'); bloom(box); } } }
+      drawDisc(box,h); if(e0<FILL+TURN+80||h.orb) requestAnimationFrame(f); }
+    requestAnimationFrame(f); }
+  function bloom(box){ if(reduce||!box.animate) return; var r=85, cx=118, cy=118, el=document.createElement('div'); el.setAttribute('aria-hidden','true'); el.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:2';
+    var glow=document.createElement('div'); glow.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+r*2+'px;height:'+r*2+'px;margin:'+(-r)+'px 0 0 '+(-r)+'px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,255,255,.45) 40%,rgba(255,255,255,0) 70%);opacity:0'; el.appendChild(glow);
+    box.appendChild(el); glow.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1.4)',offset:.3},{opacity:0,transform:'scale(2.6)'}],{duration:1600,easing:'cubic-bezier(.22,.8,.3,1)',fill:'forwards'});
+    box.animate([{transform:'scale(.86)'},{transform:'scale(.9)',offset:.3},{transform:'scale(.86)'}],{duration:900,easing:'cubic-bezier(.2,1,.3,1)'});
+    var n=risky()?0:20, i; for(i=0;i<n;i++){ var a=(i/n)*Math.PI*2+Math.random()*.25, dist=r*(1.35+Math.random()*1.3), sz=3+Math.random()*4, dot=document.createElement('i');
+      dot.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+sz+'px;height:'+sz+'px;margin:'+(-sz/2)+'px 0 0 '+(-sz/2)+'px;border-radius:50%;background:#FFF7D1;box-shadow:0 0 '+sz*2+'px #FFF7D1;opacity:0'; el.appendChild(dot);
+      dot.animate([{opacity:0,transform:'translate(0,0) scale(.4)'},{opacity:1,offset:.2},{opacity:0,transform:'translate('+(Math.cos(a)*dist).toFixed(0)+'px,'+(Math.sin(a)*dist-r*.2).toFixed(0)+'px) scale(1)'}],{duration:1400+Math.random()*600,delay:40+Math.random()*160,easing:'cubic-bezier(.15,.7,.2,1)',fill:'forwards'}); }
+    setTimeout(function(){ el.remove(); },2400); }
   function ladder(){
     var open=st.exp==='some'?4:1, names=['13:11','16:8','18:6','20:4'];
     var cap=st.exp==='some'?L('All everyday plans are open.','所有日常计划都已开放。'):st.exp==='first'?L('You start at 13:11. A new plan opens after 3 fasts.','从 13:11 开始，完成 3 次后开放下一个计划。'):'';
@@ -2024,15 +2097,16 @@ window.LightlySphere=(function(){
     if(i===6) return '<div class="ob-hero imp-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11.5v5M9.5 14l2.5 2.5 2.5-2.5"/></svg></div><h4 style="text-align:center">'+(st.imp?L('128 fasts added','已添加 128 次断食'):L('Bring your fasts with you','带上你的断食记录'))+'</h4><p class="sub" style="text-align:center">'+(st.imp?L('Sample result: nothing was added twice. In the app this reads your real file on the phone.','示例结果：没有任何重复。在应用里，这会在手机上读取你的真实文件。'):L('Optional. Zero’s data zip, or a CSV or JSON file.','可选。Zero 的数据 zip，或 CSV、JSON 文件。'))+'</p>'+(st.imp?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>':'<button type="button" class="ob-cta" data-imp>'+L('Choose a file (sample)','选择文件（示例）')+'</button><button type="button" class="ob-skip" data-next>'+L('Skip for now','暂时跳过')+'</button>');
     if(i===5) return '<h4>'+L('Make it yours','按你的习惯来')+'</h4><div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField('start',L('Usual start time','通常开始时间'),st.start||'20:30','t')+'</div><div class="ob-opt" style="cursor:default"><span>'+L('Remind me when I reach my goal','达成目标时提醒我')+'</span><span class="ck"></span></div></div>'+obPrev(st.plan||'16',st.start||'20:30')+'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
     if(i===7){ var hereOn=st.loc==='here', cityOn=st.loc==='city', cn=function(k){ return CITIES[k][api.lang()==='zh'?'zh':'en']; };
-      return '<div class="ob-hero">'+disc(0.08,'#E9E3D3')+'</div><h4>'+L('Match the sky to your day','让天空跟着你的一天')+'</h4>'+(cityOn?'<div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField('city',L('Nearest city','最近的城市'),st.city,'sel',Object.keys(CITIES).map(function(k){ return [k,cn(k)]; }))+'</div></div>':hereOn?'<div class="ob-sum"><div><span>'+L('Using your location','正在使用你的位置')+'</span><b>\u2713</b></div></div>':'')+'<p class="ob-note">'+L('Sunrise and sunset set your moon and sun. Your location stays on this phone.','日出日落决定你的月亮和太阳。位置只留在这台手机上。')+'</p>'+
+      return '<h4>'+L('Match the sky to your day','让天空跟着你的一天')+'</h4>'+skyHtml()+(cityOn?'<div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField('city',L('Nearest city','最近的城市'),st.city,'sel',Object.keys(CITIES).map(function(k){ return [k,cn(k)]; }))+'</div></div>':hereOn?'<div class="ob-sum"><div><span>'+L('Using your location','正在使用你的位置')+'</span><b>\u2713</b></div></div>':'')+'<p class="ob-note">'+L('Sunrise and sunset set your moon and sun. Your location stays on this phone.','日出日落决定你的月亮和太阳。位置只留在这台手机上。')+'</p>'+
         (hereOn||cityOn?'<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'+(cityOn?'<button type="button" class="ob-cta quiet" data-loc="here">'+L('Use my location instead','改用我的位置')+'</button>':'')
           :'<button type="button" class="ob-cta" data-loc="here">'+L('Use my location','使用我的位置')+'</button><button type="button" class="ob-cta quiet" data-loc="city">'+L('Choose a city instead','改选城市')+'</button>'); }
     if(i===4){ var rk=risky(), pid=rk?'13':st.plan, usual=st.exp==='some'&&!rk;
-      return '<div class="ob-hero">'+disc((api.plans.filter(function(x){return x.id===pid;})[0]||{fast:13}).fast/24)+'</div><h4>'+L('You\u2019re set','准备好了')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(pid)+'</b></div><div><span>'+L('Sunrise and sunset','日出日落')+'</span><b>'+(st.loc==='here'?L('Your location','当前位置'):CITIES[st.city][api.lang()==='zh'?'zh':'en'])+'</b></div><div><span>'+L('First fast','第一次断食')+'</span><b>'+(usual?L('Tonight, 20:30','今晚 20:30'):L('When you\u2019re ready','准备好时'))+'</b></div></div><p class="ob-note">'+(rk?L('Your plan stays at 13:11, with no long fasts.','你的计划保持在 13:11，不提供长时间断食。'):L('Change anything later in Me.','之后可以在“我的”里修改。'))+'</p><button type="button" class="ob-cta" data-done>'+L('Open Lightly','打开 Lightly')+'</button>'; }
+      return '<div class="ob-hero">'+orbHtml('obFin','',(api.plans.filter(function(x){return x.id===pid;})[0]||{fast:13}).fast/24)+'</div><h4>'+L('You\u2019re set','准备好了')+'</h4><div class="ob-sum"><div><span>'+L('Plan','计划')+'</span><b>'+planName(pid)+'</b></div><div><span>'+L('Sunrise and sunset','日出日落')+'</span><b>'+(st.loc==='here'?L('Your location','当前位置'):CITIES[st.city][api.lang()==='zh'?'zh':'en'])+'</b></div><div><span>'+L('First fast','第一次断食')+'</span><b>'+(usual?L('Tonight, 20:30','今晚 20:30'):L('When you\u2019re ready','准备好时'))+'</b></div></div><p class="ob-note">'+(rk?L('Your plan stays at 13:11, with no long fasts.','你的计划保持在 13:11，不提供长时间断食。'):L('Change anything later in Me.','之后可以在“我的”里修改。'))+'</p><button type="button" class="ob-cta" data-done>'+L('Open Lightly','打开 Lightly')+'</button>'; }
   }
   var cur=null;
   function show(i,dir){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(flow()[i]); stage.appendChild(el); bind(el); if(i===0) heroInit(el);
-    dots.innerHTML=''; for(var k=0;k<flow().length;k++){ var d=document.createElement('i'); if(k===i) d.className='on'; dots.appendChild(d); }
+    if(flow()[i]===4) finInit(el);
+    var nf=flow().length; dots.innerHTML=i>0&&i<nf-1?moonHtml(i/(nf-1)):''; if(i===0) obP.p=0;
     back.hidden=i===0;
     var old=cur; cur=el; st.step=i;
     if(old&&!reduce&&dir){ /* push / pop like a navigation stack: new screen slides in, old one moves a third and dims */
@@ -2042,7 +2116,9 @@ window.LightlySphere=(function(){
         old.style.transform='translateX('+((dir>0?-30:100)*e).toFixed(2)+'%)'; old.style.opacity=dir>0?(1-.4*e).toFixed(3):'1';
         if(k<1) requestAnimationFrame(f); else old.remove(); })(t0);
     } else if(old){ old.remove(); }
-    out(); }
+    out(); moonRun(); setTimeout(function(){ rolls(el); },reduce?0:380); }
+  /* numbers that changed (or just arrived) roll like the recap's */
+  function rolls(el){ [].forEach.call(el.querySelectorAll('.rn'),function(n,j){ var t=n.textContent; if(n.dataset.l===t||/rlc/.test(n.innerHTML)) return; n.dataset.l=t; setTimeout(function(){ oOdo(n); },j*90); }); }
   /* refresh in place: elements stay, only changed attributes and text move, so selection states ease instead of flashing */
   function morph(o,n){
     if(o.nodeType!==n.nodeType||o.nodeName!==n.nodeName){ o.parentNode.replaceChild(n,o); return; }
@@ -2054,7 +2130,7 @@ window.LightlySphere=(function(){
     if(o.childNodes.length!==n.childNodes.length){ o.innerHTML=n.innerHTML; return; }
     for(i=0;i<o.childNodes.length;i++) morph(o.childNodes[i],n.childNodes[i]);
   }
-  function rerender(){ cur.classList.add('nostagger'); var t=document.createElement('div'); t.innerHTML=view(flow()[st.step]); var hadHero=cur.querySelector('.ob-hero'); if(hadHero&&t.querySelector('.ob-hero')&&!t.querySelector('.ob-hero').isEqualNode(hadHero)){ cur.innerHTML=t.innerHTML; bind(cur); if(st.step===0) heroInit(cur); out(); return; } if(cur.childNodes.length!==t.childNodes.length){ cur.innerHTML=t.innerHTML; } else for(var i=0;i<cur.childNodes.length;i++) morph(cur.childNodes[i],t.childNodes[i]); bind(cur); out(); }
+  function rerender(){ cur.classList.add('nostagger'); var t=document.createElement('div'); t.innerHTML=view(flow()[st.step]); var hadHero=cur.querySelector('.ob-hero'); if(hadHero&&t.querySelector('.ob-hero')&&!t.querySelector('.ob-hero').isEqualNode(hadHero)){ cur.innerHTML=t.innerHTML; bind(cur); if(st.step===0) heroInit(cur); out(); return; } if(cur.childNodes.length!==t.childNodes.length){ cur.innerHTML=t.innerHTML; } else for(var i=0;i<cur.childNodes.length;i++) morph(cur.childNodes[i],t.childNodes[i]); bind(cur); out(); rolls(cur); }
   /* buttons are morphed in place between renders, so next / location / done are delegated rather than bound per node */
   stage.addEventListener('click',function(e){ var t=e.target.closest&&e.target.closest('[data-next],[data-loc],[data-done],[data-skip]'); if(!t||!stage.contains(t)) return;
     if(t.hasAttribute('data-done')) api.setPlan(risky()?'13':st.plan);

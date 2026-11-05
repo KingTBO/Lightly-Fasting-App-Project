@@ -269,6 +269,7 @@ a.row{text-decoration:none;color:var(--label)}
 .imp-res .center{text-align:center}
 .imp-res .k{display:block}
 .imp-res .facts div{text-align:center}
+.imp-res .facts{grid-template-columns:repeat(3,1fr);gap:8px}.imp-res .facts div{padding:12px 6px}
 .imp-res .stg{opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .55s var(--spring)}
 .imp-res .stg.on{opacity:1;transform:none}
 .imp-res .btns.lock{pointer-events:none}
@@ -325,6 +326,23 @@ a.row{text-decoration:none;color:var(--label)}
 .ob .grow{flex:1}
 .ob-hero{display:flex;justify-content:center;margin:0 0 20px}
 .ob-hero svg{width:132px;height:132px}
+.ob-orb{position:relative;width:236px;height:236px;border-radius:56px;background:var(--night);transition:background-color 1.4s ease,box-shadow 1.4s ease;flex:none}
+.ob-orb.dawn{background:#6B3A5E;box-shadow:0 12px 64px rgba(255,160,90,.5)}
+.ob-hero .ob-orb svg{position:absolute;left:0;top:0;width:236px;height:236px;overflow:visible}
+.ob-disc .u{fill:rgba(255,255,255,.1);stroke:rgba(255,255,255,.28);stroke-width:1.5}.ob-disc .cr circle{fill:rgba(120,108,84,.16)}
+@media (max-height:720px){.ob-hero{margin:-20px 0 0}.ob-orb{transform:scale(.8)}}
+.ob-moon{display:flex;position:relative;width:36px;height:36px;border-radius:50%;background:var(--night);contain:paint}.ob-moon svg{width:36px;height:36px;display:block}
+.ob-moon .orb{transform:translate(-100px,-100px) scale(.167)}
+.ob-moon .mu{fill:rgba(255,255,255,.1);stroke:rgba(255,255,255,.28);stroke-width:1}.ob-moon .ml{fill:var(--moon);stroke:none}
+.ob-times{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 14px}
+.ob-times>div{background:var(--card);border-radius:14px;padding:12px 16px}
+.ob-times b{display:block;font:600 1.75rem/1.2 var(--font-d);font-variant-numeric:tabular-nums}
+.ob-times>div>span{display:block;font-size:.8125rem;color:var(--label-2);margin-top:2px}
+.ob-day{margin:0 0 18px}
+.ob-day .trk{position:relative;height:24px;border-radius:9px;background:var(--fill);overflow:hidden}
+.ob-day .trk i{position:absolute;top:0;bottom:0;background:var(--tint);box-shadow:inset 0 0 0 .5px var(--bar-edge);transition:left .6s var(--spring),width .6s var(--spring)}
+.ob-day .lbl{display:flex;justify-content:space-between;margin-top:6px;font:500 .75rem var(--font);color:var(--label-2);font-variant-numeric:tabular-nums}
+.ob-prev b .rlo{vertical-align:baseline}
 .wcard{background:var(--card);border-radius:14px;padding:16px;margin-top:12px}
 .wcard small{display:block;font-size:.8125rem;color:var(--label-2)}
 .wcard b{display:block;font:600 1.75rem/1.2 var(--font-d);margin:4px 0 12px;font-variant-numeric:tabular-nums}
