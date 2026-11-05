@@ -1000,8 +1000,8 @@ function importDo(){
   var n=q.add.length, onb=!$('ob').hidden&&ob&&obFlow()[ob.step]==='import', ok=q.add.filter(function(f){ return C.isDone(f); }).length, skipped=(q.dup||0)+(q.overlap||0)+(q.open||0)+(q.bad||0)+(q.future||0),
     o={year:'numeric',month:'short',day:'numeric'}, rng=dateLbl(q.first,o)+' – '+dateLbl(q.last,o), hrs=q.add.reduce(function(a,f){ return a+(C.isDone(f)?(f.end-f.start)/H:0); },0);
   impPlan=null; save(); cache={}; renderMe(); updateToday(); checkUnlocks(); if(onb) setTimeout(function(){ A.obnext(); },260);
-  var html='<div class="imp-res"><div class="badge">'+IMPCK+'</div><div class="center" role="status"><span class="k stg">'+L('Import complete','导入完成')+'</span><span class="big stg">'+n+'</span><span class="of stg">'+L(n===1?'fast added to Days':'fasts added to Days','次断食已添加到“日子”')+'</span>'+
-    '<div class="facts stg"><div><b class="rn">'+numTxt(hrs)+'</b><span>'+L('hours fasted','小时断食')+'</span></div><div><b>'+ok+'</b><span>'+L('reached the goal','达成目标')+'</span></div><div><b>'+skipped+'</b><span>'+L('skipped','已跳过')+'</span></div></div>'+
+  var html='<div class="imp-res"><div class="badge">'+IMPCK+'</div><div class="center" role="status"><span class="k stg">'+(onb?L('Welcome. Your fasts came with you.','欢迎。你的断食记录都带来了。'):L('Import complete','导入完成'))+'</span><span class="big stg">'+(onb?numTxt(hrs):n)+'</span><span class="of stg">'+(onb?L('hours already fasted','小时已断食'):L(n===1?'fast added to Days':'fasts added to Days','次断食已添加到“日子”'))+'</span>'+
+    '<div class="facts stg">'+(onb?'<div><b>'+n+'</b><span>'+L(n===1?'fast':'fasts','次断食')+'</span></div>':'<div><b class="rn">'+numTxt(hrs)+'</b><span>'+L('hours fasted','小时断食')+'</span></div>')+'<div><b>'+ok+'</b><span>'+L('reached the goal','达成目标')+'</span></div><div><b>'+skipped+'</b><span>'+L('skipped','已跳过')+'</span></div></div>'+
     '<p class="note stg">'+L('Covers '+rng+'. Skipped fasts were already in Lightly, overlapped one you have, or had unusable times.','时间范围：'+rng+'。已跳过的记录要么已在轻伴里，要么与已有记录重叠，要么时间无效。')+'</p>'+
     '<div class="btns stg lock"><button class="btn dark" data-act="close">'+L('Done','完成')+'</button>'+(onb?'':'<button class="btn sec" data-act="impdays">'+L('See in Days','在“日子”里查看')+'</button>')+'</div></div></div>';
   /* the preview sheet slides away (the dim stays), then a pause, then the result rises */
@@ -1015,8 +1015,8 @@ function importDo(){
     function T(ms,fn){ setTimeout(function(){ if(live()) fn(); },ms); }
     T(t0,function(){ root.classList.add('go'); });
     setTimeout(function(){ fx('success'); },land); /* the chime and haptic play once as the check lands */
-    T(land,function(){ st[0].classList.add('on'); big.classList.add('on'); if(!reduce){ var c0=performance.now(); big.textContent='0'; (function step(){ var k=Math.min((performance.now()-c0)/600,1); big.textContent=Math.round(n*(1-Math.pow(1-k,3))); if(k<1&&live()) requestAnimationFrame(step); })(); } });
-    T(land+150,function(){ st[2].classList.add('on'); st[3].classList.add('on'); odo(root.querySelector('.facts .rn')); });   /* the imported hours roll up like the recap's total */
+    T(land,function(){ st[0].classList.add('on'); big.classList.add('on'); if(onb){ odo(big); } else if(!reduce){ var c0=performance.now(); big.textContent='0'; (function step(){ var k=Math.min((performance.now()-c0)/600,1); big.textContent=Math.round(n*(1-Math.pow(1-k,3))); if(k<1&&live()) requestAnimationFrame(step); })(); } });
+    T(land+150,function(){ st[2].classList.add('on'); st[3].classList.add('on'); if(!onb) odo(root.querySelector('.facts .rn')); });   /* the imported hours roll up like the recap's total */
     T(land+280,function(){ st[4].classList.add('on'); });
     T(land+400,function(){ st[5].classList.add('on'); st[5].classList.remove('lock'); }); /* the buttons arrive last and only then take taps, so a double tap on Add cannot dismiss the result */
   },reduce?250:380);
@@ -1374,17 +1374,16 @@ function obPrev(pid,startStr){
   if(startStr){ var uh=+startStr.split(':')[0]+ +startStr.split(':')[1]/60, eh=(uh+p.fast)%24; line=L('From '+clockH(uh)+', a '+p.fast+' h fast ends at '+clockH(eh)+'.','从 '+clockH(uh)+' 开始，'+p.fast+' 小时后在 '+clockH(eh)+' 结束。'); }
   else line=L('Start now and you finish at ','现在开始，')+clockMs(Date.now()+p.fast*H)+L('.',' 结束。');
   return '<div class="ob-prev" id="obPrev" data-p="'+fr.toFixed(3)+'"><svg viewBox="-70 -70 140 140" aria-hidden="true"><circle r="60" fill="rgba(142,142,147,.34)" stroke="rgba(142,142,147,.6)" stroke-width="2"/><path id="obPrevLit" d="'+wedgePath(fr,60)+'" fill="#F4EFE2" stroke="#B9AF96" stroke-width="2" stroke-linejoin="round"/></svg>'+
-    '<span class="tx"><b><span class="rn" id="obPrevN">'+p.fast+'</span>'+(p.fast>=24?L(' h of fasting',' 小时断食'):L(' h of fasting, '+(24-p.fast)+' h to eat',' 小时断食，'+(24-p.fast)+' 小时进食'))+'</b><small>'+line+'</small></span></div>'; }
+    '<span class="tx"><b>'+p.fast+(p.fast>=24?L(' h of fasting',' 小时断食'):L(' h of fasting, '+(24-p.fast)+' h to eat',' 小时断食，'+(24-p.fast)+' 小时进食'))+'</b><small>'+line+'</small></span></div>'; }
 function obPrevAnim(from){ var el=$('obPrev'), lit=$('obPrevLit'); if(!el||!lit||from==null) return; var to=+el.dataset.p; if(reduce||from===to) return;
   var t0=performance.now(); (function step(){ var k=Math.min((performance.now()-t0)/420,1), e=1-Math.pow(1-k,3); if(!lit.isConnected) return; lit.setAttribute('d',wedgePath(from+(to-from)*e,60)); if(k<1) requestAnimationFrame(step); })(); }
 function obHtml(i){
   var back=i>0?'<button class="ob-back" data-act="obback"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg>'+L('Back','返回')+'</button>':'<span></span>';
-  var flow=obFlow(), key=flow[i]; var dots=i>0&&i<flow.length-1?obMoonHtml(i/(flow.length-1)):'<span></span>';   /* a small moon that fills as you answer, in place of step dots */
+  var flow=obFlow(), key=flow[i]; var dots=i>0&&i<flow.length-1?'<span class="ob-mslot"></span>':'<span></span>';   /* the one moon parks here as the progress bar */
   var top='<div class="ob-top"><span class="ob-l">'+back+'</span>'+dots+'<span></span></div>', body='', cta='';
   function opt(v,label,sub,on){ return '<button class="plan'+(on?' sel':'')+'" data-act="obopt" data-v="'+v+'"><span class="pn"><b>'+label+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+CHECK+'</button>'; }
   if(key==='welcome'){
-    var tile=obOrbHtml('obWel',L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。'),0);
-    body='<div class="grow"></div><div class="ob-hero">'+tile+'</div><h1 style="text-align:center">'+L('Lightly','轻伴')+'</h1><p class="lede" style="text-align:center">'+L('Fasting that follows the sky.','跟着天空走的断食。')+'</p><div class="seg" style="margin:8px auto 0;width:min(260px,100%)"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div><div class="grow"></div>';
+    body='<div class="grow"></div><div class="ob-bslot" data-p="0" role="img" aria-label="'+L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。')+'"></div><h1 style="text-align:center">'+L('Lightly','轻伴')+'</h1><p class="lede" style="text-align:center">'+L('Fasting that follows the sky.','跟着天空走的断食。')+'</p><div class="seg" style="margin:8px auto 0;width:min(260px,100%)"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Get started','开始')+'</button>';
   }else if(key==='fasted'){
     body='<h1>'+L('Have you fasted before?','你以前断食过吗？')+'</h1><div class="group">'+opt('first',L('This is my first time','这是第一次'),'',ob.fasted==='first')+opt('before',L('I’ve fasted before','我以前断食过'),'',ob.fasted==='before')+'</div>'+obLadder()+'<div class="grow"></div>';
@@ -1396,9 +1395,9 @@ function obHtml(i){
     cta='<button class="btn" data-act="obnext"'+(ob.safe.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='plan'){
     var risky=obRisky(), sug=risky||ob.fasted==='first'?'13':'16', prof={fastedBefore:ob.fasted==='before',safety:risky}; if(!ob.plan||C.planStatus(ob.plan,prof,{fasts:[]}).st!=='ok') ob.plan=sug;
-    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1><div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ var lk=C.planStatus(p.id,prof,{fasts:[]}).st!=='ok';
+    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1>'+obBigHtml(ob.plan)+'<div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ var lk=C.planStatus(p.id,prof,{fasts:[]}).st!=='ok';
         return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"'+(lk?' disabled':'')+'><span class="pn"><span class="pt"><b>'+pName(p)+'</b>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+(lk?'<span class="pill">'+L('Locked','未解锁')+'</span>':'')+'</span>'+(lk?'<small>'+L('After 3 fasts','完成 3 次后')+'</small>':'')+'</span>'+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
-      (risky?'<p class="gf" style="padding:0 4px">'+L('Longer fasts stay off for you.','长时间断食对你保持关闭。')+'</p>':'')+'<div class="grow"></div>'+obPrev(ob.plan);
+      (risky?'<p class="gf" style="padding:0 4px">'+L('Longer fasts stay off for you.','长时间断食对你保持关闭。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='import'){
     body='<div class="grow"></div>'+IMP_GLYPH+'<h1 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h1><p class="lede" style="text-align:center">'+L('Optional. Zero’s data zip, or a CSV or JSON file.','可选。Zero 的数据 zip，或 CSV、JSON 文件。')+'</p><div class="grow"></div><input id="obImpFile" type="file" accept=".zip,.json,.csv,.txt,application/zip,application/x-zip-compressed,application/json,text/csv,text/plain" hidden>';
@@ -1436,12 +1435,13 @@ function obHtml(i){
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='summary'){
     var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.fasted==='before'&&!rk&&ob.start?ob.start:'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
-    body='<div class="ob-hero">'+obOrbHtml('obFin','',C.planById(pid,S.customH).fast/24)+'</div><h1>'+L('You’re set','准备好了')+'</h1>'+
+    body='<div class="ob-bslot" data-p="'+(C.planById(pid,S.customH).fast/24).toFixed(4)+'"></div><h1 style="text-align:center">'+L('You’re set','准备好了')+'</h1>'+
       '<div class="group"><div class="row"><span>'+L('Plan','计划')+'</span><b>'+esc(C.planLabel(C.planById(pid,S.customH)))+'</b></div><div class="row"><span>'+L('Sunrise and sunset','日出日落')+'</span><b>'+esc(placeName())+'</b></div><div class="row"><span>'+L('First fast','第一次断食')+'</span><b>'+(uh!=null?L('Tonight, ','今晚 ')+clockH(uh):L('When you’re ready','准备好时'))+'</b></div></div>'+
       '<p class="gf" style="padding:0 4px">'+(rk?L('Care mode is on. You start at 13:11.','关怀模式已开启，从 13:11 开始。'):L('Change anything later in Me.','之后可以在“我的”里修改。'))+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obdone">'+L('Open Lightly','打开 Lightly')+'</button>';
   }
-  return '<div class="ob-step" data-i="'+i+'">'+top+body+'<div class="ob-cta">'+cta+'</div></div>';
+  var nt=key==='welcome'||key==='summary', sky=nt?obStars()+(key==='summary'?'<i class="dawnbg"></i>':''):'';
+  return '<div class="ob-step'+(nt?' night':'')+(key==='summary'?' fin':'')+'" data-i="'+i+'">'+sky+top+body+'<div class="ob-cta">'+cta+'</div></div>';
 }
 function obRender(dir){
   /* forward pushes from the right; back reverses the same path (spatial symmetry) */
@@ -1450,7 +1450,7 @@ function obRender(dir){
   var old=[].slice.call(box.children).filter(function(c){return c!==n;});
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transition=''; n.classList.remove('back'); n.classList.add('on'); old.forEach(function(o){ o.classList.remove('on'); o.classList.add(dir<0?'out':'past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); }); });
   var f=n.querySelector('h1'); if(f){ f.setAttribute('tabindex','-1'); } [].slice.call(n.children).filter(function(c){return !c.classList.contains('ob-top');}).forEach(function(c,i){ c.style.setProperty('--i',i); });
-  heroStart(); obIn(n);
+  obIn(n);
 }
 /* refresh a step in place: elements stay put, only changed attributes and text move, so selection states animate instead of flashing */
 function morph(o,n){
@@ -1464,118 +1464,129 @@ function morph(o,n){
   if(o.childNodes.length!==n.childNodes.length){ o.innerHTML=n.innerHTML; return; }
   for(i=0;i<o.childNodes.length;i++) morph(o.childNodes[i],n.childNodes[i]);
 }
-function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); heroStart(true); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement; morph(c,n); heroStart(true); }
-function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),dinner:0,soda:0,boost:[],skip:false,bodyDone:false}; $('ob').innerHTML=''; obMoon.p=0; obRender(); }
+function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement; morph(c,n); }
+function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),dinner:0,soda:0,boost:[],skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
   var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.fasted==='before'&&!risky&&ob.start) S.prefs.usualStart=ob.start; if(!risky&&ob.bodyDone&&!ob.skip){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,dinner:ob.dinner,soda:ob.soda,at:Date.now()}; } else S.body=null;
   S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
-  save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today');
+  save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today'); obFly();
 }
 
-/* ---------- the onboarding moon story: one moon carries the whole setup, the same one as the recap report ---------- */
-/* welcome: a big moon (the real 3D ball when the 3D switch is on, the flat drawing otherwise) that waxes in, breathes and follows your finger.
-   steps: a small moon in the header fills counter-clockwise as you answer. You're set: the moon fills to your plan window and turns into the sun. */
-var obMoon={p:0}, obO={orb:null,cv:null,tried:false}, obH=null;
-function obMoonHtml(p){ return '<span class="ob-moon" data-keep="1" data-p="'+p.toFixed(3)+'" aria-hidden="true"><svg viewBox="-18 -18 36 36"><circle class="mu" r="14"/><path class="ml" d="'+wedgePath(obMoon.p,14)+'"/></svg></span>'; }
-function obOrbHtml(id,label,p){
-  return '<div class="ob-orb" id="'+id+'" data-keep="1" data-p="'+p.toFixed(4)+'"'+(label?' role="img" aria-label="'+esc(label)+'"':' aria-hidden="true"')+'>'+
-    '<svg class="ob-sky tw" viewBox="-118 -118 236 236" aria-hidden="true"><g fill="#fff"><circle cx="-92" cy="-80" r="1.8" opacity=".7"/><circle cx="-52" cy="-102" r="1.3" opacity=".5"/><circle cx="84" cy="-88" r="2" opacity=".7"/><circle cx="100" cy="-34" r="1.3" opacity=".5"/><circle cx="-100" cy="50" r="1.3" opacity=".5"/><circle cx="86" cy="90" r="1.6" opacity=".6"/><circle cx="-70" cy="96" r="1.2" opacity=".45"/><circle cx="20" cy="-108" r="1.2" opacity=".5"/></g></svg>'+
-    '<svg class="ob-disc" viewBox="-118 -118 236 236" aria-hidden="true"><defs><radialGradient id="obG" cx=".38" cy=".34" r=".78"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient><radialGradient id="obGs" cx=".4" cy=".36" r=".78"><stop offset="0" stop-color="#FFF6C2"/><stop offset=".5" stop-color="#FFD21F"/><stop offset="1" stop-color="#F5A800"/></radialGradient><filter id="obF" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.4"/></filter><mask id="obM" maskUnits="userSpaceOnUse" x="-120" y="-120" width="240" height="240"><path id="obLit" fill="#fff" filter="url(#obF)"/></mask></defs>'+
-    '<circle id="obHalo" r="92" fill="none" stroke="#F4EFE2" stroke-width="1.5" opacity="0"/><circle r="84" class="u"/><g mask="url(#obM)"><circle r="84" fill="url(#obG)"/><g class="cr" id="obCr"><circle cx="-32" cy="-28" r="16"/><circle cx="28" cy="-43" r="8"/><circle cx="43" cy="9" r="13"/><circle cx="-7" cy="32" r="18"/><circle cx="-52" cy="20" r="7"/><circle cx="13" cy="-7" r="5"/></g><circle r="84" fill="url(#obGs)" id="obSun" opacity="0"/></g></svg></div>';
+/* ---------- the onboarding moon story: ONE moon carries the whole setup ----------
+   Welcome: a big moon on a night sky (the real 3D ball when the 3D switch is on) that waxes in, breathes and follows your finger.
+   Get started: it shrinks up into the header and stays there as the progress bar, gaining a share with every step.
+   You're set: it grows back, empties, fills counter-clockwise to your plan window, turns into the sun with a soft bloom while the sky goes from night to dawn.
+   Open Lightly: the sun flies into the disc on Today. */
+var OL={el:null,inn:null,orb:null,tried:false,loop:false,shown:false,mode:'',p:0,moon:1,boost:0,pulse:0,full:false,drag:false,x0:0,pull:0,tw:null,fin:null,last:0};
+function obStars(){ return '<svg class="ob-stars" viewBox="0 0 100 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="tw" fill="#fff"><circle cx="10" cy="14" r=".5" opacity=".7"/><circle cx="26" cy="38" r=".35" opacity=".5"/><circle cx="84" cy="22" r=".55" opacity=".7"/><circle cx="92" cy="58" r=".35" opacity=".5"/><circle cx="14" cy="96" r=".4" opacity=".5"/><circle cx="70" cy="76" r=".4" opacity=".55"/><circle cx="88" cy="132" r=".5" opacity=".6"/><circle cx="8" cy="150" r=".35" opacity=".5"/><circle cx="40" cy="170" r=".4" opacity=".5"/><circle cx="62" cy="12" r=".35" opacity=".5"/><circle cx="48" cy="186" r=".5" opacity=".6"/><circle cx="76" cy="168" r=".35" opacity=".45"/></g></svg>'; }
+function obLayer(){
+  if(OL.el) return OL.el;
+  var el=document.createElement('div'); el.className='ob-moonlayer'; el.id='obLayer'; el.setAttribute('aria-hidden','true');
+  el.innerHTML='<div class="in"><i class="bg"></i><svg class="ob-disc" viewBox="-118 -118 236 236"><defs><radialGradient id="obG" cx=".38" cy=".34" r=".78"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient><radialGradient id="obGs" cx=".4" cy=".36" r=".78"><stop offset="0" stop-color="#FFF6C2"/><stop offset=".5" stop-color="#FFD21F"/><stop offset="1" stop-color="#F5A800"/></radialGradient><filter id="obF" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.4"/></filter><mask id="obM" maskUnits="userSpaceOnUse" x="-120" y="-120" width="240" height="240"><path class="obLit" fill="#fff" filter="url(#obF)"/></mask></defs>'+
+    '<circle class="obHalo" r="92" fill="none" stroke="#F4EFE2" stroke-width="1.5" opacity="0"/><circle r="84" class="u"/><g mask="url(#obM)"><circle r="84" fill="url(#obG)"/><g class="cr obCr"><circle cx="-32" cy="-28" r="16"/><circle cx="28" cy="-43" r="8"/><circle cx="43" cy="9" r="13"/><circle cx="-7" cy="32" r="18"/><circle cx="-52" cy="20" r="7"/><circle cx="13" cy="-7" r="5"/></g><circle class="obSun" r="84" fill="url(#obGs)" opacity="0"/></g></svg></div>';
+  $('ob').parentNode.insertBefore(el,$('ob').nextSibling); OL.el=el; OL.inn=el.firstChild;
+  el.addEventListener('pointerdown',function(e){ if(OL.mode!=='wel') return; OL.drag=true; OL.x0=e.clientX; try{ el.setPointerCapture(e.pointerId); }catch(x){} el.style.cursor='grabbing'; fx('light'); });
+  el.addEventListener('pointermove',function(e){ if(OL.drag&&!reduce) OL.pull=(e.clientX-OL.x0)/(el.getBoundingClientRect().width||1); });
+  var up=function(){ OL.drag=false; OL.pull=0; el.style.cursor=''; }; el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+  return el;
 }
-function hq(id){ var st=$('ob').lastElementChild; return st&&st.querySelector('#'+id); }
-/* one 3D ball for the whole setup: its canvas moves into whichever big moon is on screen */
-function obOrbGet(box){
-  if(!box||!S.prefs.d3||!window.LightlySphere) return null;
-  try{ if(!obO.tried){ obO.tried=true; obO.orb=window.LightlySphere(box.querySelector('.ob-disc')); obO.cv=box.querySelector('canvas.orb'); }
-    else if(obO.orb&&obO.cv) box.appendChild(obO.cv); }catch(e){ obO.orb=null; }
-  if(obO.orb){ obO.orb.set(true); if(!obO.orb.ok()) return null; } return obO.orb;
+/* the real 3D ball is made once, after the first paint, and lives inside the moon layer */
+function obOrbInit(){ if(OL.tried||!S.prefs.d3||!window.LightlySphere) return; OL.tried=true;
+  try{ OL.orb=window.LightlySphere(OL.inn.querySelector('.ob-disc')); if(OL.orb) OL.orb.set(true); }catch(e){ OL.orb=null; } }
+function obPaint(){
+  var svg=OL.inn.querySelector('.ob-disc'), orb=OL.orb;
+  if(orb&&orb.ok()&&S.prefs.d3){ svg.style.opacity=0; orb.draw({p:OL.p,wane:false,moon:OL.moon,tx:0,ty:0,ox:0,oy:0,scale:1,alpha:1,night:1,glow:(1-OL.moon)*OL.p*(.35+.65*OL.boost)+OL.boost*.3,halo:Math.max(OL.moon*OL.boost,OL.pulse*.8)}); return; }
+  if(orb) orb.set(false);
+  svg.style.opacity=1; var q=function(c){ return svg.querySelector('.'+c); };
+  q('obLit').setAttribute('d',wedgePath(OL.p,84,false)); q('obSun').style.opacity=1-OL.moon; q('obCr').style.opacity=OL.moon;
+  var ha=q('obHalo'); ha.setAttribute('r',(92+17*(1-OL.pulse)).toFixed(1)); ha.setAttribute('opacity',(OL.pulse*.8).toFixed(2));
 }
-function obDraw(box,h){
-  var svg=box.querySelector('.ob-disc'); if(!svg) return;
-  if(h.orb&&h.orb.ok()){ svg.style.opacity=0; h.orb.draw({p:h.p,wane:false,moon:h.moon,tx:0,ty:0,ox:0,oy:0,scale:1,alpha:1,night:1,glow:(1-h.moon)*h.p*(.35+.65*h.boost)+h.boost*.3,halo:Math.max(h.moon*h.boost,h.pulse*.8)}); return; }
-  svg.style.opacity=1; var q=function(id){ return svg.querySelector('#'+id); };
-  q('obLit').setAttribute('d',h.phase?phasePath(h.p,84):wedgePath(h.p,84,false)); q('obSun').style.opacity=1-h.moon; q('obCr').style.opacity=h.moon;
-  var ha=q('obHalo'); ha.setAttribute('r',(92+17*(1-h.pulse)).toFixed(1)); ha.setAttribute('opacity',(h.pulse*.8).toFixed(2));
+function obLoop(t){
+  if($('ob').hidden&&!OL.flying){ OL.loop=false; return; }
+  var dt=Math.min((t-OL.last)/1000,.05); OL.last=t;
+  if(OL.mode==='wel'){   /* waxes in, breathes, follows a drag, pulses when full */
+    var target=OL.drag?Math.min(1,Math.max(.04,.3+OL.pull*1.6)):.3+Math.sin(t/1000*.9)*.035;
+    OL.p+=(target-OL.p)*(1-Math.exp(-dt*(OL.drag?18:5)));
+    var full=OL.p>.93; if(full&&!OL.full){ OL.pulse=1; fx('success'); } OL.full=full; }
+  OL.pulse=Math.max(0,OL.pulse-dt/1.4);
+  if(OL.tw){ var k=Math.min((t-OL.tw.t0)/OL.tw.ms,1), e=1-Math.pow(1-k,3); OL.p=OL.tw.from+(OL.tw.to-OL.tw.from)*e; if(k>=1) OL.tw=null; }
+  if(OL.fin) obFinStep(t);
+  obPaint(); requestAnimationFrame(obLoop);
 }
-/* the header moon: fills counter-clockwise from where it was to this step's share */
-/* the header moon is the real 3D ball too when the 3D switch is on: its own small ball, redrawn every frame while a step shows it */
-var obS={orb:null,cv:null,tried:false,host:null,loop:false};
-function obHeadGet(m){
-  if(!m||!S.prefs.d3||!window.LightlySphere) return null;
-  try{ if(obS.host&&obS.host!==m){ var os=obS.host.querySelector('svg'); if(os) os.style.opacity=1; }
-    if(!obS.tried){ obS.tried=true; obS.orb=window.LightlySphere(m.querySelector('svg')); obS.cv=m.querySelector('canvas.orb'); }
-    else if(obS.orb&&obS.cv) m.appendChild(obS.cv); }catch(e){ obS.orb=null; }
-  if(obS.orb){ obS.orb.set(true); if(!obS.orb.ok()) return null; obS.host=m; } return obS.orb;
+function obTo(p){ if(reduce){ OL.p=p; OL.tw=null; return; } OL.tw={from:OL.p,to:p,t0:performance.now(),ms:800}; }
+/* where a slot sits inside its step, ignoring any slide that is still running */
+function obSlot(st,cls){ var e=st.querySelector(cls); if(!e) return null; var x=0,y=0,n=e; while(n&&n!==st){ x+=n.offsetLeft; y+=n.offsetTop; n=n.offsetParent; } return {x:x,y:y-st.scrollTop,w:e.offsetWidth,p:+e.dataset.p||0}; }
+/* the moon goes to wherever this step keeps it: big on the welcome and You're set, small in the header on the steps between */
+function obMove(st){
+  var key=obFlow()[ob.step], kind=key==='welcome'?'wel':key==='summary'?'fin':'head', el=obLayer(), slot=obSlot(st,kind==='head'?'.ob-mslot':'.ob-bslot'); if(!slot) return;
+  el.hidden=false; el.classList.toggle('head',kind==='head'); el.classList.toggle('touch',kind==='wel');
+  var first=!OL.shown; OL.shown=true; if(first||reduce) el.style.transition='none';
+  el.style.transform='translate('+slot.x+'px,'+slot.y+'px) scale('+(slot.w/236).toFixed(4)+')';
+  if(first||reduce){ void el.offsetWidth; el.style.transition=''; }
+  var prev=OL.mode; OL.mode=kind; OL.fin=null;
+  if(kind!=='fin'){ OL.moon=1; OL.boost=0; }
+  if(kind==='head'){ var n=obFlow().length; obTo(ob.step/(n-1)); }
+  else if(kind==='fin') obFin(st,slot.p);
+  if(!OL.loop){ OL.loop=true; OL.last=performance.now(); requestAnimationFrame(obLoop); }
+  requestAnimationFrame(function(){ requestAnimationFrame(obOrbInit); });
 }
-function obHeadLoop(){
-  if(obS.loop) return; obS.loop=true;
-  (function f(){ var st=$('ob').lastElementChild, m=st&&st.querySelector('.ob-moon'); if(!m||$('ob').hidden||!obS.orb||!obS.orb.ok()||obS.host!==m){ obS.loop=false; return; }
-    m.querySelector('svg').style.opacity=0; obS.orb.draw({p:obMoon.p,wane:false,moon:1,tx:0,ty:0,ox:-100,oy:-100,scale:.167,alpha:1,night:1,glow:0,halo:0}); requestAnimationFrame(f); })();
+/* You're set */
+function obFin(st,plan){
+  if(reduce){ OL.p=plan; OL.moon=1; OL.tw=null; return; }
+  OL.tw=null; OL.fin={t0:performance.now(),p0:OL.p,plan:plan,st:st,turned:false};
 }
-function obMoonRun(st){
-  var m=st.querySelector('.ob-moon'); if(!m) return; var to=+m.dataset.p, from=obMoon.p, ml=m.querySelector('.ml');
-  setTimeout(function(){ if(m.isConnected&&obHeadGet(m)) obHeadLoop(); },obS.tried?0:650);   /* the first small ball is made after the slide, so the push stays smooth */
-  if(reduce||!ml.isConnected||from===to){ obMoon.p=to; ml.setAttribute('d',wedgePath(to,14)); return; }
-  if(m.animate) m.animate([{opacity:.4,transform:'scale(.7)'},{opacity:1,transform:'scale(1)'}],{duration:420,easing:'cubic-bezier(.2,1,.3,1)'});
-  var t0=performance.now(); (function f(t){ var k=Math.min((t-t0)/800,1), e=1-Math.pow(1-k,3); if(!ml.isConnected){ obMoon.p=to; return; } obMoon.p=from+(to-from)*e; ml.setAttribute('d',wedgePath(obMoon.p,14)); if(k<1) requestAnimationFrame(f); })(t0);
+function obFinStep(t){
+  var f=OL.fin; if(!f.st.isConnected||obFlow()[ob.step]!=='summary'){ OL.fin=null; return; }
+  var el=t-f.t0, EMPTY=500, GO=700, FILL=1300, TURN=1100; if(el<0) return;
+  if(el<GO){ var u=Math.min(el/EMPTY,1); OL.p=f.p0*(1-u*u*(3-2*u)); return; }
+  var e2=el-GO; OL.p=f.plan*(1-Math.pow(1-Math.min(e2/FILL,1),4));
+  if(e2>FILL){ var v=Math.min((e2-FILL)/TURN,1), e=v*v*(3-2*v); OL.moon=1-e; OL.boost=Math.max(0,1-v*1.15);
+    if(!f.turned){ f.turned=true; f.st.classList.add('dawn'); obBloom(); }
+    if(v>=1){ OL.moon=0; OL.boost=0; OL.fin=null; } }
 }
+function obBloom(){
+  var el=OL.el; if(reduce||!el.animate) return; var calm=obRisky(), r=85, cx=118, cy=118, box=document.createElement('div');
+  box.setAttribute('aria-hidden','true'); box.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:2';
+  var glow=document.createElement('div'); glow.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+r*2+'px;height:'+r*2+'px;margin:'+(-r)+'px 0 0 '+(-r)+'px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,255,255,.45) 40%,rgba(255,255,255,0) 70%);opacity:0'; box.appendChild(glow);
+  el.appendChild(box); glow.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1.4)',offset:.3},{opacity:0,transform:'scale(2.6)'}],{duration:1600,easing:'cubic-bezier(.22,.8,.3,1)',fill:'forwards'});
+  OL.inn.animate([{transform:'scale(1)'},{transform:'scale(1.05)',offset:.3},{transform:'scale(1)'}],{duration:900,easing:'cubic-bezier(.2,1,.3,1)'});
+  var cols=['#FFFFFF','#FFF7D1','#F4EFE2','#FFFFFF'], n=calm?0:20;   /* Care mode: only the soft glow, no sparks */
+  for(var i=0;i<n;i++){ var a=(i/n)*Math.PI*2+Math.random()*.25, dist=r*(1.35+Math.random()*1.3), s=3+Math.random()*4, dot=document.createElement('i');
+    dot.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+s+'px;height:'+s+'px;margin:'+(-s/2)+'px 0 0 '+(-s/2)+'px;border-radius:50%;background:'+cols[i%cols.length]+';box-shadow:0 0 '+s*2+'px '+cols[i%cols.length]+';opacity:0'; box.appendChild(dot);
+    dot.animate([{opacity:0,transform:'translate(0,0) scale(.4)'},{opacity:1,offset:.2},{opacity:0,transform:'translate('+(Math.cos(a)*dist).toFixed(0)+'px,'+(Math.sin(a)*dist-r*.2).toFixed(0)+'px) scale(1)'}],{duration:1400+Math.random()*600,delay:40+Math.random()*160,easing:'cubic-bezier(.15,.7,.2,1)',fill:'forwards'}); }
+  setTimeout(function(){ box.remove(); },2400);
+}
+/* Open Lightly: the sun flies into the disc on Today, then the layer fades and Today's own disc takes over */
+function obFly(){
+  var el=OL.el, d=$('disc'); if(!el||!OL.shown) return;
+  if(reduce||!d||el.hidden){ obLayerOff(); return; }
+  var pr=ph.getBoundingClientRect(), r=d.getBoundingClientRect(); if(r.width<10){ obLayerOff(); return; }
+  OL.flying=true; el.classList.remove('head','touch'); el.style.transition='transform .85s cubic-bezier(.32,.72,0,1),opacity .35s ease .6s';
+  el.style.transform='translate('+(r.left-pr.left).toFixed(1)+'px,'+(r.top-pr.top).toFixed(1)+'px) scale('+(r.width/236).toFixed(4)+')'; el.style.opacity='0';
+  setTimeout(obLayerOff,1000);
+}
+function obLayerOff(){ OL.flying=false; if(OL.el){ OL.el.hidden=true; OL.el.style.opacity=''; OL.el.style.transition=''; } OL.shown=false; OL.mode=''; OL.fin=null; OL.tw=null; OL.p=0; OL.moon=1; OL.boost=0; }
 /* sunrise and sunset for the chosen place, rolling in as 24-hour times, with the sun's part of the day marked */
 function obSkyHtml(){
   refreshSun(Date.now()); var r=sun.rise, e=sun.set, a=100*r/24, w=Math.max(0,100*(e-r)/24);
   return '<div class="ob-times"><div><b class="rn" data-roll="1">'+clockH(r)+'</b><span>'+L('Moon turns into sun','月亮变成太阳')+'</span></div><div><b class="rn" data-roll="1">'+clockH(e)+'</b><span>'+L('Sun turns into moon','太阳变成月亮')+'</span></div></div>'+
     '<div class="ob-day" aria-hidden="true"><div class="trk"><i style="left:'+a.toFixed(1)+'%;width:'+w.toFixed(1)+'%"></i></div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div>';
 }
+/* plan: one big number, the fasting hours, rolls when you switch plan; a 24-hour strip shows the window */
+function obBigHtml(pid){
+  var p=C.planById(pid||'13',S.customH), st=ob.start||'20:00', uh=+st.split(':')[0]+ +st.split(':')[1]/60, eh=(uh+p.fast)%24, wrap=uh+p.fast>24;
+  var b1='left:'+(100*uh/24).toFixed(2)+'%;width:'+(100*(wrap?24-uh:p.fast)/24).toFixed(2)+'%', b2='left:0;width:'+(wrap?(100*eh/24).toFixed(2):0)+'%';
+  return '<div class="ob-big"><span class="rn" id="obBigN">'+p.fast+'</span><small>'+L('hours fasting','小时断食')+'</small></div>'+
+    '<div class="ob-day" aria-hidden="true"><div class="trk"><i style="'+b1+'"></i><i style="'+b2+'"></i></div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div>'+
+    '<p class="ob-win">'+L('Fast '+clockH(uh)+' to '+clockH(eh)+', eat '+(24-p.fast)+' hours.','断食 '+clockH(uh)+' 到 '+clockH(eh)+'，进食 '+(24-p.fast)+' 小时。')+'</p>';
+}
 function obRoll(delay){ setTimeout(function(){ var st=$('ob').lastElementChild; if(st) [].forEach.call(st.querySelectorAll('.rn[data-roll]'),function(n,j){ setTimeout(function(){ odo(n); },j*90); }); },delay||0); }
 /* everything that moves when a step arrives */
 function obIn(st){
-  var key=obFlow()[ob.step]; obMoonRun(st);
-  if(key==='plan'){ setTimeout(function(){ odo(st.querySelector('#obPrevN')); },380); }
+  var key=obFlow()[ob.step]; obMove(st);
+  if(key==='plan') setTimeout(function(){ odo(st.querySelector('#obBigN')); },380);
   else if(key==='set') obRoll(420);
-  else if(key==='summary') finStart(st.querySelector('#obFin'));
-}
-var hero={p:0,t:.3,drag:false,x0:0,pull:0,loop:false,full:false,last:0,pulse:0,orb:null};
-function heroStart(keep){
-  var box=hq('obWel'); if(!box) return;
-  if(!box.dataset.on){ box.dataset.on='1'; box.style.touchAction='none'; box.style.cursor='grab';
-    box.addEventListener('pointerdown',function(e){ hero.drag=true; hero.x0=e.clientX; try{ box.setPointerCapture(e.pointerId); }catch(x){} box.style.cursor='grabbing'; fx('light'); });
-    box.addEventListener('pointermove',function(e){ if(hero.drag&&!reduce) hero.pull=(e.clientX-hero.x0)/box.getBoundingClientRect().width; });
-    var up=function(){ hero.drag=false; hero.pull=0; box.style.cursor='grab'; }; box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up); }
-  hero.orb=obOrbGet(box);
-  if(reduce){ hero.p=.3; obDraw(box,{p:.3,moon:1,boost:0,pulse:0,phase:true,orb:hero.orb}); return; }
-  if(!keep) hero.p=0; hero.last=performance.now(); if(!hero.loop){ hero.loop=true; requestAnimationFrame(heroFrame); }
-}
-function heroFrame(t){
-  var box=hq('obWel'); if(!box||$('ob').hidden||ob.step!==0){ hero.loop=false; return; }
-  var dt=Math.min((t-hero.last)/1000,.05); hero.last=t;
-  var breathe=hero.drag?0:Math.sin(t/1000*.9)*.035, target=hero.drag?Math.min(1,Math.max(.04,.3+hero.pull*1.6)):.3+breathe;
-  hero.p+=(target-hero.p)*(1-Math.exp(-dt*(hero.drag?18:5)));            /* critically damped: no overshoot */
-  var full=hero.p>.93; if(full&&!hero.full){ hero.pulse=1; fx('success'); } hero.full=full; hero.pulse=Math.max(0,hero.pulse-dt/1.4);
-  obDraw(box,{p:hero.p,moon:1,boost:0,pulse:hero.pulse,phase:true,orb:hero.orb});
-  requestAnimationFrame(heroFrame);
-}
-/* You're set: the moon fills to your plan window, turns into the sun, a soft bloom, the sky warms. Under Care mode there are no sparks, only the turn. */
-function finStart(box){
-  if(!box) return; var p=+box.dataset.p, orb=obOrbGet(box), h={p:reduce?p:0,moon:1,boost:0,pulse:0,phase:false,orb:orb}; obDraw(box,h); if(reduce) return;
-  var FILL=1500, TURN=1200, t0=null, bloomed=false;
-  function f(t){ if(!box.isConnected||$('ob').hidden||obFlow()[ob.step]!=='summary') return; if(t0===null) t0=t+420; var el=t-t0;
-    if(el>=0){ h.p=p*(1-Math.pow(1-Math.min(el/FILL,1),4));
-      if(el>FILL){ var v=Math.min((el-FILL)/TURN,1), e=v*v*(3-2*v); h.moon=1-e; h.boost=Math.max(0,1-v*1.15); if(!bloomed){ bloomed=true; box.classList.add('dawn'); finBloom(box); } } }
-    obDraw(box,h); if(el<FILL+TURN+80||h.orb) requestAnimationFrame(f); }
-  requestAnimationFrame(f);
-}
-function finBloom(box){
-  if(reduce||!box.animate) return; var calm=obRisky(), r=85, cx=118, cy=118, el=document.createElement('div');
-  el.setAttribute('aria-hidden','true'); el.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:2';
-  var glow=document.createElement('div'); glow.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+r*2+'px;height:'+r*2+'px;margin:'+(-r)+'px 0 0 '+(-r)+'px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,255,255,.45) 40%,rgba(255,255,255,0) 70%);opacity:0'; el.appendChild(glow);
-  box.appendChild(el); glow.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1.4)',offset:.3},{opacity:0,transform:'scale(2.6)'}],{duration:1600,easing:'cubic-bezier(.22,.8,.3,1)',fill:'forwards'});
-  box.animate([{transform:'scale(1)'},{transform:'scale(1.04)',offset:.3},{transform:'scale(1)'}],{duration:900,easing:'cubic-bezier(.2,1,.3,1)'});
-  var cols=['#FFFFFF','#FFF7D1','#F4EFE2','#FFFFFF'], n=calm?0:20;
-  for(var i=0;i<n;i++){ var a=(i/n)*Math.PI*2+Math.random()*.25, dist=r*(1.35+Math.random()*1.3), s=3+Math.random()*4, dot=document.createElement('i');
-    dot.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+s+'px;height:'+s+'px;margin:'+(-s/2)+'px 0 0 '+(-s/2)+'px;border-radius:50%;background:'+cols[i%cols.length]+';box-shadow:0 0 '+s*2+'px '+cols[i%cols.length]+';opacity:0'; el.appendChild(dot);
-    dot.animate([{opacity:0,transform:'translate(0,0) scale(.4)'},{opacity:1,offset:.2},{opacity:0,transform:'translate('+(Math.cos(a)*dist).toFixed(0)+'px,'+(Math.sin(a)*dist-r*.2).toFixed(0)+'px) scale(1)'}],{duration:1400+Math.random()*600,delay:40+Math.random()*160,easing:'cubic-bezier(.15,.7,.2,1)',fill:'forwards'}); }
-  setTimeout(function(){ el.remove(); },2400);
 }
 /* ---------- click routing ---------- */
 /* the erase warning names what the person would lose, with their own numbers, so it lands */
@@ -1734,7 +1745,7 @@ var A={
   obboost:function(b){ var k=b.dataset.k, i=ob.boost.indexOf(k); if(i>=0) ob.boost.splice(i,1); else ob.boost.push(k); obRefresh(); },
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
   obsafe:function(b){ var v=b.dataset.v, i=ob.safe.indexOf(v); if(v==='none') ob.safe=i>=0?[]:['none']; else{ ob.safe=ob.safe.filter(function(x){return x!=='none';}); if(i>=0) ob.safe.splice(ob.safe.indexOf(v),1); else ob.safe.push(v); } obRefresh(); },
-  obplan:function(b){ if(b.disabled) return; var pv=$('obPrev'), from=pv?+pv.dataset.p:null; ob.plan=b.dataset.id; obRefresh(); obPrevAnim(from); if(from!=null) odo($('obPrevN')); },
+  obplan:function(b){ if(b.disabled) return; ob.plan=b.dataset.id; obRefresh(); odo($('obBigN')); },
   obgeo:function(){ geo(function(ok){ if(!ok) ob.city=true; obRefresh(); obRoll(); }); },
   obcityshow:function(){ ob.city=true; obRefresh(); },
   obdone:obFinish

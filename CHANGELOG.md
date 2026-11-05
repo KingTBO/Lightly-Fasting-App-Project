@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.76.0
+- **feature** Setup now has the full moon story. The welcome is a night sky with the big moon (3D when the 3D switch is on) that you can drag. After Get started the same moon travels up into the header and stays there as the progress bar, gaining a share with every step. On the plan step the fasting hours are one big number that rolls when you pick another plan, with a 24-hour strip showing the fasting window. On "You're set" the moon grows back, empties, fills counter-clockwise to your plan window and turns into the sun with a soft bloom while the sky goes from night to dawn (no sparks under Care mode). Open Lightly flies the sun into the disc on Today. Imported hours roll up in the import result. The concept page mirrors all of it.
+
 ## 0.75.0
 - **feature** Setup now tells the moon story. The step dots are replaced by a small 3D moon in the header that fills counter-clockwise as you answer (a flat moon when the 3D switch is off). The welcome moon is the same big moon as in the recap, plan hours roll to the new number when you pick a plan, your sunrise and sunset roll in as 24-hour times, and imported hours roll up in the import result. On "You're set" the moon fills to your plan window and turns into the sun with a soft bloom, as the sky goes from night to sunrise (no sparks under Care mode, still under Reduce Motion). The concept page mirrors it.
 
