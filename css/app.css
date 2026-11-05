@@ -848,3 +848,5 @@ html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;
 /* a long setup step scrolls instead of squeezing its cards (the plan step with its wheels on a short phone) */
 .ob-step>:not(.grow){flex-shrink:0}
 .ob-step .obnote+.group{margin-top:14px}
+/* the tile grid and the answer cards keep the usual gap before the next card (start time, custom wheel) */
+.ob-step .group.tiles+.group,.ob-step .group.cards+.group{margin-top:var(--group-gap)}
