@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.78.0
+- **feature** In setup you can now swipe right to go back one step. The screen follows your finger and the one before slides in behind it, like going back in an iPhone app. Swiping forward does nothing: you move on only with the buttons. A swipe that starts on a wheel, a field or the welcome moon is left to that control, a short slow drag springs back, and under Reduce Motion nothing follows your finger but a clear swipe still goes back. Your earlier answers stay chosen and the moon in the header moves back with the step. The concept page's phone does the same.
+
 ## 0.77.0
 - **design** Setup screens now use the design page's parts, not only its moon. The answer to "Have you fasted before?" is a separate card with a yellow check circle (the plan ladder under it is gone), the safety answers are separate cards with square yellow boxes, and the plan step shows the big hours number over a 2×2 grid of plans, with the locked ones dimmed and marked "After 3 fasts". The sunrise and sunset cards have bigger numbers and the second button is filled. The welcome puts the language as a quiet link at the top right and the title lower. The header moon is bigger, a soft grey disc when the 3D switch is off. The "You're set" summary puts each value on the right. The concept page matches.
 

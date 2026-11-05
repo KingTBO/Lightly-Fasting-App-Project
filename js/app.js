@@ -1438,12 +1438,13 @@ function obHtml(i){
   var nt=key==='welcome'||key==='summary', sky=nt?obStars()+(key==='summary'?'<i class="dawnbg"></i>':''):'';
   return '<div class="ob-step'+(nt?' night':'')+(key==='summary'?' fin':'')+'" data-i="'+i+'">'+sky+top+body+'<div class="ob-cta">'+cta+'</div></div>';
 }
-function obRender(dir){
-  /* forward pushes from the right; back reverses the same path (spatial symmetry) */
+function obRender(dir,pre){
+  /* forward pushes from the right; back reverses the same path (spatial symmetry). `pre` is the step a swipe already pulled in from behind (see obSwipe) */
   var box=$('ob'); box.hidden=false; dir=dir||1;
-  var html=obHtml(ob.step), tmp=document.createElement('div'); tmp.innerHTML=html; var n=tmp.firstChild; if(dir<0&&box.children.length) n.classList.add('back'); box.appendChild(n);
+  var n=pre;
+  if(!n){ var html=obHtml(ob.step), tmp=document.createElement('div'); tmp.innerHTML=html; n=tmp.firstChild; if(dir<0&&box.children.length) n.classList.add('back'); box.appendChild(n); }
   var old=[].slice.call(box.children).filter(function(c){return c!==n;});
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transition=''; n.classList.remove('back'); n.classList.add('on'); old.forEach(function(o){ o.classList.remove('on'); o.classList.add(dir<0?'out':'past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); }); });
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transition=''; n.style.transform=''; n.style.opacity=''; n.classList.remove('back'); n.classList.add('on'); old.forEach(function(o){ o.style.transition=''; o.style.transform=''; o.style.opacity=''; o.classList.remove('on'); o.classList.add(dir<0?'out':'past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); }); });
   var f=n.querySelector('h1'); if(f){ f.setAttribute('tabindex','-1'); } [].slice.call(n.children).filter(function(c){return !c.classList.contains('ob-top');}).forEach(function(c,i){ c.style.setProperty('--i',i); });
   obIn(n);
 }
@@ -1459,6 +1460,50 @@ function morph(o,n){
   if(o.childNodes.length!==n.childNodes.length){ o.innerHTML=n.innerHTML; return; }
   for(i=0;i<o.childNodes.length;i++) morph(o.childNodes[i],n.childNodes[i]);
 }
+/* ---------- swipe right to go back ----------
+   Only backwards: the step follows the finger and the one before slides in behind it, like an iOS navigation stack. Forward is only ever the buttons.
+   It ignores swipes that start on a wheel, a slider, a field, the welcome moon or a sheet, so those keep working. Under Reduce Motion nothing follows the finger:
+   a clear swipe simply goes back. Answers are kept (the state `ob` is never touched). */
+var SW={id:null,on:false,x0:0,y0:0,lx:0,lt:0,v:0,w:1,cur:null,pre:null};
+function obBackTo(pre){ if(ob.step<1) return; ob.step--; obRender(-1,pre); }
+function obSwipe(){
+  var box=$('ob'), SKIP='.pk-c,.pk.open,input,select,textarea,[role=slider],canvas,.ob-bslot,.crop,[contenteditable]';
+  function reset(){ SW.id=null; SW.on=false; SW.cur=SW.pre=null; }
+  function settle(commit){
+    var cur=SW.cur, pre=SW.pre, d=SW.on;
+    if(d){ var stop=function(e){ e.stopPropagation(); e.preventDefault(); }; box.addEventListener('click',stop,true); setTimeout(function(){ box.removeEventListener('click',stop,true); },60); }
+    reset(); if(!d) return;
+    if(commit){ fx('light'); if(pre) obBackTo(pre); else obBackTo(); return; }
+    if(!pre) return;
+    cur.style.transition=''; cur.style.transform='';   /* let go: spring back, the step behind tucks away */
+    pre.style.transition='transform .35s var(--spr),opacity .35s ease'; pre.style.transform='translateX(-30%)'; pre.style.opacity='.72';
+    setTimeout(function(){ if(pre.parentNode) pre.parentNode.removeChild(pre); },380);
+  }
+  box.addEventListener('pointerdown',function(e){
+    if(SW.id!=null||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0)) return;
+    var cur=box.lastElementChild;
+    if(box.hidden||!ob||ob.step<1||sheetOpen||box.children.length!==1||!cur||!cur.classList.contains('on')||(e.target.closest&&e.target.closest(SKIP))) return;
+    SW.id=e.pointerId; SW.on=false; SW.x0=SW.lx=e.clientX; SW.y0=e.clientY; SW.lt=e.timeStamp; SW.v=0; SW.w=box.getBoundingClientRect().width||1; SW.cur=cur; SW.pre=null; });
+  box.addEventListener('pointermove',function(e){
+    if(e.pointerId!==SW.id) return;
+    var dx=e.clientX-SW.x0, dy=e.clientY-SW.y0;
+    if(!SW.on){
+      if(Math.abs(dx)<10&&Math.abs(dy)<10) return;
+      if(dx<=0||dx<Math.abs(dy)*1.5){ reset(); return; }   /* up, down or forward: not ours */
+      SW.on=true; SW.x0=e.clientX-4; SW.lx=e.clientX; SW.lt=e.timeStamp; dx=4;
+      try{ box.setPointerCapture(e.pointerId); }catch(x){}
+      if(!reduce){ var t=document.createElement('div'); t.innerHTML=obHtml(ob.step-1); var pre=t.firstChild; pre.classList.add('back','nostagger'); pre.style.opacity='.72'; box.insertBefore(pre,SW.cur); SW.pre=pre; SW.cur.style.transition='none'; }
+    }
+    var dt=e.timeStamp-SW.lt; if(dt>0){ SW.v=.6*SW.v+.4*((e.clientX-SW.lx)/dt); } SW.lx=e.clientX; SW.lt=e.timeStamp;
+    dx=Math.max(0,dx);
+    if(SW.pre){ var k=Math.min(dx/SW.w,1); SW.cur.style.transform='translateX('+dx.toFixed(1)+'px)'; SW.pre.style.transform='translateX('+(-.3*SW.w*(1-k)).toFixed(1)+'px)'; SW.pre.style.opacity=(.72+.28*k).toFixed(3); } });
+  function up(e){
+    if(e.pointerId!==SW.id) return;
+    var dx=Math.max(0,e.clientX-SW.x0), w=SW.w;
+    settle(SW.on&&e.type==='pointerup'&&(dx>w*.33||(SW.v>.45&&dx>w*.08)||(reduce&&dx>w*.2))); }
+  box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up);
+}
+obSwipe();
 function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement; morph(c,n); }
 function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),dinner:0,soda:0,boost:[],skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
 function obFinish(){
@@ -1730,7 +1775,7 @@ var A={
   tl:function(b){ S.prefs.tl=b.dataset.v; save(); cache={}; renderMe(); updateToday(); },
   tstyle:function(b){ S.prefs.timerStyle=b.dataset.v; ph.dataset.ts=b.dataset.v; save(); renderMe(); cache={}; fitDisc(); },
   obnext:function(){ if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
-  obback:function(){ if(ob.step>0){ ob.step--; obRender(-1); } },
+  obback:function(){ obBackTo(); },
   bodyinfo:bodySheet,
   bodyrm:function(){ S.body=null; save(); closeSheet(); renderMe(); },
   obunit:function(b){ ob.unit=b.dataset.v; obRefresh(); },
@@ -1850,5 +1895,5 @@ function loop(t){
 requestAnimationFrame(loop);
 document.addEventListener('visibilitychange',function(){ if(!document.hidden){ var dk=today(); if(cloudOn()&&Date.now()-sync.at>60000) syncNow(true); flexTick(); if(curTab==='today'){ tipUntil=Date.now()+6000; cache={}; updateToday(); } scheduleGoal(); } });
 if('serviceWorker' in navigator&&location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(function(){});
-window.__lightly={get state(){return S;},tick:updateToday,core:C};
+window.__lightly={get state(){return S;},get setup(){ return {step:ob.step,key:obFlow()[ob.step],n:obFlow().length,moon:OL.p}; },tick:updateToday,core:C};
 })();
