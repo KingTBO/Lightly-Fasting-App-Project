@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.79.2
+- **design** The safety question in setup ("Is any of this true for you?") now has its check on the right as a round circle, like every other answer card, instead of a square box on the left. Concept page matches.
+
 ## 0.79.1
 - **design** The setup plan step no longer has the plan tiles touching the start-time card (or the custom hours wheel): every card on that screen now keeps the same 16 px gap, in the app and on the concept page.
 
