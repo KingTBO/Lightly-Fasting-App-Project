@@ -41,10 +41,10 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   await swipe(q,40,500,330,505);await q.waitForTimeout(1200);assert(Math.abs(await q.evaluate(()=>__lightly.setup.moon)-1/(n-1))<.02,'moon back at step 1');assert(await q.evaluate(()=>document.getElementById('obLayer').classList.contains('head')));
   ok('the moon progress bar goes back with the step');
   // 6. the wheels keep their own swipes: a horizontal drag on an open wheel does not leave the step
-  await next(q);await next(q);assert.strictEqual(await key(q),'custom');await q.click('#obStart .pk-row');await q.waitForTimeout(600);
-  const bx=await q.locator('#obStart .pk-c').first().boundingBox();await swipe(q,bx.x+bx.width/2,bx.y+90,bx.x+bx.width/2+250,bx.y+95);assert.strictEqual(await key(q),'custom','a swipe that starts on a wheel stays on the wheel');
+  await next(q);assert.strictEqual(await key(q),'plan');await q.click('#obStart .pk-row');await q.waitForTimeout(600);
+  const bx=await q.locator('#obStart .pk-c').first().boundingBox();await swipe(q,bx.x+bx.width/2,bx.y+90,bx.x+bx.width/2+250,bx.y+95);assert.strictEqual(await key(q),'plan','a swipe that starts on a wheel stays on the wheel');
   // but a swipe from the empty part of the same step goes back
-  await swipe(q,12,480,330,485);assert.strictEqual(await key(q),"plan");
+  await swipe(q,12,430,330,435);assert.strictEqual(await key(q),'fasted');
   ok('swipes that start on a wheel are left to the wheel');
   await q.context().close();}
 
