@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.80.0
+- **feature** Setup is shorter: the "How do you usually eat?" and the "Your first 30 days" estimate steps are gone. "A little about you" stays, now saying what you get ("see your weight trend, with a check-in every month") and that it is private ("it stays on this phone, and in your backup only if you sign in"). A weight is only kept for adults with a BMI of 18.5 or more; nothing is saved, and nothing said, for anyone else. Concept page matches.
+- **fix** The phone shell no longer scrolls by itself when a wheel hangs below the bottom edge (it shifted every later setup screen up and left a dark band under it, for example after choosing a city).
+
 ## 0.79.2
 - **design** The safety question in setup ("Is any of this true for you?") now has its check on the right as a round circle, like every other answer card, instead of a square box on the left. Concept page matches.
 

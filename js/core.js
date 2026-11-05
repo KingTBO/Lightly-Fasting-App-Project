@@ -120,27 +120,17 @@ function careOn(profile){ return !!(profile&&profile.safety); }
 function customMax(profile){ return careOn(profile)?16:23; }
 function careEase(key){ return key==='preg'?'now':key==='ed'?'never':'wait'; }
 
-/* ---------- the 30-day weight estimate (optional, from onboarding) ----------
-   in: {age, kg, cm, fastH (hours of the plan), boosts (0 to 2)}. Care mode never gets here (the app skips the steps).
-   out: {ok:true, low, high, bmi} in kg, a range rounded to 0.5 kg; or {ok:false, why:'input'|'age'|'bmi-low'|'bmi-mid'}.
-   Base range is 0.4% to 1.2% of body weight over 30 days for a daily 16:8 (most days, at least five a week); 13:11 counts 0.6x and anything from 16 h up counts the same,
-   so the number never rewards a longer fast. Each boost adds 0.3% to the low end and 0.6% to the high end. The total is capped at 2.5% (about 0.6% a week).
-   No estimate for under 18, BMI under 18.5, or when the high end would take BMI under 18.5. BMI under 24 gets a page with no numbers instead.
-   These numbers are product judgment, not medical advice. */
 /* weight units: kg, lb, and 斤 (jin, half a kilo) */
 var WUNIT={kg:1,lb:2.20462,jin:2};
 function kgTo(kg,u){ return kg*(WUNIT[u]||1); }
 function toKg(v,u){ return v/(WUNIT[u]||1); }
-function weightEstimate(o){
+/* ---------- who the optional weight is for ----------
+   in: {age, kg, cm}. true for adults with a usable weight and a BMI of 18.5 or more; false means nothing is saved
+   (no weight check-in for under 18, for a low BMI, or for numbers that cannot be right). Care mode never gets here (the app skips the step). */
+function weightFit(o){
   var kg=+o.kg, cm=+o.cm, age=+o.age;
-  if(!(kg>=30&&kg<=250&&cm>=120&&cm<=220&&age>=0)) return {ok:false,why:'input'};
-  if(age<18) return {ok:false,why:'age'};
-  var bmi=kg/Math.pow(cm/100,2); if(bmi<18.5) return {ok:false,why:'bmi-low',bmi:bmi}; if(bmi<24) return {ok:false,why:'bmi-mid',bmi:bmi};
-  var f=+o.fastH||16, m=f<=13?.6:f>=16?1:.6+.4*(f-13)/3, b=Math.max(0,Math.min(2,Math.round(o.boosts||0)));
-  var hi=Math.min(.012*m+.006*b,.025), lo=Math.min(.004*m+.003*b,hi), r5=function(x){ return Math.round(x*2)/2; };
-  var low=Math.max(.5,r5(lo*kg)), high=r5(hi*kg); if(high<=low) high=low+.5;
-  if(kg-high<18.5*Math.pow(cm/100,2)) return {ok:false,why:'bmi-low',bmi:bmi};
-  return {ok:true,low:low,high:high,bmi:bmi};
+  if(!(kg>=30&&kg<=250&&cm>=120&&cm<=220&&age>=18)) return false;
+  return kg/Math.pow(cm/100,2)>=18.5;
 }
 
 /* ---------- unlock rules for long fasts (24 h, 36 h) ----------
@@ -311,7 +301,7 @@ function monthReport(fasts,y,m,flexUsed,offKeys,place){
   return r;
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,careOn:careOn,customMax:customMax,careEase:careEase,weightEstimate:weightEstimate,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);
