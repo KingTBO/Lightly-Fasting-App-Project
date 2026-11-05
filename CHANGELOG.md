@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.77.0
+- **design** Setup screens now use the design page's parts, not only its moon. The answer to "Have you fasted before?" is a separate card with a yellow check circle (the plan ladder under it is gone), the safety answers are separate cards with square yellow boxes, and the plan step shows the big hours number over a 2×2 grid of plans, with the locked ones dimmed and marked "After 3 fasts". The sunrise and sunset cards have bigger numbers and the second button is filled. The welcome puts the language as a quiet link at the top right and the title lower. The header moon is bigger, a soft grey disc when the 3D switch is off. The "You're set" summary puts each value on the right. The concept page matches.
+
 ## 0.76.0
 - **feature** Setup now has the full moon story. The welcome is a night sky with the big moon (3D when the 3D switch is on) that you can drag. After Get started the same moon travels up into the header and stays there as the progress bar, gaining a share with every step. On the plan step the fasting hours are one big number that rolls when you pick another plan, with a 24-hour strip showing the fasting window. On "You're set" the moon grows back, empties, fills counter-clockwise to your plan window and turns into the sun with a soft bloom while the sky goes from night to dawn (no sparks under Care mode). Open Lightly flies the sun into the disc on Today. Imported hours roll up in the import result. The concept page mirrors all of it.
 
