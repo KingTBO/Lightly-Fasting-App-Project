@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.75.0
+- **feature** Setup now tells the moon story. The step dots are replaced by a small 3D moon in the header that fills counter-clockwise as you answer (a flat moon when the 3D switch is off). The welcome moon is the same big moon as in the recap, plan hours roll to the new number when you pick a plan, your sunrise and sunset roll in as 24-hour times, and imported hours roll up in the import result. On "You're set" the moon fills to your plan window and turns into the sun with a soft bloom, as the sky goes from night to sunrise (no sparks under Care mode, still under Reduce Motion). The concept page mirrors it.
+
 ## 0.74.3
 - **fix** In dark mode the chosen answer in a segmented control (the eating questions in setup, the kg/lb/斤 and language switches, the Days chart range) had the same colour as its track, so it looked as if nothing could be chosen. The chosen segment is now a lighter grey, like iOS.
 
