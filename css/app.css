@@ -829,3 +829,6 @@ html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;
 .ob-step .group .row b{margin-left:auto;font-weight:600;text-align:right}
 .ob-lang{justify-self:end;border:0;background:transparent;color:var(--label-2);min-height:44px;padding:0 8px;font:500 .9375rem var(--font)}
 .ob .ob-wel{text-align:center;margin:0;font-size:2.125rem}
+
+/* swipe right to go back: horizontal moves reach the page, vertical ones still scroll */
+.ob-step{touch-action:pan-y;overscroll-behavior-x:none}
