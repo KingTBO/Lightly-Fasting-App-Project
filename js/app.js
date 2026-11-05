@@ -1341,11 +1341,6 @@ function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'
 /* ---------- onboarding ---------- */
 var ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',city:false};
 /* a small ladder of everyday plans: lit where you start, outlined where it opens later */
-function obLadder(){
-  var f=ob.fasted, open=f==='before'?4:1, names=['13:11','16:8','18:6','20:4'];
-  var cap=f==='before'?L('All everyday plans are open.','所有日常计划都已开放。'):f==='first'?L('You start at 13:11. A new plan opens after 3 fasts.','从 13:11 开始，完成 3 次后开放下一个计划。'):'';
-  return '<div class="ladder" role="img" aria-label="'+esc(cap)+'">'+names.map(function(n,k){ return '<span class="rung'+(k<open?' on':'')+'" style="--k:'+k+'">'+n+'</span>'; }).join('')+'</div><p class="ladcap" aria-live="polite">'+cap+'</p>';
-}
 function obRisky(){ return !!(ob.safe.length&&ob.safe.indexOf('none')<0); }
 /* everyone: welcome, fasted before, safety, plan, where you are. People who have fasted before also get a step to make it theirs. */
 /* safety comes last, just before the summary; a flag then lowers the plan to 13:11 */
@@ -1380,23 +1375,23 @@ function obPrevAnim(from){ var el=$('obPrev'), lit=$('obPrevLit'); if(!el||!lit|
 function obHtml(i){
   var back=i>0?'<button class="ob-back" data-act="obback"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg>'+L('Back','返回')+'</button>':'<span></span>';
   var flow=obFlow(), key=flow[i]; var dots=i>0&&i<flow.length-1?'<span class="ob-mslot"></span>':'<span></span>';   /* the one moon parks here as the progress bar */
-  var top='<div class="ob-top"><span class="ob-l">'+back+'</span>'+dots+'<span></span></div>', body='', cta='';
+  var top='<div class="ob-top"><span class="ob-l">'+back+'</span>'+dots+(key==='welcome'?'<button class="ob-lang" data-act="lang" data-v="'+(S.lang==='zh'?'en':'zh')+'" lang="'+(S.lang==='zh'?'en':'zh-Hans')+'">'+(S.lang==='zh'?'English':'中文')+'</button>':'<span></span>')+'</div>', body='', cta='';
   function opt(v,label,sub,on){ return '<button class="plan'+(on?' sel':'')+'" data-act="obopt" data-v="'+v+'"><span class="pn"><b>'+label+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+CHECK+'</button>'; }
   if(key==='welcome'){
-    body='<div class="grow"></div><div class="ob-bslot" data-p="0" role="img" aria-label="'+L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。')+'"></div><h1 style="text-align:center">'+L('Lightly','轻伴')+'</h1><p class="lede" style="text-align:center">'+L('Fasting that follows the sky.','跟着天空走的断食。')+'</p><div class="seg" style="margin:8px auto 0;width:min(260px,100%)"><button data-act="lang" data-v="en" aria-pressed="'+(S.lang==='en')+'">English</button><button data-act="lang" data-v="zh" aria-pressed="'+(S.lang==='zh')+'">中文</button></div><div class="grow"></div>';
+    body='<div class="grow" style="flex:.3"></div><div class="ob-bslot" data-p="0" role="img" aria-label="'+L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。')+'"></div><div class="grow"></div><h1 class="ob-wel">'+L('Lightly','轻伴')+'</h1><p class="lede" style="text-align:center;margin-top:6px">'+L('Fasting that follows the sky.','跟着天空走的断食。')+'</p><div class="grow" style="flex:.35"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Get started','开始')+'</button>';
   }else if(key==='fasted'){
-    body='<h1>'+L('Have you fasted before?','你以前断食过吗？')+'</h1><div class="group">'+opt('first',L('This is my first time','这是第一次'),'',ob.fasted==='first')+opt('before',L('I’ve fasted before','我以前断食过'),'',ob.fasted==='before')+'</div>'+obLadder()+'<div class="grow"></div>';
+    body='<h1>'+L('Have you fasted before?','你以前断食过吗？')+'</h1><div class="group cards">'+opt('first',L('This is my first time','这是第一次'),'',ob.fasted==='first')+opt('before',L('I’ve fasted before','我以前断食过'),'',ob.fasted==='before')+'</div><div class="grow"></div>';
     cta='<button class="btn" data-act="obnext"'+(ob.fasted?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='safety'){
     function ck(v,label){ var on=ob.safe.indexOf(v)>=0; return '<button class="check" role="checkbox" aria-checked="'+on+'" data-act="obsafe" data-v="'+v+'"><span class="bx"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span>'+label+'</span></button>'; }
-    body='<h1>'+L('Is any of this true for you?','下面有符合你的情况吗？')+'</h1><p class="lede">'+L('Pick all that apply.','可多选。')+'</p><div class="group">'+ck('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'))+ck('diab',L('I take medication for diabetes','我在服用糖尿病药物'))+ck('ed',L('I have had an eating disorder','我有过进食障碍'))+ck('none',L('None of these','都不是'))+'</div>'+
+    body='<h1>'+L('Is any of this true for you?','下面有符合你的情况吗？')+'</h1><p class="lede">'+L('Pick all that apply.','可多选。')+'</p><div class="group cards">'+ck('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'))+ck('diab',L('I take medication for diabetes','我在服用糖尿病药物'))+ck('ed',L('I have had an eating disorder','我有过进食障碍'))+ck('none',L('None of these','都不是'))+'</div>'+
       (ob.safe.length&&ob.safe.indexOf('none')<0?'<p class="gf obnote" style="padding:0 4px;color:var(--label)">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts. Please talk to your doctor first.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。请先咨询医生。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obnext"'+(ob.safe.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='plan'){
     var risky=obRisky(), sug=risky||ob.fasted==='first'?'13':'16', prof={fastedBefore:ob.fasted==='before',safety:risky}; if(!ob.plan||C.planStatus(ob.plan,prof,{fasts:[]}).st!=='ok') ob.plan=sug;
-    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1>'+obBigHtml(ob.plan)+'<div class="group">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ var lk=C.planStatus(p.id,prof,{fasts:[]}).st!=='ok';
-        return '<button class="plan'+(ob.plan===p.id?' sel':'')+'" data-act="obplan" data-id="'+p.id+'"'+(lk?' disabled':'')+'><span class="pn"><span class="pt"><b>'+pName(p)+'</b>'+(p.id===sug?'<span class="pill tint">'+L('Suggested','推荐')+'</span>':'')+(lk?'<span class="pill">'+L('Locked','未解锁')+'</span>':'')+'</span>'+(lk?'<small>'+L('After 3 fasts','完成 3 次后')+'</small>':'')+'</span>'+'<span class="pr">'+C.planLabel(p)+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
+    body='<h1>'+L('Pick your plan','选择你的计划')+'</h1>'+obBigHtml(ob.plan)+'<div class="group tiles">'+C.PLANS.filter(function(p){return p.top;}).map(function(p){ var lk=C.planStatus(p.id,prof,{fasts:[]}).st!=='ok';
+        return '<button class="plan'+(ob.plan===p.id?' sel':'')+(lk?' lk':'')+'" data-act="obplan" data-id="'+p.id+'"'+(lk?' disabled':'')+' aria-label="'+esc(pName(p)+', '+C.planLabel(p))+'"><span class="pn"><b>'+C.planLabel(p)+'</b>'+(lk?'<small>'+L('After 3 fasts','完成 3 次后')+'</small>':'')+'</span>'+CHECK+'</button>'; }).join('')+'</div>'+
       (risky?'<p class="gf" style="padding:0 4px">'+L('Longer fasts stay off for you.','长时间断食对你保持关闭。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>';
   }else if(key==='import'){
@@ -1411,8 +1406,8 @@ function obHtml(i){
      obSkyHtml()+(hereOn?'<div class="group"><div class="row"><span>'+L('Using your location','正在使用你的位置')+'</span><span class="v">'+CHECK+'</span></div></div>':'')+
      (!hereOn&&ob.city?'<div class="group">'+pkField('obCity',L('Nearest city','最近的城市'),S.place.key,'sel',Object.keys(C.CITIES).map(function(k){ return [k,C.CITIES[k][S.lang==='zh'?'zh':'en']]; }))+'</div>':'')+
      (flow.indexOf('custom')<0?'<div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div>':'')+'<div class="grow"></div>';
-    cta=hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn quiet" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
-      :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn quiet" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
+    cta=hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn sec" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
+      :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
   }else if(key==='body'){
     body='<h1>'+L('A little about you','关于你')+'</h1><p class="lede">'+L('Optional. It only gives a rough 30-day estimate.','可选。只用来粗略估算 30 天。')+'</p><div class="group">'+pkField('obAge',L('Age','年龄'),ob.age,'sel',obAgeOpts())+pkField('obWt',L('Weight','体重'),Math.round(C.kgTo(ob.kg,ob.unit)),'sel',obWtOpts())+pkField('obHt',L('Height','身高'),obHtKey(),'sel',obHtOpts())+'</div>'+
       '<div class="seg" role="group" aria-label="'+L('Units','单位')+'">'+['kg','lb','jin'].map(function(u){ return '<button type="button" data-act="obunit" data-v="'+u+'" aria-pressed="'+(ob.unit===u)+'">'+uLbl(u)+'</button>'; }).join('')+'</div><div class="grow"></div>';
@@ -1495,7 +1490,7 @@ function obLayer(){
 function obOrbInit(){ if(OL.tried||!S.prefs.d3||!window.LightlySphere) return; OL.tried=true;
   try{ OL.orb=window.LightlySphere(OL.inn.querySelector('.ob-disc')); if(OL.orb) OL.orb.set(true); }catch(e){ OL.orb=null; } }
 function obPaint(){
-  var svg=OL.inn.querySelector('.ob-disc'), orb=OL.orb;
+  var svg=OL.inn.querySelector('.ob-disc'), orb=OL.orb; OL.el.classList.toggle('flat',!(orb&&orb.ok()&&S.prefs.d3));
   if(orb&&orb.ok()&&S.prefs.d3){ svg.style.opacity=0; orb.draw({p:OL.p,wane:false,moon:OL.moon,tx:0,ty:0,ox:0,oy:0,scale:1,alpha:1,night:1,glow:(1-OL.moon)*OL.p*(.35+.65*OL.boost)+OL.boost*.3,halo:Math.max(OL.moon*OL.boost,OL.pulse*.8)}); return; }
   if(orb) orb.set(false);
   svg.style.opacity=1; var q=function(c){ return svg.querySelector('.'+c); };
