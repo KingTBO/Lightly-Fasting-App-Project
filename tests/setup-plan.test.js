@@ -32,7 +32,8 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   ok('fasted before: custom hours and start time on the plan step are saved');await q.context().close();}
 
  // 3. first-timer: start time and reminder on the plan step, shown in "You're set"
- {const q=await fresh();await next(q);await q.click('[data-act=obopt][data-v=first]');await next(q);assert(await q.$('.ob-step.on [data-act=sw][data-k=notify]'),'the reminder switch is on the plan step');
+ {const q=await fresh();await next(q);await q.click('[data-act=obopt][data-v=first]');await next(q);
+  {const gaps=await q.evaluate(()=>{const k=[...document.querySelectorAll('.ob-step.on > .group')].map(e=>e.getBoundingClientRect());return k.slice(1).map((r,i)=>Math.round(r.top-k[i].bottom));});assert(gaps.length>=2&&gaps.every(g=>g>=12),'cards on the plan step keep a gap between them: '+gaps);}assert(await q.$('.ob-step.on [data-act=sw][data-k=notify]'),'the reminder switch is on the plan step');
   await q.click('#obStart .pk-row');await q.waitForTimeout(500);
   await q.evaluate(()=>{const pk=document.getElementById('obStart'),h=pk.querySelector('[data-c=h]');h.scrollTo({top:(7+ +h.dataset.loop*3)*36});});await q.waitForTimeout(700);
   assert.match(await q.textContent('.ob-step.on .ob-win'),/Fast 07:00 to 20:00/,'the strip follows the start time');

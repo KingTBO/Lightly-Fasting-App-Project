@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.79.1
+- **design** The setup plan step no longer has the plan tiles touching the start-time card (or the custom hours wheel): every card on that screen now keeps the same 16 px gap, in the app and on the concept page.
+
 ## 0.79.0
 - **feature** The setup plan step is now one screen. "Pick your plan" also has the start time and the "Remind me when I reach my goal" switch, so the separate "Make it yours" step is gone, and first-timers get the start time too, worded "When will you start?" (people who have fasted before keep "Usual start time"). The first fast in "You're set" shows that time for everyone.
 - **feature** First-timers can now pick 16:8 from the start. 18:6 and 20:4 are marked "Advanced" and can be picked too: the tile bounces once (and gives a gentle tap) and a calm line says "New to fasting? Start at 13:11 or 16:8 and step up after a few fasts." It never blocks and goes away on 13:11 or 16:8. The same applies in the plan sheet on Today. 23:1 and custom stay locked for first-timers, 24 h and 36 h stay behind progress, and Care mode keeps its limits (no 18:6, 20:4 or 23:1).
