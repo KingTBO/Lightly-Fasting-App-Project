@@ -815,7 +815,8 @@ html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;
 .ob-step .cards .plan{min-height:52px;padding:14px 16px}
 .ob-step .cards .plan .pn b{font:600 1rem/1.3 var(--font)}
 .ob-step .cards .check{align-items:center;min-height:48px;padding:12px 16px;font:500 1rem/1.3 var(--font)}
-.ob-step .cards .check .bx{border-radius:6px;margin-top:0;border-color:var(--label-2)}
+.ob-step .cards .check .bx{order:2;margin:0 0 0 auto;width:22px;height:22px;border-radius:50%;border-color:var(--label-2)}
+.ob-step .cards .check>span:not(.bx){flex:1;min-width:0}
 .ob-step .cards .check[aria-checked="true"] .bx{border-color:var(--tint)}
 .ob-step .cards .plan .ck{opacity:1;box-sizing:border-box;padding:4px;border-radius:50%;border:1.5px solid var(--label-2);stroke:transparent;transition:background .22s ease,border-color .22s ease,stroke .22s ease}
 .ob-step .cards .plan.sel .ck{background:var(--tint);border-color:var(--tint);stroke:var(--on-tint)}
