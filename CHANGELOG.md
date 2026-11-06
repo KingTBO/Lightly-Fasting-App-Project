@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.81.2
+- **design** At the end of setup the sun (or the moon's glow) now appears sooner. It starts as the moon nears full instead of waiting for the slow last stretch of the fill, and the whole finale is about 0.8 seconds shorter. Concept page too.
+
 ## 0.81.1
 - **fix** At the end of setup the moon no longer empties and then fills again. The progress carries on counter-clockwise from where the header left it and finishes full, then turns into the sun or stays the moon. Concept page too.
 

@@ -1582,13 +1582,13 @@ function obFin(st){
 }
 function obFinStep(t){
   var f=OL.fin; if(!f.st.isConnected||obFlow()[ob.step]!=='summary'){ OL.fin=null; return; }
-  var el=t-f.t0, GO=350, FILL=1500, TURN=1100; if(el<0) return;   /* no emptying: the progress simply carries on from where the header left it */
+  var el=t-f.t0, GO=200, FILL=1200, TURN=900, REV=FILL*.78; if(el<0) return;   /* no emptying: the progress simply carries on from where the header left it */
   if(el<GO) return;
   var e2=el-GO; OL.p=f.p0+(1-f.p0)*(1-Math.pow(1-Math.min(e2/FILL,1),3));
-  if(e2<=FILL) return;
+  if(e2<=REV) return;   /* the reveal starts as the moon nears full, not after the slow last stretch of the fill */
   if(!f.turned){ f.turned=true; fx('success'); obBloom(); if(!f.sun) OL.pulse=1; }
-  if(!f.sun){ if(e2>FILL+TURN){ OL.p=1; OL.fin=null; } return; }   /* night: it stays a full moon, under the night sky */
-  var v=Math.min((e2-FILL)/TURN,1), e=v*v*(3-2*v); OL.moon=1-e; OL.boost=Math.max(0,1-v*1.15);
+  if(!f.sun){ if(e2>REV+TURN){ OL.p=1; OL.fin=null; } return; }   /* night: it stays a full moon, under the night sky */
+  var v=Math.min((e2-REV)/TURN,1), e=v*v*(3-2*v); OL.moon=1-e; OL.boost=Math.max(0,1-v*1.15);
   if(v>0&&!f.st.classList.contains('dawn')){ f.st.classList.add('dawn'); setTimeout(chrome,1750); }
   if(v>=1){ OL.moon=0; OL.boost=0; OL.fin=null; }
 }

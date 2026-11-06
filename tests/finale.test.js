@@ -39,6 +39,11 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   assert(seen.every((v,i)=>i===0||v>=seen[i-1]-.02),'it only goes up');assert(seen[seen.length-1]>.99,'and ends full');
   ok('You\u2019re set: the progress carries on from the header to full, never emptying');await q.context().close();}
 
+ // 3c. the reveal is prompt: the sun starts to turn soon after the moon feels full, not after a long wait
+ {const q=await fresh(at('12:00'));await next(q);await q.click('[data-act=obopt][data-v=first]');await next(q);await next(q);await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1500);await next(q);await q.click('[data-act=obsafe][data-v=none]');await next(q);
+  await q.click('.ob-step.on [data-act=obbodyskip]');const t0=Date.now();await q.waitForSelector('.ob-step.fin.dawn',{timeout:5000});const ms=Date.now()-t0;
+  assert(ms<2300,'the sun starts to turn within about 2 s of arriving, took '+ms+' ms');ok('the sun starts to turn promptly ('+ms+' ms after the last tap)');await q.context().close();}
+
  // 4. Reduce Motion lands in the same place
  for(const [h,sun] of [['23:00',false],['12:00',true]]){const q=await fresh(at(h),{reduced:true});await toFinale(q,{reduced:true});const r=await fin(q);assert(r.p>.99&&r.dawn===sun,'reduce motion at '+h+': '+JSON.stringify(r));await q.context().close();}
  ok('Reduce Motion: full, and the sun or moon straight away');
