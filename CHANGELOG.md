@@ -4,10 +4,13 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
-## 0.83.0
+## 0.84.0
 - **design** BMI no longer decides anything. Before, nobody with a BMI under 18.5 had their weight kept for the check-in; now every adult (18 and over) can, whatever their weight. Under 18 and Care mode are unchanged (no weight questions).
 - **feature** The gender choice also has Non-binary (Male, Female, Non-binary, Prefer not to say). It is saved only when chosen, and Me > About you shows it.
 - **feature** The monthly weight check-in in the recap has a "Don't ask me again" button. After it, the recap has no weight card at all. Me > About you has a "Monthly weight check-in" switch to turn it back on, or off. The privacy page and legal notes say so. Concept page matches.
+
+## 0.83.0
+- **feature** Friends, step 1 of 5: the groundwork, nothing to see yet. The database design for small groups (up to 10 people, up to 3 groups each) is written with its privacy rules built in: friends only ever see a name, a sky picture, a plan in hours and a disc, never hours fasted, times, a place, a weight or a streak, and never why someone is resting. The rules a phone follows to share its day (a running fast, Time off, cheat days, the last seven days) and to read invite codes and links are in, with tests. Today, Days and Me look and work exactly as before, and nothing is shared. The new database is not switched on yet.
 
 ## 0.82.0
 - **feature** "A little about you" has an optional gender choice: Male, Female or Prefer not to say (the default). It is private like the rest: on this phone, and in your backup only if you sign in. "Prefer not to say" saves nothing. Nothing in the app uses it yet. In Me, the Weight and height row is now "About you" and shows the gender if you chose one. The Privacy Policy now lists gender with age, weight and height. While there I fixed lines in it that were out of date since v0.80.0: it still described the removed 30-day estimate and the eating questions, and said Lightly does not ask for your weight. Concept page matches.
