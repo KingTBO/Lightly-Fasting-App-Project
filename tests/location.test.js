@@ -17,7 +17,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  // 1. the reason is on the screen, before anyone is asked
  {const q=await atLocation(1500);const t=await q.textContent('.ob-step.on .lede');assert.match(t,/precise location/);assert.match(t,/sunrise and sunset/);assert.match(t,/stays on this phone/);assert.match(t,/never uploaded or shared/);
   // 2. it shows it is working at once, a second tap does nothing, and the answer lands
-  await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(250);let bt=await q.btns();assert.match(bt[0],/Finding your location/,'busy at once');assert(/off/.test(bt[0]),'the busy button is not tappable again');assert.match(bt[1],/Choose a city instead/,'a city is one tap away while waiting');
+  await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(250);let bt=await q.btns();assert.match(await q.textContent('.ob-step.on [role=status]'),/Finding your location/,'busy at once');assert.strictEqual(bt[0],'Continue','Continue is never missing while waiting');assert.match(bt[1],/Choose a city instead/,'a city is one tap away while waiting');
   await q.waitForTimeout(1800);bt=await q.btns();assert.deepStrictEqual(bt,['Continue'],'done: Continue');assert.strictEqual((await place(q)).key,'here');assert.strictEqual(await q.evaluate(()=>__geoCalls),1,'asked once');
   ok('the reason is shown, the button says it is finding the location, one request, then Continue');await q.context().close();}
 

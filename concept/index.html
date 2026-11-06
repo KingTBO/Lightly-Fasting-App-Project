@@ -983,7 +983,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
           <button type="button" id="st-day" aria-pressed="false"><span data-zh="今早">This morning</span><small id="st-day-t">07:00</small></button>
         </div>
         <p class="why" id="why"></p>
-        <div class="loc"><label for="city" data-zh="日出日落地">Sunrise and sunset for</label><select id="city"><option value="shanghai">Shanghai</option><option value="singapore">Singapore</option><option value="london">London</option><option value="newyork">New York</option></select><button type="button" id="geoBtn" data-zh="用我的位置">Use my location</button></div>
+        <div class="loc"><label for="city" data-zh="日出日落地">Sunrise and sunset for</label><select id="city"></select><button type="button" id="geoBtn" data-zh="用我的位置">Use my location</button></div>
         <p class="why" id="sunWhy"></p>
       </div>
       <div class="group row2"><div><b data-zh="声音">Sound</b><span data-zh="达成目标或导入成功时一声轻轻的铃，转动时间滚轮时有很轻的滴答声。应用里会跟随手机的静音设置。">A soft chime when you reach your goal or finish an import, and a very quiet tick as you turn the time wheels. In the app it follows your phone's silent mode.</span></div><button class="sw" type="button" role="switch" aria-checked="true" id="sndSw" aria-label="Sound"></button></div>
@@ -1555,8 +1555,7 @@ window.LightlySphere=(function(){
   var startKey='night';
 
   /* ---------- where you are: real sunrise and sunset for today (NOAA solar equations) ---------- */
-  var CITIES={shanghai:{en:'Shanghai',zh:'上海',lat:31.23,lon:121.47,zone:'Asia/Shanghai'},singapore:{en:'Singapore',zh:'新加坡',lat:1.35,lon:103.82,zone:'Asia/Singapore'},
-    london:{en:'London',zh:'伦敦',lat:51.51,lon:-0.13,zone:'Europe/London'},newyork:{en:'New York',zh:'纽约',lat:40.71,lon:-74.01,zone:'America/New_York'}};
+  var CITIES={shanghai:{en:'Shanghai',zh:'上海',lat:31.23,lon:121.47,zone:'Asia/Shanghai'},beijing:{en:'Beijing',zh:'北京',lat:39.9,lon:116.4,zone:'Asia/Shanghai'},guangzhou:{en:'Guangzhou',zh:'广州',lat:23.13,lon:113.26,zone:'Asia/Shanghai'},shenzhen:{en:'Shenzhen',zh:'深圳',lat:22.54,lon:114.06,zone:'Asia/Shanghai'},chengdu:{en:'Chengdu',zh:'成都',lat:30.57,lon:104.07,zone:'Asia/Shanghai'},hongkong:{en:'Hong Kong',zh:'香港',lat:22.32,lon:114.17,zone:'Asia/Hong_Kong'},taipei:{en:'Taipei',zh:'台北',lat:25.03,lon:121.57,zone:'Asia/Taipei'},tokyo:{en:'Tokyo',zh:'东京',lat:35.68,lon:139.69,zone:'Asia/Tokyo'},osaka:{en:'Osaka',zh:'大阪',lat:34.69,lon:135.5,zone:'Asia/Tokyo'},seoul:{en:'Seoul',zh:'首尔',lat:37.57,lon:126.98,zone:'Asia/Seoul'},singapore:{en:'Singapore',zh:'新加坡',lat:1.35,lon:103.82,zone:'Asia/Singapore'},kualalumpur:{en:'Kuala Lumpur',zh:'吉隆坡',lat:3.14,lon:101.69,zone:'Asia/Kuala_Lumpur'},jakarta:{en:'Jakarta',zh:'雅加达',lat:-6.21,lon:106.85,zone:'Asia/Jakarta'},bangkok:{en:'Bangkok',zh:'曼谷',lat:13.76,lon:100.5,zone:'Asia/Bangkok'},hochiminh:{en:'Ho Chi Minh City',zh:'胡志明市',lat:10.82,lon:106.63,zone:'Asia/Ho_Chi_Minh'},manila:{en:'Manila',zh:'马尼拉',lat:14.6,lon:120.98,zone:'Asia/Manila'},mumbai:{en:'Mumbai',zh:'孟买',lat:19.08,lon:72.88,zone:'Asia/Kolkata'},delhi:{en:'Delhi',zh:'德里',lat:28.61,lon:77.21,zone:'Asia/Kolkata'},dhaka:{en:'Dhaka',zh:'达卡',lat:23.81,lon:90.41,zone:'Asia/Dhaka'},karachi:{en:'Karachi',zh:'卡拉奇',lat:24.86,lon:67.01,zone:'Asia/Karachi'},dubai:{en:'Dubai',zh:'迪拜',lat:25.2,lon:55.27,zone:'Asia/Dubai'},riyadh:{en:'Riyadh',zh:'利雅得',lat:24.71,lon:46.68,zone:'Asia/Riyadh'},istanbul:{en:'Istanbul',zh:'伊斯坦布尔',lat:41.01,lon:28.98,zone:'Europe/Istanbul'},cairo:{en:'Cairo',zh:'开罗',lat:30.04,lon:31.24,zone:'Africa/Cairo'},london:{en:'London',zh:'伦敦',lat:51.51,lon:-0.13,zone:'Europe/London'},dublin:{en:'Dublin',zh:'都柏林',lat:53.35,lon:-6.26,zone:'Europe/Dublin'},paris:{en:'Paris',zh:'巴黎',lat:48.86,lon:2.35,zone:'Europe/Paris'},amsterdam:{en:'Amsterdam',zh:'阿姆斯特丹',lat:52.37,lon:4.9,zone:'Europe/Amsterdam'},berlin:{en:'Berlin',zh:'柏林',lat:52.52,lon:13.4,zone:'Europe/Berlin'},madrid:{en:'Madrid',zh:'马德里',lat:40.42,lon:-3.7,zone:'Europe/Madrid'},rome:{en:'Rome',zh:'罗马',lat:41.9,lon:12.5,zone:'Europe/Rome'},stockholm:{en:'Stockholm',zh:'斯德哥尔摩',lat:59.33,lon:18.07,zone:'Europe/Stockholm'},moscow:{en:'Moscow',zh:'莫斯科',lat:55.76,lon:37.62,zone:'Europe/Moscow'},lagos:{en:'Lagos',zh:'拉各斯',lat:6.52,lon:3.38,zone:'Africa/Lagos'},nairobi:{en:'Nairobi',zh:'内罗毕',lat:-1.29,lon:36.82,zone:'Africa/Nairobi'},mogadishu:{en:'Mogadishu',zh:'摩加迪沙',lat:2.05,lon:45.32,zone:'Africa/Mogadishu'},johannesburg:{en:'Johannesburg',zh:'约翰内斯堡',lat:-26.2,lon:28.05,zone:'Africa/Johannesburg'},newyork:{en:'New York',zh:'纽约',lat:40.71,lon:-74.01,zone:'America/New_York'},toronto:{en:'Toronto',zh:'多伦多',lat:43.65,lon:-79.38,zone:'America/Toronto'},chicago:{en:'Chicago',zh:'芝加哥',lat:41.88,lon:-87.63,zone:'America/Chicago'},denver:{en:'Denver',zh:'丹佛',lat:39.74,lon:-104.99,zone:'America/Denver'},losangeles:{en:'Los Angeles',zh:'洛杉矶',lat:34.05,lon:-118.24,zone:'America/Los_Angeles'},vancouver:{en:'Vancouver',zh:'温哥华',lat:49.28,lon:-123.12,zone:'America/Vancouver'},mexicocity:{en:'Mexico City',zh:'墨西哥城',lat:19.43,lon:-99.13,zone:'America/Mexico_City'},bogota:{en:'Bogotá',zh:'波哥大',lat:4.71,lon:-74.07,zone:'America/Bogota'},saopaulo:{en:'São Paulo',zh:'圣保罗',lat:-23.55,lon:-46.63,zone:'America/Sao_Paulo'},buenosaires:{en:'Buenos Aires',zh:'布宜诺斯艾利斯',lat:-34.6,lon:-58.38,zone:'America/Argentina/Buenos_Aires'},sydney:{en:'Sydney',zh:'悉尼',lat:-33.87,lon:151.21,zone:'Australia/Sydney'},melbourne:{en:'Melbourne',zh:'墨尔本',lat:-37.81,lon:144.96,zone:'Australia/Melbourne'},auckland:{en:'Auckland',zh:'奥克兰',lat:-36.85,lon:174.76,zone:'Pacific/Auckland'}};
   function zoneOffset(zone){ try{ var d=new Date(), a=new Date(d.toLocaleString('en-US',{timeZone:zone})), u=new Date(d.toLocaleString('en-US',{timeZone:'UTC'})); return (a-u)/3600000; }catch(e){ return 0; } }
   function sunTimes(lat,lon,tz){ var d=new Date(), y0=new Date(d.getFullYear(),0,0), N=Math.floor((d-y0)/864e5), g=2*Math.PI/365*(N-1);
     var eq=229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
@@ -1914,7 +1913,7 @@ window.LightlySphere=(function(){
     if(scroll){ try{ $('ph').scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'}); }catch(e){} } }
   document.querySelectorAll('[data-plan]').forEach(function(b){ b.addEventListener('click',function(){ cancelAuto(); setPlan(b.dataset.plan,b.classList.contains('plan-card')); }); });
   $('moreLink').addEventListener('click',function(){ $('morePlans').open=true; });
-  window.LightlyAPI={ setPlan:function(id){ setPlan(id,true); }, setPlanHere:function(id){ cancelAuto(); setPlan(id,false); },
+  window.LightlyAPI={ cities:CITIES, setPlan:function(id){ setPlan(id,true); }, setPlanHere:function(id){ cancelAuto(); setPlan(id,false); },
     sunOf:function(k){ var c=CITIES[k]; return c?sunTimes(c.lat,c.lon,zoneOffset(c.zone)):null; },
     skyNow:function(k){ var c=CITIES[k], sn=c?sunTimes(c.lat,c.lon,zoneOffset(c.zone)):{rise:6.2,set:17.8}, off=c?zoneOffset(c.zone):-new Date().getTimezoneOffset()/60, h=((Date.now()/36e5+off)%24+24)%24, r=sn.rise, e=sn.set, day=h>=r&&h<e;   /* the real sky where that city is right now */
       return {sun:day, sky:!day?'night':h<r+.9?'dawn':h<r+3.5?'morning':h<e-1.4?'day':'sunset'}; }, state:function(){ return {mode:mode,h:h,start:START[startKey],goal:GOAL,eat:EAT,plan:plan.id}; }, clock:function(x){ return clock(x); }, lang:function(){ return lang; }, plans:PLANS,
@@ -1976,6 +1975,7 @@ window.LightlySphere=(function(){
   $('l-en').addEventListener('click',function(){ setLang('en'); });
   $('l-zh').addEventListener('click',function(){ setLang('zh'); });
 
+  Object.keys(CITIES).forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=CITIES[k].en; $('city').appendChild(o); });
   setPlace('shanghai');
   /* opening state: a night fast at hour 11, so the first frame shows a gibbous moon */
   h=9.2; lastHour=9; mode='fast'; sP.x=h/GOAL; sP.t=sP.x; sT.x=sP.x; sT.t=sT.x;
@@ -2002,7 +2002,7 @@ window.LightlySphere=(function(){
     recommend:{first:'13', some:'16'}
   };
   function key36(id){ return id==='24'?'24':'36'; } /* 36L uses the '36' rule */
-  var st={step:0, exp:null, customH:16, planAuto:true, safety:[], plan:null, city:'shanghai', start:'20:30', age:30, wt:70, ht:170, sex:'n', skip:false, bodyDone:false}, CITIES={shanghai:{en:'Shanghai',zh:'上海'},singapore:{en:'Singapore',zh:'新加坡'},london:{en:'London',zh:'伦敦'},newyork:{en:'New York',zh:'纽约'}};
+  var st={step:0, exp:null, customH:16, planAuto:true, safety:[], plan:null, city:'shanghai', start:'20:30', age:30, wt:70, ht:170, sex:'n', skip:false, bodyDone:false}, CITIES=api.cities;
   var ph=document.getElementById('obph'), stage=document.getElementById('obStage'), dots=document.getElementById('obDots'), back=document.getElementById('obBack');
   /* people who have fasted before get one more step, to make it theirs */
   /* safety comes last, just before the summary */
