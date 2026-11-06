@@ -127,7 +127,7 @@ const H=3600000,D=24*H;
  for(const [when,expect] of [['2026-11-03T09:00:00+08:00',true],['2026-11-10T09:00:00+08:00',false]]){
   const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});await c.clock.install({time:new Date(when)});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));
   const oct=[3,6,9,12].map(d=>{const e=new Date('2026-10-'+String(d).padStart(2,'0')+'T12:00:00+08:00').getTime();return{id:'rc'+d,start:e-17*H,end:e,goalH:16,plan:'16'}});
-  await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(seed({planId:'16',fasts:oct})));await q.goto(url);await q.waitForTimeout(600);
+  await q.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',JSON.stringify(Object.assign(JSON.parse(x),{prefs:Object.assign({},JSON.parse(x).prefs,{recapPop:'2026-10'})})));sessionStorage.s=1}},JSON.stringify(seed({planId:'16',fasts:oct})));await q.goto(url);await q.waitForTimeout(600);
   await q.click('#tabs [data-tab=days]');await q.waitForTimeout(800);
   assert.strictEqual(!!(await q.$('#days .rcard')),expect,'recap '+(expect?'shows':'is hidden')+' on '+when);
   if(expect){assert.match(await q.textContent('#days .rcard .rct'),/^Your October recap$/);assert.match(await q.textContent('#days .rcard .rcs'),/4 fasts · 68.0 hours/);

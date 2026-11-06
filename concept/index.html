@@ -699,6 +699,28 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .dy-pm{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:2px 16px 14px}.dy-pm button{position:relative;min-height:48px;border:0;border-radius:14px;background:var(--fill);color:var(--label);font:500 16px var(--font);cursor:pointer}.dy-pm button:disabled{opacity:.3;cursor:default}.dy-pm button.on{background:var(--tint);color:var(--on-tint);font-weight:600}.dy-pm i{position:absolute;bottom:6px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:currentColor;opacity:.55}
 .dy-pop .acts{display:grid;gap:10px;padding:0 16px}.dy-pop .acts button{min-height:50px;border:0;border-radius:999px;font:600 17px var(--font);cursor:pointer}.dy-pop .acts .sec{background:var(--fill);color:var(--label)}.dy-pop .acts .pri{background:var(--tint);color:var(--on-tint)}
 #dScrim{transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}#dScrim.on{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;-webkit-backdrop-filter:blur(4px) saturate(1.05);backdrop-filter:blur(4px) saturate(1.05)}
+/* the monthly recap pop-up: a night-sky sheet with a gold moon (mirrors the app) */
+.dy-rpop{z-index:7;transition:transform .5s cubic-bezier(.16,1,.3,1);visibility:hidden;background:linear-gradient(180deg,#1B2150 0,#0E1430 62%);color:#fff;overflow:hidden;box-shadow:0 -1px 0 rgba(255,255,255,.12),0 -18px 60px rgba(14,20,48,.55);padding:8px 16px 28px}
+.dy-rpop.open{transform:none;visibility:visible}
+.dy-rpop .grab{background:rgba(255,255,255,.28)}
+.rpop{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 0 0}
+.rpop>*{position:relative}
+.rpop-s{position:absolute;inset:-20px 0 0;pointer-events:none}
+.rpop-s i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:.5;animation:rpTw 3s ease-in-out infinite}
+.rpop-s i:nth-child(3n){width:2px;height:2px;opacity:.35}.rpop-s i:nth-child(5n){width:4px;height:4px}
+.rpop-m{width:116px;height:116px;margin:10px 0 6px;filter:drop-shadow(0 0 22px rgba(245,222,140,.55)) drop-shadow(0 0 60px rgba(245,222,140,.25))}
+.dy-rpop.open .rpop-m{animation:rpRise .9s cubic-bezier(.16,1,.3,1) both}
+.rpop-m .c{fill:#D9BE6A;opacity:.55}
+.rpop-k{font:700 12px/1 var(--font);letter-spacing:.12em;text-transform:uppercase;color:#FFD60A;background:rgba(255,214,10,.14);padding:6px 10px;border-radius:999px;margin:8px 0 10px}
+.dy-rpop h3{font:800 28px/1.12 var(--font-d);letter-spacing:-.015em;padding:0 8px 6px;max-width:15em;margin:0}
+.dy-rpop .lede{margin:0;padding:0 8px 22px;font:400 16px/1.4 var(--font);color:rgba(235,235,245,.72)}
+.dy-rpop .btns{width:100%;display:grid;gap:2px}
+.dy-rpop .btns button{min-height:56px;border:0;border-radius:999px;font:700 17px var(--font);cursor:pointer}
+.rpop-go{background:#FFD60A;color:#000;box-shadow:0 8px 28px rgba(255,214,10,.28)}
+.dy-rpop .btns .quiet{min-height:44px;background:transparent;color:rgba(235,235,245,.72);font:500 15px var(--font)}
+@keyframes rpTw{0%,100%{opacity:.15}50%{opacity:.7}}
+@keyframes rpRise{from{transform:translateY(26px) scale(.82);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.rpop-s i,.dy-rpop.open .rpop-m{animation:none}.dy-rpop{transform:none;opacity:0;transition:opacity .2s ease,visibility 0s .2s}.dy-rpop.open{opacity:1;transition-delay:0s}}
 @media (prefers-reduced-motion:reduce){.avgplot.avgplay .abar{animation:none}.dy-pop{transition:opacity .2s ease,visibility 0s .2s;transform:translateY(-50%)}}
 .dy-v{position:relative;overflow:hidden;border-radius:14px}.dy-cal.in{position:absolute;top:0;left:0;right:0}
 .dy-cal button{cursor:pointer}.dy-cal button.sel{outline:2px solid var(--label);outline-offset:2px}
@@ -1099,6 +1121,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
       <div class="scrim" id="dScrim"></div>
       <div class="report" id="dyReport" role="dialog" aria-modal="true" aria-hidden="true" hidden></div>
       <div class="dy-pop" id="dyPop" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Go to a month"></div>
+      <div class="sheet dy-rpop" id="dyRPop" role="dialog" aria-modal="true" aria-hidden="true"><div class="grab"></div><div id="dyRPopIn"></div></div>
       <div class="me" id="frScr" aria-hidden="true" aria-label="Friends"></div>
       <div class="scrim" id="frScrim"></div>
       <div class="sheet psheet" id="frSheet" role="dialog" aria-modal="true" aria-labelledby="frTitle" aria-hidden="true">
@@ -2877,6 +2900,17 @@ function dyBloom(){
     for(var mm=0;mm<12;mm++){ var o=(now.getFullYear()*12+now.getMonth())-(y*12+mm), ok=o>=0&&o<=DY_BACK; h+='<button type="button" data-o="'+o+'"'+(ok?'':' disabled')+(o===dyOff?' class="on"':'')+'>'+new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:zh?'long':'short'}).format(new Date(y,mm,1))+(ok?'<i></i>':'')+'</button>'; }
     h+='</div><div class="acts"><button type="button" class="sec" data-this>'+(zh?'本月':'This month')+'</button><button type="button" class="pri" data-x>'+(zh?'完成':'Done')+'</button></div>'; $('dyPop').innerHTML=h; }
   function dyPop(open){ $('dyPop').classList.toggle('open',open); $('dyPop').setAttribute('aria-hidden',!open); $('dScrim').classList.toggle('on',open); if(open) dyPopRender(); }
+  /* the monthly recap pop-up, shown once per visit the first time Days opens */
+  var dyRPopDone=false, dyRPopT=null;
+  function dyRPopSet(open){ var e=$('dyRPop'); if(!e) return; if(open){ var name=dyMonthName(), st=''; for(var i=0;i<14;i++) st+='<i style="left:'+((i*37+11)%97+1)+'%;top:'+((i*53+7)%71+2)+'%;animation-delay:'+((i*0.37)%3).toFixed(2)+'s"></i>';
+      $('dyRPopIn').innerHTML='<div class="rpop"><span class="rpop-s" aria-hidden="true">'+st+'</span><svg class="rpop-m" viewBox="-30 -30 60 60" role="img" aria-label="'+LL('A full moon','一轮满月')+'"><defs><radialGradient id="rpG" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FFF8DC"/><stop offset=".55" stop-color="#F5DE8C"/><stop offset="1" stop-color="#E8C867"/></radialGradient></defs><circle r="27" fill="url(#rpG)"/><circle cx="-9" cy="-8" r="4.4" class="c"/><circle cx="8" cy="8" r="6" class="c"/><circle cx="9.5" cy="-13" r="2.6" class="c"/></svg>'+
+        '<span class="rpop-k">'+LL('New','新')+'</span><h3 id="dyRPopT">'+LL('Your '+name+' recap is ready','你的'+name+'回顾准备好了')+'</h3><p class="lede">'+LL('Your month in hours, days and sky.','你这个月的时长、天数与天空。')+'</p>'+
+        '<div class="btns"><button type="button" class="rpop-go" id="dyRPopGo">'+LL('See my recap','查看回顾')+'</button><button type="button" class="quiet" id="dyRPopLater">'+LL('Later','稍后')+'</button></div></div>';
+      e.setAttribute('aria-labelledby','dyRPopT'); $('dyRPopGo').addEventListener('click',function(){ dyRPopSet(false); setTimeout(dyRpOpen,380); }); $('dyRPopLater').addEventListener('click',function(){ dyRPopSet(false); }); }
+    e.classList.toggle('open',open); e.setAttribute('aria-hidden',!open); $('dScrim').classList.toggle('on',open); }
+  function dyRPopSoon(){ if(dyRPopDone||dyOff!==0) return; dyRPopDone=true; clearTimeout(dyRPopT); dyRPopT=setTimeout(function(){ if($('daysScr').classList.contains('open')&&!dyRp.open&&!$('dyPop').classList.contains('open')) dyRPopSet(true); },1100); }
+  $('dScrim').addEventListener('click',function(){ dyRPopSet(false); }); window.LightlyDyPop=dyRPopSoon;
+  window.addEventListener('keydown',function(e){ if(e.key==='Escape'&&$('dyRPop').classList.contains('open')) dyRPopSet(false); });
   $('dyMonth').addEventListener('click',function(){ dyPop(true); }); $('dScrim').addEventListener('click',function(){ dyPop(false); });
   $('dyPop').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b||b.disabled) return; if(b.hasAttribute('data-x')){ dyPop(false); return; } var o=b.hasAttribute('data-this')?0:+b.dataset.o; var d=o>dyOff?1:o<dyOff?-1:0; dyPop(false); dyGo(o,d); });
   $('dyPrev').addEventListener('click',function(){ dyGo(dyOff+1,-1); }); $('dyNext').addEventListener('click',function(){ dyGo(dyOff-1,1); });
@@ -3008,7 +3042,7 @@ function dyBloom(){
     document.getElementById('tryFin').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(1)'); if(t) t.click(); setTimeout(function(){ var b=document.querySelector('#moments [data-go=finish]'); if(b) b.click(); },500); });
     document.getElementById('tryImp').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(4)'); if(t) t.click(); setTimeout(function(){ var m=document.getElementById('meImp'); if(m) m.click(); },500); }); })();
   function select(i){ ph.style.setProperty('--ti',i); tabs.forEach(function(t,k){ t.classList.toggle('sel',k===i); t.setAttribute('aria-selected',k===i); });
-    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ dyPlay=true; daysRender(); dsc.scrollTop=0; } else { dySel=null; fabSync(); } var fopen=i===2, open=i===3; if(window.LightlyFriends) window.LightlyFriends.show(fopen); me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(ph.hasAttribute('data-me')!==!!(open||dopen||fopen)){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); } if(open||dopen||fopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
+    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ dyPlay=true; daysRender(); dsc.scrollTop=0; if(window.LightlyDyPop) window.LightlyDyPop(); } else { dySel=null; fabSync(); } var fopen=i===2, open=i===3; if(window.LightlyFriends) window.LightlyFriends.show(fopen); me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(ph.hasAttribute('data-me')!==!!(open||dopen||fopen)){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); } if(open||dopen||fopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
   tabs.forEach(function(t,i){ t.setAttribute('role','tab'); t.tabIndex=0;
     t.addEventListener('click',function(){ select(i); });
     t.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); t.click(); } }); });
