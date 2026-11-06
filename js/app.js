@@ -1152,6 +1152,7 @@ function placeSheet(){
   h+='<div class="group"><button class="plan'+(S.place.key==='here'?' sel':'')+'" data-act="geo"><span class="pn"><b>'+L('Use my location','使用我的位置')+'</b><small>'+L('Most accurate. Stays on this phone.','最准确，只留在这台手机上。')+'</small></span>'+CHECK+'</button></div><div class="gh">'+L('Or choose a city','或选择城市')+'</div><div class="group">';
   Object.keys(C.CITIES).forEach(function(k){ h+='<button class="plan'+(S.place.key===k?' sel':'')+'" data-act="city" data-k="'+k+'" style="min-height:48px"><span class="pn"><b style="font-weight:400">'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</b></span>'+CHECK+'</button>'; });
   h+='</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'; openSheet(h);
+  var cur=sheetEl.querySelector('[data-act=city].sel'); if(cur) setTimeout(function(){ try{ cur.scrollIntoView({block:'center'}); }catch(x){} },0);   /* a long list opens on your own city */
 }
 function setPlace(pl){ if(pl.key!=='here') geoTok++; S.place=pl; sunDay=''; save(); cache={}; updateToday(); }
 /* A fix can take several seconds on a phone (the permission prompt, then the radio), so the person always sees that Lightly is working, and is never left waiting:

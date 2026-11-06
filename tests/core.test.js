@@ -46,6 +46,10 @@ bs.off=[{id:'a',kind:'travel',start:now-D,days:3,endedAt:now}];assert.strictEqua
 // a running fast means today is not a day off; yesterday and the future are not affected
 {const cs={fasts:[],flex:{bank:2,used:[]},cur:{start:now-3600000}};assert.strictEqual(C.flexBlock(C.dayKey(now),cs,now),'fasting');assert.strictEqual(C.flexBlock(C.dayKey(now+D),cs,now),'window','no cheat day for a future date');cs.cur=null;assert.strictEqual(C.flexBlock(C.dayKey(now),cs,now),'');}
 assert.strictEqual(C.guessCity('Asia/Shanghai'),'shanghai');
+// the city list has the big classic cities, each with a real zone and a sunrise that is not the same everywhere
+{const ks=Object.keys(C.CITIES);['berlin','london','paris','jakarta','tokyo','mumbai','cairo','lagos','saopaulo','mexicocity','toronto','melbourne','auckland','seoul','istanbul','moscow'].forEach(k=>assert.ok(C.CITIES[k],'missing '+k));
+ks.forEach(k=>{const c=C.CITIES[k];assert.ok(c.en&&c.zh&&isFinite(c.lat)&&isFinite(c.lon)&&c.zone,k+' is complete');assert.ok(isFinite(C.zoneOffset(c.zone,Date.UTC(2026,10,6))),k+' has a usable time zone');});
+assert.strictEqual(C.guessCity('Europe/Paris'),'paris');assert.strictEqual(C.guessCity('Europe/Berlin'),'berlin');assert.strictEqual(C.guessCity('Asia/Jakarta'),'jakarta');assert.strictEqual(C.guessCity('America/Toronto'),'toronto');}
 // everyday plan ladder
 {const f=(h,g)=>({id:String(Math.random()),start:0,end:h*H,goalH:g==null?h:g}),first={fastedBefore:false,safety:false},exp={fastedBefore:true,safety:false},st=(id,pr,fs)=>C.planStatus(id,pr,{fasts:fs});
 assert.strictEqual(st('13',first,[]).st,'ok');assert.strictEqual(st('16',first,[]).st,'ok','16:8 is open for first-timers');assert.strictEqual(st('16',exp,[]).st,'ok');

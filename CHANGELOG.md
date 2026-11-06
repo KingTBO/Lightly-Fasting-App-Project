@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.85.0
+- **feature** The location list has 50 cities instead of 13: the big classic ones such as Berlin, Paris, London, Jakarta, Mumbai, Cairo, Lagos, São Paulo, Mexico City, Toronto, Seoul and Auckland, in English and 中文. The phone's time zone now picks the right one (a phone in Paris starts on Paris, not London), and the list opens on your own city. The concept page has the same list.
+
 ## 0.84.0
 - **design** BMI no longer decides anything. Before, nobody with a BMI under 18.5 had their weight kept for the check-in; now every adult (18 and over) can, whatever their weight. Under 18 and Care mode are unchanged (no weight questions).
 - **feature** The gender choice also has Non-binary (Male, Female, Non-binary, Prefer not to say). It is saved only when chosen, and Me > About you shows it.
