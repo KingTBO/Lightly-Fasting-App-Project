@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.93.1
+- **docs** RELEASING.md: when a Pages deploy times out and its re-run never starts (v0.80.0, v0.93.0), a re-run with no jobs cannot be cancelled, so ship a small follow-up release instead of waiting. This release also puts v0.93.0 (Friends spacing) live.
+
 ## 0.93.0
 - **design** Friends has more room and matches the rest of the app. The big "Friends" title is gone (Today, Days and Me have none) and the group list has a small "Your groups" label like the sections in Me. The group screen has more air between the title, the seven days and the people, taller rows and a clearer gap before the Cheer chip and the sun. Group settings and a person's sheet use the same grouped rows as Me (Invite friends, Rename group, Leave group in red; Report and Remove from group) instead of a stack of three buttons. Sheets without a short line under their title get room below it, the picture grid in "Your name in groups" no longer touches Continue, and the invite and join sheets are spaced out. The concept page matches.
 
