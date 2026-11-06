@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.86.0
+- **feature** Friends, step 2 of 5: the Friends tab, for trying only. In Me there is a new switch, "Friends (preview)". It is off by default, and while it is off nothing about Friends shows anywhere, and Today, Days and Me look and work exactly as before. Turn it on and a fourth tab appears. Signed out it says Friends needs an account and everything else works without one; signed in you can start a group (first choosing a name and one of eight sky pictures, never taken from your email), then share its invite as a link, a code or a QR code. Your groups are listed on the tab. It is hidden completely for anyone who answered the eating-disorder question in Health answers. English and Chinese, light and dark.
+
 ## 0.85.0
 - **feature** The location list has 50 cities instead of 13: the big classic ones such as Berlin, Paris, London, Jakarta, Mumbai, Cairo, Lagos, São Paulo, Mexico City, Toronto, Seoul and Auckland, in English and 中文. The phone's time zone now picks the right one (a phone in Paris starts on Paris, not London), and the list opens on your own city. The concept page has the same list.
 

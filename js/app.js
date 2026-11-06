@@ -126,7 +126,7 @@ function toast(msg,undo){ var t=$('toast'); toastFn=undo||null; t.textContent=ms
   if(undo){ var b=document.createElement('button'); b.type='button'; b.className='tundo'; b.dataset.act='toastundo'; b.textContent=L('Undo','撤销'); t.appendChild(b); }
   t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); toastFn=null; },undo?5600:3400); }
 var sheetEl=$('sheet'), scrim=$('scrim'), sheetOpen=false, sheetBack=null;
-var sheetFrom=null, BEHIND=['today','days','me','tabs','dayFab'];
+var sheetFrom=null, BEHIND=['today','days','friends','me','tabs','dayFab'];
 function setInert(v){ BEHIND.forEach(function(id){ var e=$(id); if(v) e.setAttribute('inert',''); else e.removeAttribute('inert'); }); }
 /* one sheet pattern: the title row carries the dismiss (a round X, same as the concept page); a sheet keeps one primary button and no Cancel, Close or Done pill.
    Start a sheet with <!--keep--> to leave its buttons alone (confirmations that must be answered). */
@@ -436,22 +436,22 @@ function setNotify(on,done){
 }
 
 /* ---------- tabs ---------- */
-var curTab='today';
+var curTab='today', FUI=null; /* the Friends screens (js/friends-ui.js), created below once the action table exists */
 function showTab(t,instant){
-  var prev=curTab, order=['today','days','me']; curTab=t; if(t==='today') tipUntil=Date.now()+6000; closeSheet(); ph.classList.remove('tabs-off');
+  var prev=curTab, order=FUI?FUI.order():['today','days','me']; curTab=t; if(t==='today') tipUntil=Date.now()+6000; closeSheet(); ph.classList.remove('tabs-off');
   /* Today has the sky behind it and the other tabs a plain background: the colours must swap instantly, not fade in over a second */
   if((prev==='today')!==(t==='today')){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); }
-  order.forEach(function(k){ $(k).classList.remove('leaving'); });
+  ['today','days','friends','me'].forEach(function(k){ $(k).classList.remove('leaving'); });
   order.forEach(function(k){ var e=$(k), was=e.classList.contains('on'); e.classList.toggle('on',k===t); if(!reduce&&!instant&&prev!==t&&e.animate){ if(k===t){ e.getAnimations().forEach(function(a){ a.cancel(); }); e.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.16,1,.3,1)'}); } else if(was){ e.classList.add('leaving'); var an=e.animate([{opacity:1},{opacity:0}],{duration:160,easing:'ease-out'}); an.onfinish=function(){ e.classList.remove('leaving'); }; } } });
   if(instant){ ph.classList.add('boot'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('boot'); }); }); }
   ph.style.setProperty('--ti',order.indexOf(t));
   document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('sel',b.dataset.tab===t); b.setAttribute('aria-current',b.dataset.tab===t?'page':'false'); });
   ph.classList.toggle('sys',t!=='today');
-  if(t==='days'){ avgPlay=true; numPlay=true; avgSel=null; fabOn=false; selDay=null; } if(t==='days') renderDays(); if(t==='me') renderMe(); fabSync(); if(t==='today') updateToday();
+  if(t==='days'){ avgPlay=true; numPlay=true; avgSel=null; fabOn=false; selDay=null; } if(t==='days') renderDays(); if(t==='me') renderMe(); if(t==='friends'&&FUI) FUI.show(); fabSync(); if(t==='today') updateToday();
   chrome();
   $(t).scrollTop=0;
 }
-function tabLabels(){ $('tabT').textContent=L('Today','今天'); $('tabD').textContent=L('Days','日子'); $('tabM').textContent=L('Me','我的'); }
+function tabLabels(){ $('tabF').textContent=L('Friends','朋友'); $('tabT').textContent=L('Today','今天'); $('tabD').textContent=L('Days','日子'); $('tabM').textContent=L('Me','我的'); }
 
 /* ---------- Days ---------- */
 /* ---------- time off ---------- */
@@ -1199,6 +1199,7 @@ function nameSheet(){
     '<div class="btns"><button class="btn" data-act="namesave">'+L('Save','保存')+'</button></div>');
   var i=$('nmIn'); if(i) setTimeout(function(){ try{ i.focus(); i.select(); }catch(e){} },350);
 }
+var GICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.6 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h5.9c-.3 1.4-1 2.5-2.2 3.3v2.7h3.6c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8C3.9 20.6 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.8 14.2c-.2-.7-.4-1.4-.4-2.2s.1-1.5.4-2.2V7H2.1C1.4 8.5 1 10.2 1 12s.4 3.5 1.1 5l3.7-2.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2C17.5 2.1 15 1 12 1 7.7 1 3.9 3.4 2.1 7l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>';
 function accountHtml(){
   var zh=S.lang==='zh', au=CL&&CL.getAuth(), h='';
   if(au){
@@ -1206,7 +1207,7 @@ function accountHtml(){
     return h;
   }
   h+='<div class="group"><div class="me-card">'+avatarBtn()+'<div><b>'+L('Not signed in','未登录')+'</b><span>'+L('Everything works. Fasts stay on this phone.','所有功能都能用，断食记录保存在这台手机上。')+'</span></div></div>'+
-   '<div class="signin"><button class="btn gbtn" data-act="google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.6 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h5.9c-.3 1.4-1 2.5-2.2 3.3v2.7h3.6c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8C3.9 20.6 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.8 14.2c-.2-.7-.4-1.4-.4-2.2s.1-1.5.4-2.2V7H2.1C1.4 8.5 1 10.2 1 12s.4 3.5 1.1 5l3.7-2.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2C17.5 2.1 15 1 12 1 7.7 1 3.9 3.4 2.1 7l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg><span>'+L('Continue with Google','用 Google 继续')+'</span></button><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button></div></div>'+
+   '<div class="signin"><button class="btn gbtn" data-act="google">'+GICON+'<span>'+L('Continue with Google','用 Google 继续')+'</span></button><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button></div></div>'+
    '<div class="gf" style="margin-top:-8px">'+L('Signing in is optional and only backs up your fasts, so you can change phones.','登录是可选的，只用来备份记录，换手机时不会丢。')+'</div>';
   return h;
 }
@@ -1314,7 +1315,7 @@ function choiceSheet(k){
   openSheet(h+'</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'); scrim.classList.toggle('peek',k==='theme');
 }
 function renderMe(){
-  careTick(); var zh=S.lang==='zh', h='';
+  if(FUI) FUI.sync(); careTick(); var zh=S.lang==='zh', h='';
   h+=accountHtml();
   var p=plan(), ls=S.cur?null:null;
   h+='<div class="gh">'+L('Fasting','断食')+'</div><div class="group">'+
@@ -1333,6 +1334,7 @@ function renderMe(){
    (care()?'<div class="gf">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。')+'</div>':'');
   h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group">'+(S.body?'<button class="row" data-act="bodyinfo">'+mi('lock','grey')+'<span>'+L('About you','关于你')+'</span><span class="v">'+L('Saved','已保存')+'</span>'+CHEV+'</button>':'')+'<button class="row" data-act="import">'+mi('imp','grey')+'<span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export">'+mi('exp','grey')+'<span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase">'+mi('trash','red')+'<span>'+L('Erase everything','清除所有数据')+'</span></button>'+(cloudOn()?'<button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button>':'')+'</div>';
   if(C.ramadanDay()===0&&!care()) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview,0,mi('moon','gold')))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
+  if(FUI) h+=FUI.meRow(mi);
   h+='<div class="gh">'+L('About','关于')+'</div><div class="group"><a class="row" href="privacy/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('lock','grey')+'<span>'+L('Privacy Policy','隐私政策')+'</span>'+CHEV+'</a><a class="row" href="terms/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('doc','grey')+'<span>'+L('Terms of Use','使用条款')+'</span>'+CHEV+'</a></div>'; /* public pages, also the URLs entered in Google Play */
   if(cloudOn()) h+='<div class="group"><button class="row red so" data-act="signout"><span>'+L('Sign out','退出登录')+'</span></button></div>'; /* signed in only: a plain button at the very end */
   h+='<p class="gf" data-act="diag" style="text-align:center">'+L('Lightly · web app · v','轻伴 · 网页版 · v')+(window.LIGHTLY_VERSION||'')+L(' · saved on this device',' · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
@@ -1343,7 +1345,7 @@ var MI={arc:'M3 17C7 6 17 6 21 17M3 17h.01M21 17h.01',sun:'M3 17h18M7 17a5 5 0 0
   globe:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9S9.5 5.5 12 3Z',half:'M12 3a9 9 0 1 0 0 18V3Z',
   sound:'M4 10v4h4l5 4V6L8 10H4ZM16.5 9a4 4 0 0 1 0 6',vib:'M9 4h6v16H9zM5 8v8M19 8v8',moon:'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z',bell:'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16ZM10 21h4',
   heart:'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z',imp:'M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14',exp:'M12 15V4M7.5 8.5 12 4l4.5 4.5M5 20h14',
-  shield:'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z',trash:'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13',lock:'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z',doc:'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',out:'M10 4H5v16h5M15 8l4 4-4 4M19 12H9',userx:'M16 20v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8l4 4M21 8l-4 4'};
+  shield:'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z',trash:'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13',lock:'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z',doc:'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',out:'M10 4H5v16h5M15 8l4 4-4 4M19 12H9',people:'M9 11.5a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8ZM2.8 19.5a6.2 6.2 0 0 1 12.4 0M15.6 4.8a3.2 3.2 0 0 1 0 6.2M17.5 13.7a6 6 0 0 1 3.7 5.3',userx:'M16 20v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8l4 4M21 8l-4 4'};
 function mi(k,tone){ return '<span class="mi '+tone+'" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="'+MI[k]+'"/></svg></span>'; }
 function sw(k,label,on,dis,ico){ return '<div class="row">'+(ico||'')+'<span>'+label+'</span><button class="sw" role="switch" aria-checked="'+!!on+'" aria-label="'+esc(label)+'" data-act="sw" data-k="'+k+'"'+(dis?' disabled':'')+'></button></div>'; }
 /* Light / Dark / Auto: every colour changes in the same frame. Any per-element transition is switched off for that frame, so text never sits half-way between black and white; the sheet's blur is untouched. */
@@ -1745,6 +1747,7 @@ var A={
   sw:function(b){ var k=b.dataset.k, on=b.getAttribute('aria-checked')!=='true';
     if(k==='notify') return setNotify(on,function(){ if(!$('ob').hidden) obRefresh(); else renderMe(); });
     if(k==='ram'){ S.ramadanPreview=on; save(); return renderMe(); }
+    if(k==='fr'){ FUI.setPreview(on); fx('light'); return renderMe(); }
     S.prefs[k]=on; save(); if(k==='d3'&&orb) orb.set(on); b.setAttribute('aria-checked',on); if(k==='sound'&&on) sChime(); else fx('light'); },
   timeoff:timeOffSheet,
   offtravel:function(){ offDays=offDays||3; offTravelSheet(); },
@@ -1807,6 +1810,7 @@ var A={
   obdone:obFinish
 };
 document.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){ e.preventDefault(); A.namesave(); } });
+FUI=window.LightlyFriendsUI.init({S:function(){ return S; },L:L,esc:esc,$:$,CL:CL,AV:AV,CHEV:CHEV,A:A,ph:ph,tab:function(){ return curTab; },showTab:showTab,today:today,toast:toast,openSheet:openSheet,closeSheet:closeSheet,fx:fx,sw:sw,GICON:GICON});
 document.addEventListener('click',function(e){ var b=e.target.closest('[data-act]'); if(!b||!ph.contains(b)) return; var f=A[b.dataset.act]; if(f){ if(b.tagName==='BUTTON'&&b.disabled) return; f(b); } });
 document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!t.dataset.chg) return;
   if(t.dataset.chg==='custom'){ var v=Math.min(C.customMax(S.profile),Math.max(12,Math.round(+t.value)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; } save(); cache={}; ticksKey=''; updateToday(); planSheet(); }
@@ -1817,7 +1821,7 @@ document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!
   fit(); window.addEventListener('resize',fit); window.addEventListener('orientationchange',function(){ setTimeout(fit,200); }); window.addEventListener('pageshow',fit); })();
 /* scrolling down gives the screen to the content; scrolling up (or reaching the top) brings the tab bar back */
 (function(){ var last={}, acc={};
-  ['today','days','me'].forEach(function(id){ var e=$(id); last[id]=0; acc[id]=0;
+  ['today','days','friends','me'].forEach(function(id){ var e=$(id); last[id]=0; acc[id]=0;
     e.addEventListener('scroll',function(){ var y=e.scrollTop, d=y-last[id]; last[id]=y; if(y<0||y>e.scrollHeight-e.clientHeight+1) return;
       if(y<24){ ph.classList.remove('tabs-off'); acc[id]=0; return; }
       if((d>0)!==(acc[id]>0)) acc[id]=0; acc[id]+=d;
@@ -1854,7 +1858,7 @@ function fitDisc(){ var t=$('today'); if(curTab!=='today'||!t.clientHeight) retu
   if(Math.abs(d)<2) return; var n=Math.max(ph.classList.contains('tight')?.3:.4,Math.min(1,dsNow+d/236)); if(Math.abs(n-dsNow)<.004) return; dsNow=n; $('discWrap').style.setProperty('--ds',n.toFixed(3)); }
 window.addEventListener('resize',fitDisc);
 if(S.onboarded){ careTick(); careApply(); normalisePlan(); }
-(function(){ var ti=['today','days','me'].indexOf(curTab||'today'); ph.style.setProperty('--ti',ti<0?0:ti); })();
+(function(){ var ti=(FUI?FUI.order():['today','days','me']).indexOf(curTab||'today'); ph.style.setProperty('--ti',ti<0?0:ti); })();
 if(S.prefs.timerStyle==='c') S.prefs.timerStyle='b';
 ph.dataset.ts=S.prefs.timerStyle||'b';
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();

@@ -91,8 +91,10 @@ function push(data){ data=scrub(data); var a=getAuth(); return token().then(func
    Signed in with the person's own token. The only anonymous call is the invite preview (a friend looking at a link before joining). A failure's message is the
    function's error key ("not_member", "group_cap", ...) and js/friends.js turns it into calm words; no answer at all keeps err.status undefined (offline). */
 function rpc(name,args){ return token().then(function(t){ return call('/rest/v1/rpc/'+name,{method:'POST',token:t,body:args||{}}); }); }
+/* a read of the person's own rows (Row Level Security shows only theirs), for example 'profiles?select=display_name,avatar' */
+function rest(path){ return token().then(function(t){ return call('/rest/v1/'+path,{token:t}); }); }
 function rpcAnon(name,args){ return call('/rest/v1/rpc/'+name,{method:'POST',body:args||{}}); }
 
-root.LightlyCloud={landing:landing,rpc:rpc,rpcAnon:rpcAnon,pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,deleteAccount:deleteAccount,alive:alive,pull:pull,push:push};
+root.LightlyCloud={landing:landing,rest:rest,rpc:rpc,rpcAnon:rpcAnon,pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,deleteAccount:deleteAccount,alive:alive,pull:pull,push:push};
 if(typeof module!=='undefined'&&module.exports) module.exports=root.LightlyCloud;
 })(typeof self!=='undefined'?self:this);
