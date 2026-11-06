@@ -17,11 +17,21 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);
   let t=await txt(q);assert.match(t,/A little about you/);assert.match(t,/see your weight trend, with a check-in every month/);assert.match(t,/Private to you: it stays on this phone, and in your backup only if you sign in/);assert(!/estimate/i.test(t),'no estimate any more');
   await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);t=await txt(q);assert(!/How do you usually eat|Your first 30 days/.test(t),'the eating and estimate steps are gone');assert.match(t,/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
-  const s=await S(q);assert.strictEqual(s.body.age,30);assert.strictEqual(s.body.kg,70);assert.strictEqual(s.body.cm,170);assert(!('dinner' in s.body),'no eating answers saved');
+  const s=await S(q);assert.strictEqual(s.body.age,30);assert.strictEqual(s.body.kg,70);assert.strictEqual(s.body.cm,170);assert(!('dinner' in s.body),'no eating answers saved');assert(!('sex' in s.body),'Prefer not to say (the default) saves nothing');
   await q.reload();await q.waitForTimeout(700);assert.strictEqual((await S(q)).body.kg,70,'the weight survives a reload');
-  await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);assert.match(await q.textContent('#me'),/Weight and height/);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent('#sheet'),/Never shared/);await q.click('#sheet [data-act=bodyrm]');await q.waitForTimeout(500);
-  assert(!(await S(q)).body,'removed');assert(!/Weight and height/.test(await q.textContent('#me')));
+  await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);assert.match(await q.textContent('#me'),/About you/);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent('#sheet'),/Never shared/);await q.click('#sheet [data-act=bodyrm]');await q.waitForTimeout(500);
+  assert(!(await S(q)).body,'removed');assert(!/About you/.test(await q.textContent('#me')));
   ok('about you: saved for the check-in, removable from Me; no eating or estimate steps');await q.context().close();}
+
+ // gender: optional, Prefer not to say is the default and saves nothing; Male or Female is kept and shown in Me
+ {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);
+  assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=n]','aria-pressed'),'true','Prefer not to say is pre-selected');
+  const row=await q.$$eval('.ob-step.on .seg button[data-act=obsex]',bs=>bs.map(b=>b.textContent.trim()));assert.deepStrictEqual(row,['Male','Female','Prefer not to say'],'the three choices');
+  assert(await q.$eval('.ob-step.on .seg button[data-v=n]',e=>e.getBoundingClientRect().height)<50,'Prefer not to say stays on one line');
+  await q.click('.ob-step.on [data-act=obsex][data-v=f]');await q.waitForTimeout(300);assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=f]','aria-pressed'),'true');assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=n]','aria-pressed'),'false');
+  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
+  assert.strictEqual((await S(q)).body.sex,'f','Female is saved');await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent('#sheet'),/GenderFemale/,'Me shows it');
+  ok('gender: optional, Prefer not to say saves nothing, Female is kept and shown in Me');await q.context().close();}
 
  // units
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);
@@ -79,6 +89,15 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   ok('monthly check-in in the recap: one weight, saved, changeable');await q.context().close();
   q=await rep(seed({body:{age:30,kg:82,cm:170,unit:'kg',at:1},profile:{fastedBefore:true,safety:true,care:['diab']}}));assert(!(await q.$('#rpW')),'no check-in in Care mode');await q.context().close();
   q=await rep(seed({}));assert(!(await q.$('#rpW')),'no check-in without a weight from setup');ok('no check-in in Care mode or without a weight');await q.context().close();}
+
+ // the concept page has the same gender choice
+ {const c=await b.newContext({viewport:{width:430,height:1000},timezoneId:'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));await q.goto(url+'concept/');await q.waitForTimeout(800);
+  await q.evaluate(()=>document.getElementById('obph').scrollIntoView({block:'center'}));await q.waitForTimeout(500);
+  const last='#obStage .ob-step:last-child ';
+  for(let i=0;i<9&&!(await q.$(last+'[data-sex]'));i++){ if(await q.$(last+'[data-loc=city]')) await q.click(last+'[data-loc=city]'); else if(await q.$(last+'[data-next][disabled]')) await q.click(await q.$(last+'.ob-opt[role=checkbox]')?last+'.ob-opt:last-child':last+'.ob-opt');   /* safety: "none of these" (the last card), so the body step is not skipped */ await q.waitForTimeout(300);await q.click(last+'[data-next]');await q.waitForTimeout(900); }
+  assert(await q.$(last+'[data-sex]'),'the concept body step has the gender choice');assert.strictEqual(await q.getAttribute(last+'[data-sex=n]','aria-pressed'),'true');
+  await q.click(last+'[data-sex=m]');await q.waitForTimeout(300);assert.strictEqual(await q.getAttribute(last+'[data-sex=m]','aria-pressed'),'true');assert.strictEqual(await q.getAttribute(last+'[data-sex=n]','aria-pressed'),'false');
+  ok('concept page: gender choice');await c.close();}
 
  assert.deepStrictEqual(errs,[],'no page errors: '+errs.join(' | '));
  await b.close();srv.close();console.log('body ok');

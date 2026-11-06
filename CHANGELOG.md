@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.82.0
+- **feature** "A little about you" has an optional gender choice: Male, Female or Prefer not to say (the default). It is private like the rest: on this phone, and in your backup only if you sign in. "Prefer not to say" saves nothing. Nothing in the app uses it yet. In Me, the Weight and height row is now "About you" and shows the gender if you chose one. The Privacy Policy now lists gender with age, weight and height. While there I fixed lines in it that were out of date since v0.80.0: it still described the removed 30-day estimate and the eating questions, and said Lightly does not ask for your weight. Concept page matches.
+
 ## 0.81.2
 - **design** At the end of setup the sun (or the moon's glow) now appears sooner. It starts as the moon nears full instead of waiting for the slow last stretch of the fill, and the whole finale is about 0.8 seconds shorter. Concept page too.
 

@@ -1078,7 +1078,7 @@ function careSheet(){
 }
 function bodySheet(){
   var b=S.body; if(!b) return closeSheet(); var u=b.unit||'kg';
-  openSheet('<h3>'+L('Weight and height','体重和身高')+'</h3><p class="lede">'+L('Saved for your monthly check-ins. Never shared.','只用于你的每月记录，绝不分享。')+'</p><div class="group"><div class="row"><span>'+L('Age','年龄')+'</span><b>'+b.age+'</b></div><div class="row"><span>'+L('Weight','体重')+'</span><b>'+Math.round(C.kgTo(b.kg,u))+' '+uLbl(u)+'</b></div><div class="row"><span>'+L('Height','身高')+'</span><b>'+b.cm+' cm</b></div></div>'+
+  openSheet('<h3>'+L('About you','关于你')+'</h3><p class="lede">'+L('Saved for your monthly check-ins. Never shared.','只用于你的每月记录，绝不分享。')+'</p><div class="group"><div class="row"><span>'+L('Age','年龄')+'</span><b>'+b.age+'</b></div><div class="row"><span>'+L('Weight','体重')+'</span><b>'+Math.round(C.kgTo(b.kg,u))+' '+uLbl(u)+'</b></div><div class="row"><span>'+L('Height','身高')+'</span><b>'+b.cm+' cm</b></div>'+(b.sex?'<div class="row"><span>'+L('Gender','性别')+'</span><b>'+(b.sex==='f'?L('Female','女'):L('Male','男'))+'</b></div>':'')+'</div>'+
     '<div class="btns"><button class="btn red" data-act="bodyrm">'+L('Remove them','删除')+'</button><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
 }
 function careRow(b){
@@ -1329,7 +1329,7 @@ function renderMe(){
   h+='<div class="gh">'+L('Care','关怀')+'</div><div class="group"><button class="row" data-act="timeoff">'+mi('heart','gold')+'<span class="stack"><span>'+L('Time off','休息一下')+'</span></span>'+(offNow()?'<span class="v">'+(offNow().kind==='travel'?L('Travelling','旅行中'):L('Resting','休养中'))+'</span>':'')+CHEV+'</button>'+
    '<button class="row" data-act="care">'+mi('shield','gold')+'<span>'+L('Health answers','健康回答')+'</span><span class="v">'+(care()?L('Care mode on','关怀模式已开启'):L('None','无'))+'</span>'+CHEV+'</button></div>'+
    (care()?'<div class="gf">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。')+'</div>':'');
-  h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group">'+(S.body?'<button class="row" data-act="bodyinfo">'+mi('lock','grey')+'<span>'+L('Weight and height','体重和身高')+'</span><span class="v">'+L('Saved','已保存')+'</span>'+CHEV+'</button>':'')+'<button class="row" data-act="import">'+mi('imp','grey')+'<span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export">'+mi('exp','grey')+'<span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase">'+mi('trash','red')+'<span>'+L('Erase everything','清除所有数据')+'</span></button>'+(cloudOn()?'<button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button>':'')+'</div>';
+  h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group">'+(S.body?'<button class="row" data-act="bodyinfo">'+mi('lock','grey')+'<span>'+L('About you','关于你')+'</span><span class="v">'+L('Saved','已保存')+'</span>'+CHEV+'</button>':'')+'<button class="row" data-act="import">'+mi('imp','grey')+'<span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export">'+mi('exp','grey')+'<span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase">'+mi('trash','red')+'<span>'+L('Erase everything','清除所有数据')+'</span></button>'+(cloudOn()?'<button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button>':'')+'</div>';
   if(C.ramadanDay()===0&&!care()) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview,0,mi('moon','gold')))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
   h+='<div class="gh">'+L('About','关于')+'</div><div class="group"><a class="row" href="privacy/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('lock','grey')+'<span>'+L('Privacy Policy','隐私政策')+'</span>'+CHEV+'</a><a class="row" href="terms/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('doc','grey')+'<span>'+L('Terms of Use','使用条款')+'</span>'+CHEV+'</a></div>'; /* public pages, also the URLs entered in Google Play */
   if(cloudOn()) h+='<div class="group"><button class="row red so" data-act="signout"><span>'+L('Sign out','退出登录')+'</span></button></div>'; /* signed in only: a plain button at the very end */
@@ -1427,7 +1427,8 @@ function obHtml(i){
       :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
   }else if(key==='body'){
     body='<h1>'+L('A little about you','关于你')+'</h1><p class="lede">'+L('Add them and see your weight trend, with a check-in every month.','填写后，每月回顾会带你看体重变化的趋势。')+'</p><div class="group">'+pkField('obAge',L('Age','年龄'),ob.age,'sel',obAgeOpts())+pkField('obWt',L('Weight','体重'),Math.round(C.kgTo(ob.kg,ob.unit)),'sel',obWtOpts())+pkField('obHt',L('Height','身高'),obHtKey(),'sel',obHtOpts())+'</div>'+
-      '<div class="seg" role="group" aria-label="'+L('Units','单位')+'">'+['kg','lb','jin'].map(function(u){ return '<button type="button" data-act="obunit" data-v="'+u+'" aria-pressed="'+(ob.unit===u)+'">'+uLbl(u)+'</button>'; }).join('')+'</div><p class="gf obnote" style="padding:0 4px">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>';
+      '<div class="seg" role="group" aria-label="'+L('Units','单位')+'">'+['kg','lb','jin'].map(function(u){ return '<button type="button" data-act="obunit" data-v="'+u+'" aria-pressed="'+(ob.unit===u)+'">'+uLbl(u)+'</button>'; }).join('')+'</div>'+
+      '<div class="seg" role="group" aria-label="'+L('Gender','性别')+'">'+[['m',L('Male','男')],['f',L('Female','女')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-act="obsex" data-v="'+g[0]+'" aria-pressed="'+(ob.sex===g[0])+'">'+g[1]+'</button>'; }).join('')+'</div><p class="gf obnote" style="padding:0 4px">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obbody">'+L('Continue','继续')+'</button><button class="btn quiet" data-act="obbodyskip">'+L('Skip','跳过')+'</button>';
   }else if(key==='summary'){
     var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.start||'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
@@ -1507,10 +1508,10 @@ function obSwipe(){
 }
 obSwipe();
 function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement; morph(c,n); }
-function obStart(){ ph.classList.add('onb'); chrome(); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
+function obStart(){ ph.classList.add('onb'); chrome(); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),sex:'n',skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
-  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.start) S.prefs.usualStart=ob.start; if(S.planId==='custom'&&ob.customH) S.customH=ob.customH; if(!risky&&ob.bodyDone&&!ob.skip&&C.weightFit({age:ob.age,kg:ob.kg,cm:ob.cm})){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,at:Date.now()}; } else S.body=null;
+  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.start) S.prefs.usualStart=ob.start; if(S.planId==='custom'&&ob.customH) S.customH=ob.customH; if(!risky&&ob.bodyDone&&!ob.skip&&C.weightFit({age:ob.age,kg:ob.kg,cm:ob.cm})){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,at:Date.now()}; if(ob.sex==='m'||ob.sex==='f') S.body.sex=ob.sex; } else S.body=null;   /* gender is only kept when it was chosen: "prefer not to say" saves nothing */
   S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
   save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today'); obFly();
 }
@@ -1787,6 +1788,7 @@ var A={
   bodyinfo:bodySheet,
   bodyrm:function(){ S.body=null; save(); closeSheet(); renderMe(); },
   obunit:function(b){ ob.unit=b.dataset.v; obRefresh(); },
+  obsex:function(b){ ob.sex=b.dataset.v; fx('select'); obRefresh(); },
   obbody:function(){ ob.bodyDone=true; A.obnext(); },
   obbodyskip:function(){ ob.skip=true; ob.bodyDone=false; obRender(); },
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
