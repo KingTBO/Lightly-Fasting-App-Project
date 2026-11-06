@@ -48,7 +48,7 @@ function ok(n){ console.log('ok -',n); }
   await p.evaluate(()=>document.getElementById('me').scrollTo(0,0)); await p.waitForTimeout(300);
   const w4=await p.evaluate(()=>[document.getElementById('tabInd').getBoundingClientRect().width,document.getElementById('tabs').getBoundingClientRect().width]); assert(Math.abs(w4[0]-(w4[1]-12)/4)<1.5,'pill is a quarter: '+w4);
   await p.click('#tabs [data-tab=friends]'); await p.waitForTimeout(400);
-  assert.match(await p.textContent('#friends'),/Friends needs an account\. Everything else works without one\./); assert(await p.isVisible('#friends [data-act=frsignin]')); await shot(p,'signed-out-en');
+  assert.match(await p.textContent('#friends'),/Friends needs an account\. Everything else works without one\./); assert(await p.isVisible('#friends [data-act=frsignin]')); await shot(p,'signed-out-en'); assert.strictEqual(await p.$$eval('#friends h1',h=>h.length),0,'no page title, like Today, Days and Me');
   await p.click('#friends [data-act=frsignin]'); await p.waitForSelector('#sheet.open'); assert(await p.isVisible('#sheet [data-act=google]')&&await p.isVisible('#sheet [data-act=emailsheet]')); await shot(p,'signin-sheet');
   ok('Friends is on for everyone: four tabs, no preview switch, signed-out state and sign-in sheet');
   await p.reload(); await p.waitForTimeout(500); assert.deepStrictEqual(await tabsVisible(p),['today','days','friends','me']); ok('four tabs after a reload');
@@ -90,8 +90,9 @@ function ok(n){ console.log('ok -',n); }
   // settings: members, sharing switch, rename, leave
   await q.click('#friends [data-act=frset]'); await q.waitForSelector('#sheet .fr-mem'); assert.strictEqual(await q.$$eval('#sheet .fr-mem',b=>b.length),2); assert.match(await q.textContent('#sheet'),/Share my status/); assert.match(await q.textContent('#sheet'),/sees you as resting/);
   await q.click('#sheet [data-act=frsharing]'); await q.waitForTimeout(250); assert.deepStrictEqual(calls.filter(c=>c.fn==='set_sharing').pop().args,{p_gid:'g1',p_on:false}); await shot(q,'settings-en');
+  assert(await q.isVisible('#sheet .row[data-act=frinvite]')&&await q.isVisible('#sheet .row.red[data-act=frleave]'),'settings use the same grouped rows as Me'); assert.strictEqual(await q.$$eval('#sheet .btn',b=>b.length),0,'no stack of buttons in the settings sheet');
   await q.click('#sheet [data-act=frrename]'); await q.fill('#frRn','Dawn crew'); await q.click('#sheet [data-act=frrenamego]'); await q.waitForTimeout(300); assert.strictEqual((await q.textContent('#friends .fr-name')).trim(),'Dawn crew'); assert.deepStrictEqual(calls.filter(c=>c.fn==='rename_group').pop().args,{p_gid:'g1',p_name:'Dawn crew'});
-  ok('group settings: members, sharing switch, rename');
+  ok('group settings: members, sharing switch, rename (grouped rows, no button stack)');
   // what this phone publishes: exactly the payload, nothing else
   const f=await device(base({cur:{start:now-5*H,goalH:16,planId:'16'}}),true); await f.p.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); await f.p.reload(); await f.p.waitForTimeout(500); calls.length=0; await f.p.click('#tabs [data-tab=friends]'); await f.p.waitForTimeout(1200);
   const pub=calls.filter(c=>c.fn==='publish_me'); assert(pub.length>=1,'the phone publishes when it is in a group'); const pa=pub[pub.length-1].args;
