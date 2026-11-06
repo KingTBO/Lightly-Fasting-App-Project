@@ -851,7 +851,7 @@ html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;
 .ob-step>:not(.grow){flex-shrink:0}
 .ob-step .obnote+.group{margin-top:14px}
 .ob-step .seg+.seg{margin-top:12px}
-.ob-step .seg button[data-act=obsex][data-v=n]{flex:1.7}   /* "Prefer not to say" on one line */
+.ob-step .seg button[data-act=obsex]{flex:1 1 auto;padding:0 4px;white-space:nowrap}   /* four choices share the row by the width of their words, so "Non-binary" and "Prefer not to say" stay on one line */
 .ob-step .seg+.obnote{margin:12px 0 0;font-size:.875rem;line-height:1.35}
 /* the tile grid and the answer cards keep the usual gap before the next card (start time, custom wheel) */
 .ob-step .group.tiles+.group,.ob-step .group.cards+.group{margin-top:var(--group-gap)}

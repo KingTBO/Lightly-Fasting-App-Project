@@ -125,12 +125,11 @@ var WUNIT={kg:1,lb:2.20462,jin:2};
 function kgTo(kg,u){ return kg*(WUNIT[u]||1); }
 function toKg(v,u){ return v/(WUNIT[u]||1); }
 /* ---------- who the optional weight is for ----------
-   in: {age, kg, cm}. true for adults with a usable weight and a BMI of 18.5 or more; false means nothing is saved
-   (no weight check-in for under 18, for a low BMI, or for numbers that cannot be right). Care mode never gets here (the app skips the step). */
+   in: {age, kg, cm}. true for adults (18+) with numbers that can be right; false means nothing is saved. There is no BMI cut-off on
+   purpose (Tengbo, 2026-11-06: BMI is too biased to decide anything). Care mode never gets here (the app skips the step). */
 function weightFit(o){
   var kg=+o.kg, cm=+o.cm, age=+o.age;
-  if(!(kg>=30&&kg<=250&&cm>=120&&cm<=220&&age>=18)) return false;
-  return kg/Math.pow(cm/100,2)>=18.5;
+  return kg>=30&&kg<=250&&cm>=120&&cm<=220&&age>=18;
 }
 
 /* ---------- unlock rules for long fasts (24 h, 36 h) ----------
