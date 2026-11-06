@@ -19,7 +19,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);t=await txt(q);assert(!/How do you usually eat|Your first 30 days/.test(t),'the eating and estimate steps are gone');assert.match(t,/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
   const s=await S(q);assert.strictEqual(s.body.age,30);assert.strictEqual(s.body.kg,70);assert.strictEqual(s.body.cm,170);assert(!('dinner' in s.body),'no eating answers saved');assert(!('sex' in s.body),'Prefer not to say (the default) saves nothing');
   await q.reload();await q.waitForTimeout(700);assert.strictEqual((await S(q)).body.kg,70,'the weight survives a reload');
-  await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);assert.match(await q.textContent('#me'),/About you/);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent('#sheet'),/Never shared/);await q.click('#sheet [data-act=bodyrm]');await q.waitForTimeout(500);
+  await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);assert.match(await q.textContent('#me'),/About you/);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent("#sheet"),/Private unless you turn on Compare with others/);await q.click('#sheet [data-act=bodyrm]');await q.waitForTimeout(500);
   assert(!(await S(q)).body,'removed');assert(!/About you/.test(await q.textContent('#me')));
   ok('about you: saved for the check-in, removable from Me; no eating or estimate steps');await q.context().close();}
 

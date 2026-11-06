@@ -336,8 +336,22 @@ function monthReport(fasts,y,m,flexUsed,offKeys,place){
   r.flex=r.days.filter(function(s){ return s==='flex'; }).length; r.weeks=weekAvgs(fasts,y,m);
   return r;
 }
+/* ---------- weight comparison ----------
+   Only the CHANGE in the person's own weight ever leaves the phone, as a percent of their starting weight, at about day 30, 60 and 90.
+   Day 0 is the day the weight was given in setup. A check-in counts for the nearest of 30, 60 and 90 within 15 days (monthly check-ins fall around days 20, 51 and 82). */
+function trendPoints(body){
+  if(!body||!(body.kg>0)||!body.at) return [];
+  return (body.checks||[]).map(function(c){ return {day:Math.round((c.at-body.at)/D),pct:Math.round((c.kg-body.kg)/body.kg*1000)/10}; })
+    .filter(function(p){ return p.day>=1&&p.day<=400&&p.pct>=-30&&p.pct<=30; }).sort(function(a,b){ return a.day-b.day; });
+}
+function trendBuckets(points){
+  var out=[]; [30,60,90].forEach(function(t){ var best=null;
+    (points||[]).forEach(function(p){ var d=Math.abs(p.day-t); if(d<=15&&(!best||d<best.d||(d===best.d&&p.day>best.p.day))) best={d:d,p:p}; });
+    if(best) out.push({day:t,pct:best.p.pct}); });
+  return out;
+}
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);

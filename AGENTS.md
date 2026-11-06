@@ -42,6 +42,7 @@ NODE_PATH=$(npm root -g) node tests/wheel.test.js             # wheel pickers: m
 NODE_PATH=$(npm root -g) node tests/cloud.test.js --e2e       # only if cloud or sign-in code changed
 NODE_PATH=$(npm root -g) node tests/signin-return.test.js     # coming back from a sign-in link never shows Today (a few seconds)
 NODE_PATH=$(npm root -g) node tests/body.test.js              # optional weight in onboarding: about you, units, skip, who keeps a weight (adults, no BMI cut-off), gender, the opt-out of the check-in, the monthly check-in (about 30 seconds)
+NODE_PATH=$(npm root -g) node tests/trend.test.js             # compare with others: only day and percent are sent, opt-in, offline deletion, the recap chart (Supabase faked); database: scripts/test-trend-db.sh
 NODE_PATH=$(npm root -g) node tests/care.test.js              # Care mode: health answers, plan caps, no streaks or cheat days, the 14-day wait (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright
 NODE_PATH=$(npm root -g) node qa/run-app.js --screens=idle    # alignment check for one scenario (idle, mid, goal, eat, empty, ob)
@@ -81,7 +82,7 @@ Every user-visible string ships in English and Simplified Chinese (use the `L(en
 
 These protect people who fast, and they are not up for trade-off:
 
-- **Never share weight.** If weight is ever tracked, it is never shown to friends, groups or anyone else.
+- **Never share weight.** If weight is ever tracked, it is never shown to friends, groups or anyone else. The one exception Tengbo approved (2026-11-06) is the opt-in "Compare with others": only the change in percent at about day 30, 60 and 90, anonymous, with an average shown only when at least 30 people have a value, and no rank when someone is slower (see `docs/legal.md`).
 - **Never push past the person's own plan.** No nudge either way, nothing that grows past the goal. After the goal the timer keeps counting quietly; the app does not urge people to stop or to continue. Ending early stays kind (no red).
 - **No food logging and no AI coach.** They were left out on purpose. Do not add them.
 - **No health or weight gamification.** No fat-burn stages, no body or scale imagery. Rewards are for consistency, never for longer fasts.
