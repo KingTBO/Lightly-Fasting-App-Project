@@ -1518,7 +1518,7 @@ function obFinish(){
 /* ---------- the onboarding moon story: ONE moon carries the whole setup ----------
    Welcome: a big moon on a night sky (the real 3D ball when the 3D switch is on) that waxes in, breathes and follows your finger.
    Get started: it shrinks up into the header and stays there as the progress bar, gaining a share with every step.
-   You're set: it grows back, empties, fills counter-clockwise to your plan window, turns into the sun with a soft bloom while the sky goes from night to dawn.
+   You're set: the progress carries on counter-clockwise from the header to full, then it turns into the sun with a soft bloom while the sky goes from night to dawn.
    Open Lightly: the sun flies into the disc on Today. */
 var OL={el:null,inn:null,orb:null,tried:false,loop:false,shown:false,mode:'',p:0,moon:1,boost:0,pulse:0,full:false,drag:false,x0:0,pull:0,tw:null,fin:null,last:0};
 function obStars(){ return '<svg class="ob-stars" viewBox="0 0 100 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="tw" fill="#fff"><circle cx="10" cy="14" r=".5" opacity=".7"/><circle cx="26" cy="38" r=".35" opacity=".5"/><circle cx="84" cy="22" r=".55" opacity=".7"/><circle cx="92" cy="58" r=".35" opacity=".5"/><circle cx="14" cy="96" r=".4" opacity=".5"/><circle cx="70" cy="76" r=".4" opacity=".55"/><circle cx="88" cy="132" r=".5" opacity=".6"/><circle cx="8" cy="150" r=".35" opacity=".5"/><circle cx="40" cy="170" r=".4" opacity=".5"/><circle cx="62" cy="12" r=".35" opacity=".5"/><circle cx="48" cy="186" r=".5" opacity=".6"/><circle cx="76" cy="168" r=".35" opacity=".45"/></g></svg>'; }
@@ -1573,7 +1573,7 @@ function obMove(st){
   if(!OL.loop){ OL.loop=true; OL.last=performance.now(); requestAnimationFrame(obLoop); }
   requestAnimationFrame(function(){ requestAnimationFrame(obOrbInit); });
 }
-/* You're set: empties, fills all the way to full, then reveals what the sky is doing where you are right now: the sun by day, the moon by night */
+/* You're set: carries on from where the header progress was (never empties) and fills all the way to full, then reveals what the sky is doing where you are right now: the sun by day, the moon by night */
 function obNow(){ var now=Date.now(); refreshSun(now); var hp=C.placeHour(pi,now), k=C.skyAt(hp,sun)[1], day=C.moonAmt(hp,sun)<.5; return {sun:day,sky:day?(['dawn','morning','day','sunset'].indexOf(k)>=0?k:'day'):'night'}; }
 function obFin(st){
   var nw=obNow(); st.setAttribute('data-fs',nw.sky);
@@ -1582,9 +1582,9 @@ function obFin(st){
 }
 function obFinStep(t){
   var f=OL.fin; if(!f.st.isConnected||obFlow()[ob.step]!=='summary'){ OL.fin=null; return; }
-  var el=t-f.t0, EMPTY=500, GO=700, FILL=1300, TURN=1100; if(el<0) return;
-  if(el<GO){ var u=Math.min(el/EMPTY,1); OL.p=f.p0*(1-u*u*(3-2*u)); return; }
-  var e2=el-GO; OL.p=1-Math.pow(1-Math.min(e2/FILL,1),4);
+  var el=t-f.t0, GO=350, FILL=1500, TURN=1100; if(el<0) return;   /* no emptying: the progress simply carries on from where the header left it */
+  if(el<GO) return;
+  var e2=el-GO; OL.p=f.p0+(1-f.p0)*(1-Math.pow(1-Math.min(e2/FILL,1),3));
   if(e2<=FILL) return;
   if(!f.turned){ f.turned=true; fx('success'); obBloom(); if(!f.sun) OL.pulse=1; }
   if(!f.sun){ if(e2>FILL+TURN){ OL.p=1; OL.fin=null; } return; }   /* night: it stays a full moon, under the night sky */
