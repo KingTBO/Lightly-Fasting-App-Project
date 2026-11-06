@@ -850,6 +850,8 @@ html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;
 /* a long setup step scrolls instead of squeezing its cards (the plan step with its wheels on a short phone) */
 .ob-step>:not(.grow){flex-shrink:0}
 .ob-step .obnote+.group{margin-top:14px}
+.ob-step .seg+.seg{margin-top:12px}
+.ob-step .seg button[data-act=obsex][data-v=n]{flex:1.7}   /* "Prefer not to say" on one line */
 .ob-step .seg+.obnote{margin:12px 0 0;font-size:.875rem;line-height:1.35}
 /* the tile grid and the answer cards keep the usual gap before the next card (start time, custom wheel) */
 .ob-step .group.tiles+.group,.ob-step .group.cards+.group{margin-top:var(--group-gap)}
