@@ -347,6 +347,11 @@ a.row{text-decoration:none;color:var(--label)}
 .ob-stars{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
 .ob-step .dawnbg{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;background:linear-gradient(180deg,#D98A7B 0%,#F0B48C 55%,#F7D2A6 100%);transition:opacity 1.6s ease}
 .ob-step.dawn .dawnbg{opacity:1}
+.ob-step.fin.dawn{background-color:#F0B48C}.ob-step.fin.dawn[data-fs=morning]{background-color:#ADD9F1}.ob-step.fin.dawn[data-fs=day]{background-color:#C5E4F6}.ob-step.fin.dawn[data-fs=sunset]{background-color:#D0B2A8}   /* so the strips around the phone take the sky's colour too */
+/* the sky behind the sun follows the real time where you are: dawn, morning, day or sunset (night keeps the night sky and the moon) */
+.ob-step[data-fs=morning] .dawnbg{background:linear-gradient(180deg,#8FC3EA 0%,#CDE6F6 100%)}
+.ob-step[data-fs=day] .dawnbg{background:linear-gradient(180deg,#A9D6F2 0%,#E1F0FA 100%)}
+.ob-step[data-fs=sunset] .dawnbg{background:linear-gradient(180deg,#9DB4D8 0%,#F3B07C 100%)}
 .ob-step.fin.dawn{color:#1C1C1E;--label:#1C1C1E;--label-2:rgba(28,28,30,.72);--label-3:rgba(28,28,30,.4);--card:rgba(255,255,255,.55);--sep:rgba(28,28,30,.16);--link:#6B4F00}
 .ob-step.fin.dawn .btn{background:#1C1C1E;color:#fff}
 .ob-step.fin .stars,.ob-step.fin.dawn .ob-stars{opacity:0;transition:opacity 1.2s}
@@ -830,9 +835,10 @@ html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;
 .ob-step{touch-action:pan-y;overscroll-behavior-x:none}
 
 /* a quiet spinner while the location is found (a still ring under Reduce Motion) */
+.row .spin{display:inline-block;width:18px;height:18px;border-radius:50%;border:2px solid var(--label-2);border-top-color:transparent;animation:spin .8s linear infinite}
 .btn .spin{display:inline-block;width:16px;height:16px;margin-right:10px;vertical-align:-3px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;opacity:.7;animation:spin .9s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.btn .spin{animation:none}}
+@media (prefers-reduced-motion:reduce){.btn .spin,.row .spin{animation:none}}
 .btn[aria-busy=true]:disabled{opacity:.75}
 
 /* a soft-gated plan (18:6, 20:4 for first-timers) bounces once when picked; under Reduce Motion the note below says it instead */

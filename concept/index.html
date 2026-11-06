@@ -359,7 +359,8 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-stars{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0;transition:opacity 1.2s ease}
 .obph.night .ob-stars{opacity:1}
 .obph .dawnbg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;background:linear-gradient(180deg,#D98A7B 0%,#F0B48C 55%,#F7D2A6 100%);transition:opacity 1.6s ease}
-.obph.dawn .dawnbg{opacity:1}.obph.dawn .ob-stars{opacity:0}
+.obph.dawn .dawnbg{opacity:1}
+.obph[data-fs=morning] .dawnbg{background:linear-gradient(180deg,#8FC3EA 0%,#CDE6F6 100%)}.obph[data-fs=day] .dawnbg{background:linear-gradient(180deg,#A9D6F2 0%,#E1F0FA 100%)}.obph[data-fs=sunset] .dawnbg{background:linear-gradient(180deg,#9DB4D8 0%,#F3B07C 100%)}.obph.dawn .ob-stars{opacity:0}
 .obph.fin.dawn{color:#1C1C1E;--label:#1C1C1E;--label-2:rgba(28,28,30,.72);--label-3:rgba(28,28,30,.4);--card:rgba(255,255,255,.55);--sep:rgba(28,28,30,.16);--blue:#6B4F00}
 .obph.fin.dawn .ob-cta{background:#1C1C1E;color:#fff}
 @media (prefers-reduced-motion:no-preference){.ob-stars .tw circle{animation:twinkle 3.2s ease-in-out infinite}.ob-stars .tw circle:nth-child(2n){animation-delay:-.9s}.ob-stars .tw circle:nth-child(3n){animation-delay:-1.8s;animation-duration:4s}}
@@ -1914,7 +1915,9 @@ window.LightlySphere=(function(){
   document.querySelectorAll('[data-plan]').forEach(function(b){ b.addEventListener('click',function(){ cancelAuto(); setPlan(b.dataset.plan,b.classList.contains('plan-card')); }); });
   $('moreLink').addEventListener('click',function(){ $('morePlans').open=true; });
   window.LightlyAPI={ setPlan:function(id){ setPlan(id,true); }, setPlanHere:function(id){ cancelAuto(); setPlan(id,false); },
-    sunOf:function(k){ var c=CITIES[k]; return c?sunTimes(c.lat,c.lon,zoneOffset(c.zone)):null; }, state:function(){ return {mode:mode,h:h,start:START[startKey],goal:GOAL,eat:EAT,plan:plan.id}; }, clock:function(x){ return clock(x); }, lang:function(){ return lang; }, plans:PLANS,
+    sunOf:function(k){ var c=CITIES[k]; return c?sunTimes(c.lat,c.lon,zoneOffset(c.zone)):null; },
+    skyNow:function(k){ var c=CITIES[k], sn=c?sunTimes(c.lat,c.lon,zoneOffset(c.zone)):{rise:6.2,set:17.8}, off=c?zoneOffset(c.zone):-new Date().getTimezoneOffset()/60, h=((Date.now()/36e5+off)%24+24)%24, r=sn.rise, e=sn.set, day=h>=r&&h<e;   /* the real sky where that city is right now */
+      return {sun:day, sky:!day?'night':h<r+.9?'dawn':h<r+3.5?'morning':h<e-1.4?'day':'sunset'}; }, state:function(){ return {mode:mode,h:h,start:START[startKey],goal:GOAL,eat:EAT,plan:plan.id}; }, clock:function(x){ return clock(x); }, lang:function(){ return lang; }, plans:PLANS,
     lock:function(ids,why){ document.querySelectorAll('.plan-card[data-plan]').forEach(function(c){ var on=ids.indexOf(c.dataset.plan)>=0; c.dataset.locked=on?'1':''; c.disabled=on; c.title=on?why:''; }); } };
 
   /* ---------- start time ---------- */
@@ -2059,7 +2062,7 @@ window.LightlySphere=(function(){
     if(!ML.shown){ ML.loop=false; return; }
     var dt=Math.min((t-ML.last)/1000,.05); ML.last=t;
     if(ML.mode==='wel'){
-      var target=ML.drag?Math.min(1,Math.max(.04,.3+ML.pull*1.6)):.3+Math.sin(t/1000*.9)*.035;
+      var target=ML.drag?Math.min(1,Math.max(0,ML.pull*1.6)):0;
       ML.p+=(target-ML.p)*(1-Math.exp(-dt*(ML.drag?18:5)));
       var full=ML.p>.93; if(full&&!ML.full){ ML.pulse=1; mBuzz([14,40,14]); } ML.full=full; }
     ML.pulse=Math.max(0,ML.pulse-dt/1.4);
@@ -2081,19 +2084,23 @@ window.LightlySphere=(function(){
     ML.mode=kind; ML.fin=null;
     if(kind!=='fin'){ ML.moon=1; ML.boost=0; }
     if(kind==='head') mTo(st.step/(flow().length-1));
-    else if(kind==='fin'){ if(reduce){ ML.p=slot.p; ML.moon=1; ML.tw=null; } else { ML.tw=null; ML.fin={t0:performance.now(),p0:ML.p,plan:slot.p,el:el,turned:false}; } }
+    else if(kind==='fin'){ var nw=(api.skyNow&&api.skyNow(st.city))||{sun:true,sky:'day'}; ph.setAttribute('data-fs',nw.sky);
+      if(reduce){ ML.p=1; ML.moon=nw.sun?0:1; ML.tw=null; if(nw.sun) ph.classList.add('dawn'); } else { ML.tw=null; ML.fin={t0:performance.now(),p0:ML.p,el:el,sun:nw.sun,turned:false}; } }
     if(!ML.loop){ ML.loop=true; ML.last=performance.now(); requestAnimationFrame(mLoop); }
     requestAnimationFrame(function(){ requestAnimationFrame(mOrbInit); });
   }
-  /* You're set: empty, fill counter-clockwise to the plan window, turn into the sun, the sky goes to dawn */
+  /* You're set: empty, fill counter-clockwise all the way to full, then the sun by day (the sky follows the real time of the city) or the moon by night */
   function mFinStep(t){
     var f=ML.fin; if(!f.el.isConnected||flow()[st.step]!==4){ ML.fin=null; return; }
     var el=t-f.t0, EMPTY=500, GO=700, FILL=1300, TURN=1100; if(el<0) return;
     if(el<GO){ var u=Math.min(el/EMPTY,1); ML.p=f.p0*(1-u*u*(3-2*u)); return; }
-    var e2=el-GO; ML.p=f.plan*(1-Math.pow(1-Math.min(e2/FILL,1),4));
-    if(e2>FILL){ var v=Math.min((e2-FILL)/TURN,1), e=v*v*(3-2*v); ML.moon=1-e; ML.boost=Math.max(0,1-v*1.15);
-      if(!f.turned){ f.turned=true; ph.classList.add('dawn'); bloom(); }
-      if(v>=1){ ML.moon=0; ML.boost=0; ML.fin=null; } }
+    var e2=el-GO; ML.p=1-Math.pow(1-Math.min(e2/FILL,1),4);
+    if(e2<=FILL) return;
+    if(!f.turned){ f.turned=true; bloom(); if(!f.sun) ML.pulse=1; }
+    if(!f.sun){ if(e2>FILL+TURN){ ML.p=1; ML.fin=null; } return; }   /* night: it stays a full moon under the night sky */
+    var v=Math.min((e2-FILL)/TURN,1), e=v*v*(3-2*v); ML.moon=1-e; ML.boost=Math.max(0,1-v*1.15);
+    if(v>0&&!ph.classList.contains('dawn')) ph.classList.add('dawn');
+    if(v>=1){ ML.moon=0; ML.boost=0; ML.fin=null; }
   }
   function bloom(){ var lay=ML.el; if(reduce||!lay.animate) return; var r=85, cx=118, cy=118, el=document.createElement('div'); el.setAttribute('aria-hidden','true'); el.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:2';
     var glow=document.createElement('div'); glow.style.cssText='position:absolute;left:'+cx+'px;top:'+cy+'px;width:'+r*2+'px;height:'+r*2+'px;margin:'+(-r)+'px 0 0 '+(-r)+'px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,255,255,.45) 40%,rgba(255,255,255,0) 70%);opacity:0'; el.appendChild(glow);
@@ -2159,7 +2166,7 @@ window.LightlySphere=(function(){
   function make(i){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(flow()[i]); bind(el); return el; }
   function show(i,dir,pre,k0){ var el=pre||make(i); if(!pre) stage.appendChild(el); else{ el.style.transition=''; }
     var nf=flow().length, key=flow()[i]; dots.innerHTML=i>0&&i<nf-1?'<span class="ob-mslot"></span>':'';
-    ph.classList.toggle('night',key===0||key===4); ph.classList.toggle('fin',key===4); ph.classList.remove('dawn');
+    ph.classList.toggle('night',key===0||key===4); ph.classList.toggle('fin',key===4); ph.classList.remove('dawn'); ph.removeAttribute('data-fs');
     back.hidden=i===0;
     var old=cur; cur=el; st.step=i; mMove(el);
     if(old&&!reduce&&dir){ /* push / pop like a navigation stack: new screen slides in, old one moves a third and dims */
@@ -2184,7 +2191,7 @@ window.LightlySphere=(function(){
     var ok=[].slice.call(o.childNodes), nk=[].slice.call(n.childNodes);
     for(i=0;i<ok.length;i++) morph(ok[i],nk[i]);
   }
-  function rerender(){ cur.classList.add('nostagger'); var t=document.createElement('div'); t.innerHTML=view(flow()[st.step]); var hadHero=cur.querySelector('.ob-hero'), newHero=t.querySelector('.ob-hero'); if((hadHero||newHero)&&(!hadHero||!newHero||!newHero.isEqualNode(hadHero))){ cur.innerHTML=t.innerHTML; bind(cur); out(); rolls(cur); return; } if(cur.childNodes.length!==t.childNodes.length){ cur.innerHTML=t.innerHTML; } else for(var i=0;i<cur.childNodes.length;i++) morph(cur.childNodes[i],t.childNodes[i]); bind(cur); out(); rolls(cur); }
+  function rerender(){ cur.classList.add('nostagger'); var t=document.createElement('div'); t.innerHTML=view(flow()[st.step]); var hadHero=cur.querySelector('.ob-hero'), newHero=t.querySelector('.ob-hero'); if((hadHero||newHero)&&(!hadHero||!newHero||!newHero.isEqualNode(hadHero))){ cur.innerHTML=t.innerHTML; bind(cur); out(); rolls(cur); return; } if(cur.childNodes.length!==t.childNodes.length){ cur.innerHTML=t.innerHTML; } else{ var ok=[].slice.call(cur.childNodes), nk=[].slice.call(t.childNodes); for(var i=0;i<ok.length;i++) morph(ok[i],nk[i]); } bind(cur); out(); rolls(cur); }
   /* buttons are morphed in place between renders, so next / location / done are delegated rather than bound per node */
   stage.addEventListener('click',function(e){ var t=e.target.closest&&e.target.closest('[data-next],[data-loc],[data-done],[data-skip]'); if(!t||!stage.contains(t)) return;
     if(t.hasAttribute('data-done')) api.setPlan(risky()?'13':st.plan);
