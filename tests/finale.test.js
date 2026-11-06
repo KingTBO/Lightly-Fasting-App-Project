@@ -31,6 +31,14 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   if(sun) assert(r.bar!=='rgb(14, 20, 48)',h+': the strips take the sky colour, not navy'); else assert.strictEqual(r.bar,'rgb(14, 20, 48)',h+': night strips');
   ok('finale at '+h+' Shanghai: '+(sun?'full, then the sun ('+fs+' sky)':'full moon, night sky'));await q.context().close();}
 
+ // 3b. the progress never empties on the way to You're set: it carries on from the header and only goes up
+ {const q=await fresh(at('20:30'));await next(q);await q.click('[data-act=obopt][data-v=first]');await next(q);await next(q);await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1500);await next(q);await q.click('[data-act=obsafe][data-v=none]');await next(q);
+  const before=await q.evaluate(()=>__lightly.setup.moon);await q.click('.ob-step.on [data-act=obbodyskip]');
+  const seen=await q.evaluate(()=>new Promise(r=>{const a=[],t0=performance.now();(function f(){a.push(__lightly.setup.moon);if(performance.now()-t0<3500)setTimeout(f,40);else r(a);})();}));
+  assert(before>.5,'the header progress is well along before You\u2019re set, got '+before);assert(Math.min(...seen)>=before-.03,'it never drops below where the header left it: '+before+' then min '+Math.min(...seen));
+  assert(seen.every((v,i)=>i===0||v>=seen[i-1]-.02),'it only goes up');assert(seen[seen.length-1]>.99,'and ends full');
+  ok('You\u2019re set: the progress carries on from the header to full, never emptying');await q.context().close();}
+
  // 4. Reduce Motion lands in the same place
  for(const [h,sun] of [['23:00',false],['12:00',true]]){const q=await fresh(at(h),{reduced:true});await toFinale(q,{reduced:true});const r=await fin(q);assert(r.p>.99&&r.dawn===sun,'reduce motion at '+h+': '+JSON.stringify(r));await q.context().close();}
  ok('Reduce Motion: full, and the sun or moon straight away');
