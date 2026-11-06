@@ -18,7 +18,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
    if(m){calls.push({fn:m[1],body:r.request().postData()});if(o.fail) return r.fulfill({status:500,contentType:'application/json',body:'{"message":"boom"}'});return r.fulfill({status:200,contentType:'application/json',body:m[1]==='trend_compare'?JSON.stringify(o.compare||[]):'null'});}
    if(/auth\/v1\/user/.test(u)) return r.fulfill({status:200,contentType:'application/json',body:'{"id":"u1","email":"a@b.c"}'});
    return r.fulfill({status:200,contentType:'application/json',body:'[]'});});
-  await q.addInitScript(([x,a])=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);if(a) localStorage.setItem('lightly:auth',a);sessionStorage.s=1}},[JSON.stringify(state),o.out?'':JSON.stringify({access:'x',refresh:'y',exp:Math.floor(Date.now()/1000)+99999,email:'a@b.c',uid:'u1'})]);
+  await q.addInitScript(([x,a])=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',JSON.stringify(Object.assign(JSON.parse(x),{prefs:Object.assign({},JSON.parse(x).prefs,{recapPop:'2026-10'})})));if(a) localStorage.setItem('lightly:auth',a);sessionStorage.s=1}},[JSON.stringify(state),o.out?'':JSON.stringify({access:'x',refresh:'y',exp:Math.floor(Date.now()/1000)+99999,email:'a@b.c',uid:'u1'})]);
   await q.goto(url);await q.waitForTimeout(900);await q.click('#tabs [data-tab=days]');await q.waitForTimeout(800);await q.click('#days [data-act=recap]');await q.waitForSelector('#report:not([hidden])');await q.waitForTimeout(900);
   if(await q.$('#rpW')) await q.locator('#rpW').scrollIntoViewIfNeeded();await q.waitForTimeout(500);return q;}
  const save=async q=>{await q.evaluate(()=>{const e=document.querySelector('#rpW [data-act=rpwsave]');e.click();});await q.waitForTimeout(500);};
