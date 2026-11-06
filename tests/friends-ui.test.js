@@ -1,4 +1,4 @@
-/* The Friends tab in the browser, against a mock Supabase: hidden unless the preview switch is on, signed-out and empty states, name and avatar,
+/* The Friends tab in the browser, against a mock Supabase: for everyone but the eating-disorder answer, signed-out and empty states, name and avatar,
    new group, invite sheet (QR, code, copy), the group list, Care mode, English and Chinese.   NODE_PATH=$(npm root -g) node tests/friends-ui.test.js [--shots=dir] */
 const assert=require('assert'),http=require('http'),fs=require('fs'),path=require('path');
 const {chromium}=require('playwright'); const root=path.join(__dirname,'..'); const H=3600000;
@@ -41,21 +41,17 @@ function ok(n){ console.log('ok -',n); }
   const shot=async(p,n)=>{ if(shots){ fs.mkdirSync(shots,{recursive:true}); await p.screenshot({path:path.join(shots,n+'.png')}); } };
   const tabsVisible=p=>p.$$eval('#tabs button',bs=>bs.filter(x=>x.offsetParent!==null).map(x=>x.dataset.tab));
 
-  // 1. off by default: three tabs, nothing about Friends but one switch in Me
+  // 1. launched: four tabs for everyone without the eating-disorder answer, no preview switch, nothing about Friends on Today or Days
   const d=await device(base(),false); const p=d.p;
-  assert.deepStrictEqual(await tabsVisible(p),['today','days','me']); assert(!await p.evaluate(()=>/friend/i.test(document.getElementById('today').textContent+document.getElementById('days').textContent)),'no Friends text on Today or Days');
-  await p.click('#tabs [data-tab=me]'); assert(await p.isVisible('#me [data-k=fr]'),'the preview switch is in Me'); assert.match(await p.textContent('#me'),/Friends \(preview\)/);
-  const w3=await p.evaluate(()=>[document.getElementById('tabInd').getBoundingClientRect().width,document.getElementById('tabs').getBoundingClientRect().width]); assert(Math.abs(w3[0]-(w3[1]-12)/3)<1.5,'pill is a third: '+w3);
-  ok('Friends is invisible until the preview switch is on');
-  // 2. switch on: four tabs, the pill is a quarter wide
-  await p.click('#me [data-k=fr]'); await p.evaluate(()=>document.getElementById('me').scrollTo(0,0)); await p.waitForTimeout(300); assert.deepStrictEqual(await tabsVisible(p),['today','days','friends','me']);
+  assert.deepStrictEqual(await tabsVisible(p),['today','days','friends','me']); assert(!await p.evaluate(()=>/friend/i.test(document.getElementById('today').textContent+document.getElementById('days').textContent)),'no Friends text on Today or Days');
+  await p.click('#tabs [data-tab=me]'); assert(!await p.isVisible('#me [data-k=fr]'),'no preview switch any more'); assert(!/Friends \(preview\)/.test(await p.textContent('#me')));
+  await p.evaluate(()=>document.getElementById('me').scrollTo(0,0)); await p.waitForTimeout(300);
   const w4=await p.evaluate(()=>[document.getElementById('tabInd').getBoundingClientRect().width,document.getElementById('tabs').getBoundingClientRect().width]); assert(Math.abs(w4[0]-(w4[1]-12)/4)<1.5,'pill is a quarter: '+w4);
   await p.click('#tabs [data-tab=friends]'); await p.waitForTimeout(400);
   assert.match(await p.textContent('#friends'),/Friends needs an account\. Everything else works without one\./); assert(await p.isVisible('#friends [data-act=frsignin]')); await shot(p,'signed-out-en');
-  await p.click('#friends [data-act=frsignin]'); await p.waitForSelector('#sheet.open'); assert(await p.isVisible('#sheet [data-act=google]')&&await p.isVisible('#sheet [data-act=emailsheet]')); await shot(p,'signin-sheet'); await p.click('#sheet .x');
-  ok('four tabs, indicator width, signed-out state and sign-in sheet');
-  // the switch stays on after a reload, and Today is unchanged
-  await p.reload(); await p.waitForTimeout(500); assert.deepStrictEqual(await tabsVisible(p),['today','days','friends','me']); ok('the preview survives a reload');
+  await p.click('#friends [data-act=frsignin]'); await p.waitForSelector('#sheet.open'); assert(await p.isVisible('#sheet [data-act=google]')&&await p.isVisible('#sheet [data-act=emailsheet]')); await shot(p,'signin-sheet');
+  ok('Friends is on for everyone: four tabs, no preview switch, signed-out state and sign-in sheet');
+  await p.reload(); await p.waitForTimeout(500); assert.deepStrictEqual(await tabsVisible(p),['today','days','friends','me']); ok('four tabs after a reload');
   assert.deepStrictEqual(d.errs,[]);
 
   // 3. signed in: empty state, name and avatar, new group, invite
@@ -117,7 +113,7 @@ function ok(n){ console.log('ok -',n); }
   await jp.click('#sheet [data-act=frjoinok]'); await jp.waitForTimeout(500); assert.deepStrictEqual(calls.filter(c=>c.fn==='join_group').pop().args,{p_code:'K7QM4XD9'}); ok('enter a code: invalid, then the consent sheet, then join');
   // the link: opens straight onto the consent sheet, takes the code out of the address bar, and asks for a name first if there is none
   profile=null; groups=[]; const j2=await device(base(),true), lp=j2.p; await lp.goto(url+'?join=k7qm4xd9'); await lp.waitForSelector('#sheet [data-act=frjoinok]',{timeout:8000});
-  assert.strictEqual(await lp.evaluate(()=>location.search),'','the code leaves the address bar'); assert.deepStrictEqual(await tabsVisible(lp),['today','days','friends','me'],'the link turns the preview on');
+  assert.strictEqual(await lp.evaluate(()=>location.search),'','the code leaves the address bar'); assert.deepStrictEqual(await tabsVisible(lp),['today','days','friends','me']);
   await lp.click('#sheet [data-act=frjoinok]'); await lp.waitForSelector('#frName'); await lp.fill('#frName','Sam'); await lp.click('[data-act=frnamego]'); await lp.waitForSelector('#sheet [data-act=frjoinok]'); assert.match(await lp.textContent('#sheet'),/Join “Morning crew”\?/,'back to the invite after choosing a name');
   await lp.click('#sheet [data-act=frjoinok]'); await lp.waitForTimeout(500); assert(calls.filter(c=>c.fn==='join_group').length>=2); ok('an invite link opens the consent sheet and survives choosing a name');
   // a full or bad link says so and is dropped

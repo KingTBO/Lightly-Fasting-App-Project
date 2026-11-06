@@ -16,8 +16,8 @@ A real, installable web app (PWA) at the repo root, deployed by GitHub Pages fro
 - `js/core.js` pure logic (sun maths, plans, long-fast unlock rules, streaks, cheat days). Unit-tested in Node. Put rules here, not in the UI.
 - `js/app.js` UI and state (`localStorage` key `lightly:v1`). `css/app.css` styles. `js/sphere.js` the moon/sun.
 - `js/cloud.js`, `js/config.js`, `supabase/schema.sql` optional email and Google sign-in with backup. Everything must keep working signed out. Never commit a `service_role` key or any secret; the anon key in `js/config.js` is public by design.
-- `js/friends.js` the pure rules for Friends (what a phone shares, status words and discs, invite codes and links), tested by `node tests/friends.test.js`. `supabase/friends.sql` is its database (not applied to the live project until the owner says so); its tests run with `scripts/test-friends-db.sh` on a local Postgres. The Friends brief is `docs/friends/` once merged.
-- `js/friends-ui.js` the Friends tab, its group screen, join flow and sheets (hidden behind the "Friends (preview)" switch in Me until launch); `js/qr.js` a small QR encoder for the invite (tests: `node tests/qr.test.js`, decodes with jsqr when installed with `npm i --no-save jsqr`); the browser test is `tests/friends-ui.test.js`.
+- `js/friends.js` the pure rules for Friends (what a phone shares, status words and discs, invite codes and links), tested by `node tests/friends.test.js`. `supabase/friends.sql` is its database (applied to the live project); its tests run with `scripts/test-friends-db.sh` on a local Postgres. The Friends brief is `docs/friends/` once merged.
+- `js/friends-ui.js` the Friends tab, its group screen, join flow and sheets (the fourth tab; hidden for anyone with the eating-disorder answer); `js/qr.js` a small QR encoder for the invite (tests: `node tests/qr.test.js`, decodes with jsqr when installed with `npm i --no-save jsqr`); the browser test is `tests/friends-ui.test.js`.
 - `js/import.js` imports fasts from other apps. Never put a user's export or password in the repo.
 - `js/avatars.js` the profile-picture list (placeholder sky pictures designers can swap, see the comment at its top) and the crop maths. Tested by `node tests/avatars.test.js` (add `--e2e` with Playwright for the browser flow).
 - `concept/` is the product landing page. `app/` is a redirect stub for an old URL; leave it.
@@ -88,7 +88,7 @@ These protect people who fast, and they are not up for trade-off:
 - **No food logging and no AI coach.** They were left out on purpose. Do not add them.
 - **No health or weight gamification.** No fat-burn stages, no body or scale imagery. Rewards are for consistency, never for longer fasts.
 - **Long fasts stay gated.** The 24 h and 36 h plans unlock with progress, and a safety flag means they are never offered. The rules live in `js/core.js` and are described in the CHANGELOG; do not loosen them.
-- **Solo first.** Fasting alone is the main experience. Friends and groups are a small optional extra and are not built yet.
+- **Solo first.** Fasting alone is the main experience. Friends and groups are a small optional extra (the fourth tab, never on Today); they never share weight, hours, times, place or a streak, and nothing pushes anyone past their own plan.
 - **Privacy.** Location is used on the phone only, never uploaded or shared. Never say "where you are". Ramadan and other sacred fasts are free, calm, dry-fast aware, and the app never presents itself as a religious authority.
 
 ## Do not

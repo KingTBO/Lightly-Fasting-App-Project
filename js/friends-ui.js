@@ -1,6 +1,5 @@
 /* Lightly Friends: the screens (the Friends tab and its sheets). The rules are in js/friends.js, the database in supabase/friends.sql.
-   Solo fasting stays the main experience: nothing here shows unless "Friends (preview)" is on in Me, and nothing about Friends ever appears on Today, Days or Me
-   except that one switch. js/app.js hands this file what it needs through init(h) (see the call at the bottom of app.js). */
+   Solo fasting stays the main experience: nothing about Friends ever appears on Today, Days or Me, and the tab is hidden for anyone who answered the eating-disorder question. js/app.js hands this file what it needs through init(h) (see the call at the bottom of app.js). */
 (function(root){
 'use strict';
 var F=root.LightlyFriends, QR=root.LightlyQR, KEY='lightly:friends';
@@ -8,7 +7,7 @@ var F=root.LightlyFriends, QR=root.LightlyQR, KEY='lightly:friends';
 function init(h){
   var L=h.L, esc=h.esc, $=h.$, CL=h.CL, AV=h.AV, CHEV=h.CHEV, A=h.A;
   /* Friends keeps its own small copy on the phone, apart from the app state: it stays out of the backup, the sign-in link and the export file */
-  var st={preview:false,groups:[],profile:null,at:0,err:'',joinCode:'',uid:''}, loading=false, tmp={av:null}, view=null, pub={last:null,at:0,busy:false,t:0};
+  var st={groups:[],profile:null,at:0,err:'',joinCode:'',uid:''}, loading=false, tmp={av:null}, view=null, pub={last:null,at:0,busy:false,t:0};
   try{ var raw=JSON.parse(localStorage.getItem(KEY)||'null'); if(raw&&typeof raw==='object') Object.keys(st).forEach(function(k){ if(raw[k]!==undefined) st[k]=raw[k]; }); }catch(e){}
   function save(){ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} }
   /* an invite link (?join=CODE): keep the code (it survives a sign-in in this browser, and the sign-in link carries it to another one) and take it out of the address bar */
@@ -17,13 +16,12 @@ function init(h){
   function S(){ return h.S(); }
   function lang(){ return S().lang; }
   function signedIn(){ return !!(CL&&CL.ready()&&CL.getAuth()); }
-  /* the tab exists only while the preview switch is on and the person may use Friends (see F.available) */
-  function enabled(){ return !!st.preview&&F.available(S().profile)&&F.DECISIONS.fourTabs; }
+  /* the tab exists for everyone the person may use Friends for (see F.available) */
+  function enabled(){ return F.available(S().profile)&&F.DECISIONS.fourTabs; }
   function order(){ return enabled()?['today','days','friends','me']:['today','days','me']; }
   /* show or hide the tab and size the tab bar's selection pill for three or four tabs */
   function sync(){ var on=enabled(), b=document.querySelector('#tabs [data-tab=friends]'); if(b) b.hidden=!on; h.ph.style.setProperty('--nt',on?4:3); h.ph.style.setProperty('--ti',Math.max(0,order().indexOf(h.tab())));
     if(!on&&h.tab()==='friends') h.showTab('today',true); }
-  function setPreview(on){ st.preview=!!on; if(!on) view=null; save(); sync(); }
 
   /* ---------- drawings ---------- */
   function defs(){ if($('frDefs')) return; var d=document.createElement('div'); d.id='frDefs'; d.setAttribute('aria-hidden','true'); d.style.cssText='position:absolute;width:0;height:0;overflow:hidden';
@@ -275,20 +273,17 @@ function init(h){
       if(x.status!=='too_many'&&x.status!=='cap'){ st.joinCode=''; tmp.prev=null; save(); }
       h.closeSheet(); h.toast(F.errorText(x.status,lang())); if(h.tab()==='friends') render();
     }).catch(function(e){ b.disabled=false; fail(e); }); };
-  /* the app calls this once it has started (and after a sign-in lands): a waiting invite turns the preview on and opens Friends, or, right after setup, just says it is waiting */
+  /* the app calls this once it has started (and after a sign-in lands): a waiting invite opens Friends, or, right after setup, just says it is waiting */
   function pending(quiet){
     if(!st.joinCode) return false;
     if(!F.available(S().profile)){ st.joinCode=''; save(); return false; }
-    if(!st.preview){ st.preview=true; save(); } sync();
+    sync();
     if(quiet){ h.toast(L('Your invite is waiting in Friends.','你的邀请在“朋友”里等你。')); return true; }
     h.showTab('friends',true); return true;
   }
 
-  /* the Me tab's switch */
-  function meRow(mi){ return F.available(S().profile)?'<div class="group">'+h.sw('fr',L('Friends (preview)','朋友（预览）'),st.preview,0,mi('people','gold'))+'</div><div class="gf">'+L('Try Friends before it is released. It needs an account, and Today stays as it is.','在正式发布前试用朋友功能。需要账号，“今天”页面保持不变。')+'</div>':''; }
-
   sync();
-  return {pending:pending,joinCode:function(){ return st.joinCode||''; },enabled:enabled,order:order,sync:sync,setPreview:setPreview,changed:changed,publish:publish,preview:function(){ return st.preview; },show:show,render:render,meRow:meRow,ICON:ICON_PEOPLE,state:function(){ return st; }};
+  return {pending:pending,joinCode:function(){ return st.joinCode||''; },enabled:enabled,order:order,sync:sync,changed:changed,publish:publish,show:show,render:render,ICON:ICON_PEOPLE,state:function(){ return st; }};
 }
 root.LightlyFriendsUI={init:init};
 })(typeof self!=='undefined'?self:this);
