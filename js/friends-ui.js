@@ -11,6 +11,9 @@ function init(h){
   var st={preview:false,groups:[],profile:null,at:0,err:'',joinCode:'',uid:''}, loading=false, tmp={av:null}, view=null, pub={last:null,at:0,busy:false,t:0};
   try{ var raw=JSON.parse(localStorage.getItem(KEY)||'null'); if(raw&&typeof raw==='object') Object.keys(st).forEach(function(k){ if(raw[k]!==undefined) st[k]=raw[k]; }); }catch(e){}
   function save(){ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} }
+  /* an invite link (?join=CODE): keep the code (it survives a sign-in in this browser, and the sign-in link carries it to another one) and take it out of the address bar */
+  (function(){ var c=F.codeFromSearch(location.search); if(!c) return; st.joinCode=c; save();
+    try{ var q=location.search.replace(/^\?/,'').split('&').filter(function(x){ return x&&!/^join=/.test(x); }).join('&'); history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash); }catch(e){} })();
   function S(){ return h.S(); }
   function lang(){ return S().lang; }
   function signedIn(){ return !!(CL&&CL.ready()&&CL.getAuth()); }
@@ -42,14 +45,15 @@ function init(h){
     return '<button class="row" data-act="frgroup" data-id="'+esc(g.group_id)+'"><span class="stack"><span>'+esc(g.name)+'</span><small>'+esc(sub)+'</small></span>'+CHEV+'</button>'; }
   function render(){
     var el=$('friends'), x=''; if(!el) return; defs();
-    if(!signedIn()){ view=null;
-      x=title()+hero()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2><p class="fr-p">'+L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不需要。')+'</p><div class="fr-cta"><button class="btn" data-act="frsignin">'+L('Sign in','登录')+'</button></div>';
+    if(!signedIn()){ view=null; var iv=st.joinCode&&tmp.prev&&tmp.prev.code===st.joinCode?tmp.prev.row:null;
+      x=title()+hero()+(iv?'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Friends needs an account; everything else works without one.','登录后即可加入。朋友功能需要账号，其他功能不需要。')+'</p>'
+        :'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2><p class="fr-p">'+L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不需要。')+'</p>')+'<div class="fr-cta"><button class="btn" data-act="frsignin">'+L(iv?'Sign in to join':'Sign in',iv?'登录并加入':'登录')+'</button></div>';
     }else if(view){ x=groupHtml();
     }else if(!st.groups.length){
-      x=title()+hero()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+(st.at||st.err?'<p class="fr-p">'+L('Start a group and send one link.','建一个小组，发一个链接。')+'</p><div class="fr-cta"><button class="btn" data-act="frnew">'+L('Start a group','建一个小组')+'</button></div>':'')+
+      x=title()+hero()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+(st.at||st.err?'<p class="fr-p">'+L('Start a group and send one link.','建一个小组，发一个链接。')+'</p><div class="fr-cta"><button class="btn" data-act="frnew">'+L('Start a group','建一个小组')+'</button><button class="btn quiet" data-act="frcode">'+L('I have an invite code','我有邀请码')+'</button></div>':'')+
         (st.err&&!st.at?'<p class="fr-p fr-err" role="status">'+esc(F.errorText(st.err,lang()))+'</p>':'');
     }else{
-      x=title()+'<div class="group">'+st.groups.map(groupRow).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button></div>':'')+
+      x=title()+'<div class="group">'+st.groups.map(groupRow).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
         (st.err?'<div class="gf" role="status">'+esc(F.errorText(st.err,lang()))+'</div>':'');
     }
     el.innerHTML=x;
@@ -63,7 +67,7 @@ function init(h){
       if(view&&!st.groups.some(function(g){ return g.group_id===view.id; })) view=null; /* removed or left on another phone */
     }).catch(function(e){ st.err=F.errorKey(e); if(e&&e.status===401) st.err='failed'; }).then(function(){ loading=false; if(h.tab()==='friends') render(); publish(false); });
   }
-  function show(){ render(); if(view) loadBoard(false); refresh(); }
+  function show(){ render(); if(view) loadBoard(false); refresh().then(function(){ if(st.joinCode&&signedIn()&&!view) startJoin(st.joinCode); }); if(st.joinCode&&!signedIn()) previewFor(st.joinCode); }
 
   /* ---------- a group: the day strip, one row per person ---------- */
   var DOW=[['S','日'],['M','一'],['T','二'],['W','三'],['T','四'],['F','五'],['S','六']], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -230,11 +234,61 @@ function init(h){
   A.frreportok=function(b){ var x=tmp.who, v=view; if(!x||b.disabled) return; b.disabled=true;
     CL.rpc('report_member',{p_gid:v.id,p_uid:x.user_id}).then(function(){ h.closeSheet(); h.toast(L('Thanks. We’ll take a look.','谢谢，我们会查看。')); }).catch(function(e){ b.disabled=false; fail(e); }); };
 
+
+  /* ---------- joining: a code typed in, or a link opened ----------
+     Look first (invite_preview works without an account, so a friend sees which group before signing in), then a sheet that says plainly what the group will see, then join. */
+  function previewFor(code){
+    if(tmp.prev&&tmp.prev.code===code) return Promise.resolve(tmp.prev.row);
+    return CL.rpcAnon('invite_preview',{p_code:code}).then(function(r){ var row=r&&r[0]||null; tmp.prev={code:code,row:row}; if(!row&&st.joinCode===code){ st.joinCode=''; save(); h.toast(F.errorText('invalid',lang())); } if(h.tab()==='friends') render(); return row; })
+      .catch(function(e){ if(F.errorKey(e)==='offline'&&h.tab()==='friends') h.toast(F.errorText('offline',lang())); return null; });
+  }
+  function startJoin(code){
+    st.joinCode=code; save(); h.closeSheet();
+    previewFor(code).then(function(row){
+      if(!row){ if(!st.joinCode) return; st.joinCode=''; save(); return h.toast(F.errorText('invalid',lang())); }
+      consentSheet(code,row);
+    });
+  }
+  function consentSheet(code,g){
+    tmp.joinCode=code; var n=g.member_count, dots=(g.avatars||[]).map(function(a,i){ return '<span class="fr-av" style="margin-left:'+(i?'-8px':'0')+'">'+(AV.html(a)||AV.html(F.AVATARS[0]))+'</span>'; }).join('');
+    h.openSheet('<!--keep--><h3 class="ctr">'+L('Join “','加入“')+esc(g.group_name)+L('”?','”？')+'</h3><div class="fr-faces" aria-hidden="true">'+dots+'</div>'+
+      '<p class="lede ctr">'+(g.inviter_name?L('Invited by ','邀请人 ')+esc(g.inviter_name)+' · ':'')+L(n+' of '+F.MAX_MEMBERS+' people',n+' / '+F.MAX_MEMBERS+' 人')+'</p>'+
+      '<div class="group fr-sees"><div class="fr-see"><b>'+L('The group sees','小组能看到')+'</b><span>'+L('Your name and sky picture, whether you are fasting, resting or not, and your plan in hours.','你的名字和头像、你是否在断食或休息，以及你的计划小时数。')+'</span></div>'+
+      '<div class="fr-see"><b>'+L('The group never sees','小组看不到')+'</b><span>'+L('Hours fasted, times, where you are, your weight, or a streak.','已断食的时长、时间、你的位置、体重或连续天数。')+'</span></div></div>'+
+      '<p class="note ctr">'+L('You can stop sharing or leave any time.','你可以随时停止分享或退出。')+'</p>'+
+      '<div class="btns"><button class="btn" data-act="frjoinok">'+L('Join group','加入小组')+'</button><button class="btn quiet" data-act="frjoinno">'+L('Not now','暂不加入')+'</button></div>');
+  }
+  function codeSheet(err){
+    h.openSheet('<h3>'+L('Invite code','邀请码')+'</h3><p class="lede">'+L('Type the 8 characters a friend sent you.','输入朋友发给你的 8 位邀请码。')+'</p><div class="group"><div class="field"><label for="frCode">'+L('Code','邀请码')+'</label><input id="frCode" type="text" inputmode="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="K7QM 4XD9" dir="ltr" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem;letter-spacing:.08em;text-transform:uppercase"></div></div>'+
+      (err?'<p class="note err" role="alert" style="color:var(--red)">'+esc(err)+'</p>':'')+'<div class="btns"><button class="btn" data-act="frcodego">'+L('Continue','继续')+'</button></div>');
+    var i=$('frCode'); if(i) setTimeout(function(){ try{ i.focus(); }catch(e){} },350);
+  }
+  A.frcode=function(){ if(st.groups.length>=F.MAX_GROUPS) return h.toast(F.errorText('group_cap',lang())); h.fx('light'); codeSheet(); };
+  A.frcodego=function(b){ var c=F.normalizeCode(($('frCode')||{}).value); if(!F.validCode(c)) return codeSheet(F.errorText('invalid',lang())); if(b.disabled) return; b.disabled=true;
+    previewFor(c).then(function(row){ b.disabled=false; if(!row){ st.joinCode=''; return codeSheet(F.errorText('invalid',lang())); } consentSheet(c,row); }); };
+  A.frjoinno=function(){ st.joinCode=''; save(); h.closeSheet(); if(h.tab()==='friends') render(); };
+  A.frjoinok=function(b){ var code=tmp.joinCode; if(!code||b.disabled) return; if(!st.profile) return nameSheet(function(){ previewFor(code).then(function(row){ if(row) consentSheet(code,row); }); });
+    b.disabled=true;
+    CL.rpc('join_group',{p_code:code}).then(function(r){ var x=r&&r[0]||{status:'invalid'}; b.disabled=false;
+      if(x.status==='ok'||x.status==='already'){ st.joinCode=''; tmp.prev=null; save(); h.closeSheet(); h.fx('success'); if(h.tab()!=='friends') h.showTab('friends'); loading=false; return refresh().then(function(){ openGroup(x.group_id); publish(true); }); }
+      if(x.status==='no_profile'){ st.profile=null; return nameSheet(function(){ previewFor(code).then(function(row){ if(row) consentSheet(code,row); }); }); }
+      if(x.status!=='too_many'&&x.status!=='cap'){ st.joinCode=''; tmp.prev=null; save(); }
+      h.closeSheet(); h.toast(F.errorText(x.status,lang())); if(h.tab()==='friends') render();
+    }).catch(function(e){ b.disabled=false; fail(e); }); };
+  /* the app calls this once it has started (and after a sign-in lands): a waiting invite turns the preview on and opens Friends, or, right after setup, just says it is waiting */
+  function pending(quiet){
+    if(!st.joinCode) return false;
+    if(!F.available(S().profile)){ st.joinCode=''; save(); return false; }
+    if(!st.preview){ st.preview=true; save(); } sync();
+    if(quiet){ h.toast(L('Your invite is waiting in Friends.','你的邀请在“朋友”里等你。')); return true; }
+    h.showTab('friends',true); return true;
+  }
+
   /* the Me tab's switch */
   function meRow(mi){ return F.available(S().profile)?'<div class="group">'+h.sw('fr',L('Friends (preview)','朋友（预览）'),st.preview,0,mi('people','gold'))+'</div><div class="gf">'+L('Try Friends before it is released. It needs an account, and Today stays as it is.','在正式发布前试用朋友功能。需要账号，“今天”页面保持不变。')+'</div>':''; }
 
   sync();
-  return {enabled:enabled,order:order,sync:sync,setPreview:setPreview,changed:changed,publish:publish,preview:function(){ return st.preview; },show:show,render:render,meRow:meRow,ICON:ICON_PEOPLE,state:function(){ return st; }};
+  return {pending:pending,joinCode:function(){ return st.joinCode||''; },enabled:enabled,order:order,sync:sync,setPreview:setPreview,changed:changed,publish:publish,preview:function(){ return st.preview; },show:show,render:render,meRow:meRow,ICON:ICON_PEOPLE,state:function(){ return st; }};
 }
 root.LightlyFriendsUI={init:init};
 })(typeof self!=='undefined'?self:this);
