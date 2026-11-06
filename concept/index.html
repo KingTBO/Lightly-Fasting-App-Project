@@ -2092,13 +2092,13 @@ window.LightlySphere=(function(){
   /* You're set: carry on counter-clockwise from where the header progress was (never empties) all the way to full, then the sun by day (the sky follows the real time of the city) or the moon by night */
   function mFinStep(t){
     var f=ML.fin; if(!f.el.isConnected||flow()[st.step]!==4){ ML.fin=null; return; }
-    var el=t-f.t0, GO=350, FILL=1500, TURN=1100; if(el<0) return;   /* no emptying: the progress simply carries on from where the header left it */
+    var el=t-f.t0, GO=200, FILL=1200, TURN=900, REV=FILL*.78; if(el<0) return;   /* no emptying: the progress simply carries on from where the header left it */
     if(el<GO) return;
     var e2=el-GO; ML.p=f.p0+(1-f.p0)*(1-Math.pow(1-Math.min(e2/FILL,1),3));
-    if(e2<=FILL) return;
+    if(e2<=REV) return;   /* the reveal starts as the moon nears full, not after the slow last stretch of the fill */
     if(!f.turned){ f.turned=true; bloom(); if(!f.sun) ML.pulse=1; }
-    if(!f.sun){ if(e2>FILL+TURN){ ML.p=1; ML.fin=null; } return; }   /* night: it stays a full moon under the night sky */
-    var v=Math.min((e2-FILL)/TURN,1), e=v*v*(3-2*v); ML.moon=1-e; ML.boost=Math.max(0,1-v*1.15);
+    if(!f.sun){ if(e2>REV+TURN){ ML.p=1; ML.fin=null; } return; }   /* night: it stays a full moon under the night sky */
+    var v=Math.min((e2-REV)/TURN,1), e=v*v*(3-2*v); ML.moon=1-e; ML.boost=Math.max(0,1-v*1.15);
     if(v>0&&!ph.classList.contains('dawn')) ph.classList.add('dawn');
     if(v>=1){ ML.moon=0; ML.boost=0; ML.fin=null; }
   }
