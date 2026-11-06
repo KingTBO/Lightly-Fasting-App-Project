@@ -37,21 +37,20 @@ function init(h){
   var ICON_PEOPLE='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.4"/><path d="M2.8 19.5a6.2 6.2 0 0 1 12.4 0"/><path d="M15.6 5.4a3.2 3.2 0 0 1 0 6.2M17.5 14.2a6 6 0 0 1 3.7 5.3"/></svg>';
 
   /* ---------- the tab ---------- */
-  function title(){ return '<h1 class="lt fr-title">'+L('Friends','朋友')+'</h1>'; }
   function personCount(n){ return L(n+(n===1?' person':' people'),n+' 人'); }
   function groupRow(g){ var sub=personCount(g.member_count)+(g.fasting?' · '+L(g.fasting+' fasting',g.fasting+' 人断食中'):'');
     return '<button class="row" data-act="frgroup" data-id="'+esc(g.group_id)+'"><span class="stack"><span>'+esc(g.name)+'</span><small>'+esc(sub)+'</small></span>'+CHEV+'</button>'; }
   function render(){
     var el=$('friends'), x=''; if(!el) return; defs();
     if(!signedIn()){ view=null; var iv=st.joinCode&&tmp.prev&&tmp.prev.code===st.joinCode?tmp.prev.row:null;
-      x=title()+hero()+(iv?'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Friends needs an account; everything else works without one.','登录后即可加入。朋友功能需要账号，其他功能不需要。')+'</p>'
+      x=hero()+(iv?'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Friends needs an account; everything else works without one.','登录后即可加入。朋友功能需要账号，其他功能不需要。')+'</p>'
         :'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2><p class="fr-p">'+L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不需要。')+'</p>')+'<div class="fr-cta"><button class="btn" data-act="frsignin">'+L(iv?'Sign in to join':'Sign in',iv?'登录并加入':'登录')+'</button></div>';
     }else if(view){ x=groupHtml();
     }else if(!st.groups.length){
-      x=title()+hero()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+(st.at||st.err?'<p class="fr-p">'+L('Start a group and send one link.','建一个小组，发一个链接。')+'</p><div class="fr-cta"><button class="btn" data-act="frnew">'+L('Start a group','建一个小组')+'</button><button class="btn quiet" data-act="frcode">'+L('I have an invite code','我有邀请码')+'</button></div>':'')+
+      x=hero()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+(st.at||st.err?'<p class="fr-p">'+L('Start a group and send one link.','建一个小组，发一个链接。')+'</p><div class="fr-cta"><button class="btn" data-act="frnew">'+L('Start a group','建一个小组')+'</button><button class="btn quiet" data-act="frcode">'+L('I have an invite code','我有邀请码')+'</button></div>':'')+
         (st.err&&!st.at?'<p class="fr-p fr-err" role="status">'+esc(F.errorText(st.err,lang()))+'</p>':'');
     }else{
-      x=title()+'<div class="group">'+st.groups.map(groupRow).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
+      x='<div class="gh">'+L('Your groups','你的小组')+'</div><div class="group">'+st.groups.map(groupRow).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
         (st.err?'<div class="gf" role="status">'+esc(F.errorText(st.err,lang()))+'</div>':'');
     }
     el.innerHTML=x;
@@ -139,13 +138,13 @@ function init(h){
     tmp.next=next; tmp.av=(st.profile&&st.profile.avatar)||tmp.av||AV.defaultIcon((CL.getAuth()||{}).uid||''); if(F.AVATARS.indexOf(tmp.av)<0) tmp.av=F.AVATARS[0];
     var nm=(st.profile&&st.profile.display_name)||S().name||'', g='';
     F.AVATARS.forEach(function(id){ var a=AV.find(id); g+='<button type="button" class="avt'+(id===tmp.av?' sel':'')+'" data-act="frav" data-id="'+id+'" aria-pressed="'+(id===tmp.av)+'" aria-label="'+esc(a?L(a.en,a.zh):id)+'">'+AV.html(id)+'</button>'; });
-    h.openSheet('<h3>'+L('Your name in groups','你在小组里的名字')+'</h3><div class="group"><div class="field"><label for="frName">'+L('Name','名字')+'</label><input id="frName" type="text" maxlength="'+F.NAME_MAX+'" autocomplete="off" autocapitalize="words" spellcheck="false" value="'+esc(nm)+'" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div>'+
+    h.openSheet('<h3 class="fr-sh">'+L('Your name in groups','你在小组里的名字')+'</h3><div class="group"><div class="field"><label for="frName">'+L('Name','名字')+'</label><input id="frName" type="text" maxlength="'+F.NAME_MAX+'" autocomplete="off" autocapitalize="words" spellcheck="false" value="'+esc(nm)+'" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div>'+
       '<div class="av-grid fr4" id="frAvs" role="group" aria-label="'+L('Sky picture','天空头像')+'">'+g+'</div><div class="btns"><button class="btn" data-act="frnamego">'+L('Continue','继续')+'</button></div>');
     var i=$('frName'); if(i&&!nm) setTimeout(function(){ try{ i.focus(); }catch(e){} },350);
   }
   function newSheet(){
     if(!st.profile) return nameSheet(newSheet);
-    h.openSheet('<h3>'+L('New group','新建小组')+'</h3><div class="group"><div class="field"><label for="frGn">'+L('Group name','小组名称')+'</label><input id="frGn" type="text" maxlength="'+F.GROUP_NAME_MAX+'" autocomplete="off" spellcheck="false" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div>'+
+    h.openSheet('<h3 class="fr-sh">'+L('New group','新建小组')+'</h3><div class="group"><div class="field"><label for="frGn">'+L('Group name','小组名称')+'</label><input id="frGn" type="text" maxlength="'+F.GROUP_NAME_MAX+'" autocomplete="off" spellcheck="false" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div>'+
       '<p class="note">'+L('Up to 10 people.','最多 10 人。')+'</p><div class="btns"><button class="btn" data-act="frcreate">'+L('Create and invite','创建并邀请')+'</button></div>');
     var i=$('frGn'); if(i) setTimeout(function(){ try{ i.focus(); }catch(e){} },350);
   }
@@ -155,7 +154,7 @@ function init(h){
     h.openSheet('<h3>'+L('Invite friends','邀请朋友')+'</h3><p class="note" id="frInv">…</p>');
     CL.rpc('current_invite',{p_gid:gid}).then(function(r){ var inv=r&&r[0]; if(!inv){ h.closeSheet(); return h.toast(F.errorText('no_invite',lang())); }
       var u=link(inv.code); tmp.link=u; tmp.name=name;
-      h.openSheet('<h3>'+L('Invite friends','邀请朋友')+'</h3><div class="fr-qr" role="img" aria-label="'+L('QR code for the invite','邀请二维码')+'">'+QR.svg(u,0)+'</div><div class="fr-code"><small>'+L('Invite code','邀请码')+'</small><b dir="ltr">'+F.formatCode(inv.code)+'</b></div>'+
+      h.openSheet('<h3 class="fr-sh">'+L('Invite friends','邀请朋友')+'</h3><div class="fr-qr" role="img" aria-label="'+L('QR code for the invite','邀请二维码')+'">'+QR.svg(u,0)+'</div><div class="fr-code"><small>'+L('Invite code','邀请码')+'</small><b dir="ltr">'+F.formatCode(inv.code)+'</b></div>'+
         '<div class="fr-two"><button class="btn" data-act="frshare">'+L('Share link','分享链接')+'</button><button class="btn sec" id="frCopy" data-act="frcopy">'+L('Copy','复制')+'</button></div>'+
         '<p class="note fr-note">'+L('Valid for 7 days. Share it only with people you know.','7 天内有效，请只发给你认识的人。')+'</p>');
     }).catch(function(e){ h.closeSheet(); fail(e); });
@@ -181,21 +180,24 @@ function init(h){
     var strip=''; for(var i=0;i<7;i++){ var y=rowOf(uid,i); strip+='<div>'+disc(y?F.disc(y):{kind:'empty',fill:0},28)+'<span>'+dow(w.days[i])+'</span></div>'; }
     var ch='', links='';
     if(cheerable(x)) ch='<div class="btns"><button class="btn'+(x.cheered_by_me?' sec':'')+'" data-act="frcheer" data-u="'+esc(uid)+'" aria-pressed="'+!!x.cheered_by_me+'"'+(x.cheered_by_me?' disabled':'')+'>'+(x.cheered_by_me?L('Cheered','已加油'):L('Cheer ','给')+esc(x.display_name)+L('','加油'))+'</button></div>';
-    if(!x.is_me){ links='<div class="fr-sheet-links"><button class="btn quiet" data-act="frreport" data-u="'+esc(uid)+'">'+L('Report','举报')+'</button>'+(view.role==='owner'?'<button class="btn red" data-act="frremove" data-u="'+esc(uid)+'">'+L('Remove from group','移出小组')+'</button>':'')+'</div>'; }
+    if(!x.is_me){ links='<div class="fr-sheet-links"><div class="group"><button class="row" data-act="frreport" data-u="'+esc(uid)+'">'+mi(ICON_FLAG,'grey')+'<span>'+L('Report','举报')+'</span></button>'+(view.role==='owner'?'<button class="row red" data-act="frremove" data-u="'+esc(uid)+'">'+mi(ICON_EXIT,'red')+'<span>'+L('Remove from group','移出小组')+'</span></button>':'')+'</div></div>'; }
     h.openSheet('<h3>'+esc(x.display_name)+'</h3><div id="frWho" data-u="'+esc(uid)+'"><div class="fr-who">'+av(x.avatar,uid)+'<span class="fr-nm"><small>'+esc(dayLong(w.day)+' · '+F.rowText(x,lang()))+'</small></span>'+disc(F.disc(x),44)+'</div>'+
       '<p class="fr-lbl">'+L('Last 7 days','过去 7 天')+'</p><div class="fr-wk">'+strip+'</div>'+ch+links+'</div>');
   }
   function confirmSheet(titleT,lede,go,goLabel){
     h.openSheet('<!--keep--><h3 class="ctr">'+titleT+'</h3><p class="lede ctr">'+lede+'</p><div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button><button class="btn red solid" data-act="'+go+'">'+goLabel+'</button></div>');
   }
+  function mi(d,tone){ return '<span class="mi '+tone+'" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="'+d+'"/></svg></span>'; }
+  var ICON_PLUS='M12 5v14M5 12h14', ICON_PEN='M4 20h4L19 9l-4-4L4 16zM13 7l4 4', ICON_FLAG='M5 21V4M5 4h11l-2 4 2 4H5', ICON_EXIT='M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10';
   function memRow(m){ var tag=[m.is_me?L('You','我'):'',m.role==='owner'?L('Owner','群主'):''].filter(Boolean).join(' · ');
     return '<div class="fr-mem">'+av(m.avatar,m.user_id)+'<span class="fr-nm"><b>'+esc(m.display_name)+'</b></span><em>'+esc(tag)+'</em></div>'; }
   function settingsSheet(){
     var v=view; h.openSheet('<h3>'+esc(v.name)+'</h3><p class="note">…</p>');
     CL.rpc('group_roster',{p_gid:v.id}).then(function(r){ r=r||[]; var me=r.filter(function(m){ return m.is_me; })[0]; tmp.sharing=!me||me.sharing!==false; v.n=r.length;
-      h.openSheet('<h3>'+esc(v.name)+'</h3><div class="group">'+r.map(memRow).join('')+'</div>'+
+      h.openSheet('<h3 class="fr-sh">'+esc(v.name)+'</h3><div class="group">'+r.map(memRow).join('')+'</div>'+
         '<div class="group"><div class="row"><span>'+L('Share my status','分享我的状态')+'</span><button class="sw" role="switch" aria-checked="'+tmp.sharing+'" aria-label="'+L('Share my status','分享我的状态')+'" data-act="frsharing"></button></div></div><div class="gf">'+L('When it’s off, this group sees you as resting.','关闭后，这个小组会看到你在休息。')+'</div>'+
-        '<div class="btns"><button class="btn" data-act="frinvite">'+L('Invite friends','邀请朋友')+'</button>'+(v.role==='owner'?'<button class="btn sec" data-act="frrename">'+L('Rename group','重命名小组')+'</button>':'')+'<button class="btn red" data-act="frleave">'+L('Leave group','退出小组')+'</button></div>');
+        '<div class="group"><button class="row" data-act="frinvite">'+mi(ICON_PLUS,'gold')+'<span>'+L('Invite friends','邀请朋友')+'</span>'+CHEV+'</button>'+(v.role==='owner'?'<button class="row" data-act="frrename">'+mi(ICON_PEN,'grey')+'<span>'+L('Rename group','重命名小组')+'</span>'+CHEV+'</button>':'')+'</div>'+
+        '<div class="group"><button class="row red" data-act="frleave">'+mi(ICON_EXIT,'red')+'<span>'+L('Leave group','退出小组')+'</span></button></div>');
     }).catch(function(e){ h.closeSheet(); fail(e); });
   }
   function afterChange(){ loading=false; refresh(); return loadBoard(true); }
@@ -216,7 +218,7 @@ function init(h){
   };
   A.frsharing=function(b){ var on=b.getAttribute('aria-checked')!=='true'; b.setAttribute('aria-checked',on); h.fx('light');
     CL.rpc('set_sharing',{p_gid:view.id,p_on:on}).then(function(){ tmp.sharing=on; loadBoard(false); }).catch(function(e){ b.setAttribute('aria-checked',!on); fail(e); }); };
-  A.frrename=function(){ h.openSheet('<h3>'+L('Rename group','重命名小组')+'</h3><div class="group"><div class="field"><label for="frRn">'+L('Group name','小组名称')+'</label><input id="frRn" type="text" maxlength="'+F.GROUP_NAME_MAX+'" autocomplete="off" spellcheck="false" value="'+esc(view.name)+'" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div><div class="btns"><button class="btn" data-act="frrenamego">'+L('Save','保存')+'</button></div>'); };
+  A.frrename=function(){ h.openSheet('<h3 class="fr-sh">'+L('Rename group','重命名小组')+'</h3><div class="group"><div class="field"><label for="frRn">'+L('Group name','小组名称')+'</label><input id="frRn" type="text" maxlength="'+F.GROUP_NAME_MAX+'" autocomplete="off" spellcheck="false" value="'+esc(view.name)+'" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem"></div></div><div class="btns"><button class="btn" data-act="frrenamego">'+L('Save','保存')+'</button></div>'); };
   A.frrenamego=function(b){ var n=F.cleanName(($('frRn')||{}).value,F.GROUP_NAME_MAX), v=view; if(!F.validName(n,F.GROUP_NAME_MAX)) return h.toast(L('Add a group name first.','先给小组起个名字。')); if(b.disabled) return; b.disabled=true;
     CL.rpc('rename_group',{p_gid:v.id,p_name:n}).then(function(){ v.name=n; st.groups.forEach(function(g){ if(g.group_id===v.id) g.name=n; }); save(); h.closeSheet(); if(view===v) render(); }).catch(function(e){ b.disabled=false; fail(e); }); };
   A.frleave=function(){ var many=view.role==='owner'&&view.n>1;

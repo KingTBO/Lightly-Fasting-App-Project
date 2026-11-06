@@ -131,7 +131,7 @@ function setInert(v){ BEHIND.forEach(function(id){ var e=$(id); if(v) e.setAttri
 /* one sheet pattern: the title row carries the dismiss (a round X, same as the concept page); a sheet keeps one primary button and no Cancel, Close or Done pill.
    Start a sheet with <!--keep--> to leave its buttons alone (confirmations that must be answered). */
 var SHX='<button type="button" class="x" data-act="close" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button>';
-function shChrome(html){ if(html.indexOf('<h3>')!==0) return html; var i=html.indexOf('</h3>')+5;
+function shChrome(html){ if(!/^<h3[ >]/.test(html)) return html; var i=html.indexOf('</h3>')+5;
   return ('<div class="sh-h">'+html.slice(0,i)+SHX.replace('aria-label="Close"','aria-label="'+L('Close','关闭')+'"')+'</div>'+html.slice(i)).replace(/<button class="btn sec" data-act="close">[^<]*<\/button>/g,'').replace('<div class="btns"></div>',''); }
 function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); sheetEl.classList.remove('pop'); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
