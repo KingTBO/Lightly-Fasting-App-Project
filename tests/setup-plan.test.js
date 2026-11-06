@@ -63,5 +63,13 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   await cn();assert.match(await q.textContent('#obStage'),/Bring your fasts with you/,'the next step is the import, there is no separate start-time step');
   ok('concept page: same plan step (16:8 open, 18:6 and 20:4 with a note, custom, start time, reminder)');await c.close();}
 
+ // 7. during setup the strips behind the status bar and home indicator match the setup screen (they showed the Today sky around it), in light and dark
+ for(const scheme of ['light','dark']){const c=await b.newContext({viewport:{width:390,height:844},colorScheme:scheme,timezoneId:'Asia/Shanghai'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));
+  await q.addInitScript(()=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',JSON.stringify({v:1,lang:'en',theme:'auto',onboarded:false,prefs:{sound:false,haptics:false,d3:false}}));sessionStorage.s=1}});await q.goto(url);await q.waitForTimeout(900);
+  for(let i=0;i<2;i++){const r=await q.evaluate(()=>({page:document.body.style.backgroundColor,root:document.documentElement.style.backgroundColor,step:getComputedStyle(document.querySelector('.ob-step.on')).backgroundColor,bar:document.querySelector('meta[name=theme-color]').content,bg:getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()}));
+   assert.strictEqual(r.page,r.step,scheme+': page colour matches the setup screen '+JSON.stringify(r));assert.strictEqual(r.root,r.step);assert(r.bar.toLowerCase()===r.bg.toLowerCase()||r.bar===r.step,scheme+': the status bar colour is the setup screen colour '+JSON.stringify(r));
+   if(i===0){await next(q);}}
+  ok('setup: the bars around the screen match it ('+scheme+')');await c.close();}
+
  await b.close();srv.close();assert.deepStrictEqual(errs,[],'no page errors');console.log('done');
 })().catch(e=>{console.error(e);process.exit(1)});
