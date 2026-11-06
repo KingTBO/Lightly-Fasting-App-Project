@@ -578,7 +578,7 @@ function rpWeightHtml(pm){
       num=function(kg){ return Math.round(C.kgTo(kg,u))+' '+uLbl(u); };
   if(cur) return '<h3 id="rpTw" class="rpi">'+L('Your check-in','你的记录')+'</h3><p class="rp-line rpi" style="--i:1">'+L('Before <b>'+num(prev.kg)+'</b> · now <b>'+num(cur.kg)+'</b>','之前 <b>'+num(prev.kg)+'</b> · 现在 <b>'+num(cur.kg)+'</b>')+'</p><button type="button" class="btn quiet rpi" style="--i:2" data-act="rpwedit">'+L('Change it','修改')+'</button>';
   rp.wkg=prev.kg;
-  return '<h3 id="rpTw" class="rpi">'+L('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="group rpi" style="--i:2">'+pkField('rpWt',L('Weight now','现在的体重'),Math.round(C.kgTo(prev.kg,u)),'sel',wtOpts(u))+'</div><button type="button" class="btn rpi" style="--i:3" data-act="rpwsave">'+L('Save','保存')+'</button>';
+  return '<h3 id="rpTw" class="rpi">'+L('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="group rpi" style="--i:2">'+pkField('rpWt',L('Weight now','现在的体重'),Math.round(C.kgTo(prev.kg,u)),'sel',wtOpts(u))+'</div><button type="button" class="btn rpi" style="--i:3" data-act="rpwsave">'+L('Save','保存')+'</button><button type="button" class="btn quiet rpi" style="--i:4" data-act="rpwoff">'+L('Don’t ask me again','不再询问')+'</button>';
 }
 function reportHtml(pm,r){
   var name=monthName(pm,true), nxt=monthName({y:pm.m===11?pm.y+1:pm.y,m:(pm.m+1)%12},true), goal=S.planId==='ramadan'?0:plan().fast, i;
@@ -618,7 +618,7 @@ function reportHtml(pm,r){
     (bands?'<section class="rp-s rv" aria-labelledby="rpT5"><h3 id="rpT5" class="rpi">'+L('Your rhythm','你的节奏')+'</h3><p class="rp-line rpi" style="--i:1">'+L('You usually start around <b>'+clockH(s0)+'</b> and finish around <b>'+clockH(f0)+'</b>.','你通常在 <b>'+clockH(s0)+'</b> 左右开始，<b>'+clockH(f0)+'</b> 左右结束。')+'</p>'+
       '<div class="rp-24" aria-hidden="true"><div class="trk">'+bands+'</div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div></section>':'')+
     '<section class="rp-s rv" aria-labelledby="rpT6"><h3 id="rpT6" class="rpi">'+L('Highlights','亮点')+'</h3><div class="rp-tiles">'+tiles+'</div></section>'+
-    (S.body&&!care()?'<section class="rp-s rp-card rv" id="rpW" aria-labelledby="rpTw">'+rpWeightHtml(pm)+'</section>':'')+
+    (S.body&&!S.body.checkOff&&!care()?'<section class="rp-s rp-card rv" id="rpW" aria-labelledby="rpTw">'+rpWeightHtml(pm)+'</section>':'')+
     '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?L('A steady month.','稳稳的一个月。'):L('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+L('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="btn rpi" style="--i:2" data-act="rpclose">'+L('Done','完成')+'</button></section></div><button type="button" class="rp-x" data-act="rpclose" aria-label="'+L('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>';
 }
 /* the hero disc is the same moon and sun as Today: the real 3D ball when the 3D switch is on (and WebGL works), the flat drawing otherwise.
@@ -1078,7 +1078,8 @@ function careSheet(){
 }
 function bodySheet(){
   var b=S.body; if(!b) return closeSheet(); var u=b.unit||'kg';
-  openSheet('<h3>'+L('About you','关于你')+'</h3><p class="lede">'+L('Saved for your monthly check-ins. Never shared.','只用于你的每月记录，绝不分享。')+'</p><div class="group"><div class="row"><span>'+L('Age','年龄')+'</span><b>'+b.age+'</b></div><div class="row"><span>'+L('Weight','体重')+'</span><b>'+Math.round(C.kgTo(b.kg,u))+' '+uLbl(u)+'</b></div><div class="row"><span>'+L('Height','身高')+'</span><b>'+b.cm+' cm</b></div>'+(b.sex?'<div class="row"><span>'+L('Gender','性别')+'</span><b>'+(b.sex==='f'?L('Female','女'):L('Male','男'))+'</b></div>':'')+'</div>'+
+  openSheet('<h3>'+L('About you','关于你')+'</h3><p class="lede">'+L('Saved for your monthly check-ins. Never shared.','只用于你的每月记录，绝不分享。')+'</p><div class="group"><div class="row"><span>'+L('Age','年龄')+'</span><b>'+b.age+'</b></div><div class="row"><span>'+L('Weight','体重')+'</span><b>'+Math.round(C.kgTo(b.kg,u))+' '+uLbl(u)+'</b></div><div class="row"><span>'+L('Height','身高')+'</span><b>'+b.cm+' cm</b></div>'+(b.sex?'<div class="row"><span>'+L('Gender','性别')+'</span><b>'+(b.sex==='f'?L('Female','女'):b.sex==='x'?L('Non-binary','非二元'):L('Male','男'))+'</b></div>':'')+'</div>'+
+    '<div class="group"><div class="row"><span>'+L('Monthly weight check-in','每月体重记录')+'</span><button class="sw" role="switch" aria-checked="'+!b.checkOff+'" aria-label="'+L('Monthly weight check-in','每月体重记录')+'" data-act="bodycheck"></button></div></div>'+
     '<div class="btns"><button class="btn red" data-act="bodyrm">'+L('Remove them','删除')+'</button><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
 }
 function careRow(b){
@@ -1151,6 +1152,7 @@ function placeSheet(){
   h+='<div class="group"><button class="plan'+(S.place.key==='here'?' sel':'')+'" data-act="geo"><span class="pn"><b>'+L('Use my location','使用我的位置')+'</b><small>'+L('Most accurate. Stays on this phone.','最准确，只留在这台手机上。')+'</small></span>'+CHECK+'</button></div><div class="gh">'+L('Or choose a city','或选择城市')+'</div><div class="group">';
   Object.keys(C.CITIES).forEach(function(k){ h+='<button class="plan'+(S.place.key===k?' sel':'')+'" data-act="city" data-k="'+k+'" style="min-height:48px"><span class="pn"><b style="font-weight:400">'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</b></span>'+CHECK+'</button>'; });
   h+='</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'; openSheet(h);
+  var cur=sheetEl.querySelector('[data-act=city].sel'); if(cur) setTimeout(function(){ try{ cur.scrollIntoView({block:'center'}); }catch(x){} },0);   /* a long list opens on your own city */
 }
 function setPlace(pl){ if(pl.key!=='here') geoTok++; S.place=pl; sunDay=''; save(); cache={}; updateToday(); }
 /* A fix can take several seconds on a phone (the permission prompt, then the radio), so the person always sees that Lightly is working, and is never left waiting:
@@ -1430,7 +1432,7 @@ function obHtml(i){
   }else if(key==='body'){
     body='<h1>'+L('A little about you','关于你')+'</h1><p class="lede">'+L('Add them and see your weight trend, with a check-in every month.','填写后，每月回顾会带你看体重变化的趋势。')+'</p><div class="group">'+pkField('obAge',L('Age','年龄'),ob.age,'sel',obAgeOpts())+pkField('obWt',L('Weight','体重'),Math.round(C.kgTo(ob.kg,ob.unit)),'sel',obWtOpts())+pkField('obHt',L('Height','身高'),obHtKey(),'sel',obHtOpts())+'</div>'+
       '<div class="seg" role="group" aria-label="'+L('Units','单位')+'">'+['kg','lb','jin'].map(function(u){ return '<button type="button" data-act="obunit" data-v="'+u+'" aria-pressed="'+(ob.unit===u)+'">'+uLbl(u)+'</button>'; }).join('')+'</div>'+
-      '<div class="seg" role="group" aria-label="'+L('Gender','性别')+'">'+[['m',L('Male','男')],['f',L('Female','女')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-act="obsex" data-v="'+g[0]+'" aria-pressed="'+(ob.sex===g[0])+'">'+g[1]+'</button>'; }).join('')+'</div><p class="gf obnote" style="padding:0 4px">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>';
+      '<div class="seg" role="group" aria-label="'+L('Gender','性别')+'">'+[['m',L('Male','男')],['f',L('Female','女')],['x',L('Non-binary','非二元')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-act="obsex" data-v="'+g[0]+'" aria-pressed="'+(ob.sex===g[0])+'">'+g[1]+'</button>'; }).join('')+'</div><p class="gf obnote" style="padding:0 4px">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obbody">'+L('Continue','继续')+'</button><button class="btn quiet" data-act="obbodyskip">'+L('Skip','跳过')+'</button>';
   }else if(key==='summary'){
     var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.start||'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
@@ -1513,7 +1515,7 @@ function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.l
 function obStart(){ ph.classList.add('onb'); chrome(); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),sex:'n',skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
-  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.start) S.prefs.usualStart=ob.start; if(S.planId==='custom'&&ob.customH) S.customH=ob.customH; if(!risky&&ob.bodyDone&&!ob.skip&&C.weightFit({age:ob.age,kg:ob.kg,cm:ob.cm})){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,at:Date.now()}; if(ob.sex==='m'||ob.sex==='f') S.body.sex=ob.sex; } else S.body=null;   /* gender is only kept when it was chosen: "prefer not to say" saves nothing */
+  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.start) S.prefs.usualStart=ob.start; if(S.planId==='custom'&&ob.customH) S.customH=ob.customH; if(!risky&&ob.bodyDone&&!ob.skip&&C.weightFit({age:ob.age,kg:ob.kg,cm:ob.cm})){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,at:Date.now()}; if(ob.sex==='m'||ob.sex==='f'||ob.sex==='x') S.body.sex=ob.sex; } else S.body=null;   /* gender is only kept when it was chosen: "prefer not to say" saves nothing */
   S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
   save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today'); obFly();
 }
@@ -1789,6 +1791,8 @@ var A={
     if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ obBackTo(); },
   bodyinfo:bodySheet,
+  bodycheck:function(b){ if(!S.body) return; S.body.checkOff=!S.body.checkOff; if(!S.body.checkOff) delete S.body.checkOff; save(); fx('select'); b.setAttribute('aria-checked',String(!S.body.checkOff)); },
+  rpwoff:function(){ if(!S.body) return; S.body.checkOff=true; save(); fx('select'); var e=$('rpW'); if(e) e.innerHTML='<h3 id="rpTw" class="rpi">'+L('No more check-ins','不再询问体重')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Your recap will not include weight any more. You can turn it back on in Me, About you.','回顾里不会再出现体重。你可以在“我的 · 关于你”里重新打开。')+'</p>'; },
   bodyrm:function(){ S.body=null; save(); closeSheet(); renderMe(); },
   obunit:function(b){ ob.unit=b.dataset.v; obRefresh(); },
   obsex:function(b){ ob.sex=b.dataset.v; fx('select'); obRefresh(); },

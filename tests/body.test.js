@@ -26,12 +26,14 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  // gender: optional, Prefer not to say is the default and saves nothing; Male or Female is kept and shown in Me
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);
   assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=n]','aria-pressed'),'true','Prefer not to say is pre-selected');
-  const row=await q.$$eval('.ob-step.on .seg button[data-act=obsex]',bs=>bs.map(b=>b.textContent.trim()));assert.deepStrictEqual(row,['Male','Female','Prefer not to say'],'the three choices');
+  const row=await q.$$eval('.ob-step.on .seg button[data-act=obsex]',bs=>bs.map(b=>b.textContent.trim()));assert.deepStrictEqual(row,['Male','Female','Non-binary','Prefer not to say'],'the four choices');
   assert(await q.$eval('.ob-step.on .seg button[data-v=n]',e=>e.getBoundingClientRect().height)<50,'Prefer not to say stays on one line');
   await q.click('.ob-step.on [data-act=obsex][data-v=f]');await q.waitForTimeout(300);assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=f]','aria-pressed'),'true');assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=n]','aria-pressed'),'false');
+  await q.click('.ob-step.on [data-act=obsex][data-v=x]');await q.waitForTimeout(300);assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=x]','aria-pressed'),'true');assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=f]','aria-pressed'),'false');
+  assert((await q.$$eval('.ob-step.on .seg button[data-act=obsex]',bs=>bs.every(b=>b.getBoundingClientRect().height<50))),'every choice stays on one line');
   await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
-  assert.strictEqual((await S(q)).body.sex,'f','Female is saved');await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent('#sheet'),/GenderFemale/,'Me shows it');
-  ok('gender: optional, Prefer not to say saves nothing, Female is kept and shown in Me');await q.context().close();}
+  assert.strictEqual((await S(q)).body.sex,'x','Non-binary is saved');await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent('#sheet'),/GenderNon-binary/,'Me shows it');
+  ok('gender: optional, Prefer not to say saves nothing, Non-binary is kept and shown in Me');await q.context().close();}
 
  // units
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);
@@ -63,13 +65,13 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   await q.mouse.move(bx.x+bx.width/2,bx.y+90);await q.mouse.down();for(let k=1;k<=10;k++){await q.mouse.move(bx.x+bx.width/2,bx.y+90-k*8);await q.waitForTimeout(15);}await q.mouse.up();await q.waitForTimeout(900);
   assert.notStrictEqual(await q.textContent('#obWt .pk-v'),before,'the wheel still turns after a lost touch');ok('a lost touch does not freeze the wheel');await q.context().close();}
 
- // only adults with a BMI of 18.5 or more keep a weight: nothing is saved for anyone else, and nothing is said about it
+ // adults keep a weight whatever it is (no BMI cut-off: BMI is too biased to decide anything); nothing is saved under 18
  {const q=await toSafety('zh');await q.click('[data-act=obsafe][data-v=none]');await nx(q);assert.match(await txt(q),/关于你/);assert.match(await txt(q),/每月回顾会带你看体重变化的趋势/);assert.match(await txt(q),/登录后才会存入你的备份/);
-  await pick(q,'obWt',30);   // zh defaults to 斤: 90 斤 is 45 kg, BMI 15.6
-  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/你的断食|准备好了/,'straight to the summary');await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert(!(await S(q)).body,'BMI under 18.5: nothing saved');
-  ok('a low BMI saves nothing, quietly');await q.context().close();}
+  await pick(q,'obWt',30);   // zh defaults to 斤: 90 斤 is 45 kg, which used to be dropped for its BMI
+  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/你的断食|准备好了/,'straight to the summary');await q.click('[data-act=obdone]');await q.waitForTimeout(800);{const bd=(await S(q)).body;assert(bd&&bd.kg<=50,'a low weight (a BMI under 18.5) is saved like any other: no BMI cut-off, got '+JSON.stringify(bd));}
+  ok('no BMI cut-off: a low weight is saved too');await q.context().close();}
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await pick(q,'obWt',30);   // 60 kg at 170 cm = BMI 20.8
-  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert.strictEqual((await S(q)).body.kg,60,'a healthy BMI is saved for the check-in');ok('BMI 18.5 or more: saved');await q.context().close();}
+  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert.strictEqual((await S(q)).body.kg,60,'saved for the check-in');ok('an adult weight is saved');await q.context().close();}
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await pick(q,'obAge',4);   // age 17
   await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert(!(await S(q)).body,'under 18: nothing saved');ok('under 18: nothing saved');await q.context().close();}
 
@@ -87,6 +89,16 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   assert.match(await q.textContent('#rpW'),/Before 82 kg · now 80 kg/,await q.textContent('#rpW'));let s=await S(q);assert.strictEqual(s.body.checks.length,1);assert.strictEqual(s.body.checks[0].key,'2026-10');assert.strictEqual(s.body.checks[0].kg,80);
   await q.click('#rpW [data-act=rpwedit]');await q.waitForTimeout(400);assert.match(await q.textContent('#rpW'),/A quick check-in/);assert.strictEqual((await S(q)).body.checks.length,0);
   ok('monthly check-in in the recap: one weight, saved, changeable');await q.context().close();
+  // "Don't ask me again": the card says so, nothing about weight is in the recap any more, and Me can turn it back on
+  q=await rep(seed({body:{age:30,kg:82,cm:170,unit:'kg',at:1}}));await q.locator('#rpW').scrollIntoViewIfNeeded();await q.waitForTimeout(500);
+  await q.click('#rpW [data-act=rpwoff]');await q.waitForTimeout(400);assert.match(await q.textContent('#rpW'),/No more check-ins/);assert.match(await q.textContent('#rpW'),/turn it back on in Me, About you/);assert.strictEqual((await S(q)).body.checkOff,true);await q.context().close();
+  q=await rep(seed({body:{age:30,kg:82,cm:170,unit:'kg',at:1,checkOff:true}}));assert(!(await q.$('#rpW')),'no weight card in the recap once it is switched off');
+  await q.click('#report [data-act=recapx], #report .rp-x, #report [data-rpclose]').catch(()=>{});await q.context().close();
+  {const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});const p=await c.newPage();p.on('pageerror',e=>errs.push(e.message));await p.addInitScript(x=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',x);sessionStorage.s=1}},JSON.stringify(seed({body:{age:30,kg:82,cm:170,unit:'kg',at:1,checkOff:true}})));await p.goto(url);await p.waitForTimeout(600);
+   await p.click('#tabs [data-tab=me]');await p.waitForTimeout(400);await p.click('#me [data-act=bodyinfo]');await p.waitForTimeout(500);assert.strictEqual(await p.getAttribute('#sheet [data-act=bodycheck]','aria-checked'),'false','the switch shows it is off');
+   await p.click('#sheet [data-act=bodycheck]');await p.waitForTimeout(300);assert.strictEqual(await p.getAttribute('#sheet [data-act=bodycheck]','aria-checked'),'true');assert(!('checkOff' in (await S(p)).body),'turned back on');
+   await p.click('#sheet [data-act=bodycheck]');await p.waitForTimeout(300);assert.strictEqual((await S(p)).body.checkOff,true,'and off again');await c.close();}
+  ok("Don't ask me again: no weight in the recap, and Me can turn it back on");
   q=await rep(seed({body:{age:30,kg:82,cm:170,unit:'kg',at:1},profile:{fastedBefore:true,safety:true,care:['diab']}}));assert(!(await q.$('#rpW')),'no check-in in Care mode');await q.context().close();
   q=await rep(seed({}));assert(!(await q.$('#rpW')),'no check-in without a weight from setup');ok('no check-in in Care mode or without a weight');await q.context().close();}
 
@@ -97,7 +109,10 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   for(let i=0;i<9&&!(await q.$(last+'[data-sex]'));i++){ if(await q.$(last+'[data-loc=city]')) await q.click(last+'[data-loc=city]'); else if(await q.$(last+'[data-next][disabled]')) await q.click(await q.$(last+'.ob-opt[role=checkbox]')?last+'.ob-opt:last-child':last+'.ob-opt');   /* safety: "none of these" (the last card), so the body step is not skipped */ await q.waitForTimeout(300);await q.click(last+'[data-next]');await q.waitForTimeout(900); }
   assert(await q.$(last+'[data-sex]'),'the concept body step has the gender choice');assert.strictEqual(await q.getAttribute(last+'[data-sex=n]','aria-pressed'),'true');
   await q.click(last+'[data-sex=m]');await q.waitForTimeout(300);assert.strictEqual(await q.getAttribute(last+'[data-sex=m]','aria-pressed'),'true');assert.strictEqual(await q.getAttribute(last+'[data-sex=n]','aria-pressed'),'false');
-  ok('concept page: gender choice');await c.close();}
+  assert.deepStrictEqual(await q.$$eval(last+'[data-sex]',bs=>bs.map(b=>b.dataset.sex)),['m','f','x','n'],'the concept page has Non-binary too');
+  await q.evaluate(()=>{const t=[...document.querySelectorAll('[role=tab]')].find(b=>/^Days$/.test(b.textContent.trim()));if(t)t.click();});await q.waitForTimeout(800);await q.evaluate(()=>{const e=document.getElementById('dyRcOpen');if(e)e.click();});await q.waitForTimeout(1500);
+  const off=await q.evaluate(()=>{const b=document.querySelector('#dyW [data-rpw=off]');if(!b)return 'no button';b.click();return document.getElementById('dyW').textContent;});assert.match(off,/No more check-ins/,'the concept recap card can be switched off');
+  ok('concept page: gender choice and "Don\'t ask me again"');await c.close();}
 
  assert.deepStrictEqual(errs,[],'no page errors: '+errs.join(' | '));
  await b.close();srv.close();console.log('body ok');

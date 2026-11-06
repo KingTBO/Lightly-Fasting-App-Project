@@ -6,18 +6,55 @@ var H=3600000, D=86400000;
 /* ---------- places ---------- */
 var CITIES={
   shanghai:{en:'Shanghai',zh:'上海',lat:31.23,lon:121.47,zone:'Asia/Shanghai'},
-  beijing:{en:'Beijing',zh:'北京',lat:39.90,lon:116.40,zone:'Asia/Shanghai'},
+  beijing:{en:'Beijing',zh:'北京',lat:39.9,lon:116.4,zone:'Asia/Shanghai'},
   guangzhou:{en:'Guangzhou',zh:'广州',lat:23.13,lon:113.26,zone:'Asia/Shanghai'},
+  shenzhen:{en:'Shenzhen',zh:'深圳',lat:22.54,lon:114.06,zone:'Asia/Shanghai'},
+  chengdu:{en:'Chengdu',zh:'成都',lat:30.57,lon:104.07,zone:'Asia/Shanghai'},
   hongkong:{en:'Hong Kong',zh:'香港',lat:22.32,lon:114.17,zone:'Asia/Hong_Kong'},
-  singapore:{en:'Singapore',zh:'新加坡',lat:1.35,lon:103.82,zone:'Asia/Singapore'},
+  taipei:{en:'Taipei',zh:'台北',lat:25.03,lon:121.57,zone:'Asia/Taipei'},
   tokyo:{en:'Tokyo',zh:'东京',lat:35.68,lon:139.69,zone:'Asia/Tokyo'},
-  sydney:{en:'Sydney',zh:'悉尼',lat:-33.87,lon:151.21,zone:'Australia/Sydney'},
+  osaka:{en:'Osaka',zh:'大阪',lat:34.69,lon:135.5,zone:'Asia/Tokyo'},
+  seoul:{en:'Seoul',zh:'首尔',lat:37.57,lon:126.98,zone:'Asia/Seoul'},
+  singapore:{en:'Singapore',zh:'新加坡',lat:1.35,lon:103.82,zone:'Asia/Singapore'},
+  kualalumpur:{en:'Kuala Lumpur',zh:'吉隆坡',lat:3.14,lon:101.69,zone:'Asia/Kuala_Lumpur'},
+  jakarta:{en:'Jakarta',zh:'雅加达',lat:-6.21,lon:106.85,zone:'Asia/Jakarta'},
+  bangkok:{en:'Bangkok',zh:'曼谷',lat:13.76,lon:100.5,zone:'Asia/Bangkok'},
+  hochiminh:{en:'Ho Chi Minh City',zh:'胡志明市',lat:10.82,lon:106.63,zone:'Asia/Ho_Chi_Minh'},
+  manila:{en:'Manila',zh:'马尼拉',lat:14.6,lon:120.98,zone:'Asia/Manila'},
+  mumbai:{en:'Mumbai',zh:'孟买',lat:19.08,lon:72.88,zone:'Asia/Kolkata'},
+  delhi:{en:'Delhi',zh:'德里',lat:28.61,lon:77.21,zone:'Asia/Kolkata'},
+  dhaka:{en:'Dhaka',zh:'达卡',lat:23.81,lon:90.41,zone:'Asia/Dhaka'},
+  karachi:{en:'Karachi',zh:'卡拉奇',lat:24.86,lon:67.01,zone:'Asia/Karachi'},
+  dubai:{en:'Dubai',zh:'迪拜',lat:25.2,lon:55.27,zone:'Asia/Dubai'},
+  riyadh:{en:'Riyadh',zh:'利雅得',lat:24.71,lon:46.68,zone:'Asia/Riyadh'},
+  istanbul:{en:'Istanbul',zh:'伊斯坦布尔',lat:41.01,lon:28.98,zone:'Europe/Istanbul'},
+  cairo:{en:'Cairo',zh:'开罗',lat:30.04,lon:31.24,zone:'Africa/Cairo'},
   london:{en:'London',zh:'伦敦',lat:51.51,lon:-0.13,zone:'Europe/London'},
+  dublin:{en:'Dublin',zh:'都柏林',lat:53.35,lon:-6.26,zone:'Europe/Dublin'},
+  paris:{en:'Paris',zh:'巴黎',lat:48.86,lon:2.35,zone:'Europe/Paris'},
+  amsterdam:{en:'Amsterdam',zh:'阿姆斯特丹',lat:52.37,lon:4.9,zone:'Europe/Amsterdam'},
+  berlin:{en:'Berlin',zh:'柏林',lat:52.52,lon:13.4,zone:'Europe/Berlin'},
+  madrid:{en:'Madrid',zh:'马德里',lat:40.42,lon:-3.7,zone:'Europe/Madrid'},
+  rome:{en:'Rome',zh:'罗马',lat:41.9,lon:12.5,zone:'Europe/Rome'},
+  stockholm:{en:'Stockholm',zh:'斯德哥尔摩',lat:59.33,lon:18.07,zone:'Europe/Stockholm'},
+  moscow:{en:'Moscow',zh:'莫斯科',lat:55.76,lon:37.62,zone:'Europe/Moscow'},
+  lagos:{en:'Lagos',zh:'拉各斯',lat:6.52,lon:3.38,zone:'Africa/Lagos'},
+  nairobi:{en:'Nairobi',zh:'内罗毕',lat:-1.29,lon:36.82,zone:'Africa/Nairobi'},
   mogadishu:{en:'Mogadishu',zh:'摩加迪沙',lat:2.05,lon:45.32,zone:'Africa/Mogadishu'},
+  johannesburg:{en:'Johannesburg',zh:'约翰内斯堡',lat:-26.2,lon:28.05,zone:'Africa/Johannesburg'},
   newyork:{en:'New York',zh:'纽约',lat:40.71,lon:-74.01,zone:'America/New_York'},
+  toronto:{en:'Toronto',zh:'多伦多',lat:43.65,lon:-79.38,zone:'America/Toronto'},
   chicago:{en:'Chicago',zh:'芝加哥',lat:41.88,lon:-87.63,zone:'America/Chicago'},
+  denver:{en:'Denver',zh:'丹佛',lat:39.74,lon:-104.99,zone:'America/Denver'},
   losangeles:{en:'Los Angeles',zh:'洛杉矶',lat:34.05,lon:-118.24,zone:'America/Los_Angeles'},
-  vancouver:{en:'Vancouver',zh:'温哥华',lat:49.28,lon:-123.12,zone:'America/Vancouver'}
+  vancouver:{en:'Vancouver',zh:'温哥华',lat:49.28,lon:-123.12,zone:'America/Vancouver'},
+  mexicocity:{en:'Mexico City',zh:'墨西哥城',lat:19.43,lon:-99.13,zone:'America/Mexico_City'},
+  bogota:{en:'Bogotá',zh:'波哥大',lat:4.71,lon:-74.07,zone:'America/Bogota'},
+  saopaulo:{en:'São Paulo',zh:'圣保罗',lat:-23.55,lon:-46.63,zone:'America/Sao_Paulo'},
+  buenosaires:{en:'Buenos Aires',zh:'布宜诺斯艾利斯',lat:-34.6,lon:-58.38,zone:'America/Argentina/Buenos_Aires'},
+  sydney:{en:'Sydney',zh:'悉尼',lat:-33.87,lon:151.21,zone:'Australia/Sydney'},
+  melbourne:{en:'Melbourne',zh:'墨尔本',lat:-37.81,lon:144.96,zone:'Australia/Melbourne'},
+  auckland:{en:'Auckland',zh:'奥克兰',lat:-36.85,lon:174.76,zone:'Pacific/Auckland'}
 };
 /* nearest preset for the device time zone, used until the person shares a location */
 function guessCity(zone){
@@ -125,12 +162,11 @@ var WUNIT={kg:1,lb:2.20462,jin:2};
 function kgTo(kg,u){ return kg*(WUNIT[u]||1); }
 function toKg(v,u){ return v/(WUNIT[u]||1); }
 /* ---------- who the optional weight is for ----------
-   in: {age, kg, cm}. true for adults with a usable weight and a BMI of 18.5 or more; false means nothing is saved
-   (no weight check-in for under 18, for a low BMI, or for numbers that cannot be right). Care mode never gets here (the app skips the step). */
+   in: {age, kg, cm}. true for adults (18+) with numbers that can be right; false means nothing is saved. There is no BMI cut-off on
+   purpose (Tengbo, 2026-11-06: BMI is too biased to decide anything). Care mode never gets here (the app skips the step). */
 function weightFit(o){
   var kg=+o.kg, cm=+o.cm, age=+o.age;
-  if(!(kg>=30&&kg<=250&&cm>=120&&cm<=220&&age>=18)) return false;
-  return kg/Math.pow(cm/100,2)>=18.5;
+  return kg>=30&&kg<=250&&cm>=120&&cm<=220&&age>=18;
 }
 
 /* ---------- unlock rules for long fasts (24 h, 36 h) ----------

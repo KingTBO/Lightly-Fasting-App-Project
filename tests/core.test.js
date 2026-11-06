@@ -46,6 +46,10 @@ bs.off=[{id:'a',kind:'travel',start:now-D,days:3,endedAt:now}];assert.strictEqua
 // a running fast means today is not a day off; yesterday and the future are not affected
 {const cs={fasts:[],flex:{bank:2,used:[]},cur:{start:now-3600000}};assert.strictEqual(C.flexBlock(C.dayKey(now),cs,now),'fasting');assert.strictEqual(C.flexBlock(C.dayKey(now+D),cs,now),'window','no cheat day for a future date');cs.cur=null;assert.strictEqual(C.flexBlock(C.dayKey(now),cs,now),'');}
 assert.strictEqual(C.guessCity('Asia/Shanghai'),'shanghai');
+// the city list has the big classic cities, each with a real zone and a sunrise that is not the same everywhere
+{const ks=Object.keys(C.CITIES);['berlin','london','paris','jakarta','tokyo','mumbai','cairo','lagos','saopaulo','mexicocity','toronto','melbourne','auckland','seoul','istanbul','moscow'].forEach(k=>assert.ok(C.CITIES[k],'missing '+k));
+ks.forEach(k=>{const c=C.CITIES[k];assert.ok(c.en&&c.zh&&isFinite(c.lat)&&isFinite(c.lon)&&c.zone,k+' is complete');assert.ok(isFinite(C.zoneOffset(c.zone,Date.UTC(2026,10,6))),k+' has a usable time zone');});
+assert.strictEqual(C.guessCity('Europe/Paris'),'paris');assert.strictEqual(C.guessCity('Europe/Berlin'),'berlin');assert.strictEqual(C.guessCity('Asia/Jakarta'),'jakarta');assert.strictEqual(C.guessCity('America/Toronto'),'toronto');}
 // everyday plan ladder
 {const f=(h,g)=>({id:String(Math.random()),start:0,end:h*H,goalH:g==null?h:g}),first={fastedBefore:false,safety:false},exp={fastedBefore:true,safety:false},st=(id,pr,fs)=>C.planStatus(id,pr,{fasts:fs});
 assert.strictEqual(st('13',first,[]).st,'ok');assert.strictEqual(st('16',first,[]).st,'ok','16:8 is open for first-timers');assert.strictEqual(st('16',exp,[]).st,'ok');
@@ -64,10 +68,10 @@ assert.strictEqual(st('16',care,[f(13),f(13),f(13)]).st,'ok','16:8 still opens b
 assert.strictEqual(C.longStatus(24,care,{fasts:[f(16),f(16),f(16),f(24)],unwell:null,unlocked:{24:1}},now).st,'hidden','even with a 24 h fast on record');assert.strictEqual(C.longStatus(36,care,{fasts:[],unwell:null,unlocked:{}},now).st,'hidden');
 assert.strictEqual(C.customMax(care),16);assert.strictEqual(C.customMax({safety:false}),23);assert.strictEqual(C.careOn({safety:true}),true);assert.strictEqual(C.careOn({safety:false}),false);assert.strictEqual(C.careOn(null),false);
 assert.strictEqual(C.careEase('preg'),'now');assert.strictEqual(C.careEase('diab'),'wait');assert.strictEqual(C.careEase('earlier'),'wait');assert.strictEqual(C.careEase('ed'),'never');assert.strictEqual(C.CARE_WAIT,14*D);}
-// who keeps a weight: adults with a usable weight and a BMI of 18.5 or more
+// who keeps a weight: adults with numbers that can be right; there is no BMI cut-off (BMI is too biased)
 {const wf=C.weightFit,base={age:35,kg:82,cm:170};
 assert.strictEqual(wf(base),true);assert.strictEqual(wf(Object.assign({},base,{age:18})),true);assert.strictEqual(wf(Object.assign({},base,{age:17})),false,'under 18');
-assert.strictEqual(wf(Object.assign({},base,{kg:50})),false,'BMI 17');assert.strictEqual(wf(Object.assign({},base,{kg:53.5})),true,'BMI 18.5 and a bit');assert.strictEqual(wf(Object.assign({},base,{kg:52})),false,'BMI 18.0');
+assert.strictEqual(wf(Object.assign({},base,{kg:50})),true,'a low BMI is saved like any other');assert.strictEqual(wf(Object.assign({},base,{kg:45})),true);assert.strictEqual(wf(Object.assign({},base,{kg:150})),true,'and so is a high one');
 assert.strictEqual(wf(Object.assign({},base,{kg:20})),false);assert.strictEqual(wf(Object.assign({},base,{cm:100})),false);assert.strictEqual(wf({}),false);}
 // Days totals and chart averages
 {const at=(y,m,d,h)=>{const e=new Date(y,m,d,12).getTime();return{id:'t'+e,start:e-h*H,end:e,goalH:16};};
