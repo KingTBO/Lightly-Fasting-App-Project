@@ -3,10 +3,11 @@
 const assert=require('assert'),http=require('http'),fs=require('fs'),path=require('path');
 const {chromium}=require('playwright'); const root=path.join(__dirname,'..'); const H=3600000;
 const shots=(process.argv.find(a=>a.startsWith('--shots='))||'').slice(8);
-const calls=[]; let profile=null, groups=[], codeN=0, sharingOn=true; const cheered=new Set();
+const calls=[]; let profile=null, groups=[], codeN=0, sharingOn=true; const cheered=new Set(), otps=[];
 const mock=http.createServer((q,r)=>{ r.setHeader('Access-Control-Allow-Origin','*'); r.setHeader('Access-Control-Allow-Headers','*'); r.setHeader('Access-Control-Allow-Methods','*'); if(q.method==='OPTIONS'){ r.writeHead(204); return r.end(); }
   let body=''; q.on('data',d=>body+=d); q.on('end',()=>{ const j=body?JSON.parse(body):{}, u=q.url, out=(c,o)=>{ r.writeHead(c,{'Content-Type':'application/json'}); r.end(JSON.stringify(o)); };
     if(u.startsWith('/auth/v1/settings')) return out(200,{external:{google:true,email:true}});
+    if(u.startsWith('/auth/v1/otp')){ otps.push(u); return out(200,{}); }
     if(u.startsWith('/auth/v1/user')) return out(200,{id:'uid-me',email:'me@example.com'});
     if(u.startsWith('/rest/v1/lightly_state')) return out(200,[]);
     if(u.startsWith('/rest/v1/profiles')) return out(200,profile?[profile]:[]);
@@ -19,6 +20,8 @@ const mock=http.createServer((q,r)=>{ r.setHeader('Access-Control-Allow-Origin',
     if(m[1]==='group_board'){ const d=j.p_day, today=j.p_today, late=d===today; const R=(uid,n,a,st,pr,g,me)=>({user_id:uid,display_name:n,avatar:a,is_me:!!me,status:st,progress:pr,goal_hours:g,cheered_by_me:cheered.has(uid+d),cheers_received:me?2:0});
       return out(200,late?[R('uid-me','Maya','lantern','fasting',.4,16,1),R('u-mei','Mei','crescent','fasting',.6,18),R('u-arj','Arjun','sunrise','reached',1,16),R('u-len','Lena','tea','resting',null,null),R('u-sam','Sam','star','none',null,null)]
         :[R('uid-me','Maya','lantern','reached',1,16,1),R('u-mei','Mei','crescent','fasted',.7,18),R('u-arj','Arjun','sunrise','reached',1,16),R('u-len','Lena','tea','resting',null,null),R('u-sam','Sam','star','none',null,null)]); }
+    if(m[1]==='invite_preview'){ return out(200,j.p_code==='K7QM4XD9'?[{group_name:'Morning crew',inviter_name:'Mei',member_count:4,avatars:['crescent','sunrise','tea','star']}]:[]); }
+    if(m[1]==='join_group'){ if(j.p_code==='FULLFULL') return out(200,[{status:'full',group_id:null}]); return out(200,[{status:'ok',group_id:'g9'}]); }
     if(m[1]==='group_roster') return out(200,[{user_id:'uid-me',display_name:'Maya',avatar:'lantern',role:'owner',is_me:true,sharing:sharingOn,joined_at:'2026-11-01T00:00:00Z'},{user_id:'u-mei',display_name:'Mei',avatar:'crescent',role:'member',is_me:false,sharing:null,joined_at:'2026-11-02T00:00:00Z'}]);
     if(m[1]==='send_cheer'){ if(j.p_to==='u-len') return out(400,{message:'not_cheerable'}); cheered.add(j.p_to+j.p_day); return out(200,null); }
     if(m[1]==='withdraw_cheer'){ cheered.delete(j.p_to+j.p_day); return out(200,null); }
@@ -105,9 +108,30 @@ function ok(n){ console.log('ok -',n); }
   // Chinese, narrow phone
   await q.click('#tabs [data-tab=me]'); await q.click('[data-act=choice][data-k=lang]'); await q.click('[data-act=pick][data-k=lang][data-v=zh]'); await q.waitForTimeout(300); await q.click('#tabs [data-tab=friends]'); await q.waitForTimeout(400); assert.match(await q.textContent('#tabF'),/朋友/); assert.match(await q.textContent('#friends'),/个人|人/); await shot(q,'list-zh');
   assert.deepStrictEqual(e.errs,[]); ok('Chinese');
+  // 3c. joining: a code typed in, an invite link, the same link signed out
+  const j1=await device(base(),true), jp=j1.p; await jp.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); profile={display_name:'Maya',avatar:'lantern'}; groups=[]; await jp.reload(); await jp.waitForTimeout(500);
+  await jp.click('#tabs [data-tab=friends]'); await jp.waitForSelector('#friends [data-act=frcode]'); assert.match(await jp.textContent('#friends'),/I have an invite code/); await jp.click('#friends [data-act=frcode]'); await jp.waitForSelector('#frCode');
+  await jp.fill('#frCode','zzzz-zzzz'); await jp.click('#sheet [data-act=frcodego]'); await jp.waitForSelector('#sheet .note.err'); assert.match(await jp.textContent('#sheet'),/isn’t valid any more/); await shot(jp,'code-invalid');
+  await jp.fill('#frCode','k7qm-4xd9'); await jp.click('#sheet [data-act=frcodego]'); await jp.waitForSelector('#sheet [data-act=frjoinok]');
+  const cs=await jp.textContent('#sheet'); assert.match(cs,/Join “Morning crew”\?/); assert.match(cs,/Invited by Mei · 4 of 10 people/); assert.match(cs,/The group sees/); assert.match(cs,/Hours fasted, times, where you are, your weight, or a streak\./); await shot(jp,'consent-en');
+  await jp.click('#sheet [data-act=frjoinok]'); await jp.waitForTimeout(500); assert.deepStrictEqual(calls.filter(c=>c.fn==='join_group').pop().args,{p_code:'K7QM4XD9'}); ok('enter a code: invalid, then the consent sheet, then join');
+  // the link: opens straight onto the consent sheet, takes the code out of the address bar, and asks for a name first if there is none
+  profile=null; groups=[]; const j2=await device(base(),true), lp=j2.p; await lp.goto(url+'?join=k7qm4xd9'); await lp.waitForSelector('#sheet [data-act=frjoinok]',{timeout:8000});
+  assert.strictEqual(await lp.evaluate(()=>location.search),'','the code leaves the address bar'); assert.deepStrictEqual(await tabsVisible(lp),['today','days','friends','me'],'the link turns the preview on');
+  await lp.click('#sheet [data-act=frjoinok]'); await lp.waitForSelector('#frName'); await lp.fill('#frName','Sam'); await lp.click('[data-act=frnamego]'); await lp.waitForSelector('#sheet [data-act=frjoinok]'); assert.match(await lp.textContent('#sheet'),/Join “Morning crew”\?/,'back to the invite after choosing a name');
+  await lp.click('#sheet [data-act=frjoinok]'); await lp.waitForTimeout(500); assert(calls.filter(c=>c.fn==='join_group').length>=2); ok('an invite link opens the consent sheet and survives choosing a name');
+  // a full or bad link says so and is dropped
+  const j3=await device(base(),true), fp=j3.p; await fp.goto(url+'?join=ZZZZZZZZ'); await fp.waitForTimeout(900); assert.match(await fp.textContent('#toast'),/isn’t valid any more/); assert.strictEqual(JSON.parse(await fp.evaluate(()=>localStorage.getItem('lightly:friends'))).joinCode,'','a dead code is forgotten'); ok('a dead invite link says so');
+  // signed out: the group is named, and the sign-in link carries the code
+  const j4=await device(base(),false), sp=j4.p; await sp.goto(url+'?join=K7QM4XD9'); await sp.waitForSelector('#friends .fr-h',{timeout:8000}); await sp.waitForFunction(()=>/Morning crew/.test(document.getElementById('friends').textContent),null,{timeout:8000});
+  assert.match(await sp.textContent('#friends'),/You’re invited to “Morning crew”/); assert.match(await sp.textContent('#friends'),/Sign in to join/); await shot(sp,'invited-signed-out');
+  await sp.click('#friends [data-act=frsignin]'); await sp.click('#sheet [data-act=emailsheet]'); await sp.fill('#emIn','me@example.com'); await sp.click('#sheet [data-act=emsend]'); await sp.waitForTimeout(500);
+  assert(otps.length&&/join%3DK7QM4XD9|join=K7QM4XD9/.test(decodeURIComponent(otps[otps.length-1])),'the sign-in link keeps the invite code'); ok('signed out: the invite is named, and the sign-in link keeps its code');
+  assert.deepStrictEqual(j1.errs.concat(j2.errs,j3.errs,j4.errs),[]);
   // 4. Care mode: an eating-disorder answer hides Friends completely; other Care answers keep it
   const c=await device(base({profile:{fastedBefore:true,safety:true,care:['ed'],careOff:null}}),true); await c.p.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); await c.p.reload(); await c.p.waitForTimeout(500);
   assert.deepStrictEqual(await tabsVisible(c.p),['today','days','me']); await c.p.click('#tabs [data-tab=me]'); assert(!await c.p.isVisible('#me [data-k=fr]'),'no switch either'); ok('eating-disorder answer: no Friends at all');
+  const ed=await device(base({profile:{fastedBefore:true,safety:true,care:['ed'],careOff:null}}),true); await ed.p.goto(url+'?join=K7QM4XD9'); await ed.p.waitForTimeout(900); assert.deepStrictEqual(await tabsVisible(ed.p),['today','days','me']); assert(!await ed.p.isVisible('#sheet.open'),'no invite sheet'); assert.strictEqual(JSON.parse(await ed.p.evaluate(()=>localStorage.getItem('lightly:friends'))).joinCode,'','the code is dropped'); ok('an invite link does nothing for the eating-disorder answer');
   const g=await device(base({profile:{fastedBefore:true,safety:true,care:['preg'],careOff:null}}),true); await g.p.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); await g.p.reload(); await g.p.waitForTimeout(500);
   assert.deepStrictEqual(await tabsVisible(g.p),['today','days','friends','me']); ok('other Care answers keep Friends');
   // 5. four tabs fit at 375 and 320 wide

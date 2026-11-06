@@ -938,3 +938,13 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 .fr-mem .fr-nm{flex:1}
 .fr-mem em{font:400 0.8125rem var(--font);font-style:normal;color:var(--label-2)}
 @media (prefers-reduced-motion:reduce){.fr-days button,.fr-ch span,.fr-inv,.fr-more{transition:none}}
+
+/* Friends (preview): joining — the sheet that says what a group sees */
+.fr-faces{display:flex;justify-content:center;padding:2px 0 10px}
+.fr-faces .fr-av{width:40px;height:40px;box-shadow:0 0 0 2px var(--bg)}
+.fr-sees{margin-bottom:12px}
+.fr-see{padding:12px 16px}
+.fr-see+.fr-see{border-top:.5px solid var(--sep)}
+.fr-see b{display:block;font:600 0.9375rem var(--font);margin-bottom:2px}
+.fr-see span{display:block;font:400 0.9375rem/1.4 var(--font);color:var(--label-2)}
+.fr-cta .btn.quiet{margin-top:6px;width:100%}

@@ -913,6 +913,13 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .fr-share{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:0 14px;margin-top:12px;background:var(--card);border-radius:16px;font:400 17px var(--font)}
 .fr-lnk{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:6px;border:0;background:none;color:var(--label-2);font:500 15px var(--font);cursor:pointer}
 .fr-lnk.red{color:var(--red)}
+.fr-see{background:var(--card);border-radius:16px;margin-bottom:12px}
+.fr-see div{padding:12px 14px}
+.fr-see div+div{border-top:.5px solid var(--sep)}
+.fr-see b{display:block;font:600 15px var(--font);margin-bottom:2px}
+.fr-see span{display:block;font:400 15px/1.4 var(--font);color:var(--label-2)}
+.fr-in{width:100%;box-sizing:border-box;min-height:52px;border:0;border-radius:16px;background:var(--card);color:var(--label);text-align:center;font:600 24px var(--font-r,var(--font));letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}
+.fr-in::placeholder{color:var(--label-3);letter-spacing:.12em}
 .fr-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 8px 0}
 .fr-trio{display:flex;gap:18px;align-items:center}
 .fr-trio svg{width:46px;height:46px;display:block}
@@ -3074,7 +3081,7 @@ function dyBloom(){
     return '<div class="fr-t"><h3 class="lt">'+L('Friends','朋友')+'</h3></div><div class="fr-hero"><div class="fr-trio">'+disc('none',0)+disc('fasting',.6)+disc('done',1)+'</div>'+
       '<h3>'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h3>'+
       '<p>'+(out?L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不用账号也能用。'):L('Start a group and send one link. Your fasts stay yours.','建一个小组，发一个链接。你的断食数据仍然只属于你。'))+'</p>'+
-      '<button type="button" class="fr-go" data-a="'+(out?'in':'new')+'">'+(out?L('Sign in','登录'):L('Start a group','建一个小组'))+'</button></div>'; }
+      '<button type="button" class="fr-go" data-a="'+(out?'in':'new')+'">'+(out?L('Sign in','登录'):L('Start a group','建一个小组'))+'</button>'+(out?'':'<button type="button" class="fr-lnk" data-a="code">'+L('I have an invite code','我有邀请码')+'</button>')+'</div>'; }
 
   function group(){
     var b=board(day), rows=b.map(function(x){ var me=x.k==='you', ch='';
@@ -3094,6 +3101,9 @@ function dyBloom(){
     return '<svg viewBox="-.5 -.5 22 22" role="img" aria-label="'+L('QR code','二维码')+'" fill="#111">'+o+'</svg>'; }
   function inviteSheet(){ return [L('Invite friends','邀请朋友'),L('Valid for 7 days · 3 of 10 spots used','7 天内有效 · 已用 3 / 10 个名额'),
     '<div class="fr-qr">'+qr()+'</div><p class="fr-cap">'+L('Invite code','邀请码')+'</p><p class="fr-code">K7QM 4XD9</p><div class="fr-btns" style="margin-top:16px"><button type="button" data-a="copy">'+L('Share link','分享链接')+'</button><button type="button" data-a="copy">'+L('Copy','复制')+'</button></div>']; }
+  function codeSheet(){ return [L('Invite code','邀请码'),L('Type the 8 characters a friend sent you.','输入朋友发给你的 8 位邀请码。'),'<input class="fr-in" id="frCodeIn" type="text" maxlength="12" placeholder="K7QM 4XD9" autocomplete="off" spellcheck="false" dir="ltr" aria-label="'+L('Invite code','邀请码')+'"><div class="fr-btns" style="grid-template-columns:1fr"><button type="button" data-a="codego">'+L('Continue','继续')+'</button></div>']; }
+  function consentSheet(){ var faces=['mei','arjun','lena','sam'].map(function(k,i){ return '<span style="display:inline-block;margin-left:'+(i?'-8px':'0')+'">'+av(k)+'</span>'; }).join('');
+    return [L('Join “Morning crew”?','加入“晨光小组”？'),L('Invited by Mei · 4 of 10 people','邀请人 美琪 · 4 / 10 人'),'<div style="text-align:center;margin-bottom:12px">'+faces+'</div><div class="fr-see"><div><b>'+L('The group sees','小组能看到')+'</b><span>'+L('Your name and sky picture, whether you are fasting, resting or not, and your plan in hours.','你的名字和头像、你是否在断食或休息，以及你的计划小时数。')+'</span></div><div><b>'+L('The group never sees','小组看不到')+'</b><span>'+L('Hours fasted, times, where you are, your weight, or a streak.','已断食的时长、时间、你的位置、体重或连续天数。')+'</span></div></div><p class="fr-cap" style="margin:0 0 14px">'+L('You can stop sharing or leave any time.','你可以随时停止分享或退出。')+'</p><div class="fr-btns" style="grid-template-columns:1fr"><button type="button" data-a="joinok">'+L('Join group','加入小组')+'</button></div><button type="button" class="fr-lnk" data-a="closeS">'+L('Not now','暂不加入')+'</button>']; }
   var sharing=true;
   function setSheet2(){ var rows=ORDER.map(function(k){ return '<div class="fr-mem">'+av(k)+'<b>'+nm(k)+'</b><em>'+(k==='you'?L('You · Owner','我 · 群主'):'')+'</em></div>'; }).join('');
     return [L('Morning crew','晨光小组'),L('6 people','6 人'),'<div class="fr-card">'+rows+'</div><div class="fr-share"><span>'+L('Share my status','分享我的状态')+'</span><button type="button" class="sw" role="switch" aria-checked="'+sharing+'" aria-label="'+L('Share my status','分享我的状态')+'" data-a="share"></button></div><p class="fr-cap" style="margin:8px 4px 14px;text-align:left">'+L('When it’s off, this group sees you as resting.','关闭后，这个小组会看到你在休息。')+'</p>'+
@@ -3112,6 +3122,9 @@ function dyBloom(){
     else if(a==='day'){ day=+el.dataset.i; render(); var b=fr.querySelector('.fr-days [aria-pressed="true"]'); if(b) b.focus({preventScroll:true}); }
     else if(a==='invite') openSheet(inviteSheet,el);
     else if(a==='set') openSheet(setSheet2,el);
+    else if(a==='code') openSheet(codeSheet,el);
+    else if(a==='codego') openSheet(consentSheet,null);
+    else if(a==='joinok'){ has=true; day=6; closeSheet(); render(); }
     else if(a==='share'){ sharing=!sharing; el.setAttribute('aria-checked',sharing); buzz(10); }
     else if(a==='leave'){ has=false; cheered={}; closeSheet(); render(); }
     else if(a==='closeS') closeSheet();
