@@ -46,12 +46,14 @@ function pack(S){ if(!S||!S.onboarded) return ''; var c=scrub(S); delete c.cloud
 function unpack(x){ try{ var o=JSON.parse(unb64(x)); return o&&o.onboarded?o:null; }catch(e){ return null; } }
 function takeCarried(){ var m=/[?&]r=([\w-]+)/.exec(location.search); if(!m) return null; try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){} return unpack(m[1]); }
 function codeOn(){ return !!cfg().code; }
-function sendCode(email,state){ var r=pack(state); return call('/auth/v1/otp?redirect_to='+encodeURIComponent(location.origin+location.pathname+(r?'?r='+r:'')),{method:'POST',body:{email:email,create_user:true}}); }
+/* where a sign-in comes back to: this page, with the packed state (?r=) and, if the person came from a Friends invite, its code (join=), so neither is lost in another browser */
+function landing(state,join){ var r=pack(state), j=/^[2-9A-HJKMNP-Z]{8}$/.test(String(join||'').toUpperCase())?String(join).toUpperCase():'', q=[]; if(r) q.push('r='+r); if(j) q.push('join='+j); return location.origin+location.pathname+(q.length?'?'+q.join('&'):''); }
+function sendCode(email,state,join){ return call('/auth/v1/otp?redirect_to='+encodeURIComponent(landing(state,join)),{method:'POST',body:{email:email,create_user:true}}); }
 function verify(email,code){ return call('/auth/v1/verify',{method:'POST',body:{type:'email',email:email,token:String(code).replace(/\s/g,'')}}).then(function(r){ var a=toAuth(r); setAuth(a); return a; }); }
 /* Google (and other providers): Supabase sends the person to the provider, then back here with the tokens in the hash, exactly like the email link */
 var provCache=null;
 function providerOn(name){ if(!ready()) return Promise.resolve(false); if(!provCache) provCache=call('/auth/v1/settings').catch(function(){ provCache=null; return null; }); return provCache.then(function(st){ return !!(st&&st.external&&st.external[name]); }); }
-function oauthUrl(name,state){ var r=pack(state); return cfg().url.replace(/\/$/,'')+'/auth/v1/authorize?provider='+encodeURIComponent(name)+'&redirect_to='+encodeURIComponent(location.origin+location.pathname+(r?'?r='+r:'')); }
+function oauthUrl(name,state,join){ return cfg().url.replace(/\/$/,'')+'/auth/v1/authorize?provider='+encodeURIComponent(name)+'&redirect_to='+encodeURIComponent(landing(state,join)); }
 /* the access token is a JWT whose payload names the person: used only if the network drops right after the redirect, so the tokens in the link are not lost */
 function jwtUser(t){ try{ var o=JSON.parse(unb64(String(t).split('.')[1])); return o&&o.sub?{id:o.sub,email:o.email||'',user_metadata:o.user_metadata||{}}:null; }catch(e){ return null; } }
 /* returning from a magic link: the tokens arrive in the URL hash */
@@ -85,6 +87,12 @@ function deleteAccount(){ return token().then(function(t){ return call('/functio
 function pull(){ return token().then(function(t){ return call('/rest/v1/lightly_state?select=data,updated_at',{token:t}); }).then(function(rows){ return rows&&rows[0]||null; }); }
 function push(data){ data=scrub(data); var a=getAuth(); return token().then(function(t){ return call('/rest/v1/lightly_state?on_conflict=user_id',{method:'POST',token:t,headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:{user_id:a.uid,data:data,updated_at:new Date().toISOString()}}); }); }
 
-root.LightlyCloud={pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,deleteAccount:deleteAccount,alive:alive,pull:pull,push:push};
+/* ---------- Friends: calls to the database functions in supabase/friends.sql ----------
+   Signed in with the person's own token. The only anonymous call is the invite preview (a friend looking at a link before joining). A failure's message is the
+   function's error key ("not_member", "group_cap", ...) and js/friends.js turns it into calm words; no answer at all keeps err.status undefined (offline). */
+function rpc(name,args){ return token().then(function(t){ return call('/rest/v1/rpc/'+name,{method:'POST',token:t,body:args||{}}); }); }
+function rpcAnon(name,args){ return call('/rest/v1/rpc/'+name,{method:'POST',body:args||{}}); }
+
+root.LightlyCloud={landing:landing,rpc:rpc,rpcAnon:rpcAnon,pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,deleteAccount:deleteAccount,alive:alive,pull:pull,push:push};
 if(typeof module!=='undefined'&&module.exports) module.exports=root.LightlyCloud;
 })(typeof self!=='undefined'?self:this);

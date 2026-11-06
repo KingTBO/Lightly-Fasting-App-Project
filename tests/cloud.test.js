@@ -17,6 +17,44 @@ assert.strictEqual(m.planId,'18');assert.strictEqual(m.flex.bank,2);assert.deepS
 assert.strictEqual(m.startedAt,3);assert.strictEqual(m.unwell,7);assert.deepStrictEqual(m.unlocked,{24:4,36:8});assert.strictEqual(m.mod,20);
 const m2=CL.merge(b,a);assert.deepStrictEqual(m2.fasts.map(x=>x.id),['b','c'],'merge is symmetric');
 console.log('merge ok');
+// Friends: database calls, and the invite code surviving a sign-in link. cloud.js reads its settings from the global `self`, so load a fresh copy that sees a mock.
+(function(){
+  const calls=[], store={}; let reply=null;
+  global.self=global; global.LIGHTLY_CLOUD={url:'https://x.supabase.test/',key:'sb_publishable_abc'};
+  global.localStorage={getItem:k=>store[k]===undefined?null:store[k],setItem:(k,v)=>{store[k]=String(v)},removeItem:k=>{delete store[k]}};
+  global.location={origin:'https://app.test',pathname:'/Lightly/',search:'',hash:''};
+  global.fetch=(url,o)=>{ calls.push({url,o}); if(reply instanceof Error) return Promise.reject(reply); return Promise.resolve({ok:reply.ok,status:reply.status,text:()=>Promise.resolve(JSON.stringify(reply.body))}); };
+  const key=require.resolve('../js/cloud.js'); delete require.cache[key]; const C2=require('../js/cloud.js');
+  const run=async()=>{
+    // signed out: refused before any request
+    await assert.rejects(C2.rpc('my_groups',{p_today:'2026-11-06'}),/signed out/); assert.strictEqual(calls.length,0);
+    store[C2.AK]=JSON.stringify({access:'tok-1',refresh:'r',exp:Math.floor(Date.now()/1000)+3600,uid:'u1',email:'a@b.c'});
+    // success: POST to /rest/v1/rpc/<name> with the person's token and the arguments as JSON
+    reply={ok:true,status:200,body:[{group_id:'g1',name:'Morning crew'}]};
+    const r=await C2.rpc('my_groups',{p_today:'2026-11-06'}); assert.deepStrictEqual(r,[{group_id:'g1',name:'Morning crew'}]);
+    assert.strictEqual(calls[0].url,'https://x.supabase.test/rest/v1/rpc/my_groups'); assert.strictEqual(calls[0].o.method,'POST');
+    assert.strictEqual(calls[0].o.headers.Authorization,'Bearer tok-1'); assert.strictEqual(calls[0].o.headers.apikey,'sb_publishable_abc'); assert.strictEqual(calls[0].o.body,'{"p_today":"2026-11-06"}');
+    // the database's error key comes through as the message, with the HTTP status
+    reply={ok:false,status:400,body:{code:'P0001',message:'group_cap',details:null}};
+    await assert.rejects(C2.rpc('create_group',{p_name:'x'}),e=>e.message==='group_cap'&&e.status===400);
+    // no network: a TypeError with no status
+    reply=new TypeError('Failed to fetch');
+    await assert.rejects(C2.rpc('publish_me',{}),e=>e instanceof TypeError&&e.status===undefined);
+    // the invite preview is anonymous: no token
+    calls.length=0; reply={ok:true,status:200,body:[{group_name:'Morning crew',inviter_name:'Maya',member_count:5,avatars:['crescent']}]};
+    const pv=await C2.rpcAnon('invite_preview',{p_code:'K7QM4XD9'}); assert.strictEqual(pv[0].group_name,'Morning crew');
+    assert.strictEqual(calls[0].o.headers.Authorization,undefined); assert.strictEqual(calls[0].url,'https://x.supabase.test/rest/v1/rpc/invite_preview');
+    // the invite code rides along the sign-in link (a magic link may open in another browser with empty storage)
+    assert.strictEqual(C2.landing(null,'K7QM4XD9'),'https://app.test/Lightly/?join=K7QM4XD9');
+    assert.strictEqual(C2.landing(null,'k7qm4xd9'),'https://app.test/Lightly/?join=K7QM4XD9'); assert.strictEqual(C2.landing(null,'nope'),'https://app.test/Lightly/'); assert.strictEqual(C2.landing(null),'https://app.test/Lightly/');
+    const st={onboarded:true,fasts:[],flex:{used:[]},planId:'16',mod:1}, both=C2.landing(st,'K7QM4XD9'); assert(/\?r=[\w-]+&join=K7QM4XD9$/.test(both),both);
+    reply={ok:true,status:200,body:{}}; calls.length=0; await C2.sendCode('a@b.c',st,'K7QM4XD9'); assert(decodeURIComponent(calls[0].url).includes('join=K7QM4XD9'),'email link keeps the code');
+    assert(decodeURIComponent(C2.oauthUrl('google',st,'K7QM4XD9')).includes('join=K7QM4XD9'),'Google sign-in keeps the code'); assert(!/join=/.test(decodeURIComponent(C2.oauthUrl('google',st))),'no code, no join');
+    console.log('friends calls ok');
+  };
+  run().then(()=>{ delete global.self; delete global.LIGHTLY_CLOUD; delete global.localStorage; delete global.location; delete global.fetch; delete require.cache[key]; afterFriends(); }).catch(e=>{ console.error(e); process.exit(1); });
+})();
+function afterFriends(){
 if(!process.argv.includes('--e2e')&&!process.env.NODE_PATH){process.exit(0);}
 const {chromium}=require('playwright');
 const root=path.join(__dirname,'..');
@@ -128,4 +166,4 @@ const srv=http.createServer((q,r)=>{let p=path.join(root,decodeURIComponent(q.ur
   ok('Erase everything while signed in empties the backup, so nothing comes back');e.errs.length&&console.log(e.errs);}
  assert.deepStrictEqual(d1.errs.concat(d2.errs,d3.errs,d4.errs,d5.errs,d6.errs),[]);console.log('cloud e2e ok');await b.close();mock.close();srv.close();})().catch(e=>{console.error(e);process.exit(1);});
 function ok(n){console.log('ok -',n);}
-
+}
