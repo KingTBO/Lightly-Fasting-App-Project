@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.81.0
+- **design** The moon on the first setup screen now rests completely dark, so the progress moon starts from nothing when it moves up to the top and fills counter-clockwise from there. (You can still drag it to light it.)
+- **design** "You're set" now finishes properly: the moon empties, fills all the way to full, and then shows what the sky is doing where you are right now. By day it turns into the sun, with a sky to match the real time (dawn, morning, day or sunset); at night it stays a full moon under the night sky. Before, the fill stopped at your plan's share of the day (about half), and it always turned into a dawn sun, even at night. The strips around the phone take the sky colour. Reduce Motion goes straight to the final picture. The concept page does the same.
+- **fix** The location step always has a Continue button. While Lightly is still finding your location there is now a Continue (it uses the nearest city if you move on), with a small "Finding your location…" row, instead of only a disabled button.
+
 ## 0.80.2
 - **fix** During setup the strip behind the status bar and the strip at the bottom of the phone now have the same colour as the setup screen. Before, they showed the Today sky (light blue by day, navy at night) around a light or black setup screen, which looked like the app was not filling the screen.
 

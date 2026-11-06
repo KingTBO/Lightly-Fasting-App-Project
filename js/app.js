@@ -1419,10 +1419,10 @@ function obHtml(i){
   }else if(key==='set'){
     var hereOn=S.place.key==='here';
     body='<h1>'+L('Match the sky to your day','让天空跟着你的一天')+'</h1><p class="lede">'+L('Lightly uses your precise location only to match the moon and sun to your own sunrise and sunset. It stays on this phone and is never uploaded or shared.','轻伴只用你的精确位置，让月亮和太阳对上你当地的日出日落。位置只留在这台手机上，不会上传或分享。')+'</p>'+
-     obSkyHtml()+(hereOn?'<div class="group"><div class="row"><span>'+L('Using your location','正在使用你的位置')+'</span><span class="v">'+CHECK+'</span></div></div>':'')+
+     obSkyHtml()+(hereOn?'<div class="group"><div class="row"><span>'+L('Using your location','正在使用你的位置')+'</span><span class="v">'+CHECK+'</span></div></div>':ob.geoBusy?'<div class="group"><div class="row" role="status"><span>'+L('Finding your location…','正在定位…')+'</span><span class="v"><i class="spin" aria-hidden="true"></i></span></div></div>':'')+
      (!hereOn&&ob.city?'<div class="group">'+pkField('obCity',L('Nearest city','最近的城市'),S.place.key,'sel',Object.keys(C.CITIES).map(function(k){ return [k,C.CITIES[k][S.lang==='zh'?'zh':'en']]; }))+'</div>':'')+
      '<div class="grow"></div>';
-    cta=ob.geoBusy?'<button class="btn" disabled aria-busy="true"><i class="spin" aria-hidden="true"></i>'+L('Finding your location…','正在定位…')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>':
+    cta=ob.geoBusy?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>':   /* never without a Continue: a slow GPS fix no longer holds the step */
       hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn sec" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
       :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
   }else if(key==='body'){
@@ -1547,8 +1547,8 @@ function obPaint(){
 function obLoop(t){
   if($('ob').hidden&&!OL.flying){ OL.loop=false; return; }
   var dt=Math.min((t-OL.last)/1000,.05); OL.last=t;
-  if(OL.mode==='wel'){   /* waxes in, breathes, follows a drag, pulses when full */
-    var target=OL.drag?Math.min(1,Math.max(.04,.3+OL.pull*1.6)):.3+Math.sin(t/1000*.9)*.035;
+  if(OL.mode==='wel'){   /* rests dark, follows a drag, pulses when full */
+    var target=OL.drag?Math.min(1,Math.max(0,OL.pull*1.6)):0;   /* rests completely dark: the progress starts from nothing once it moves up */
     OL.p+=(target-OL.p)*(1-Math.exp(-dt*(OL.drag?18:5)));
     var full=OL.p>.93; if(full&&!OL.full){ OL.pulse=1; fx('success'); } OL.full=full; }
   OL.pulse=Math.max(0,OL.pulse-dt/1.4);
@@ -1569,23 +1569,28 @@ function obMove(st){
   var prev=OL.mode; OL.mode=kind; OL.fin=null;
   if(kind!=='fin'){ OL.moon=1; OL.boost=0; }
   if(kind==='head'){ var n=obFlow().length; obTo(ob.step/(n-1)); }
-  else if(kind==='fin') obFin(st,slot.p);
+  else if(kind==='fin') obFin(st);
   if(!OL.loop){ OL.loop=true; OL.last=performance.now(); requestAnimationFrame(obLoop); }
   requestAnimationFrame(function(){ requestAnimationFrame(obOrbInit); });
 }
-/* You're set */
-function obFin(st,plan){
-  if(reduce){ OL.p=plan; OL.moon=1; OL.tw=null; return; }
-  OL.tw=null; OL.fin={t0:performance.now(),p0:OL.p,plan:plan,st:st,turned:false};
+/* You're set: empties, fills all the way to full, then reveals what the sky is doing where you are right now: the sun by day, the moon by night */
+function obNow(){ var now=Date.now(); refreshSun(now); var hp=C.placeHour(pi,now), k=C.skyAt(hp,sun)[1], day=C.moonAmt(hp,sun)<.5; return {sun:day,sky:day?(['dawn','morning','day','sunset'].indexOf(k)>=0?k:'day'):'night'}; }
+function obFin(st){
+  var nw=obNow(); st.setAttribute('data-fs',nw.sky);
+  if(reduce){ OL.p=1; OL.moon=nw.sun?0:1; OL.tw=null; if(nw.sun) st.classList.add('dawn'); return; }
+  OL.tw=null; OL.fin={t0:performance.now(),p0:OL.p,st:st,sun:nw.sun,turned:false};
 }
 function obFinStep(t){
   var f=OL.fin; if(!f.st.isConnected||obFlow()[ob.step]!=='summary'){ OL.fin=null; return; }
   var el=t-f.t0, EMPTY=500, GO=700, FILL=1300, TURN=1100; if(el<0) return;
   if(el<GO){ var u=Math.min(el/EMPTY,1); OL.p=f.p0*(1-u*u*(3-2*u)); return; }
-  var e2=el-GO; OL.p=f.plan*(1-Math.pow(1-Math.min(e2/FILL,1),4));
-  if(e2>FILL){ var v=Math.min((e2-FILL)/TURN,1), e=v*v*(3-2*v); OL.moon=1-e; OL.boost=Math.max(0,1-v*1.15);
-    if(!f.turned){ f.turned=true; f.st.classList.add('dawn'); obBloom(); }
-    if(v>=1){ OL.moon=0; OL.boost=0; OL.fin=null; } }
+  var e2=el-GO; OL.p=1-Math.pow(1-Math.min(e2/FILL,1),4);
+  if(e2<=FILL) return;
+  if(!f.turned){ f.turned=true; fx('success'); obBloom(); if(!f.sun) OL.pulse=1; }
+  if(!f.sun){ if(e2>FILL+TURN){ OL.p=1; OL.fin=null; } return; }   /* night: it stays a full moon, under the night sky */
+  var v=Math.min((e2-FILL)/TURN,1), e=v*v*(3-2*v); OL.moon=1-e; OL.boost=Math.max(0,1-v*1.15);
+  if(v>0&&!f.st.classList.contains('dawn')){ f.st.classList.add('dawn'); setTimeout(chrome,1750); }
+  if(v>=1){ OL.moon=0; OL.boost=0; OL.fin=null; }
 }
 function obBloom(){
   var el=OL.el; if(reduce||!el.animate) return; var calm=obRisky(), r=85, cx=118, cy=118, box=document.createElement('div');
@@ -1776,7 +1781,8 @@ var A={
   pktog:function(b){ pkToggle(b.dataset.id); },
   tl:function(b){ S.prefs.tl=b.dataset.v; save(); cache={}; renderMe(); updateToday(); },
   tstyle:function(b){ S.prefs.timerStyle=b.dataset.v; ph.dataset.ts=b.dataset.v; save(); renderMe(); cache={}; fitDisc(); },
-  obnext:function(){ if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
+  obnext:function(){ if(ob.geoBusy){ geoTok++; ob.geoBusy=false; }   /* moving on while the location is still coming: keep the nearest city */
+    if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ obBackTo(); },
   bodyinfo:bodySheet,
   bodyrm:function(){ S.body=null; save(); closeSheet(); renderMe(); },
