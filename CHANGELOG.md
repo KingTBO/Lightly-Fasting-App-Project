@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.80.2
+- **fix** During setup the strip behind the status bar and the strip at the bottom of the phone now have the same colour as the setup screen. Before, they showed the Today sky (light blue by day, navy at night) around a light or black setup screen, which looked like the app was not filling the screen.
+
 ## 0.80.1
 - **docs** RELEASING.md has a last step: check the GitHub Pages deploy went live, and what to do if it sticks in the queue or times out (cancel and re-run it from the Actions tab). The v0.80.0 deploy got stuck, so this release also starts a fresh one.
 

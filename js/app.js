@@ -184,7 +184,8 @@ function shortPage(){ var root=document.documentElement, st=window.navigator.sta
   if(st&&window.innerWidth<600&&window.innerHeight>window.innerWidth&&gap>20&&gap<140) root.style.setProperty('--sab','0px'); else root.style.removeProperty('--sab'); }
 var holding=false; /* true while a sign-in link is being processed: a neutral screen, never Today */
 function chrome(){ /* the colour behind the app (page background, status bar, home-indicator area) always matches the screen on top of it */
-  var c=(curTab==='today'&&!holding?getComputedStyle(ph).getPropertyValue('--sky'):getComputedStyle(document.documentElement).getPropertyValue('--bg')).trim()||'#0E1430';
+  var onb=ph.classList.contains('onb'), st=onb?ph.querySelector('.ob-step.on'):null, c=(onb&&st?getComputedStyle(st).backgroundColor:(curTab==='today'&&!holding&&!onb?getComputedStyle(ph).getPropertyValue('--sky'):getComputedStyle(document.documentElement).getPropertyValue('--bg'))).trim();
+  if(!c||c==='transparent'||/rgba\(.*,\s*0\)$/.test(c)) c=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#0E1430';
   document.documentElement.style.backgroundColor=c; document.body.style.backgroundColor=c;
   var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',c); }
 function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-sky',k); chrome(); } }
@@ -1444,7 +1445,7 @@ function obRender(dir,pre){
   var n=pre;
   if(!n){ var html=obHtml(ob.step), tmp=document.createElement('div'); tmp.innerHTML=html; n=tmp.firstChild; if(dir<0&&box.children.length) n.classList.add('back'); box.appendChild(n); }
   var old=[].slice.call(box.children).filter(function(c){return c!==n;});
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transition=''; n.style.transform=''; n.style.opacity=''; n.classList.remove('back'); n.classList.add('on'); old.forEach(function(o){ o.style.transition=''; o.style.transform=''; o.style.opacity=''; o.classList.remove('on'); o.classList.add(dir<0?'out':'past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); }); });
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transition=''; n.style.transform=''; n.style.opacity=''; n.classList.remove('back'); n.classList.add('on'); old.forEach(function(o){ o.style.transition=''; o.style.transform=''; o.style.opacity=''; o.classList.remove('on'); o.classList.add(dir<0?'out':'past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); chrome(); }); });
   var f=n.querySelector('h1'); if(f){ f.setAttribute('tabindex','-1'); } [].slice.call(n.children).filter(function(c){return !c.classList.contains('ob-top');}).forEach(function(c,i){ c.style.setProperty('--i',i); });
   obIn(n);
 }
@@ -1506,7 +1507,7 @@ function obSwipe(){
 }
 obSwipe();
 function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement; morph(c,n); }
-function obStart(){ ph.classList.add('onb'); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
+function obStart(){ ph.classList.add('onb'); chrome(); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
   var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.start) S.prefs.usualStart=ob.start; if(S.planId==='custom'&&ob.customH) S.customH=ob.customH; if(!risky&&ob.bodyDone&&!ob.skip&&C.weightFit({age:ob.age,kg:ob.kg,cm:ob.cm})){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,at:Date.now()}; } else S.body=null;
