@@ -967,3 +967,9 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 @keyframes rpTw{0%,100%{opacity:.15}50%{opacity:.7}}
 @keyframes rpRise{from{transform:translateY(26px) scale(.82);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.rpop-s i,.rpop-m{animation:none}}
+
+/* Friends: scanning an invite QR code with the camera */
+.fr-scan{position:relative;aspect-ratio:1;margin:0 var(--m) 14px;border-radius:18px;overflow:hidden;background:#000}
+.fr-scan video{display:block;width:100%;height:100%;object-fit:cover}
+.fr-sq{position:absolute;inset:18%;border:2.5px solid rgba(255,255,255,.85);border-radius:18px;box-shadow:0 0 0 999px rgba(0,0,0,.28);pointer-events:none}
+.sheet .note.ctr.err{color:var(--red)}

@@ -258,9 +258,46 @@ function init(h){
   }
   function codeSheet(err){
     h.openSheet('<h3>'+L('Invite code','邀请码')+'</h3><p class="lede">'+L('Type the 8 characters a friend sent you.','输入朋友发给你的 8 位邀请码。')+'</p><div class="group"><div class="field"><label for="frCode">'+L('Code','邀请码')+'</label><input id="frCode" type="text" inputmode="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="K7QM 4XD9" dir="ltr" style="flex:2;min-width:0;border:0;background:var(--fill);border-radius:8px;min-height:36px;padding:0 10px;text-align:right;color:var(--label);font:inherit;font-size:1rem;letter-spacing:.08em;text-transform:uppercase"></div></div>'+
-      (err?'<p class="note err" role="alert" style="color:var(--red)">'+esc(err)+'</p>':'')+'<div class="btns"><button class="btn" data-act="frcodego">'+L('Continue','继续')+'</button></div>');
+      (err?'<p class="note err" role="alert" style="color:var(--red)">'+esc(err)+'</p>':'')+'<div class="btns"><button class="btn" data-act="frcodego">'+L('Continue','继续')+'</button>'+(canScan()?'<button class="btn sec" data-act="frscan">'+L('Scan QR code','扫描二维码')+'</button>':'')+'</div>');
     var i=$('frCode'); if(i) setTimeout(function(){ try{ i.focus(); }catch(e){} },350);
   }
+  /* ---------- scanning a QR code ----------
+     The camera starts only when "Scan QR code" is tapped (the browser or phone asks first). Each picture is looked at on the phone and thrown away: nothing is recorded, saved or sent.
+     The decoder (js/vendor/jsQR.js, Apache-2.0) loads only now, so people who never scan never download it. */
+  var scanId=0, decoder=null;
+  function canScan(){ return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia); }
+  function loadDecoder(){
+    if(root.jsQR) return Promise.resolve(root.jsQR);
+    if(decoder) return decoder;
+    decoder=new Promise(function(ok,no){ var sc=document.createElement('script'); sc.src='js/vendor/jsQR.js'; sc.onload=function(){ root.jsQR?ok(root.jsQR):no(new Error('no decoder')); }; sc.onerror=function(){ decoder=null; no(new Error('no decoder')); }; document.head.appendChild(sc); });
+    return decoder;
+  }
+  /* an invite link or a bare code, whatever the QR holds */
+  function codeFromScan(text){ text=String(text||'').trim(); var i=text.indexOf('?'); var c=i>=0?F.codeFromSearch(text.slice(i)):''; if(c) return c; return F.validCode(text)?F.normalizeCode(text):''; }
+  function scanNote(t,bad){ var n=$('frScanNote'); if(n){ n.textContent=t; n.classList.toggle('err',!!bad); } }
+  function stopStream(v){ try{ var st=v&&v.srcObject; if(st) st.getTracks().forEach(function(t){ t.stop(); }); if(v) v.srcObject=null; }catch(e){} }
+  function scanSheet(){
+    h.openSheet('<h3>'+L('Scan QR code','扫描二维码')+'</h3><div class="fr-scan"><video id="frScan" playsinline muted autoplay aria-label="'+L('Camera view','相机画面')+'"></video><i class="fr-sq" aria-hidden="true"></i></div><p class="note ctr" id="frScanNote" role="status">'+L('Point the camera at the QR code on your friend’s phone. Nothing is recorded or saved.','把相机对准朋友手机上的二维码。不会录像，也不会保存任何内容。')+'</p>'+
+      '<div class="btns"><button class="btn quiet" data-act="frcode">'+L('Type the code instead','改为输入邀请码')+'</button></div>');
+    var id=++scanId, v=$('frScan'), cv=document.createElement('canvas'), cx=cv.getContext('2d',{willReadFrequently:true}), bad=0;
+    function alive(){ return id===scanId&&$('frScan')===v&&!!document.querySelector('#sheet.open'); }
+    function fail(msg){ scanNote(msg,true); }
+    Promise.all([loadDecoder(),navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false})]).then(function(r){
+      var read=r[0], stream=r[1]; if(!alive()){ stream.getTracks().forEach(function(t){ t.stop(); }); return; }
+      v.srcObject=stream; var pl=v.play(); if(pl&&pl.catch) pl.catch(function(){});
+      (function look(){
+        if(!alive()){ stopStream(v); return; }
+        if(v.readyState>=2&&v.videoWidth){ var k=Math.min(1,480/v.videoWidth), w=Math.round(v.videoWidth*k), hh=Math.round(v.videoHeight*k); cv.width=w; cv.height=hh; cx.drawImage(v,0,0,w,hh);
+          var q=read(cx.getImageData(0,0,w,hh).data,w,hh,{inversionAttempts:'dontInvert'}), c=q&&codeFromScan(q.data);
+          if(c){ stopStream(v); scanId++; h.fx('success'); return previewFor(c).then(function(row){ if(row) consentSheet(c,row); else{ st.joinCode=''; save(); codeSheet(F.errorText('invalid',lang())); } }); }
+          if(q&&q.data&&!bad){ bad=1; scanNote(L('That isn’t a Lightly invite.','这不是轻伴的邀请。'),true); setTimeout(function(){ bad=0; scanNote(L('Point the camera at the QR code on your friend’s phone. Nothing is recorded or saved.','把相机对准朋友手机上的二维码。不会录像，也不会保存任何内容。'),false); },2200); }
+        }
+        setTimeout(look,140);
+      })();
+    }).catch(function(e){ stopStream(v); var denied=e&&/NotAllowed|Permission|Security/i.test(e.name+' '+e.message);
+      fail(denied?L('Camera access is off. You can allow it in your browser settings, or type the code instead.','相机权限已关闭。可以在浏览器设置里允许，或改为输入邀请码。'):L('Couldn’t start the camera. Type the code instead.','无法启动相机，请改为输入邀请码。')); });
+  }
+  A.frscan=function(){ h.fx('light'); scanSheet(); };
   A.frcode=function(){ if(st.groups.length>=F.MAX_GROUPS) return h.toast(F.errorText('group_cap',lang())); h.fx('light'); codeSheet(); };
   A.frcodego=function(b){ var c=F.normalizeCode(($('frCode')||{}).value); if(!F.validCode(c)) return codeSheet(F.errorText('invalid',lang())); if(b.disabled) return; b.disabled=true;
     previewFor(c).then(function(row){ b.disabled=false; if(!row){ st.joinCode=''; return codeSheet(F.errorText('invalid',lang())); } consentSheet(c,row); }); };

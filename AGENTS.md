@@ -11,7 +11,7 @@ Read these first instead of re-deriving them. This file only points at them and 
 
 ## What this repo is
 
-A real, installable web app (PWA) at the repo root, deployed by GitHub Pages from `main`. No build step, no dependencies, no framework. Live: https://kingtbo.github.io/Lightly-Fasting-App-Project/
+A real, installable web app (PWA) at the repo root, deployed by GitHub Pages from `main`. No build step, no framework, no dependencies except one vendored file: `js/vendor/jsQR.js` (Apache-2.0, licence beside it) reads invite QR codes from the camera and loads only when someone taps Scan QR code. Live: https://kingtbo.github.io/Lightly-Fasting-App-Project/
 
 - `js/core.js` pure logic (sun maths, plans, long-fast unlock rules, streaks, cheat days). Unit-tested in Node. Put rules here, not in the UI.
 - `js/app.js` UI and state (`localStorage` key `lightly:v1`). `css/app.css` styles. `js/sphere.js` the moon/sun.
