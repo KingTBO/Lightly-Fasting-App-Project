@@ -133,7 +133,7 @@ function setInert(v){ BEHIND.forEach(function(id){ var e=$(id); if(v) e.setAttri
 var SHX='<button type="button" class="x" data-act="close" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button>';
 function shChrome(html){ if(html.indexOf('<h3>')!==0) return html; var i=html.indexOf('</h3>')+5;
   return ('<div class="sh-h">'+html.slice(0,i)+SHX.replace('aria-label="Close"','aria-label="'+L('Close','关闭')+'"')+'</div>'+html.slice(i)).replace(/<button class="btn sec" data-act="close">[^<]*<\/button>/g,'').replace('<div class="btns"></div>',''); }
-function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
+function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); sheetEl.classList.remove('pop'); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
 var sheetHold=false; /* true for the short pause before the import result rises: taps on the dim must not close it (a double tap on Add lands there) */
 function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop(); sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
@@ -711,6 +711,26 @@ function rpWatch(R,r){
   rp.heroGo=function(){ var h=els[0]; if(!h||h.classList.contains('in')) return; h.classList.add('in'); odo(h.querySelector('.rn')); rpDisc(r.dim?r.daysWith/r.dim:0,true); };
 }
 function rpRect(){ var pr=$('ph').getBoundingClientRect(), cr=rp.src.getBoundingClientRect(); return 'inset('+Math.max(0,cr.top-pr.top).toFixed(1)+'px '+Math.max(0,pr.right-cr.right).toFixed(1)+'px '+Math.max(0,pr.bottom-cr.bottom).toFixed(1)+'px '+Math.max(0,cr.left-pr.left).toFixed(1)+'px round 14px)'; }
+/* the pop-up that announces last month's recap: once per month, on the first open between the 1st and the 3rd, only when the recap exists (three or more fasts) and nothing else is on screen. "Later" and the dim both just close it. */
+function recapPop(){
+  var d=new Date(); if(d.getDate()>3||!S.onboarded||sheetOpen||holding||rp.open||rp.busy||!$('ob').hidden) return;
+  var pm=recapMonth(); if(!pm||S.prefs.recapSeen===pm.key||S.prefs.recapPop===pm.key) return;
+  var r=C.monthRecap(S.fasts,pm.y,pm.m,S.flex.used,C.offKeys(S.off)); if(r.n<3) return;
+  S.prefs.recapPop=pm.key; save();
+  var name=monthName(pm,true), st='';
+  for(var i=0;i<14;i++) st+='<i style="left:'+((i*37+11)%97+1)+'%;top:'+((i*53+7)%71+2)+'%;animation-delay:'+((i*0.37)%3).toFixed(2)+'s"></i>';
+  openSheet('<div class="rpop"><span class="rpop-s" aria-hidden="true">'+st+'</span>'+
+    '<svg class="rpop-m" viewBox="-30 -30 60 60" role="img" aria-label="'+L('A full moon','一轮满月')+'"><defs><radialGradient id="rpG" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FFF8DC"/><stop offset=".55" stop-color="#F5DE8C"/><stop offset="1" stop-color="#E8C867"/></radialGradient></defs>'+
+    '<circle r="27" fill="url(#rpG)"/><circle cx="-9" cy="-8" r="4.4" class="c"/><circle cx="8" cy="8" r="6" class="c"/><circle cx="9.5" cy="-13" r="2.6" class="c"/></svg>'+
+    '<span class="rpop-k">'+L('New','新')+'</span><h3>'+L('Your '+name+' recap is ready','你的'+name+'回顾准备好了')+'</h3>'+
+    '<p class="lede">'+L('Your month in hours, days and sky.','你这个月的时长、天数与天空。')+'</p>'+
+    '<div class="btns"><button type="button" class="btn rpop-go" data-act="recappop">'+L('See my recap','查看回顾')+'</button><button type="button" class="btn quiet" data-act="close">'+L('Later','稍后')+'</button></div></div>');
+  sheetEl.classList.add('pop'); fx('light');
+}
+function recapPopGo(){
+  closeSheet(); showTab('days');
+  setTimeout(function(){ var b=$('days').querySelector('.rcard .rcmain'); if(b) openReport(b); },420);
+}
 function openReport(btn){
   if(rp.open||rp.busy) return; var pm=recapMonth(); if(!pm) return;
   var r=C.monthReport(S.fasts,pm.y,pm.m,S.flex.used,C.offKeys(S.off),S.place); if(r.n<3) return;
@@ -1729,6 +1749,7 @@ var A={
   rpclose:function(){ closeReport(); },
   rpwsave:function(){ var pm=recapMonth(); if(!pm||!S.body) return; var ck=S.body.checks=(S.body.checks||[]).filter(function(c){ return c.key!==pm.key; }); ck.push({key:pm.key,kg:Math.round(rp.wkg*10)/10,at:Date.now()}); ck.sort(function(a,b){ return a.key<b.key?-1:1; }); save(); fx('success'); rpWeightPaint(); trendSync(); },
   rpwedit:function(){ var pm=recapMonth(); if(!pm||!S.body) return; S.body.checks=(S.body.checks||[]).filter(function(c){ return c.key!==pm.key; }); save(); rpWeightPaint(); },
+  recappop:function(){ recapPopGo(); },
   recapx:function(){ var pm=recapMonth(); if(pm){ S.prefs.recapSeen=pm.key; save(); renderDays(); } },
   avgmode:function(b){ if(avgMode===b.dataset.m) return; avgMode=b.dataset.m; avgSel=null; avgDraw(true); var n=$('avgBox').querySelector('[data-act=avgmode][aria-pressed=true]'); if(n) n.focus({preventScroll:true}); },
   avgbar:function(b){ avgSel=+b.dataset.i; avgDraw(false); var n=$('avgBox').querySelector('[data-i="'+avgSel+'"]'); if(n) n.focus({preventScroll:true}); },
@@ -1926,7 +1947,7 @@ function land(){
 }
 if(returning){ holding=true; ph.classList.add('sys'); chrome(); setTimeout(land,9000); /* never stay on the neutral screen if the network hangs */ }
 else{ rootEl.classList.remove('signing'); if(!S.onboarded){ updateToday(); obStart(); } else{ showTab('today'); if(FUI) FUI.pending(); } }
-scheduleGoal();
+scheduleGoal(); setTimeout(recapPop,1400);
 if(CL&&CL.ready()){ window.addEventListener('storage',function(ev){ if(ev.key===CL.AK&&ev.newValue){ closeSheet(); renderMe(); toast(L('Signed in.','已登录。')); syncNow(true); } });
   CL.fromHash().then(function(a){ if(a){ closeSheet(); landMsg=L('Signed in.','已登录。'); } })
     .catch(function(x){ landMsg=x&&x.linkError&&/expired|otp/i.test(x.linkError+x.message)?L('That link expired or was already used. Send a new one.','链接已过期或已用过，请重新发送。'):L('Couldn’t sign in with that link. Send a new one.','这个链接登录失败，请重新发送。'); })
@@ -1960,7 +1981,7 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-document.addEventListener('visibilitychange',function(){ if(!document.hidden){ var dk=today(); if(cloudOn()&&Date.now()-sync.at>60000) syncNow(true); flexTick(); if(curTab==='today'){ tipUntil=Date.now()+6000; cache={}; updateToday(); } scheduleGoal(); } });
+document.addEventListener('visibilitychange',function(){ if(!document.hidden){ var dk=today(); if(cloudOn()&&Date.now()-sync.at>60000) syncNow(true); flexTick(); if(curTab==='today'){ tipUntil=Date.now()+6000; cache={}; updateToday(); } scheduleGoal(); setTimeout(recapPop,700); } });
 if('serviceWorker' in navigator&&location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(function(){});
 window.__lightly={get state(){return S;},get setup(){ return {step:ob.step,key:obFlow()[ob.step],n:obFlow().length,moon:OL.p}; },tick:updateToday,core:C};
 })();

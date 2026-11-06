@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.90.0
+- **feature** A pop-up for the monthly recap. The first time you open Lightly on the 1st, 2nd or 3rd of a month, a night-sky sheet rises with a glowing gold moon: "Your October recap is ready", "See my recap" (opens the report) and "Later". It shows once a month, only when the recap exists (three or more fasts) and you have not already dismissed it, and never over onboarding or another sheet. The concept page shows it too, the first time the Days tab opens.
+- **chore** New tests/recappop.test.js; the recap tests that open the app on the 2nd or 3rd mark the pop-up as already seen.
+
 ## 0.89.1
 - **docs** The Privacy Policy (English and 中文) now has a section for Friends: exactly what other members of a group see (name, sky picture, fasting, resting or not, plan hours, seven days, silent Cheers) and never see (hours fasted, times, place, weight, health answers, streak), how to stop sharing or leave, and that Delete account removes it all. The short version, the "what we do not collect" list and the deletion list mention it. The Terms of Use have a short paragraph on using groups fairly. The legal notes list the Friends data and what is still to do before launch (Google Play Data safety, lawyer review).
 
