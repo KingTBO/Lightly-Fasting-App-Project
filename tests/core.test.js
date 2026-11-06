@@ -64,10 +64,10 @@ assert.strictEqual(st('16',care,[f(13),f(13),f(13)]).st,'ok','16:8 still opens b
 assert.strictEqual(C.longStatus(24,care,{fasts:[f(16),f(16),f(16),f(24)],unwell:null,unlocked:{24:1}},now).st,'hidden','even with a 24 h fast on record');assert.strictEqual(C.longStatus(36,care,{fasts:[],unwell:null,unlocked:{}},now).st,'hidden');
 assert.strictEqual(C.customMax(care),16);assert.strictEqual(C.customMax({safety:false}),23);assert.strictEqual(C.careOn({safety:true}),true);assert.strictEqual(C.careOn({safety:false}),false);assert.strictEqual(C.careOn(null),false);
 assert.strictEqual(C.careEase('preg'),'now');assert.strictEqual(C.careEase('diab'),'wait');assert.strictEqual(C.careEase('earlier'),'wait');assert.strictEqual(C.careEase('ed'),'never');assert.strictEqual(C.CARE_WAIT,14*D);}
-// who keeps a weight: adults with a usable weight and a BMI of 18.5 or more
+// who keeps a weight: adults with numbers that can be right; there is no BMI cut-off (BMI is too biased)
 {const wf=C.weightFit,base={age:35,kg:82,cm:170};
 assert.strictEqual(wf(base),true);assert.strictEqual(wf(Object.assign({},base,{age:18})),true);assert.strictEqual(wf(Object.assign({},base,{age:17})),false,'under 18');
-assert.strictEqual(wf(Object.assign({},base,{kg:50})),false,'BMI 17');assert.strictEqual(wf(Object.assign({},base,{kg:53.5})),true,'BMI 18.5 and a bit');assert.strictEqual(wf(Object.assign({},base,{kg:52})),false,'BMI 18.0');
+assert.strictEqual(wf(Object.assign({},base,{kg:50})),true,'a low BMI is saved like any other');assert.strictEqual(wf(Object.assign({},base,{kg:45})),true);assert.strictEqual(wf(Object.assign({},base,{kg:150})),true,'and so is a high one');
 assert.strictEqual(wf(Object.assign({},base,{kg:20})),false);assert.strictEqual(wf(Object.assign({},base,{cm:100})),false);assert.strictEqual(wf({}),false);}
 // Days totals and chart averages
 {const at=(y,m,d,h)=>{const e=new Date(y,m,d,12).getTime();return{id:'t'+e,start:e-h*H,end:e,goalH:16};};
