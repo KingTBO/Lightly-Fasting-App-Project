@@ -20,7 +20,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  ok('shows once, Later closes it');
  q=await open('2026-11-02T09:00:00+08:00',seed());
  await q.click('#sheet [data-act=recappop]');await q.waitForSelector('#report:not([hidden])',{timeout:6000});await q.waitForTimeout(900);
- assert.match(await q.textContent('#rpT'),/^Your October recap$/);assert(!(await shown(q)));
+ assert.match(await q.textContent('#rpT'),/^Your October Recap$/);assert(!(await shown(q)));
  ok('See my recap opens the report');
  q=await open('2026-11-02T09:00:00+08:00',seed({lang:'zh'}));assert.match(await q.textContent('#sheet h3'),/^你的十月回顾准备好了$/);assert.match(await q.textContent('#sheet [data-act=recappop]'),/查看回顾/);
  ok('中文');

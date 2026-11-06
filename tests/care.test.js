@@ -21,7 +21,7 @@ const H=3600000,D=24*H;
   assert(!(await q.$('#cH')),'custom is not selected');await q.click('.plan[data-id="custom"]');await q.waitForTimeout(200);assert.strictEqual(await q.getAttribute('#cH','max'),'16','custom stops at 16 h');
   await q.click('#sheet [data-act=close]');await q.waitForTimeout(400);
   await q.click('#tabs [data-tab=me]');const me=await q.textContent('#me');assert(!/Cheat days/.test(me),'no cheat days row');assert(!/Ramadan/.test(me),'no Ramadan preview switch');assert.match(me,/Care mode on/);
-  await q.click('#tabs [data-tab=days]');assert(!/day streak/.test(await q.textContent('#days')),'Days has no streak');assert.match(await q.textContent('#days'),/days this month/);
+  await q.click('#tabs [data-tab=days]');assert(!/day streak/i.test(await q.textContent('#days')),'Days has no streak');assert.match(await q.textContent('#days'),/Days this month/);
   ok('Care mode from an earlier answer: no streak, no cheat days, no Ramadan, plans stop at 16:8, custom at 16 h, 24 h and 36 h never offered');
   // Health answers: add one at once; ease the earlier one only with the wait
   await q.click('#tabs [data-tab=me]');await q.click('#me [data-act=care]');await q.waitForTimeout(300);

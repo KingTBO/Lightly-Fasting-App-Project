@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.93.2
+- **copy** Capital letters: the recap title is now "Your October Recap" (the card on Days and the report), and the small labels under the numbers start with a capital: "Day streak", "Fasts" and "Average" on Days, and the same on the end-of-fast summary and the import result ("Ended", "Reached the goal", "Skipped"). The concept page matches. The recap pop-up and the section titles inside the report stay in sentence case.
+
 ## 0.93.1
 - **docs** RELEASING.md: when a Pages deploy times out and its re-run never starts (v0.80.0, v0.93.0), a re-run with no jobs cannot be cancelled, so ship a small follow-up release instead of waiting. This release also puts v0.93.0 (Friends spacing) live.
 
