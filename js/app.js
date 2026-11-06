@@ -1395,7 +1395,6 @@ function renderMe(){
    (care()?'<div class="gf">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。')+'</div>':'');
   h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group">'+(S.body?'<button class="row" data-act="bodyinfo">'+mi('lock','grey')+'<span>'+L('About you','关于你')+'</span><span class="v">'+L('Saved','已保存')+'</span>'+CHEV+'</button>':'')+'<button class="row" data-act="import">'+mi('imp','grey')+'<span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export">'+mi('exp','grey')+'<span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase">'+mi('trash','red')+'<span>'+L('Erase everything','清除所有数据')+'</span></button>'+(cloudOn()?'<button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button>':'')+'</div>';
   if(C.ramadanDay()===0&&!care()) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview,0,mi('moon','gold')))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
-  if(FUI) h+=FUI.meRow(mi);
   h+='<div class="gh">'+L('About','关于')+'</div><div class="group"><a class="row" href="privacy/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('lock','grey')+'<span>'+L('Privacy Policy','隐私政策')+'</span>'+CHEV+'</a><a class="row" href="terms/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('doc','grey')+'<span>'+L('Terms of Use','使用条款')+'</span>'+CHEV+'</a></div>'; /* public pages, also the URLs entered in Google Play */
   if(cloudOn()) h+='<div class="group"><button class="row red so" data-act="signout"><span>'+L('Sign out','退出登录')+'</span></button></div>'; /* signed in only: a plain button at the very end */
   h+='<p class="gf" data-act="diag" style="text-align:center">'+L('Lightly · web app · v','轻伴 · 网页版 · v')+(window.LIGHTLY_VERSION||'')+L(' · saved on this device',' · 保存在本机')+(storageOk?'':'<br>'+L('Storage is blocked, so nothing will be kept after you close the app.','存储被阻止，关闭应用后记录不会保留。'))+'</p>';
@@ -1809,7 +1808,6 @@ var A={
   sw:function(b){ var k=b.dataset.k, on=b.getAttribute('aria-checked')!=='true';
     if(k==='notify') return setNotify(on,function(){ if(!$('ob').hidden) obRefresh(); else renderMe(); });
     if(k==='ram'){ S.ramadanPreview=on; save(); return renderMe(); }
-    if(k==='fr'){ FUI.setPreview(on); fx('light'); return renderMe(); }
     S.prefs[k]=on; save(); if(k==='d3'&&orb) orb.set(on); b.setAttribute('aria-checked',on); if(k==='sound'&&on) sChime(); else fx('light'); },
   timeoff:timeOffSheet,
   offtravel:function(){ offDays=offDays||3; offTravelSheet(); },

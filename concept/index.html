@@ -917,7 +917,7 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .ba img{width:100%;height:auto;display:block;aspect-ratio:1}
 .ba span{position:absolute;left:10px;bottom:10px;line-height:1;font:600 12px var(--font);padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.66);color:#fff;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 @media (max-width:560px){.ba{grid-template-columns:1fr}}
-/* Friends tab (a preview: Friends is not built in the app yet) */
+/* Friends tab (the same screens as the app's Friends tab, with a made-up group) */
 .fr-t{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
 .fr-t .lt{margin:0;font-size:28px;line-height:1.15}
 .fr-sub{font:400 13px/1.3 var(--font);color:var(--label-2);margin-top:2px}
@@ -1399,9 +1399,9 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
   <section class="sec" id="friends" aria-labelledby="f-h">
     <div class="friends">
       <div>
-        <span class="tag" data-zh="之后上线，可选">Coming later · optional</span>
+        <span class="tag" data-zh="可选">Optional</span>
         <h2 id="f-h" data-zh="想要人陪时，叫上朋友">Fast with friends, when you want company</h2>
-        <p data-zh="一个人断食就是完整的体验，“今天”页面从不催你邀请别人。小组只看到你的状态和计划，看不到体重、时间，也看不到你已断食多久。">A solo fast is the whole app, and Today never asks you to invite anyone. A group sees your status and plan, never your weight, times or how long you've fasted.</p>
+        <p data-zh="一个人断食就是完整的体验，“今天”页面从不催你邀请别人。建一个小组发一个链接，或用邀请码加入。小组只看到你的状态和计划，看不到体重、时间，也看不到你已断食多久。">A solo fast is the whole app, and Today never asks you to invite anyone. Start a group and send one link, or join one with a code. A group sees your status and plan, never your weight, times or how long you've fasted.</p>
         <button type="button" class="try" id="tryFr" data-zh="在手机里试试">Try it in the phone</button>
       </div>
       <ul class="flist" aria-label="Friends example">
@@ -3060,7 +3060,7 @@ function dyBloom(){
 </script>
 
 <script>
-/* ---------- Friends tab: a preview only. Friends is not built in the app yet; the sample group, names and days are made up ---------- */
+/* ---------- Friends tab: the same screens as the app, with a made-up group, names and days ---------- */
 (function(){
   var api=window.LightlyAPI; if(!api) return;
   var $=function(i){ return document.getElementById(i); }, ph=$('ph'), fr=$('frScr'), sh=$('frSheet'), sc=$('frScrim'); if(!fr||!sh) return;
