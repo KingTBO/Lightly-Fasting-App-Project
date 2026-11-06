@@ -17,6 +17,7 @@ A real, installable web app (PWA) at the repo root, deployed by GitHub Pages fro
 - `js/app.js` UI and state (`localStorage` key `lightly:v1`). `css/app.css` styles. `js/sphere.js` the moon/sun.
 - `js/cloud.js`, `js/config.js`, `supabase/schema.sql` optional email and Google sign-in with backup. Everything must keep working signed out. Never commit a `service_role` key or any secret; the anon key in `js/config.js` is public by design.
 - `js/friends.js` the pure rules for Friends (what a phone shares, status words and discs, invite codes and links), tested by `node tests/friends.test.js`. `supabase/friends.sql` is its database (not applied to the live project until the owner says so); its tests run with `scripts/test-friends-db.sh` on a local Postgres. The Friends brief is `docs/friends/` once merged.
+- `js/friends-ui.js` the Friends tab and its sheets (hidden behind the "Friends (preview)" switch in Me until launch); `js/qr.js` a small QR encoder for the invite (tests: `node tests/qr.test.js`, decodes with jsqr when installed with `npm i --no-save jsqr`); the browser test is `tests/friends-ui.test.js`.
 - `js/import.js` imports fasts from other apps. Never put a user's export or password in the repo.
 - `js/avatars.js` the profile-picture list (placeholder sky pictures designers can swap, see the comment at its top) and the crop maths. Tested by `node tests/avatars.test.js` (add `--e2e` with Playwright for the browser flow).
 - `concept/` is the product landing page. `app/` is a redirect stub for an old URL; leave it.
@@ -31,6 +32,8 @@ node tests/import.test.js
 NODE_PATH=$(npm root -g) node tests/launch.test.js         # opens from the saved copy on a slow network (service worker)
 node tests/friends.test.js                                    # Friends rules (what a phone shares, words, discs, invite codes)
 scripts/test-friends-db.sh                                    # Friends database privacy tests, on a throwaway local Postgres (psql and a running server)
+NODE_PATH=$(npm root -g) node tests/friends-ui.test.js        # Friends tab in the browser against a mock Supabase (about 30 seconds)
+node tests/qr.test.js                                         # QR encoder
 node tests/avatars.test.js                                    # profile pictures (NODE_PATH set or --e2e also runs the browser flow)
 NODE_PATH=$(npm root -g) node tests/location.test.js          # "Use my location" in setup: working state, one request, 8 s fallback, late fix, refusal (about 40 seconds)
 NODE_PATH=$(npm root -g) node tests/setup-plan.test.js        # the plan step of setup: pre-selected plan, custom hours, start time, reminder, first-timer note and bounce (app and concept, about 1 minute)

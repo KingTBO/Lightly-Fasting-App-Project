@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.84.0
+- **feature** Friends, step 2 of 5: the Friends tab, for trying only. In Me there is a new switch, "Friends (preview)". It is off by default, and while it is off nothing about Friends shows anywhere, and Today, Days and Me look and work exactly as before. Turn it on and a fourth tab appears. Signed out it says Friends needs an account and everything else works without one; signed in you can start a group (first choosing a name and one of eight sky pictures, never taken from your email), then share its invite as a link, a code or a QR code. Your groups are listed on the tab. It is hidden completely for anyone who answered the eating-disorder question in Health answers. English and Chinese, light and dark.
+
 ## 0.83.0
 - **feature** Friends, step 1 of 5: the groundwork, nothing to see yet. The database design for small groups (up to 10 people, up to 3 groups each) is written with its privacy rules built in: friends only ever see a name, a sky picture, a plan in hours and a disc, never hours fasted, times, a place, a weight or a streak, and never why someone is resting. The rules a phone follows to share its day (a running fast, Time off, cheat days, the last seven days) and to read invite codes and links are in, with tests. Today, Days and Me look and work exactly as before, and nothing is shared. The new database is not switched on yet.
 

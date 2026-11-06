@@ -1,0 +1,78 @@
+/* The Friends tab in the browser, against a mock Supabase: hidden unless the preview switch is on, signed-out and empty states, name and avatar,
+   new group, invite sheet (QR, code, copy), the group list, Care mode, English and Chinese.   NODE_PATH=$(npm root -g) node tests/friends-ui.test.js [--shots=dir] */
+const assert=require('assert'),http=require('http'),fs=require('fs'),path=require('path');
+const {chromium}=require('playwright'); const root=path.join(__dirname,'..'); const H=3600000;
+const shots=(process.argv.find(a=>a.startsWith('--shots='))||'').slice(8);
+const calls=[]; let profile=null, groups=[], codeN=0;
+const mock=http.createServer((q,r)=>{ r.setHeader('Access-Control-Allow-Origin','*'); r.setHeader('Access-Control-Allow-Headers','*'); r.setHeader('Access-Control-Allow-Methods','*'); if(q.method==='OPTIONS'){ r.writeHead(204); return r.end(); }
+  let body=''; q.on('data',d=>body+=d); q.on('end',()=>{ const j=body?JSON.parse(body):{}, u=q.url, out=(c,o)=>{ r.writeHead(c,{'Content-Type':'application/json'}); r.end(JSON.stringify(o)); };
+    if(u.startsWith('/auth/v1/settings')) return out(200,{external:{google:true,email:true}});
+    if(u.startsWith('/auth/v1/user')) return out(200,{id:'uid-me',email:'me@example.com'});
+    if(u.startsWith('/rest/v1/lightly_state')) return out(200,[]);
+    if(u.startsWith('/rest/v1/profiles')) return out(200,profile?[profile]:[]);
+    const m=/^\/rest\/v1\/rpc\/(\w+)/.exec(u); if(!m) return out(404,{});
+    calls.push({fn:m[1],args:j});
+    if(m[1]==='my_groups') return out(200,groups);
+    if(m[1]==='upsert_profile'){ profile={display_name:j.p_name,avatar:j.p_avatar}; return out(200,null); }
+    if(m[1]==='create_group'){ if(!profile) return out(400,{message:'no_profile'}); const id='g'+(++codeN); groups.push({group_id:id,name:j.p_name,role:'owner',member_count:1,fasting:0,reached:0,resting:0}); return out(200,[{group_id:id,code:'K7QM4XD9'}]); }
+    if(m[1]==='current_invite') return out(200,[{code:'K7QM4XD9',expires_at:new Date(Date.now()+6*24*H).toISOString(),member_count:1,max_members:10}]);
+    out(404,{}); }); });
+const srv=http.createServer((q,r)=>{ let p=path.join(root,decodeURIComponent(q.url.split('?')[0])); if(p.endsWith('/')) p+='index.html'; fs.readFile(p,(e,d)=>{ if(e){ r.writeHead(404); r.end(); } else{ r.writeHead(200,{'Content-Type':p.endsWith('.js')?'text/javascript':p.endsWith('.css')?'text/css':'text/html'}); r.end(d); } }); });
+function ok(n){ console.log('ok -',n); }
+(async()=>{ await new Promise(r=>mock.listen(0,r)); await new Promise(r=>srv.listen(0,r));
+  const murl='http://localhost:'+mock.address().port, url='http://localhost:'+srv.address().port+'/'; const b=await chromium.launch(); const now=Date.now();
+  const base=(extra)=>Object.assign({v:1,lang:'en',theme:'light',onboarded:true,profile:{fastedBefore:true,safety:false,care:[],careOff:null},planId:'16',customH:16,place:{key:'shanghai'},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},ramadanPreview:false,startedAt:now-9*24*H,mod:now-1000,del:[]},extra||{});
+  async function device(state,signed,w){ const ctx=await b.newContext({viewport:{width:w||390,height:844},timezoneId:'Asia/Shanghai',permissions:['clipboard-read','clipboard-write'],deviceScaleFactor:shots?2:1});
+    await ctx.route('**/js/config.js',rt=>rt.fulfill({contentType:'text/javascript',body:`window.LIGHTLY_CLOUD={url:'${murl}',key:'anon'};`}));
+    const p=await ctx.newPage(), errs=[]; p.on('pageerror',e=>errs.push(e.message));
+    await p.addInitScript(([s,a])=>{ if(!sessionStorage.s){ localStorage.setItem('lightly:v1',s); if(a) localStorage.setItem('lightly:auth',a); sessionStorage.s=1; } },[JSON.stringify(state),signed?JSON.stringify({access:'tok-1',refresh:'r',exp:Math.floor(Date.now()/1000)+3600,email:'me@example.com',uid:'uid-me',photo:'',name:''}):'']);
+    await p.goto(url); await p.waitForTimeout(500); return {ctx,p,errs}; }
+  const shot=async(p,n)=>{ if(shots){ fs.mkdirSync(shots,{recursive:true}); await p.screenshot({path:path.join(shots,n+'.png')}); } };
+  const tabsVisible=p=>p.$$eval('#tabs button',bs=>bs.filter(x=>x.offsetParent!==null).map(x=>x.dataset.tab));
+
+  // 1. off by default: three tabs, nothing about Friends but one switch in Me
+  const d=await device(base(),false); const p=d.p;
+  assert.deepStrictEqual(await tabsVisible(p),['today','days','me']); assert(!await p.evaluate(()=>/friend/i.test(document.getElementById('today').textContent+document.getElementById('days').textContent)),'no Friends text on Today or Days');
+  await p.click('#tabs [data-tab=me]'); assert(await p.isVisible('#me [data-k=fr]'),'the preview switch is in Me'); assert.match(await p.textContent('#me'),/Friends \(preview\)/);
+  const w3=await p.evaluate(()=>[document.getElementById('tabInd').getBoundingClientRect().width,document.getElementById('tabs').getBoundingClientRect().width]); assert(Math.abs(w3[0]-(w3[1]-12)/3)<1.5,'pill is a third: '+w3);
+  ok('Friends is invisible until the preview switch is on');
+  // 2. switch on: four tabs, the pill is a quarter wide
+  await p.click('#me [data-k=fr]'); await p.evaluate(()=>document.getElementById('me').scrollTo(0,0)); await p.waitForTimeout(300); assert.deepStrictEqual(await tabsVisible(p),['today','days','friends','me']);
+  const w4=await p.evaluate(()=>[document.getElementById('tabInd').getBoundingClientRect().width,document.getElementById('tabs').getBoundingClientRect().width]); assert(Math.abs(w4[0]-(w4[1]-12)/4)<1.5,'pill is a quarter: '+w4);
+  await p.click('#tabs [data-tab=friends]'); await p.waitForTimeout(400);
+  assert.match(await p.textContent('#friends'),/Friends needs an account\. Everything else works without one\./); assert(await p.isVisible('#friends [data-act=frsignin]')); await shot(p,'signed-out-en');
+  await p.click('#friends [data-act=frsignin]'); await p.waitForSelector('#sheet.open'); assert(await p.isVisible('#sheet [data-act=google]')&&await p.isVisible('#sheet [data-act=emailsheet]')); await shot(p,'signin-sheet'); await p.click('#sheet .x');
+  ok('four tabs, indicator width, signed-out state and sign-in sheet');
+  // the switch stays on after a reload, and Today is unchanged
+  await p.reload(); await p.waitForTimeout(500); assert.deepStrictEqual(await tabsVisible(p),['today','days','friends','me']); ok('the preview survives a reload');
+  assert.deepStrictEqual(d.errs,[]);
+
+  // 3. signed in: empty state, name and avatar, new group, invite
+  const e=await device(base(),true), q=e.p; await q.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); await q.reload(); await q.waitForTimeout(500);
+  await q.click('#tabs [data-tab=friends]'); await q.waitForSelector('#friends [data-act=frnew]'); assert.match(await q.textContent('#friends'),/Start a group and send one link\./); await shot(q,'empty-en');
+  assert(!/Enter an invite code/.test(await q.textContent('#friends')),'the code link arrives with the join flow');
+  await q.click('#friends [data-act=frnew]'); await q.waitForSelector('#frName'); assert.strictEqual(await q.inputValue('#frName'),'','never prefilled from the email'); assert.strictEqual((await q.$$('#frAvs .avt')).length,8); await shot(q,'name-sheet');
+  await q.click('[data-act=frnamego]'); assert.match(await q.textContent('body'),/Add a name first/); // blank is refused
+  await q.fill('#frName','  Maya  '); await q.click('#frAvs [data-id=lantern]'); assert.strictEqual(await q.getAttribute('#frAvs [data-id=lantern]','aria-pressed'),'true'); await q.click('[data-act=frnamego]');
+  await q.waitForSelector('#frGn'); assert.deepStrictEqual(calls.find(c=>c.fn==='upsert_profile').args,{p_name:'Maya',p_avatar:'lantern'}); await shot(q,'new-group');
+  await q.fill('#frGn','Morning crew'); await q.click('[data-act=frcreate]'); await q.waitForSelector('.fr-code b');
+  assert.strictEqual((await q.textContent('.fr-code b')).trim(),'K7QM 4XD9'); assert(await q.isVisible('.fr-qr svg')); assert.deepStrictEqual(calls.find(c=>c.fn==='create_group').args,{p_name:'Morning crew'}); await shot(q,'invite-sheet');
+  await q.click('#frCopy'); const clip=await q.evaluate(()=>navigator.clipboard.readText()); assert.match(clip,/\?join=K7QM4XD9$/); assert.strictEqual((await q.textContent('#frCopy')).trim(),'Copied');
+  ok('empty state, name and avatar, new group, invite sheet with QR, code and copy');
+  await q.click('#sheet .x'); await q.waitForSelector('#friends .row[data-act=frgroup]'); assert.match(await q.textContent('#friends'),/Morning crew/); assert.match(await q.textContent('#friends'),/1 person/); assert(await q.isVisible('#friends [data-act=frnew]')); await shot(q,'list-en'); ok('the group list');
+  // the data stays in its own key and never in the app state or the backup copy
+  const keys=await q.evaluate(()=>({s:localStorage.getItem('lightly:v1')||'',f:localStorage.getItem('lightly:friends')||''})); assert(!/Morning crew|Maya/.test(keys.s),'Friends data is not in the app state'); assert(/Morning crew/.test(keys.f)); ok('Friends data lives in its own key');
+  // Chinese, narrow phone
+  await q.click('#tabs [data-tab=me]'); await q.click('[data-act=choice][data-k=lang]'); await q.click('[data-act=pick][data-k=lang][data-v=zh]'); await q.waitForTimeout(300); await q.click('#tabs [data-tab=friends]'); await q.waitForTimeout(400); assert.match(await q.textContent('#tabF'),/朋友/); assert.match(await q.textContent('#friends'),/个人|人/); await shot(q,'list-zh');
+  assert.deepStrictEqual(e.errs,[]); ok('Chinese');
+  // 4. Care mode: an eating-disorder answer hides Friends completely; other Care answers keep it
+  const c=await device(base({profile:{fastedBefore:true,safety:true,care:['ed'],careOff:null}}),true); await c.p.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); await c.p.reload(); await c.p.waitForTimeout(500);
+  assert.deepStrictEqual(await tabsVisible(c.p),['today','days','me']); await c.p.click('#tabs [data-tab=me]'); assert(!await c.p.isVisible('#me [data-k=fr]'),'no switch either'); ok('eating-disorder answer: no Friends at all');
+  const g=await device(base({profile:{fastedBefore:true,safety:true,care:['preg'],careOff:null}}),true); await g.p.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); await g.p.reload(); await g.p.waitForTimeout(500);
+  assert.deepStrictEqual(await tabsVisible(g.p),['today','days','friends','me']); ok('other Care answers keep Friends');
+  // 5. four tabs fit at 375 and 320 wide
+  for(const w of [375,320]){ const n=await device(base(),true,w); await n.p.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); await n.p.reload(); await n.p.waitForTimeout(500);
+    const r=await n.p.$$eval('#tabs button',bs=>bs.filter(x=>x.offsetParent!==null).map(x=>{ const r=x.getBoundingClientRect(),s=x.querySelector('span').getBoundingClientRect(); return {w:r.width,text:s.width,l:s.left-r.left,rr:r.right-s.right}; })); assert.strictEqual(r.length,4); r.forEach(x=>assert(x.l>=0&&x.rr>=0,'a tab label is wider than its tab at '+w+': '+JSON.stringify(x))); await shot(n.p,'tabs-'+w); }
+  ok('four tabs fit at 375 and 320');
+  assert.deepStrictEqual(c.errs.concat(g.errs),[]); console.log('friends ui ok'); await b.close(); mock.close(); srv.close();
+})().catch(e=>{ console.error(e); process.exit(1); });

@@ -114,6 +114,7 @@ function sameAs(a,b){ return !!a&&!!b&&JSON.stringify(a)===JSON.stringify(b); }
 /* ---------- errors from the database ---------- */
 var ERRORS={
   no_profile:['Choose a name first.','先起个名字。'],
+  no_invite:['Ask the owner for a new invite.','请向群主要一个新的邀请。'],
   group_cap:['You’re in 3 groups already. Leave one to join another.','你已经在 3 个小组里了。退出一个才能加入新的。'],
   not_member:['You’re not in this group any more.','你已经不在这个小组里了。'],
   not_owner:['Only the owner can do that.','只有群主可以这样做。'],
