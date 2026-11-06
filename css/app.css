@@ -593,6 +593,14 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .rp-sub{font:500 1.0625rem var(--font);opacity:.78}
 .rp-more{position:absolute;bottom:22px;left:50%;width:18px;height:11px;margin-left:-9px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
 .rp-card{background:var(--card)}
+/* compare with others (the weight card in the recap) */
+.rp-ask{margin-top:20px;padding-top:18px;border-top:.5px solid var(--sep)}.rp-ask h4{font:600 1.0625rem var(--font)}.rp-ask .btn{margin-top:12px;width:100%}.rp-ask .btn+.btn{margin-top:6px}
+.rp-tr{margin-top:20px;padding-top:18px;border-top:.5px solid var(--sep)}.tr-h{font:600 1.0625rem var(--font);margin-bottom:10px}
+.tr-box{background:var(--night);border-radius:16px;padding:14px 12px 12px;color:#E8EAF4}.tr-box svg{display:block;width:100%;height:auto;overflow:visible}
+.tr-grid{stroke:rgba(255,255,255,.22);stroke-width:1;stroke-dasharray:3 4}.tr-t{font:500 10px var(--font);fill:#C9CDE0}
+.tr-you{fill:none;stroke:#FFCC00;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}.tr-avg{fill:none;stroke:#A7ACC0;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.tr-dot{fill:#FFCC00;stroke:var(--night);stroke-width:2}.tr-leg{display:flex;gap:18px;margin-top:8px;font:500 .8125rem var(--font)}.tr-leg i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.tr-note{font-size:.8125rem}
 /* month in the sky */
 .rp-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px 0;justify-items:center;margin-top:22px}
 .rp-wd{font:600 0.75rem var(--font);color:var(--label-2);padding-bottom:2px}

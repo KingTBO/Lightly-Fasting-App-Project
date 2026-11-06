@@ -572,13 +572,53 @@ var RP_EASE='cubic-bezier(.32,.72,0,1)';
 function rngLab(s,e){ var a=C.keyToDate(s), b=C.keyToDate(e);
   if(S.lang==='zh') return (a.getMonth()+1)+'/'+a.getDate()+(s===e?'':'–'+(a.getMonth()===b.getMonth()?'':(b.getMonth()+1)+'/')+b.getDate());
   return dateLbl(a.getTime(),{month:'short',day:'numeric'})+(s===e?'':'–'+dateLbl(b.getTime(),a.getMonth()===b.getMonth()?{day:'numeric'}:{month:'short',day:'numeric'})); }
+/* ---------- compare with others (opt-in, off by default) ----------
+   Only the CHANGE in percent of the person's own starting weight, at about day 30, 60 and 90, goes to the server (supabase/trend.sql), after they turn it on and only
+   while signed in. Never the weight, age, gender or name. Turning it off, removing the weight or erasing everything deletes what was shared. */
+function trendOn(){ return !!(S.body&&S.body.share&&cloudOn()&&!care()&&C.weightFit(S.body)); }
+function pctTxt(p){ return (p>0?'+':p<0?'−':'')+Math.abs(p).toFixed(1)+'%'; }
+function trendSync(){
+  if(!trendOn()) return; var bk=C.trendBuckets(C.trendPoints(S.body)), sig=JSON.stringify(bk); if(!bk.length||S.body.sent===sig) return;
+  CL.rpc('trend_share',{p_points:bk}).then(function(){ if(S.body&&S.body.share){ quiet=true; S.body.sent=sig; quiet=false; saveNow(); } }).catch(function(){});
+}
+function trendLeave(){ if(!cloudOn()) return Promise.resolve(); return CL.rpc('trend_leave').then(function(){ if(S.prefs.trendLeave){ delete S.prefs.trendLeave; save(); } }); }
+/* stop sharing: the switch off, "Don't ask me again", removing the weight. If the phone is offline the deletion waits (prefs.trendLeave) and runs on the next sync. */
+function trendStop(){ if(S.body){ delete S.body.share; delete S.body.sent; } S.prefs.trendLeave=true; save(); trendLeave().catch(function(){}); }
+function trendBoot(){ if(!cloudOn()) return; if(S.prefs.trendLeave) trendLeave().catch(function(){}); else trendSync(); }
+function trendFetch(cb){ if(!trendOn()) return cb(null); CL.rpc('trend_compare').then(function(r){ cb(Array.isArray(r)?r:null); }).catch(function(){ cb(null); }); }
+function trendPaint(){ var e=$('rpTr'); if(!e) return; e.innerHTML=trendInner(null); trendFetch(function(cmp){ var x=$('rpTr'); if(x&&cmp) x.innerHTML=trendInner(cmp); }); }
+function trendInner(cmp){
+  var pts=C.trendPoints(S.body), you=[{day:0,pct:0}].concat(pts), avg=[{day:0,pct:0}], rows=cmp||[], lo=-2, hi=1, maxD=90, last=null;
+  rows.forEach(function(c){ if(c.enough&&c.avg!=null){ avg.push({day:c.day,pct:c.avg}); if(c.you!=null) last=c; } });
+  var hasAvg=avg.length>1; you.concat(hasAvg?avg:[]).forEach(function(p){ lo=Math.min(lo,p.pct); hi=Math.max(hi,p.pct); maxD=Math.max(maxD,p.day); });
+  lo=Math.floor(lo-.4); hi=Math.ceil(hi+.4);
+  var X=function(d){ return 30+d/maxD*262; }, Y=function(v){ return 10+(hi-v)/(hi-lo)*116; }, pl=function(a){ return a.map(function(p){ return X(p.day).toFixed(1)+','+Y(p.pct).toFixed(1); }).join(' '); }, g='';
+  [0,30,60,90].forEach(function(d){ if(d<=maxD) g+='<text class="tr-t" x="'+X(d).toFixed(1)+'" y="146" text-anchor="'+(d===0?'start':d===maxD?'end':'middle')+'">'+(d===0?L('Day 0','第 0 天'):d)+'</text>'; });
+  var svg='<svg viewBox="0 0 300 152" role="img" aria-label="'+esc(L('Your weight change over time'+(hasAvg?' next to the average':''),'你的体重变化'+(hasAvg?'，和平均线对比':'')))+'"><line class="tr-grid" x1="30" x2="292" y1="'+Y(0).toFixed(1)+'" y2="'+Y(0).toFixed(1)+'"/>'+
+    '<text class="tr-t" x="24" y="'+(Y(0)+3.5).toFixed(1)+'" text-anchor="end">0%</text><text class="tr-t" x="24" y="'+(Y(lo)-1).toFixed(1)+'" text-anchor="end">'+(lo<0?'−'+Math.abs(lo):lo)+'%</text>'+g+
+    (hasAvg?'<polyline class="tr-avg" points="'+pl(avg)+'"/>':'')+(you.length>1?'<polyline class="tr-you" points="'+pl(you)+'"/>':'')+
+    you.slice(1).map(function(p){ return '<circle class="tr-dot" cx="'+X(p.day).toFixed(1)+'" cy="'+Y(p.pct).toFixed(1)+'" r="4.5"/>'; }).join('')+'</svg>';
+  var cap='';
+  if(cmp){ if(!hasAvg) cap=L('Not enough people yet. The average joins your line when there are.','还没有足够的人。人数够了，平均线就会出现。');
+    else if(last) cap=L('Day '+last.day+': you '+pctTxt(last.you)+', average '+pctTxt(last.avg)+'.','第 '+last.day+' 天：你 '+pctTxt(last.you)+'，平均 '+pctTxt(last.avg)+'。')+(last.ahead!=null&&last.ahead>=50&&last.you<=0&&last.you>-10?' '+L('Down more than '+Math.round(last.ahead)+'% of people.','比 '+Math.round(last.ahead)+'% 的人降得更多。'):'');
+    else cap=L('The average is in. Your next check-in joins it.','平均线已有，你下一次记录会加入。'); }
+  return '<h4 class="tr-h">'+L('You and others','你和其他人')+'</h4><div class="tr-box">'+svg+'<div class="tr-leg"><span><i style="background:var(--tint)"></i>'+L('You','你')+'</span>'+(hasAvg?'<span><i style="background:#A7ACC0"></i>'+L('Average','平均')+'</span>':'')+'</div></div>'+(cap?'<p class="rp-cap">'+cap+'</p>':'')+(hasAvg?'<p class="rp-cap tr-note">'+L('Everyone’s pace is different. This is not medical advice.','每个人的节奏不同。这不是医疗建议。')+'</p>':'');
+}
+function trendBlock(saved){
+  var b=S.body; if(!b||care()) return '';
+  if(b.share) return '<div class="rp-tr" id="rpTr"></div>';
+  if(b.share===false||!saved) return '';
+  if(!cloudOn()) return '<p class="rp-cap rp-ask">'+L('Want to compare with others? Sign in on Me first.','想和其他人比较？先在“我的”里登录。')+'</p>';
+  return '<div class="rp-ask"><h4>'+L('Compare with others?','和其他人比较？')+'</h4><p class="rp-cap">'+L('Only your change in percent, no name, at day 30, 60 and 90. You can stop any time.','只分享体重变化的百分比，不带名字，在第 30、60、90 天。随时可以停止。')+'</p><button type="button" class="btn" data-act="trendyes">'+L('Share my change','分享我的变化')+'</button><button type="button" class="btn quiet" data-act="trendno">'+L('No thanks','不用了')+'</button></div>';
+}
+function rpWeightPaint(){ var pm=recapMonth(), e=$('rpW'); if(!pm||!e||!S.body) return; e.innerHTML=rpWeightHtml(pm); trendPaint(); }
 /* optional monthly check-in (only if weight was given in setup, never in Care mode): one weight, saved on the phone and in the backup, shown with no judgement */
 function rpWeightHtml(pm){
   var b=S.body, u=b.unit||'kg', ck=b.checks||[], cur=ck.filter(function(c){ return c.key===pm.key; })[0], prev=ck.filter(function(c){ return c.key<pm.key; }).pop()||{kg:b.kg},
       num=function(kg){ return Math.round(C.kgTo(kg,u))+' '+uLbl(u); };
-  if(cur) return '<h3 id="rpTw" class="rpi">'+L('Your check-in','你的记录')+'</h3><p class="rp-line rpi" style="--i:1">'+L('Before <b>'+num(prev.kg)+'</b> · now <b>'+num(cur.kg)+'</b>','之前 <b>'+num(prev.kg)+'</b> · 现在 <b>'+num(cur.kg)+'</b>')+'</p><button type="button" class="btn quiet rpi" style="--i:2" data-act="rpwedit">'+L('Change it','修改')+'</button>';
+  if(cur) return '<h3 id="rpTw" class="rpi">'+L('Your check-in','你的记录')+'</h3><p class="rp-line rpi" style="--i:1">'+L('Before <b>'+num(prev.kg)+'</b> · now <b>'+num(cur.kg)+'</b>','之前 <b>'+num(prev.kg)+'</b> · 现在 <b>'+num(cur.kg)+'</b>')+'</p><button type="button" class="btn quiet rpi" style="--i:2" data-act="rpwedit">'+L('Change it','修改')+'</button>'+trendBlock(true);
   rp.wkg=prev.kg;
-  return '<h3 id="rpTw" class="rpi">'+L('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="group rpi" style="--i:2">'+pkField('rpWt',L('Weight now','现在的体重'),Math.round(C.kgTo(prev.kg,u)),'sel',wtOpts(u))+'</div><button type="button" class="btn rpi" style="--i:3" data-act="rpwsave">'+L('Save','保存')+'</button><button type="button" class="btn quiet rpi" style="--i:4" data-act="rpwoff">'+L('Don’t ask me again','不再询问')+'</button>';
+  return '<h3 id="rpTw" class="rpi">'+L('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="group rpi" style="--i:2">'+pkField('rpWt',L('Weight now','现在的体重'),Math.round(C.kgTo(prev.kg,u)),'sel',wtOpts(u))+'</div><button type="button" class="btn rpi" style="--i:3" data-act="rpwsave">'+L('Save','保存')+'</button><button type="button" class="btn quiet rpi" style="--i:4" data-act="rpwoff">'+L('Don’t ask me again','不再询问')+'</button>'+trendBlock(false);
 }
 function reportHtml(pm,r){
   var name=monthName(pm,true), nxt=monthName({y:pm.m===11?pm.y+1:pm.y,m:(pm.m+1)%12},true), goal=S.planId==='ramadan'?0:plan().fast, i;
@@ -674,7 +714,7 @@ function rpRect(){ var pr=$('ph').getBoundingClientRect(), cr=rp.src.getBounding
 function openReport(btn){
   if(rp.open||rp.busy) return; var pm=recapMonth(); if(!pm) return;
   var r=C.monthReport(S.fasts,pm.y,pm.m,S.flex.used,C.offKeys(S.off),S.place); if(r.n<3) return;
-  var R=$('report'), D=$('days'); rp.src=btn.closest('.rcard')||btn; R.getAnimations({subtree:true}).forEach(function(x){ x.cancel(); }); R.innerHTML=reportHtml(pm,r); R.hidden=false; R.style.transform=''; R.style.borderRadius='';
+  var R=$('report'), D=$('days'); rp.src=btn.closest('.rcard')||btn; R.getAnimations({subtree:true}).forEach(function(x){ x.cancel(); }); R.innerHTML=reportHtml(pm,r); trendPaint(); R.hidden=false; R.style.transform=''; R.style.borderRadius='';
   rp.open=true; rpWatch(R,r); fx('light');
   var sc=$('rpScroll'); sc.scrollTop=0;
   if(reduce||!R.animate){ R.animate&&R.animate([{opacity:0},{opacity:1}],{duration:220,fill:'none'}); if(rp.heroGo) rp.heroGo(); sc.focus({preventScroll:true}); return; }
@@ -1078,8 +1118,9 @@ function careSheet(){
 }
 function bodySheet(){
   var b=S.body; if(!b) return closeSheet(); var u=b.unit||'kg';
-  openSheet('<h3>'+L('About you','关于你')+'</h3><p class="lede">'+L('Saved for your monthly check-ins. Never shared.','只用于你的每月记录，绝不分享。')+'</p><div class="group"><div class="row"><span>'+L('Age','年龄')+'</span><b>'+b.age+'</b></div><div class="row"><span>'+L('Weight','体重')+'</span><b>'+Math.round(C.kgTo(b.kg,u))+' '+uLbl(u)+'</b></div><div class="row"><span>'+L('Height','身高')+'</span><b>'+b.cm+' cm</b></div>'+(b.sex?'<div class="row"><span>'+L('Gender','性别')+'</span><b>'+(b.sex==='f'?L('Female','女'):b.sex==='x'?L('Non-binary','非二元'):L('Male','男'))+'</b></div>':'')+'</div>'+
+  openSheet('<h3>'+L('About you','关于你')+'</h3><p class="lede">'+L('Saved for your monthly check-ins. Private unless you turn on Compare with others.','只用于你的每月记录。除非你打开“和其他人比较”，否则不会分享。')+'</p><div class="group"><div class="row"><span>'+L('Age','年龄')+'</span><b>'+b.age+'</b></div><div class="row"><span>'+L('Weight','体重')+'</span><b>'+Math.round(C.kgTo(b.kg,u))+' '+uLbl(u)+'</b></div><div class="row"><span>'+L('Height','身高')+'</span><b>'+b.cm+' cm</b></div>'+(b.sex?'<div class="row"><span>'+L('Gender','性别')+'</span><b>'+(b.sex==='f'?L('Female','女'):b.sex==='x'?L('Non-binary','非二元'):L('Male','男'))+'</b></div>':'')+'</div>'+
     '<div class="group"><div class="row"><span>'+L('Monthly weight check-in','每月体重记录')+'</span><button class="sw" role="switch" aria-checked="'+!b.checkOff+'" aria-label="'+L('Monthly weight check-in','每月体重记录')+'" data-act="bodycheck"></button></div></div>'+
+    (care()||b.checkOff?'':'<div class="group"><div class="row"><span>'+L('Compare with others','和其他人比较')+'</span><button class="sw" role="switch" aria-checked="'+!!b.share+'" aria-label="'+L('Compare with others','和其他人比较')+'" data-act="bodytrend"></button></div></div><p class="note">'+L('Only your change in percent, no name, at day 30, 60 and 90. Needs an account.','只分享体重变化的百分比，不带名字，在第 30、60、90 天。需要账号。')+'</p>')+
     '<div class="btns"><button class="btn red" data-act="bodyrm">'+L('Remove them','删除')+'</button><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
 }
 function careRow(b){
@@ -1185,7 +1226,7 @@ function syncNow(silent){
     if(row&&row.data){ var before=JSON.stringify(S); applyRemote(merged); if(JSON.stringify(S)!==before){ cache={}; ticksKey=''; applyTheme(); applyLang(); } } else { quiet=true; S.cloudUid=au.uid; quiet=false; }
     if(S.onboarded&&!$('ob').hidden){ ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; showTab('today'); }
     return CL.push(S);
-  }).then(function(){ sync.at=Date.now(); sync.retry=0; if(!silent) toast(L('Backed up.','已备份。')); }).catch(function(e){ sync.err=e&&e.message||'error'; sync.retry=(sync.retry||0)+1; if(sync.retry<=3){ clearTimeout(sync.t); sync.t=setTimeout(function(){ syncNow(true); },60000*sync.retry); } if(!silent) toast(L('Couldn’t back up: ','备份失败：')+sync.err);
+  }).then(function(){ sync.at=Date.now(); sync.retry=0; if(!silent) toast(L('Backed up.','已备份。')); trendBoot(); }).catch(function(e){ sync.err=e&&e.message||'error'; sync.retry=(sync.retry||0)+1; if(sync.retry<=3){ clearTimeout(sync.t); sync.t=setTimeout(function(){ syncNow(true); },60000*sync.retry); } if(!silent) toast(L('Couldn’t back up: ','备份失败：')+sync.err);
       /* the account may be gone (deleted on another phone), or the sign-in expired: sign out here and say why. Offline or a server hiccup keeps you signed in. */
       if(!CL.getAuth()) return gone(false); return CL.alive().then(function(ok){ if(!ok) gone(true); }); })
     .then(function(){ sync.busy=false; if(curTab==='me') renderMe(); if(curTab==='today') updateToday(); avRefresh(); });
@@ -1686,8 +1727,8 @@ var A={
   gotoday:function(){ showTab('today'); },
   recap:function(b){ openReport(b); },
   rpclose:function(){ closeReport(); },
-  rpwsave:function(){ var pm=recapMonth(); if(!pm||!S.body) return; var ck=S.body.checks=(S.body.checks||[]).filter(function(c){ return c.key!==pm.key; }); ck.push({key:pm.key,kg:Math.round(rp.wkg*10)/10,at:Date.now()}); ck.sort(function(a,b){ return a.key<b.key?-1:1; }); save(); fx('success'); var e=$('rpW'); if(e) e.innerHTML=rpWeightHtml(pm); },
-  rpwedit:function(){ var pm=recapMonth(); if(!pm||!S.body) return; S.body.checks=(S.body.checks||[]).filter(function(c){ return c.key!==pm.key; }); save(); var e=$('rpW'); if(e) e.innerHTML=rpWeightHtml(pm); },
+  rpwsave:function(){ var pm=recapMonth(); if(!pm||!S.body) return; var ck=S.body.checks=(S.body.checks||[]).filter(function(c){ return c.key!==pm.key; }); ck.push({key:pm.key,kg:Math.round(rp.wkg*10)/10,at:Date.now()}); ck.sort(function(a,b){ return a.key<b.key?-1:1; }); save(); fx('success'); rpWeightPaint(); trendSync(); },
+  rpwedit:function(){ var pm=recapMonth(); if(!pm||!S.body) return; S.body.checks=(S.body.checks||[]).filter(function(c){ return c.key!==pm.key; }); save(); rpWeightPaint(); },
   recapx:function(){ var pm=recapMonth(); if(pm){ S.prefs.recapSeen=pm.key; save(); renderDays(); } },
   avgmode:function(b){ if(avgMode===b.dataset.m) return; avgMode=b.dataset.m; avgSel=null; avgDraw(true); var n=$('avgBox').querySelector('[data-act=avgmode][aria-pressed=true]'); if(n) n.focus({preventScroll:true}); },
   avgbar:function(b){ avgSel=+b.dataset.i; avgDraw(false); var n=$('avgBox').querySelector('[data-i="'+avgSel+'"]'); if(n) n.focus({preventScroll:true}); },
@@ -1781,7 +1822,7 @@ var A={
     /* signed in: the backup is part of "everything". Without this the next sync brings it all back. An empty, newest copy replaces it; the account stays. */
     clearTimeout(sync.t); sync.busy=true; var go=$('eraseGo'), hl=go&&go.querySelector('.hl'); if(go) go.disabled=true; if(hl) hl.textContent=L('Erasing…','正在清除…');
     var blank=fresh(); blank.mod=Date.now(); blank.cloudUid=CL.getAuth().uid;
-    CL.push(blank).then(done).catch(function(){ sync.busy=false; closeSheet(); toast(L('Couldn’t erase your backup. Check your connection and try again.','没能清除云端备份，请检查网络后重试。')); });
+    CL.rpc('trend_leave').catch(function(e){ if(e&&e.status===404) return; throw e; }).then(function(){ return CL.push(blank); }).then(done).catch(function(){ sync.busy=false; closeSheet(); toast(L('Couldn’t erase your backup. Check your connection and try again.','没能清除云端备份，请检查网络后重试。')); });
   },
   usualset:function(){ S.prefs.usualStart='20:00'; save(); cache={}; updateToday(); renderMe(); pkToggle('usualStart'); },
   pktog:function(b){ pkToggle(b.dataset.id); },
@@ -1791,9 +1832,15 @@ var A={
     if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ obBackTo(); },
   bodyinfo:bodySheet,
-  bodycheck:function(b){ if(!S.body) return; S.body.checkOff=!S.body.checkOff; if(!S.body.checkOff) delete S.body.checkOff; save(); fx('select'); b.setAttribute('aria-checked',String(!S.body.checkOff)); },
-  rpwoff:function(){ if(!S.body) return; S.body.checkOff=true; save(); fx('select'); var e=$('rpW'); if(e) e.innerHTML='<h3 id="rpTw" class="rpi">'+L('No more check-ins','不再询问体重')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Your recap will not include weight any more. You can turn it back on in Me, About you.','回顾里不会再出现体重。你可以在“我的 · 关于你”里重新打开。')+'</p>'; },
-  bodyrm:function(){ S.body=null; save(); closeSheet(); renderMe(); },
+  bodycheck:function(b){ if(!S.body) return; S.body.checkOff=!S.body.checkOff; if(!S.body.checkOff) delete S.body.checkOff; else if(S.body.share) trendStop(); save(); fx('select'); b.setAttribute('aria-checked',String(!S.body.checkOff)); if(sheetOpen) bodySheet(); },
+  bodytrend:function(b){ if(!S.body) return;
+    if(S.body.share){ trendStop(); fx('select'); b.setAttribute('aria-checked','false'); return; }
+    if(!cloudOn()) return toast(L('Sign in first, so your change counts once.','请先登录，这样你的变化只算一次。'));
+    S.body.share=true; save(); trendSync(); fx('select'); b.setAttribute('aria-checked','true'); },
+  trendyes:function(){ if(!S.body) return; if(!cloudOn()) return rpWeightPaint(); S.body.share=true; save(); fx('success'); trendSync(); rpWeightPaint(); },
+  trendno:function(){ if(!S.body) return; S.body.share=false; save(); fx('select'); rpWeightPaint(); },
+  rpwoff:function(){ if(!S.body) return; S.body.checkOff=true; if(S.body.share) trendStop(); save(); fx('select'); var e=$('rpW'); if(e) e.innerHTML='<h3 id="rpTw" class="rpi">'+L('No more check-ins','不再询问体重')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Your recap will not include weight any more. You can turn it back on in Me, About you.','回顾里不会再出现体重。你可以在“我的 · 关于你”里重新打开。')+'</p>'; },
+  bodyrm:function(){ if(S.body&&S.body.share) trendStop(); S.body=null; save(); closeSheet(); renderMe(); },
   obunit:function(b){ ob.unit=b.dataset.v; obRefresh(); },
   obsex:function(b){ ob.sex=b.dataset.v; fx('select'); obRefresh(); },
   obbody:function(){ ob.bodyDone=true; A.obnext(); },

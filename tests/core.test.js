@@ -46,6 +46,13 @@ bs.off=[{id:'a',kind:'travel',start:now-D,days:3,endedAt:now}];assert.strictEqua
 // a running fast means today is not a day off; yesterday and the future are not affected
 {const cs={fasts:[],flex:{bank:2,used:[]},cur:{start:now-3600000}};assert.strictEqual(C.flexBlock(C.dayKey(now),cs,now),'fasting');assert.strictEqual(C.flexBlock(C.dayKey(now+D),cs,now),'window','no cheat day for a future date');cs.cur=null;assert.strictEqual(C.flexBlock(C.dayKey(now),cs,now),'');}
 assert.strictEqual(C.guessCity('Asia/Shanghai'),'shanghai');
+// weight comparison: only the percent change, bucketed to day 30, 60 and 90
+{const D=864e5,t0=Date.UTC(2026,9,12),b={kg:72,at:t0,checks:[{key:'2026-10',kg:71,at:t0+24*D},{key:'2026-11',kg:70.2,at:t0+53*D},{key:'2026-12',kg:69,at:t0+83*D}]};
+const pts=C.trendPoints(b);assert.deepStrictEqual(pts.map(p=>p.day),[24,53,83]);assert.strictEqual(pts[0].pct,-1.4);assert.strictEqual(pts[2].pct,-4.2);
+assert.deepStrictEqual(C.trendBuckets(pts),[{day:30,pct:-1.4},{day:60,pct:-2.5},{day:90,pct:-4.2}],'monthly check-ins fall into 30, 60 and 90');
+assert.deepStrictEqual(C.trendBuckets([{day:5,pct:-.5}]),[],'day 5 is not near 30');assert.deepStrictEqual(C.trendBuckets([{day:25,pct:-1},{day:33,pct:-2}]),[{day:30,pct:-2}],'the nearest day wins');
+assert.deepStrictEqual(C.trendPoints({kg:72,at:t0,checks:[{kg:40,at:t0+30*D}]}),[],'a change of more than 30 percent is never sent');assert.deepStrictEqual(C.trendPoints(null),[]);
+assert.ok(!JSON.stringify(C.trendBuckets(pts)).match(/kg|72|age|sex/),'no weight in what is sent');}
 // the city list has the big classic cities, each with a real zone and a sunrise that is not the same everywhere
 {const ks=Object.keys(C.CITIES);['berlin','london','paris','jakarta','tokyo','mumbai','cairo','lagos','saopaulo','mexicocity','toronto','melbourne','auckland','seoul','istanbul','moscow'].forEach(k=>assert.ok(C.CITIES[k],'missing '+k));
 ks.forEach(k=>{const c=C.CITIES[k];assert.ok(c.en&&c.zh&&isFinite(c.lat)&&isFinite(c.lon)&&c.zone,k+' is complete');assert.ok(isFinite(C.zoneOffset(c.zone,Date.UTC(2026,10,6))),k+' has a usable time zone');});
