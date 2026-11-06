@@ -3,7 +3,7 @@
 const assert=require('assert'),http=require('http'),fs=require('fs'),path=require('path');
 const {chromium}=require('playwright'); const root=path.join(__dirname,'..'); const H=3600000;
 const shots=(process.argv.find(a=>a.startsWith('--shots='))||'').slice(8);
-const calls=[]; let profile=null, groups=[], codeN=0;
+const calls=[]; let profile=null, groups=[], codeN=0, sharingOn=true; const cheered=new Set();
 const mock=http.createServer((q,r)=>{ r.setHeader('Access-Control-Allow-Origin','*'); r.setHeader('Access-Control-Allow-Headers','*'); r.setHeader('Access-Control-Allow-Methods','*'); if(q.method==='OPTIONS'){ r.writeHead(204); return r.end(); }
   let body=''; q.on('data',d=>body+=d); q.on('end',()=>{ const j=body?JSON.parse(body):{}, u=q.url, out=(c,o)=>{ r.writeHead(c,{'Content-Type':'application/json'}); r.end(JSON.stringify(o)); };
     if(u.startsWith('/auth/v1/settings')) return out(200,{external:{google:true,email:true}});
@@ -16,6 +16,14 @@ const mock=http.createServer((q,r)=>{ r.setHeader('Access-Control-Allow-Origin',
     if(m[1]==='upsert_profile'){ profile={display_name:j.p_name,avatar:j.p_avatar}; return out(200,null); }
     if(m[1]==='create_group'){ if(!profile) return out(400,{message:'no_profile'}); const id='g'+(++codeN); groups.push({group_id:id,name:j.p_name,role:'owner',member_count:1,fasting:0,reached:0,resting:0}); return out(200,[{group_id:id,code:'K7QM4XD9'}]); }
     if(m[1]==='current_invite') return out(200,[{code:'K7QM4XD9',expires_at:new Date(Date.now()+6*24*H).toISOString(),member_count:1,max_members:10}]);
+    if(m[1]==='group_board'){ const d=j.p_day, today=j.p_today, late=d===today; const R=(uid,n,a,st,pr,g,me)=>({user_id:uid,display_name:n,avatar:a,is_me:!!me,status:st,progress:pr,goal_hours:g,cheered_by_me:cheered.has(uid+d),cheers_received:me?2:0});
+      return out(200,late?[R('uid-me','Maya','lantern','fasting',.4,16,1),R('u-mei','Mei','crescent','fasting',.6,18),R('u-arj','Arjun','sunrise','reached',1,16),R('u-len','Lena','tea','resting',null,null),R('u-sam','Sam','star','none',null,null)]
+        :[R('uid-me','Maya','lantern','reached',1,16,1),R('u-mei','Mei','crescent','fasted',.7,18),R('u-arj','Arjun','sunrise','reached',1,16),R('u-len','Lena','tea','resting',null,null),R('u-sam','Sam','star','none',null,null)]); }
+    if(m[1]==='group_roster') return out(200,[{user_id:'uid-me',display_name:'Maya',avatar:'lantern',role:'owner',is_me:true,sharing:sharingOn,joined_at:'2026-11-01T00:00:00Z'},{user_id:'u-mei',display_name:'Mei',avatar:'crescent',role:'member',is_me:false,sharing:null,joined_at:'2026-11-02T00:00:00Z'}]);
+    if(m[1]==='send_cheer'){ if(j.p_to==='u-len') return out(400,{message:'not_cheerable'}); cheered.add(j.p_to+j.p_day); return out(200,null); }
+    if(m[1]==='withdraw_cheer'){ cheered.delete(j.p_to+j.p_day); return out(200,null); }
+    if(m[1]==='set_sharing'){ sharingOn=j.p_on; return out(200,null); }
+    if(['publish_me','rename_group','remove_member','report_member','leave_group'].includes(m[1])) return out(200,null);
     out(404,{}); }); });
 const srv=http.createServer((q,r)=>{ let p=path.join(root,decodeURIComponent(q.url.split('?')[0])); if(p.endsWith('/')) p+='index.html'; fs.readFile(p,(e,d)=>{ if(e){ r.writeHead(404); r.end(); } else{ r.writeHead(200,{'Content-Type':p.endsWith('.js')?'text/javascript':p.endsWith('.css')?'text/css':'text/html'}); r.end(d); } }); });
 function ok(n){ console.log('ok -',n); }
@@ -59,7 +67,39 @@ function ok(n){ console.log('ok -',n); }
   assert.strictEqual((await q.textContent('.fr-code b')).trim(),'K7QM 4XD9'); assert(await q.isVisible('.fr-qr svg')); assert.deepStrictEqual(calls.find(c=>c.fn==='create_group').args,{p_name:'Morning crew'}); await shot(q,'invite-sheet');
   await q.click('#frCopy'); const clip=await q.evaluate(()=>navigator.clipboard.readText()); assert.match(clip,/\?join=K7QM4XD9$/); assert.strictEqual((await q.textContent('#frCopy')).trim(),'Copied');
   ok('empty state, name and avatar, new group, invite sheet with QR, code and copy');
-  await q.click('#sheet .x'); await q.waitForSelector('#friends .row[data-act=frgroup]'); assert.match(await q.textContent('#friends'),/Morning crew/); assert.match(await q.textContent('#friends'),/1 person/); assert(await q.isVisible('#friends [data-act=frnew]')); await shot(q,'list-en'); ok('the group list');
+  await q.click('#sheet .x'); await q.waitForSelector('#friends .fr-name'); assert.strictEqual((await q.textContent('#friends .fr-name')).trim(),'Morning crew','creating a group opens it');
+  await q.click('#friends [data-act=frback]'); await q.waitForSelector('#friends .row[data-act=frgroup]'); assert.match(await q.textContent('#friends'),/Morning crew/); assert.match(await q.textContent('#friends'),/1 person/); assert(await q.isVisible('#friends [data-act=frnew]')); await shot(q,'list-en'); ok('the group list');
+  // 3b. the group screen: seven days, one row per person, Cheer, a person's week, settings, leaving; and what this phone publishes
+  const b0=calls.filter(c=>c.fn==='group_board').length; await q.click('#friends .row[data-act=frgroup]'); await q.waitForSelector('#friends .fr-card .fr-row'); await q.waitForTimeout(300);
+  assert.strictEqual(await q.$$eval('#friends .fr-days button',b=>b.length),7); assert.strictEqual(await q.getAttribute('#friends .fr-days button:last-child','aria-pressed'),'true','today is selected');
+  assert.deepStrictEqual(await q.$$eval('#friends .fr-row .fr-nm b',b=>b.map(x=>x.textContent.replace(/\s+/g,' ').trim())),['MayaYou','Mei','Arjun','Lena','Sam'],'you first, then in the order people joined');
+  const subs=await q.$$eval('#friends .fr-row .fr-nm small',b=>b.map(x=>x.textContent)); assert.deepStrictEqual(subs,['Fasting · 16h · 2 cheers','Fasting · 18h','Reached goal · 16h','Resting','Not fasting']);
+  assert.match(await q.textContent('#friends .fr-sum'),/^Today · 2 fasting · 1 reached goal · 1 resting/); assert(!/%|most|rank|streak/i.test(await q.textContent('#friends')),'no percentages, ranking words or streaks');
+  assert.deepStrictEqual(await q.$$eval('#friends .fr-ch',b=>b.length),2,'Cheer only on someone fasting or at their goal, never on yourself'); await shot(q,'group-en');
+  const bc=calls.filter(c=>c.fn==='group_board').slice(b0); assert.strictEqual(bc.length,7,'all seven days load once when the group opens'); assert(bc.every(c=>/^\d{4}-\d\d-\d\d$/.test(c.args.p_today)&&c.args.p_day<=c.args.p_today));
+  // a Cheer: silent, once, with Undo
+  await q.click('#friends .fr-ch[data-u=u-mei]'); await q.waitForSelector('#toast.on .tundo'); assert.strictEqual(await q.getAttribute('#friends .fr-ch[data-u=u-mei]','aria-pressed'),'true'); assert.deepStrictEqual(calls.filter(c=>c.fn==='send_cheer').pop().args.p_to,'u-mei');
+  await q.click('#toast .tundo'); await q.waitForTimeout(200); assert.strictEqual(await q.getAttribute('#friends .fr-ch[data-u=u-mei]','aria-pressed'),'false'); assert(calls.some(c=>c.fn==='withdraw_cheer'),'undo withdraws it'); ok('group screen: you first, words not percentages, Cheer and Undo');
+  // another day: a past day has no Cheer, and nothing is reloaded that is already here
+  const n0=calls.filter(c=>c.fn==='group_board').length; await q.click('#friends .fr-days button:nth-child(5)'); await q.waitForTimeout(200);
+  assert.strictEqual(await q.$$eval('#friends .fr-ch',b=>b.length),0,'no Cheer for a past day'); assert.match(await q.textContent('#friends .fr-sum'),/Reached goal|reached goal/); assert.strictEqual(calls.filter(c=>c.fn==='group_board').length,n0,'a day already loaded is not fetched again'); await q.click('#friends .fr-days button:nth-child(7)');
+  // a person's week
+  await q.click('#friends .fr-tap[data-u=u-mei]'); await q.waitForSelector('#frWho'); assert.strictEqual(await q.$$eval('#frWho .fr-wk .frd',b=>b.length),7); assert.match(await q.textContent('#sheet'),/Last 7 days/); assert(await q.isVisible('#sheet [data-act=frcheer]')); assert(await q.isVisible('#sheet [data-act=frreport]')); assert(await q.isVisible('#sheet [data-act=frremove]'),'the owner can remove'); await shot(q,'person-en');
+  await q.click('#sheet [data-act=frcheer]'); await q.waitForTimeout(250); assert.strictEqual((await q.textContent('#sheet [data-act=frcheer]')).trim(),'Cheered'); await q.click('#toast .tundo');
+  await q.click('#sheet [data-act=frreport]'); await q.click('#sheet [data-act=frreportok]'); await q.waitForTimeout(250); assert.deepStrictEqual(calls.filter(c=>c.fn==='report_member').pop().args,{p_gid:'g1',p_uid:'u-mei'}); ok('a person sheet: week of discs, Cheer, report');
+  await q.click('#friends .fr-tap[data-u=u-len]'); await q.waitForSelector('#frWho'); assert(!await q.isVisible('#sheet [data-act=frcheer]'),'no Cheer for someone resting'); await q.click('#sheet .x');
+  // settings: members, sharing switch, rename, leave
+  await q.click('#friends [data-act=frset]'); await q.waitForSelector('#sheet .fr-mem'); assert.strictEqual(await q.$$eval('#sheet .fr-mem',b=>b.length),2); assert.match(await q.textContent('#sheet'),/Share my status/); assert.match(await q.textContent('#sheet'),/sees you as resting/);
+  await q.click('#sheet [data-act=frsharing]'); await q.waitForTimeout(250); assert.deepStrictEqual(calls.filter(c=>c.fn==='set_sharing').pop().args,{p_gid:'g1',p_on:false}); await shot(q,'settings-en');
+  await q.click('#sheet [data-act=frrename]'); await q.fill('#frRn','Dawn crew'); await q.click('#sheet [data-act=frrenamego]'); await q.waitForTimeout(300); assert.strictEqual((await q.textContent('#friends .fr-name')).trim(),'Dawn crew'); assert.deepStrictEqual(calls.filter(c=>c.fn==='rename_group').pop().args,{p_gid:'g1',p_name:'Dawn crew'});
+  ok('group settings: members, sharing switch, rename');
+  // what this phone publishes: exactly the payload, nothing else
+  const f=await device(base({cur:{start:now-5*H,goalH:16,planId:'16'}}),true); await f.p.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); await f.p.reload(); await f.p.waitForTimeout(500); calls.length=0; await f.p.click('#tabs [data-tab=friends]'); await f.p.waitForTimeout(1200);
+  const pub=calls.filter(c=>c.fn==='publish_me'); assert(pub.length>=1,'the phone publishes when it is in a group'); const pa=pub[pub.length-1].args;
+  assert.deepStrictEqual(Object.keys(pa).sort(),['p_days','p_goal_hours','p_sacred','p_started_at','p_state']); assert.strictEqual(pa.p_state,'fasting'); assert.strictEqual(pa.p_goal_hours,16); assert.strictEqual(pa.p_days.length,7);
+  assert(!/weight|height|age|email|place|shanghai|streak/i.test(JSON.stringify(pa)),'no body, place or streak data in what goes out'); ok('publish_me carries only the state, the plan and seven day rows');
+  await q.click('#friends [data-act=frset]'); await q.waitForSelector('#sheet [data-act=frleave]'); await q.click('#sheet [data-act=frleave]'); await q.waitForSelector('#sheet [data-act=frleaveok]'); assert.match(await q.textContent('#sheet'),/Someone else becomes the owner|join again/);
+  await q.click('#sheet [data-act=frleaveok]'); await q.waitForTimeout(400); assert.deepStrictEqual(calls.filter(c=>c.fn==='leave_group').pop().args,{p_gid:'g1'}); ok('leaving a group asks first');
   // the data stays in its own key and never in the app state or the backup copy
   const keys=await q.evaluate(()=>({s:localStorage.getItem('lightly:v1')||'',f:localStorage.getItem('lightly:friends')||''})); assert(!/Morning crew|Maya/.test(keys.s),'Friends data is not in the app state'); assert(/Morning crew/.test(keys.f)); ok('Friends data lives in its own key');
   // Chinese, narrow phone

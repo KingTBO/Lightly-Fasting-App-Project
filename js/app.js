@@ -21,7 +21,7 @@ function load(){
 function careMigrate(){ var P=S.profile; if(!P) return; if(!Array.isArray(P.care)) P.care=[]; if(P.safety&&!P.care.length) P.care=['earlier']; P.safety=P.care.length>0; if(P.careOff===undefined) P.careOff=null; }
 var saveT=0;
 var quiet=false;
-function save(){ if(!quiet) S.mod=Date.now(); clearTimeout(saveT); saveT=setTimeout(saveNow,60); if(!quiet) cloudSoon(); }
+function save(){ if(!quiet) S.mod=Date.now(); clearTimeout(saveT); saveT=setTimeout(saveNow,60); if(!quiet){ cloudSoon(); if(FUI) FUI.changed(); } }
 function saveNow(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ storageOk=false; } }
 window.addEventListener('pagehide',saveNow);
 load();

@@ -124,7 +124,7 @@ var ERRORS={
   cap:['You’re in 3 groups already. Leave one to join another.','你已经在 3 个小组里了。退出一个才能加入新的。'],
   too_many:['Too many tries. Try again in an hour.','尝试次数太多，请一小时后再试。'],
   offline:['Offline. Showing the last update.','已离线，显示的是上次更新。'],
-  failed:['Couldn’t load. Pull to refresh.','加载失败，下拉刷新。']
+  failed:['Couldn’t load. Try again in a moment.','加载失败，请稍后再试。']
 };
 /* a database error message is one of these keys; anything else is "failed" (and "offline" when there was no answer at all) */
 function errorKey(e){ if(!e) return 'failed'; var m=String(e.message||e); if(ERRORS[m]) return m; if(e.status===undefined&&/fetch|network|load failed/i.test(m)) return 'offline'; return 'failed'; }
