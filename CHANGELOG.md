@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.94.0
+- **design** Turning on a health answer now takes a deliberate hold. Tapping an unticked answer in Me, Health answers opens an amber warning sheet ("Turn on Care mode?", or "Add this answer?" when Care mode is already on): the warning mark shakes and the phone buzzes once, then the button counts down 3, 2, 1 while locked, says "Hold to turn on" and must be held for 2 seconds. While you hold, the mark trembles and the phone buzzes; letting go early starts again and changes nothing. Cancel is the main button. The 24-hour "Added by mistake? Undo" from 0.93.4 stays. The buzz follows the Vibration switch and Reduce Motion stops the shaking. In English and 中文; the concept page's Care mode card says the same. Tests: tests/care.test.js covers the locked button, Cancel, a short press, the trembling mark and the full hold.
+
 ## 0.93.6
 - **docs** The address in the notes is corrected. The live site is https://lightly-fasting-app.tengbo-zhuang.workers.dev/ (the Cloudflare Worker that builds from GitLab `main`), not the address the 0.93.5 notes named. The README, RELEASING.md, AGENTS.md and the 0.93.5 entry below now use it, including the sign-in redirect step and the delete-account link. The older Worker called "lightly" (https://lightly.tengbo-zhuang.workers.dev/) is stale: it still serves 0.93.4 and will not update, so do not use it or add it to the redirect allow-list. Nothing in the app or the concept page changed.
 

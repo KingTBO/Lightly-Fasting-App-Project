@@ -115,8 +115,8 @@ function canTick(){ return !!navigator.vibrate||IOS; }
 function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); else iosTap(); }catch(e){} }
 /* one fixed vocabulary, so the same thing always feels the same:
    select = a wheel detent, light = a touch or toggle, hour = the hour turns, medium = a fast starts or a hold completes,
-   success = the goal is reached, or an import adds fasts (its soft chime is the biggest sound; the wheels also make a very quiet tick, see sTick), nope = a gentle "not now" (two light taps, no sound). Nothing fires on routine saves. */
-var FX={select:3,light:6,hour:8,medium:14,success:[30,60,30],nope:[8,70,8]};
+   success = the goal is reached, or an import adds fasts (its soft chime is the biggest sound; the wheels also make a very quiet tick, see sTick), nope = a gentle "not now" (two light taps, no sound), warn = a three-pulse buzz when a sheet asks you to check a change. Nothing fires on routine saves. */
+var FX={select:3,light:6,hour:8,medium:14,success:[30,60,30],nope:[8,70,8],warn:[22,50,22,50,34]};
 function fx(k){ buzz(FX[k]); if(k==='success') sChime(); else if(k==='select') sTick(); }
 
 /* ---------- toast, sheet ---------- */
@@ -334,8 +334,9 @@ act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } i
 
 /* a button in a sheet that must be held to confirm, the same press-and-hold as ending a fast */
 var HB=null;
-function hbEnd(){ if(!HB) return; var x=HB; HB=null; cancelAnimationFrame(x.raf); x.b.classList.remove('holding'); x.b.style.setProperty('--hold',0); x.lbl.textContent=x.orig; }
-function hbBegin(b){ if(HB||b.disabled) return; var lbl=b.querySelector('.hl'), t0=performance.now(), ms=+b.dataset.ms||HOLD_MS; HB={b:b,lbl:lbl,orig:lbl.textContent,raf:0}; b.classList.add('holding'); lbl.textContent=L('Keep holding…','继续按住…'); fx('light');
+function hbEnd(){ if(!HB) return; var x=HB; HB=null; cancelAnimationFrame(x.raf); clearInterval(x.bz); var w=sheetEl.querySelector('.warn-ico'); if(w) w.classList.remove('trem'); x.b.classList.remove('holding'); x.b.style.setProperty('--hold',0); x.lbl.textContent=x.orig; }
+function hbBegin(b){ if(HB||b.disabled) return; var lbl=b.querySelector('.hl'), t0=performance.now(), ms=+b.dataset.ms||HOLD_MS; HB={b:b,lbl:lbl,orig:lbl.textContent,raf:0,bz:0}; b.classList.add('holding'); lbl.textContent=L('Keep holding…','继续按住…'); fx('light');
+  if(b.dataset.buzz){ var w=sheetEl.querySelector('.warn-ico'); if(w) w.classList.add('trem'); HB.bz=setInterval(function(){ buzz(12); },140); } /* a warning hold (Care mode): the mark trembles and the phone buzzes for as long as you hold */
   (function step(){ if(!HB||HB.b!==b) return; var f=Math.min((performance.now()-t0)/ms,1); b.style.setProperty('--hold',f); if(f>=1){ hbEnd(); fx('medium'); A[b.dataset.hold](b); return; } HB.raf=requestAnimationFrame(step); })(); }
 document.addEventListener('pointerdown',function(e){ var b=e.target.closest&&e.target.closest('.btn[data-hold]'); if(!b||!ph.contains(b)) return; e.preventDefault(); try{ b.setPointerCapture(e.pointerId); }catch(x){} hbBegin(b); });
 ['pointerup','pointercancel'].forEach(function(n){ document.addEventListener(n,hbEnd); });
@@ -1128,7 +1129,6 @@ function careDrop(keys,quiet0){
   save(); if(quiet0) return; cache={}; ticksKey=''; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe();
 }
 /* Adding an answer is confirmed first, and can be undone for 24 hours: the plan, custom hours and Ramadan preview from before are kept in profile.careUndo and put back. */
-var careLock=0;
 function careUndoOpen(){ var P=S.profile, u=P.careUndo; return u&&(P.care||[]).indexOf(u.k)>=0&&Date.now()<u.at+C.CARE_UNDO?u:null; }
 function careAdd(k){
   var P=S.profile; if(!Array.isArray(P.care)) P.care=[]; if(P.care.indexOf(k)>=0) return;
@@ -1145,14 +1145,13 @@ function careUndoGo(){
   save(); fx('select'); cache={}; ticksKey=''; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); careSheet();
 }
 function careConfirm(k){
-  var P=S.profile, was=care(), t=CARE_TXT[k], rows=[];
-  if(!was){ rows.push(L('Plans stop at 16:8 and custom fasts at 16 h','计划最长到 16:8，自定义最长 16 小时'),L('24 h and 36 h fasts are not offered','不提供 24 小时和 36 小时断食'),L('No streaks, cheat days or Ramadan mode','没有连续天数、弹性日和斋月模式')); }
-  if(k==='ed') rows.push(L('The Friends tab is hidden','朋友标签页会隐藏'));
-  careLock=Date.now()+600;
-  openSheet('<h3>'+(was?L('Add this answer?','加入这个回答？'):L('Turn on Care mode?','开启关怀模式？'))+'</h3><p class="lede">'+L('You ticked “'+t[0]+'”.','你勾选了“'+t[1]+'”。')+' '+(was?L('Care mode is already on.','关怀模式已经开启。'):L('Care mode keeps Lightly gentle:','关怀模式会让轻伴更温和：'))+'</p>'+
-    (rows.length?'<div class="group">'+rows.map(function(r){ return '<div class="row"><span>'+r+'</span></div>'; }).join('')+'</div>':'')+
-    '<p class="note">'+L('If you tapped by mistake, tap Not now. After turning it on you can undo it for 24 hours. Later, taking it off takes a few steps.','如果是误点，请点“先不用”。开启后 24 小时内可以撤销，之后想取消需要几个步骤。')+'</p>'+
-    '<div class="btns"><button class="btn" data-act="careadd" data-k="'+k+'">'+L('Turn on','开启')+'</button><button class="btn sec" data-act="care">'+L('Not now','先不用')+'</button></div>');
+  var was=care(), t=CARE_TXT[k], what=was?L('Care mode is already on.','关怀模式已经开启。'):L('Plans stop at 16:8, no 24 h or 36 h fasts, no streaks, cheat days or Ramadan mode.','计划最长到 16:8，没有 24 小时和 36 小时断食，没有连续天数、弹性日和斋月模式。');
+  if(k==='ed') what+=L(' The Friends tab is hidden.','朋友标签页会隐藏。');
+  var lab=was?['Add this answer','加入这个回答']:['Turn on Care mode','开启关怀模式'], ready=was?['Hold to add','按住加入']:['Hold to turn on','按住开启'];
+  openSheet('<!--keep--><div class="warn-ico care">'+WARN+'</div><h3 class="ctr">'+(was?L('Add this answer?','加入这个回答？'):L('Turn on Care mode?','开启关怀模式？'))+'</h3><p class="lede ctr">'+L('You ticked “'+t[0]+'”. ','你勾选了“'+t[1]+'”。')+what+'</p>'+
+    '<p class="note ctr">'+L('Not sure? Tap Cancel. You can undo for 24 hours.','不确定？点“取消”。24 小时内可以撤销。')+'</p>'+
+    '<div class="btns"><button class="btn dark" data-act="care">'+L('Cancel','取消')+'</button>'+lockedHold('careOnGo','careadd',lab,' data-k="'+k+'" data-buzz="1"','warm solid')+'</div>');
+  fx('warn'); unlockHold('careOnGo',lab,ready);
 }
 function careSheet(){
   careTick(); var P=S.profile, cur=P.care||[], w=P.careOff, h='<h3>'+L('Health answers','健康回答')+'</h3><p class="lede">'+L('These keep Lightly gentle for you.','这些回答让轻伴对你更温和。')+'</p><div class="group">';
@@ -1741,7 +1740,7 @@ function eraseLine(n,st){
 }
 /* a red button that is locked for 3 seconds (counting down), then must be held for 2 seconds */
 var WARN='<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17" /><circle class="dot" cx="28" cy="40" r="2.6"/></svg>';
-function lockedHold(id,act,lab){ return '<button class="btn red solid hold" id="'+id+'" data-hold="'+act+'" data-ms="2000" disabled aria-label="'+L(lab[0]+', available in 3 seconds',lab[1]+'，3 秒后可用')+'"><span class="hl">'+L(lab[0]+' · 3',lab[1]+' · 3')+'</span></button>'; }
+function lockedHold(id,act,lab,extra,cls){ return '<button class="btn '+(cls||'red solid')+' hold" id="'+id+'" data-hold="'+act+'" data-ms="2000"'+(extra||'')+' disabled aria-label="'+L(lab[0]+', available in 3 seconds',lab[1]+'，3 秒后可用')+'"><span class="hl">'+L(lab[0]+' · 3',lab[1]+' · 3')+'</span></button>'; }
 function unlockHold(id,lab,ready){
   var go=$(id), lbl=go.querySelector('.hl'), n=3, iv=setInterval(function(){
     if(!go.isConnected||!sheetOpen){ clearInterval(iv); return; } /* closed early: the countdown stops, with no buzz */
@@ -1805,7 +1804,7 @@ var A={
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
   plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet, care:careSheet,
   carerow:careRow,
-  careadd:function(b){ if(Date.now()<careLock) return; careAdd(b.dataset.k); careSheet(); },
+  careadd:function(b){ careAdd(b.dataset.k); careSheet(); },
   careundo:careUndoGo,
   carepro:function(b){ var on=b.getAttribute('aria-checked')!=='true'; b.setAttribute('aria-checked',on); $('careGo').disabled=!on; },
   carewait:function(b){ var P=S.profile, k=b.dataset.k, keys=(P.careOff&&P.careOff.keys||[]).filter(function(x){ return x!==k; }); keys.push(k); P.careOff={keys:keys,start:Date.now()}; save(); careSheet(); },

@@ -766,6 +766,16 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .btn.red.solid{background:#C70012;color:#fff}
 .btn.red.solid:disabled{background:var(--fill-2);color:var(--label-2);opacity:1}
 .btn.red.solid.hold::before{background:rgba(0,0,0,.28)}
+/* Care mode: the same warning mark and hold button in amber, because turning it on is a safety choice, not a deletion. The mark shakes once when the sheet opens and trembles while the button is held. */
+.warn-ico.care circle:first-child{fill:#B35C00}
+.btn.warm.solid{background:#B35C00;color:#fff}
+.btn.warm.solid:disabled{background:var(--fill-2);color:var(--label-2);opacity:1}
+.btn.warm.solid.hold::before{background:rgba(0,0,0,.28)}
+@keyframes warnShake{0%,100%{transform:none}15%{transform:translateX(-4px) rotate(-5deg)}35%{transform:translateX(4px) rotate(5deg)}55%{transform:translateX(-3px) rotate(-3deg)}75%{transform:translateX(3px) rotate(3deg)}}
+@keyframes warnTrem{0%,100%{transform:translate(0,0)}25%{transform:translate(-2px,1px) rotate(-2deg)}50%{transform:translate(2px,-1px) rotate(2deg)}75%{transform:translate(-1px,-1px) rotate(-1deg)}}
+.warn-ico.care{animation:warnShake .55s .15s both}
+.warn-ico.care.trem{animation:warnTrem .09s linear infinite}
+@media (prefers-reduced-motion:reduce){.warn-ico.care,.warn-ico.care.trem{animation:none}}
 
 /* sheet pattern: the title row carries the dismiss */
 .sh-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:var(--m)}
