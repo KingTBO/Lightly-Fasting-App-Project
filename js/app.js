@@ -7,7 +7,7 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 
 /* ---------- state ---------- */
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
-function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null},
+function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null,careUndo:null},
   planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
   prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,body:null,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
@@ -18,7 +18,7 @@ function load(){
   catch(e){ storageOk=false; }
 }
 /* Care mode keeps the three health answers in profile.care (profile.safety is true while any is ticked). People who answered before Care mode existed have safety true and no list: they are 'earlier'. */
-function careMigrate(){ var P=S.profile; if(!P) return; if(!Array.isArray(P.care)) P.care=[]; if(P.safety&&!P.care.length) P.care=['earlier']; P.safety=P.care.length>0; if(P.careOff===undefined) P.careOff=null; }
+function careMigrate(){ var P=S.profile; if(!P) return; if(!Array.isArray(P.care)) P.care=[]; if(P.safety&&!P.care.length) P.care=['earlier']; P.safety=P.care.length>0; if(P.careOff===undefined) P.careOff=null; if(P.careUndo===undefined) P.careUndo=null; }
 var saveT=0;
 var quiet=false;
 function save(){ if(!quiet) S.mod=Date.now(); clearTimeout(saveT); saveT=setTimeout(saveNow,60); if(!quiet){ cloudSoon(); if(FUI) FUI.changed(); } }
@@ -1123,9 +1123,36 @@ function careTick(){ var P=S.profile, w=P.careOff; if(!w||!w.keys||Date.now()<w.
 /* make everything agree with the answers: Care mode stops at 16:8, has no Ramadan and no long fasts */
 function careApply(){ var P=S.profile; careMigrate(); if(!P.safety) return; S.ramadanPreview=false; if(S.customH>16) S.customH=16; if(S.planId==='24'||S.planId==='36'||S.planId==='ramadan') S.planId='13'; normalisePlan(); }
 function careDrop(keys,quiet0){
-  var P=S.profile; P.care=(P.care||[]).filter(function(k){ return keys.indexOf(k)<0; }); P.careOff=null;
+  var P=S.profile; P.care=(P.care||[]).filter(function(k){ return keys.indexOf(k)<0; }); P.careOff=null; if(P.careUndo&&keys.indexOf(P.careUndo.k)>=0) P.careUndo=null;
   if(P.care.length) careApply(); else{ P.safety=false; P.fastedBefore=false; S.unlocked={}; S.flex.mon=C.mondayOf(Date.now()); }
   save(); if(quiet0) return; cache={}; ticksKey=''; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe();
+}
+/* Adding an answer is confirmed first, and can be undone for 24 hours: the plan, custom hours and Ramadan preview from before are kept in profile.careUndo and put back. */
+var careLock=0;
+function careUndoOpen(){ var P=S.profile, u=P.careUndo; return u&&(P.care||[]).indexOf(u.k)>=0&&Date.now()<u.at+C.CARE_UNDO?u:null; }
+function careAdd(k){
+  var P=S.profile; if(!Array.isArray(P.care)) P.care=[]; if(P.care.indexOf(k)>=0) return;
+  P.careUndo={k:k,at:Date.now(),prev:{planId:S.planId,customH:S.customH,ramadanPreview:!!S.ramadanPreview}};
+  P.care.push(k); careApply(); save(); fx('select'); cache={}; ticksKey=''; updateToday(); if(curTab==='me') renderMe();
+}
+function careUndoGo(){
+  var P=S.profile, u=careUndoOpen(); if(!u) return careSheet();
+  P.care=P.care.filter(function(x){ return x!==u.k; }); P.careUndo=null;
+  if(P.careOff&&P.careOff.keys){ P.careOff.keys=P.careOff.keys.filter(function(x){ return x!==u.k; }); if(!P.careOff.keys.length) P.careOff=null; }
+  P.safety=P.care.length>0;
+  if(u.prev){ if(typeof u.prev.planId==='string') S.planId=u.prev.planId; if(typeof u.prev.customH==='number') S.customH=u.prev.customH; S.ramadanPreview=!!u.prev.ramadanPreview; }
+  if(P.safety) careApply(); normalisePlan();
+  save(); fx('select'); cache={}; ticksKey=''; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); careSheet();
+}
+function careConfirm(k){
+  var P=S.profile, was=care(), t=CARE_TXT[k], rows=[];
+  if(!was){ rows.push(L('Plans stop at 16:8 and custom fasts at 16 h','计划最长到 16:8，自定义最长 16 小时'),L('24 h and 36 h fasts are not offered','不提供 24 小时和 36 小时断食'),L('No streaks, cheat days or Ramadan mode','没有连续天数、弹性日和斋月模式')); }
+  if(k==='ed') rows.push(L('The Friends tab is hidden','朋友标签页会隐藏'));
+  careLock=Date.now()+600;
+  openSheet('<h3>'+(was?L('Add this answer?','加入这个回答？'):L('Turn on Care mode?','开启关怀模式？'))+'</h3><p class="lede">'+L('You ticked “'+t[0]+'”.','你勾选了“'+t[1]+'”。')+' '+(was?L('Care mode is already on.','关怀模式已经开启。'):L('Care mode keeps Lightly gentle:','关怀模式会让轻伴更温和：'))+'</p>'+
+    (rows.length?'<div class="group">'+rows.map(function(r){ return '<div class="row"><span>'+r+'</span></div>'; }).join('')+'</div>':'')+
+    '<p class="note">'+L('If you tapped by mistake, tap Not now. After turning it on you can undo it for 24 hours. Later, taking it off takes a few steps.','如果是误点，请点“先不用”。开启后 24 小时内可以撤销，之后想取消需要几个步骤。')+'</p>'+
+    '<div class="btns"><button class="btn" data-act="careadd" data-k="'+k+'">'+L('Turn on','开启')+'</button><button class="btn sec" data-act="care">'+L('Not now','先不用')+'</button></div>');
 }
 function careSheet(){
   careTick(); var P=S.profile, cur=P.care||[], w=P.careOff, h='<h3>'+L('Health answers','健康回答')+'</h3><p class="lede">'+L('These keep Lightly gentle for you.','这些回答让轻伴对你更温和。')+'</p><div class="group">';
@@ -1133,7 +1160,9 @@ function careSheet(){
     h+='<button class="check" role="checkbox" aria-checked="'+on+'" data-act="carerow" data-k="'+k+'"><span class="bx">'+CK_SVG+'</span><span>'+L(CARE_TXT[k][0],CARE_TXT[k][1])+'</span></button>'; });
   h+='</div>';
   if(w) h+='<p class="note">'+L('Easing starts '+dateLbl(w.start+C.CARE_WAIT)+'. Nothing changes until then.','放宽将在 '+dateLbl(w.start+C.CARE_WAIT)+' 开始，在此之前一切照旧。')+'</p><div class="btns"><button class="btn sec" data-act="carecancel">'+L('Cancel the wait','取消等待')+'</button>';
-  else h+='<p class="note">'+L('Tick one to add it now. To untick, tap it.','点选即可加入，点已选的可以调整。')+'</p><div class="btns">';
+  else{ var u=careUndoOpen(), until=u&&u.at+C.CARE_UNDO;
+    if(u) h+='<p class="note">'+L('Added by mistake? You can undo “'+CARE_TXT[u.k][0]+'” until '+dateLbl(until)+', '+clockMs(until)+'. Your plan goes back to how it was.','点错了？可以在 '+dateLbl(until)+' '+clockMs(until)+' 之前撤销“'+CARE_TXT[u.k][1]+'”，你的计划会恢复原样。')+'</p><div class="btns"><button class="btn" data-act="careundo">'+L('Undo','撤销')+'</button>';
+    else h+='<p class="note">'+L('Tap an answer to add it. You will be asked to confirm. To change one you already have, tap it.','点一个回答即可加入，加入前会请你确认。已有的回答，点一下可以调整。')+'</p><div class="btns">'; }
   openSheet(h+'<button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
 }
 function bodySheet(){
@@ -1145,7 +1174,7 @@ function bodySheet(){
 }
 function careRow(b){
   var k=b.dataset.k, P=S.profile, on=(P.care||[]).indexOf(k)>=0;
-  if(!on){ if(!Array.isArray(P.care)) P.care=[]; P.care.push(k); careApply(); save(); fx('select'); cache={}; updateToday(); if(curTab==='me') renderMe(); return careSheet(); }
+  if(!on) return careConfirm(k);
   var how=C.careEase(k);
   if(how==='now') return openSheet('<h3>'+L('No longer pregnant or breastfeeding?','不再怀孕或哺乳了吗？')+'</h3><p class="lede">'+L('Care mode eases once nothing else is ticked. Please check with your doctor before longer fasts.','没有其他勾选时，关怀模式会放宽。想断食更久之前，请先咨询医生。')+'</p>'+
     '<div class="btns"><button class="btn" data-act="careeasego" data-k="'+k+'">'+L('Yes, update','是的，更新')+'</button><button class="btn sec" data-act="care">'+L('Not now','先不用')+'</button></div>');
@@ -1776,6 +1805,8 @@ var A={
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
   plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet, care:careSheet,
   carerow:careRow,
+  careadd:function(b){ if(Date.now()<careLock) return; careAdd(b.dataset.k); careSheet(); },
+  careundo:careUndoGo,
   carepro:function(b){ var on=b.getAttribute('aria-checked')!=='true'; b.setAttribute('aria-checked',on); $('careGo').disabled=!on; },
   carewait:function(b){ var P=S.profile, k=b.dataset.k, keys=(P.careOff&&P.careOff.keys||[]).filter(function(x){ return x!==k; }); keys.push(k); P.careOff={keys:keys,start:Date.now()}; save(); careSheet(); },
   carecancel:function(){ S.profile.careOff=null; save(); careSheet(); },

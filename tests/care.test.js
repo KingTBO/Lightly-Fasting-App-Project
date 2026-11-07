@@ -25,12 +25,35 @@ const H=3600000,D=24*H;
   ok('Care mode from an earlier answer: no streak, no cheat days, no Ramadan, plans stop at 16:8, custom at 16 h, 24 h and 36 h never offered');
   // Health answers: add one at once; ease the earlier one only with the wait
   await q.click('#tabs [data-tab=me]');await q.click('#me [data-act=care]');await q.waitForTimeout(300);
-  assert.match(await q.textContent('#sheet'),/Answered earlier/);await q.click('[data-act=carerow][data-k=ed]');await q.waitForTimeout(200);s=await S(q);assert.deepStrictEqual(s.profile.care,['earlier','ed'],'adding an answer is instant');
+  assert.match(await q.textContent('#sheet'),/Answered earlier/);await q.click('[data-act=carerow][data-k=ed]');await q.waitForTimeout(200);assert.match(await q.textContent('#sheet'),/Add this answer\?/,'ticking asks first');assert.match(await q.textContent('#sheet'),/Friends tab is hidden/);s=await S(q);assert.deepStrictEqual(s.profile.care,['earlier'],'nothing changes before confirming');
+  await q.click('#sheet [data-act=careadd]');await q.waitForTimeout(100);assert.deepStrictEqual((await S(q)).profile.care,['earlier'],'a tap right after the sheet opens does not confirm');
+  await q.click('#sheet [data-act=care]');await q.waitForTimeout(200);assert.deepStrictEqual((await S(q)).profile.care,['earlier'],'Not now changes nothing');
+  await q.click('[data-act=carerow][data-k=ed]');await q.waitForTimeout(800);await q.click('#sheet [data-act=careadd]');await q.waitForTimeout(250);s=await S(q);assert.deepStrictEqual(s.profile.care,['earlier','ed'],'confirming adds the answer');assert.match(await q.textContent('#sheet'),/Added by mistake/);
+  await q.click('[data-act=careundo]');await q.waitForTimeout(250);s=await S(q);assert.deepStrictEqual(s.profile.care,['earlier'],'undo removes it at once');assert.strictEqual(s.profile.careUndo,null);
+  await q.click('[data-act=carerow][data-k=ed]');await q.waitForTimeout(800);await q.click('#sheet [data-act=careadd]');await q.waitForTimeout(250);assert.deepStrictEqual((await S(q)).profile.care,['earlier','ed']);
   await q.click('[data-act=carerow][data-k=ed]');await q.waitForTimeout(200);assert.match(await q.textContent('#sheet'),/keep this on for you/,'an eating-disorder answer cannot be eased in the app');assert.strictEqual((await S(q)).profile.care.length,2);await q.click('#sheet [data-act=care]');await q.waitForTimeout(200);
   await q.click('[data-act=carerow][data-k=earlier]');await q.waitForTimeout(200);assert(await q.$eval('#careGo',e=>e.disabled),'the wait cannot start without the professional tick');await q.click('[data-act=carepro]');assert(!(await q.$eval('#careGo',e=>e.disabled)));await q.click('#careGo');await q.waitForTimeout(250);s=await S(q);assert.deepStrictEqual(s.profile.careOff.keys,['earlier']);assert.deepStrictEqual(s.profile.care,['earlier','ed'],'nothing changes during the wait');assert.match(await q.textContent('#sheet'),/Easing starts/);
   await q.click('[data-act=carecancel]');await q.waitForTimeout(200);assert.strictEqual((await S(q)).profile.careOff,null,'the wait can be cancelled');
-  ok('health answers: add instantly, eating disorder cannot be eased, earlier answer needs the professional tick and a 14-day wait you can cancel');
+  ok('health answers: ticking asks first, eating disorder cannot be eased, earlier answer needs the professional tick and a 14-day wait you can cancel');
   await q.context().close();}
+
+ // a mistaken tap: confirm, then undo puts the plan back exactly as it was
+ {const q=await fresh(seed({profile:{fastedBefore:true,safety:false,care:[]},planId:'20',customH:20,ramadanPreview:true,fasts}));await q.waitForTimeout(300);
+  await q.click('#tabs [data-tab=me]');await q.click('#me [data-act=care]');await q.waitForTimeout(300);
+  await q.click('[data-act=carerow][data-k=diab]');await q.waitForTimeout(250);assert.match(await q.textContent('#sheet'),/Turn on Care mode\?/);assert.match(await q.textContent('#sheet'),/No streaks, cheat days or Ramadan mode/);
+  let s=await S(q);assert.strictEqual(s.planId,'20','still 20:4 while asking');assert.strictEqual(s.profile.safety,false);
+  await q.waitForTimeout(700);await q.click('#sheet [data-act=careadd]');await q.waitForTimeout(250);s=await S(q);assert.strictEqual(s.profile.safety,true);assert.notStrictEqual(s.planId,'20');assert.strictEqual(s.customH,16);assert.strictEqual(s.ramadanPreview,false);
+  await q.click('[data-act=careundo]');await q.waitForTimeout(250);s=await S(q);assert.strictEqual(s.profile.safety,false);assert.deepStrictEqual(s.profile.care,[]);assert.strictEqual(s.planId,'20','plan restored');assert.strictEqual(s.customH,20,'custom hours restored');assert.strictEqual(s.ramadanPreview,true,'Ramadan preview restored');
+  await q.click('#sheet [data-act=close]');await q.waitForTimeout(400);assert(/Cheat days/.test(await q.textContent('#me')),'cheat days are back');
+  ok('a mistaken tap: asks first, then Undo within 24 hours puts back the plan, custom hours and Ramadan preview');
+  await q.context().close();}
+
+ // the undo lasts 24 hours
+ for(const [age,has] of [[23,true],[25,false]]){const q=await fresh(seed({profile:{fastedBefore:true,safety:true,care:['diab'],careUndo:{k:'diab',at:Date.now()-age*H,prev:{planId:'13',customH:16,ramadanPreview:false}}},fasts}));await q.waitForTimeout(300);
+  await q.click('#tabs [data-tab=me]');await q.click('#me [data-act=care]');await q.waitForTimeout(300);assert.strictEqual(!!(await q.$('[data-act=careundo]')),has,'undo at '+age+' h: '+has);
+  if(has) assert.match(await q.textContent('#sheet'),/Added by mistake\? You can undo “I take medication for diabetes”/);
+  await q.context().close();}
+ ok('the undo is offered for 24 hours and not after');
 
  // pregnancy ends: one tap, then Care mode is off and long fasts start from zero
  {const q=await fresh(seed({profile:{fastedBefore:true,safety:true,care:['preg']},unlocked:{24:1},fasts}));

@@ -152,7 +152,7 @@ function isDone(f){ return hours(f)+1e-6>=f.goalH-0.0167; } /* one minute of gra
    Care mode: no 24 h or 36 h fast (never offered, nothing to unlock), plans stop at 16:8 and custom at 16 h, and no streaks, cheat days or Ramadan mode.
    Tightening is instant. Easing: pregnancy or breastfeeding ending is one tap, diabetes medication (and an answer given before Care mode existed, 'earlier')
    needs a health professional's OK and a 14 day wait you can cancel, and an eating-disorder history cannot be eased in the app. */
-var CARE_KEYS=['preg','diab','ed'], CARE_WAIT=14*D;
+var CARE_KEYS=['preg','diab','ed'], CARE_WAIT=14*D, CARE_UNDO=D; /* a newly added health answer can be undone for 24 hours */
 function careOn(profile){ return !!(profile&&profile.safety); }
 function customMax(profile){ return careOn(profile)?16:23; }
 function careEase(key){ return key==='preg'?'now':key==='ed'?'never':'wait'; }
@@ -351,7 +351,7 @@ function trendBuckets(points){
   return out;
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);
