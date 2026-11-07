@@ -344,11 +344,12 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .ob-moonlayer[hidden]{display:none}
 .ob-moonlayer.touch{pointer-events:auto;touch-action:none;cursor:grab}
 .ob-moonlayer .in{position:absolute;inset:0}
-.ob-moonlayer .bg{position:absolute;inset:0;border-radius:50%;background:var(--night);opacity:0;transition:opacity .5s ease}
-.ob-moonlayer.head .bg{opacity:1}
-.ob-moonlayer.head.flat .bg{opacity:0}
+.ob-moonlayer .bg{position:absolute;inset:0;border-radius:50%;background:var(--night);opacity:0;transition:opacity .5s ease,inset .95s cubic-bezier(.32,.72,0,1)}
+.ob-moonlayer.head .bg,.ob-moonlayer.onbg .bg{opacity:1}
+.ob-moonlayer.onbg .bg{inset:13%}
+.ob-moonlayer.head.flat .bg,.ob-moonlayer.onbg.flat .bg{opacity:0}
 .ob-disc .u{transition:fill .5s ease,stroke .5s ease}
-.ob-moonlayer.head.flat .ob-disc .u{fill:var(--fill);stroke:var(--sep)}
+.ob-moonlayer.head.flat .ob-disc .u,.ob-moonlayer.onbg.flat .ob-disc .u{fill:var(--fill);stroke:var(--sep)}
 .ob-moonlayer .ob-disc{position:absolute;left:0;top:0;width:236px;height:236px;overflow:visible}
 .ob-moonlayer .orb{left:0;margin-left:0}
 @media (prefers-reduced-motion:reduce){.ob-moonlayer{transition:none}}
@@ -358,11 +359,23 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .obph.night{background:var(--night);color:#fff;--label:#fff;--label-2:rgba(235,235,245,.72);--label-3:rgba(235,235,245,.4);--fill:rgba(255,255,255,.14);--card:rgba(255,255,255,.1);--sep:rgba(255,255,255,.16);--blue:#FFCC00}
 .ob-stars{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0;transition:opacity 1.2s ease}
 .obph.night .ob-stars{opacity:1}
-.obph .dawnbg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;background:linear-gradient(180deg,#D98A7B 0%,#F0B48C 55%,#F7D2A6 100%);transition:opacity 1.6s ease}
-.obph.dawn .dawnbg{opacity:1}
-.obph[data-fs=morning] .dawnbg{background:linear-gradient(180deg,#8FC3EA 0%,#CDE6F6 100%)}.obph[data-fs=day] .dawnbg{background:linear-gradient(180deg,#A9D6F2 0%,#E1F0FA 100%)}.obph[data-fs=sunset] .dawnbg{background:linear-gradient(180deg,#9DB4D8 0%,#F3B07C 100%)}.obph.dawn .ob-stars{opacity:0}
-.obph.fin.dawn{color:#1C1C1E;--label:#1C1C1E;--label-2:rgba(28,28,30,.72);--label-3:rgba(28,28,30,.4);--card:rgba(255,255,255,.55);--sep:rgba(28,28,30,.16);--blue:#6B4F00}
-.obph.fin.dawn .ob-cta{background:#1C1C1E;color:#fff}
+/* You're set starts on the plain background like the steps before it, light or dark as the phone is set; the sky arrives only when the moon turns and glides there straight from it (no detour through night), following the real time and the light or dark setting */
+:root{--sk-dawn:linear-gradient(180deg,#D98A7B 0%,#F0B48C 55%,#F7D2A6 100%);--sk-dawn-c:#F0B48C;--sk-morning:linear-gradient(180deg,#8FC3EA 0%,#CDE6F6 100%);--sk-morning-c:#ADD9F1;--sk-day:linear-gradient(180deg,#A9D6F2 0%,#E1F0FA 100%);--sk-day-c:#C5E4F6;--sk-sunset:linear-gradient(180deg,#9DB4D8 0%,#F3B07C 100%);--sk-sunset-c:#D0B2A8;--sk-night:linear-gradient(180deg,transparent,transparent);--sk-night-c:#0E1430;
+  --fi-label:#1C1C1E;--fi-label-2:rgba(28,28,30,.72);--fi-label-3:rgba(28,28,30,.4);--fi-card:rgba(255,255,255,.55);--fi-sep:rgba(28,28,30,.16);--fi-link:#6B4F00;--fi-btn:#1C1C1E;--fi-btn-on:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sk-dawn:linear-gradient(180deg,#241B4A 0%,#5E3B66 55%,#9A5C58 100%);--sk-dawn-c:#5E3B66;--sk-morning:linear-gradient(180deg,#142A52 0%,#2F5F94 100%);--sk-morning-c:#22457A;--sk-day:linear-gradient(180deg,#112F5A 0%,#2B6AA6 100%);--sk-day-c:#1E4C80;--sk-sunset:linear-gradient(180deg,#201C48 0%,#5B3A6E 55%,#A25A45 100%);--sk-sunset-c:#5B3A6E;
+  --fi-label:#fff;--fi-label-2:rgba(235,235,245,.72);--fi-label-3:rgba(235,235,245,.4);--fi-card:rgba(255,255,255,.12);--fi-sep:rgba(255,255,255,.18);--fi-link:#FFD60A;--fi-btn:#FFD60A;--fi-btn-on:#000}}
+:root[data-theme="dark"]{--sk-dawn:linear-gradient(180deg,#241B4A 0%,#5E3B66 55%,#9A5C58 100%);--sk-dawn-c:#5E3B66;--sk-morning:linear-gradient(180deg,#142A52 0%,#2F5F94 100%);--sk-morning-c:#22457A;--sk-day:linear-gradient(180deg,#112F5A 0%,#2B6AA6 100%);--sk-day-c:#1E4C80;--sk-sunset:linear-gradient(180deg,#201C48 0%,#5B3A6E 55%,#A25A45 100%);--sk-sunset-c:#5B3A6E;
+  --fi-label:#fff;--fi-label-2:rgba(235,235,245,.72);--fi-label-3:rgba(235,235,245,.4);--fi-card:rgba(255,255,255,.12);--fi-sep:rgba(255,255,255,.18);--fi-link:#FFD60A;--fi-btn:#FFD60A;--fi-btn-on:#000}
+.obph.fin{transition:background-color 2.2s ease,color .5s ease}
+.obph .dawnbg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;background:var(--sk-g,none);transition:opacity 2.2s ease}
+.obph.fin[data-fs=dawn]{--sk-g:var(--sk-dawn);--sk-c:var(--sk-dawn-c)}.obph.fin[data-fs=morning]{--sk-g:var(--sk-morning);--sk-c:var(--sk-morning-c)}.obph.fin[data-fs=day]{--sk-g:var(--sk-day);--sk-c:var(--sk-day-c)}.obph.fin[data-fs=sunset]{--sk-g:var(--sk-sunset);--sk-c:var(--sk-sunset-c)}.obph.fin[data-fs=night]{--sk-g:var(--sk-night);--sk-c:var(--sk-night-c)}
+.obph.fin.sky{background:var(--sk-c)}
+.obph.fin.sky .dawnbg{opacity:1}
+.obph.fin .ob-stars{opacity:0}.obph.fin.sky[data-fs=night] .ob-stars{opacity:1}
+.obph.fin.dawn{color:var(--fi-label);--label:var(--fi-label);--label-2:var(--fi-label-2);--label-3:var(--fi-label-3);--card:var(--fi-card);--sep:var(--fi-sep);--blue:var(--fi-link)}
+.obph.fin.dawn .ob-cta{background:var(--fi-btn);color:var(--fi-btn-on)}
+.obph.fin.nsk{color:#fff;--label:#fff;--label-2:rgba(235,235,245,.72);--label-3:rgba(235,235,245,.4);--fill:rgba(255,255,255,.14);--card:rgba(255,255,255,.1);--sep:rgba(255,255,255,.16);--blue:#FFCC00}
+@media (prefers-reduced-motion:reduce){.obph.fin,.obph .dawnbg,.ob-stars{transition:none}}
 @media (prefers-reduced-motion:no-preference){.ob-stars .tw circle{animation:twinkle 3.2s ease-in-out infinite}.ob-stars .tw circle:nth-child(2n){animation-delay:-.9s}.ob-stars .tw circle:nth-child(3n){animation-delay:-1.8s;animation-duration:4s}}
 /* plan: one big number and a 24-hour strip */
 .ob-big{display:flex;align-items:baseline;gap:8px;margin:2px 0 4px}
@@ -2128,7 +2141,7 @@ window.LightlySphere=(function(){
   /* the moon goes to wherever this step keeps it: big on the welcome and You're set, small in the header on the steps between */
   function mMove(el){
     var key=flow()[st.step], kind=key===0?'wel':key===4?'fin':'head', lay=mLayer(), slot=mSlot(kind==='head'?dots.querySelector('.ob-mslot'):el.querySelector('.ob-bslot')); if(!slot) return;
-    lay.hidden=false; lay.classList.toggle('head',kind==='head'); lay.classList.toggle('touch',kind==='wel');
+    lay.hidden=false; lay.classList.toggle('head',kind==='head'); lay.classList.toggle('onbg',kind==='fin'); lay.classList.toggle('touch',kind==='wel');
     var first=!ML.shown; ML.shown=true; if(first||reduce) lay.style.transition='none';
     lay.style.transform='translate('+slot.x+'px,'+slot.y+'px) scale('+(slot.w/236).toFixed(4)+')';
     if(first||reduce){ void lay.offsetWidth; lay.style.transition=''; }
@@ -2136,21 +2149,22 @@ window.LightlySphere=(function(){
     if(kind!=='fin'){ ML.moon=1; ML.boost=0; }
     if(kind==='head') mTo(st.step/(flow().length-1));
     else if(kind==='fin'){ var nw=(api.skyNow&&api.skyNow(st.city))||{sun:true,sky:'day'}; ph.setAttribute('data-fs',nw.sky);
-      if(reduce){ ML.p=1; ML.moon=nw.sun?0:1; ML.tw=null; if(nw.sun) ph.classList.add('dawn'); } else { ML.tw=null; ML.fin={t0:performance.now(),p0:ML.p,el:el,sun:nw.sun,turned:false}; } }
+      if(reduce){ ML.p=1; ML.moon=nw.sun?0:1; ML.tw=null; mSky(nw.sun,true); } else { ML.tw=null; ML.fin={t0:performance.now(),p0:ML.p,el:el,sun:nw.sun,turned:false}; } }
     if(!ML.loop){ ML.loop=true; ML.last=performance.now(); requestAnimationFrame(mLoop); }
     requestAnimationFrame(function(){ requestAnimationFrame(mOrbInit); });
   }
   /* You're set: carry on counter-clockwise from where the header progress was (never empties) all the way to full, then the sun by day (the sky follows the real time of the city) or the moon by night */
+  /* the sky arrives: the phone glides from its plain background to the sky for this hour and light or dark setting */
+  function mSky(sun,now){ ph.classList.add('sky'); if(ML.el) ML.el.classList.remove('onbg'); if(sun) ph.classList.add('dawn'); else if(now) ph.classList.add('nsk'); else setTimeout(function(){ if(ph.classList.contains('sky')) ph.classList.add('nsk'); },950); }
   function mFinStep(t){
     var f=ML.fin; if(!f.el.isConnected||flow()[st.step]!==4){ ML.fin=null; return; }
     var el=t-f.t0, GO=200, FILL=1200, TURN=900, REV=FILL*.78; if(el<0) return;   /* no emptying: the progress simply carries on from where the header left it */
     if(el<GO) return;
     var e2=el-GO; ML.p=f.p0+(1-f.p0)*(1-Math.pow(1-Math.min(e2/FILL,1),3));
     if(e2<=REV) return;   /* the reveal starts as the moon nears full, not after the slow last stretch of the fill */
-    if(!f.turned){ f.turned=true; bloom(); if(!f.sun) ML.pulse=1; }
+    if(!f.turned){ f.turned=true; bloom(); mSky(f.sun,false); if(!f.sun) ML.pulse=1; }
     if(!f.sun){ if(e2>REV+TURN){ ML.p=1; ML.fin=null; } return; }   /* night: it stays a full moon under the night sky */
     var v=Math.min((e2-REV)/TURN,1), e=v*v*(3-2*v); ML.moon=1-e; ML.boost=Math.max(0,1-v*1.15);
-    if(v>0&&!ph.classList.contains('dawn')) ph.classList.add('dawn');
     if(v>=1){ ML.moon=0; ML.boost=0; ML.fin=null; }
   }
   function bloom(){ var lay=ML.el; if(reduce||!lay.animate) return; var r=85, cx=118, cy=118, el=document.createElement('div'); el.setAttribute('aria-hidden','true'); el.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:2';
@@ -2217,7 +2231,7 @@ window.LightlySphere=(function(){
   function make(i){ var el=document.createElement('div'); el.className='ob-step'; el.innerHTML=view(flow()[i]); bind(el); return el; }
   function show(i,dir,pre,k0){ var el=pre||make(i); if(!pre) stage.appendChild(el); else{ el.style.transition=''; }
     var nf=flow().length, key=flow()[i]; dots.innerHTML=i>0&&i<nf-1?'<span class="ob-mslot"></span>':'';
-    ph.classList.toggle('night',key===0||key===4); ph.classList.toggle('fin',key===4); ph.classList.remove('dawn'); ph.removeAttribute('data-fs');
+    ph.classList.toggle('night',key===0); ph.classList.toggle('fin',key===4); ph.classList.remove('dawn','sky','nsk'); ph.removeAttribute('data-fs');
     back.hidden=i===0;
     var old=cur; cur=el; st.step=i; mMove(el);
     if(old&&!reduce&&dir){ /* push / pop like a navigation stack: new screen slides in, old one moves a third and dims */

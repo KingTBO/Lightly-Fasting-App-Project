@@ -4,6 +4,11 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.94.0
+- **fix** The "You're set" background no longer goes dark and then light again. It used to slide in on a navy night sky and fade to the day sky, which felt strange and unnatural. Now it starts on the same plain background as the steps before it, and the sky glides in from there only when the moon turns into the sun (or settles into a full moon at night), so the page never takes a detour through night. It also no longer flashes the sky for a moment while the screen slides in.
+- **design** The sky now follows the phone's light or dark setting as well as the real time where you are. In light mode it is the same bright dawn, morning, day or sunset. In dark mode it is a deeper, softer version of the same sky (plum and ember at dawn, deep blue by day), with light text, so a dark phone never gets a bright flash. At night the sky is navy in both. While the moon fills it keeps its own small night, as in the header, and the words and the Open Lightly button change colour smoothly with the sky. The concept page matches.
+- **chore** tests/finale.test.js now follows the background colour through the whole finale in light and dark mode (day, dawn and night) and checks there is no dark detour or bright flash.
+
 ## 0.93.3
 - **copy** Today says "First fast" (首次断食) instead of "Ready" until you have done your first fast, then it goes back to "Ready" (准备好了). The Chinese is four characters, the same length as before, so it fits the big text. The concept page's phone belongs to someone with a streak, so it keeps "Ready".
 

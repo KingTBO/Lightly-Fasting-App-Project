@@ -6,7 +6,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
 (async()=>{await new Promise(r=>srv.listen(0,r));const url='http://localhost:'+srv.address().port+'/';
  const b=await chromium.launch();const errs=[];const ok=n=>console.log('ok -',n);
  const at=h=>'2026-11-06T'+h+':00+08:00';   /* Shanghai: sunrise about 06:13, sunset about 17:03 in November */
- async function fresh(time,o){o=o||{};const c=await b.newContext({viewport:{width:390,height:844},reducedMotion:o.reduced?'reduce':'no-preference',timezoneId:'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});await c.clock.setFixedTime(new Date(time));const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));
+ async function fresh(time,o){o=o||{};const c=await b.newContext({viewport:{width:390,height:844},reducedMotion:o.reduced?'reduce':'no-preference',colorScheme:o.dark?'dark':'light',timezoneId:'Asia/Shanghai',geolocation:{latitude:31.23,longitude:121.47},permissions:['geolocation']});await c.clock.setFixedTime(new Date(time));const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));
   await q.addInitScript(()=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',JSON.stringify({v:1,lang:'en',theme:'auto',onboarded:false,prefs:{sound:false,haptics:false,d3:false}}));sessionStorage.s=1}});await q.goto(url);await q.waitForTimeout(800);return q;}
  const next=async q=>{await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(1000);};
  async function toFinale(q,o){o=o||{};await next(q);await q.click('[data-act=obopt][data-v=first]');await next(q);await next(q);await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1500);await next(q);await q.click('[data-act=obsafe][data-v=none]');await next(q);await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(o.reduced?1200:6500);}
@@ -43,6 +43,18 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  {const q=await fresh(at('12:00'));await next(q);await q.click('[data-act=obopt][data-v=first]');await next(q);await next(q);await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1500);await next(q);await q.click('[data-act=obsafe][data-v=none]');await next(q);
   await q.click('.ob-step.on [data-act=obbodyskip]');const t0=Date.now();await q.waitForSelector('.ob-step.fin.dawn',{timeout:5000});const ms=Date.now()-t0;
   assert(ms<2300,'the sun starts to turn within about 2 s of arriving, took '+ms+' ms');ok('the sun starts to turn promptly ('+ms+' ms after the last tap)');await q.context().close();}
+
+ // 3d. no dark detour: You're set glides from the plain background straight to the sky for this hour, and follows the phone's light or dark setting
+ {const lum=c=>{const m=c.match(/[\d.]+/g).map(Number);return (.2126*m[0]+.7152*m[1]+.0722*m[2])/255;};
+  const run=async(h,dark)=>{const q=await fresh(at(h),{dark});await next(q);await q.click('[data-act=obopt][data-v=first]');await next(q);await next(q);await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1500);await next(q);await q.click('[data-act=obsafe][data-v=none]');await next(q);
+   await q.click('.ob-step.on [data-act=obbodyskip]');
+   const seen=await q.evaluate(()=>new Promise(r=>{const a=[],t0=performance.now();(function f(){const s=document.querySelector('.ob-step.fin');if(s)a.push(getComputedStyle(s).backgroundColor+'|'+s.classList.contains('sky')+'|'+getComputedStyle(s.querySelector('.dawnbg')).opacity);if(performance.now()-t0<5200)setTimeout(f,50);else r(a);})();}));
+   await q.context().close();const early=seen.filter(x=>x.split('|')[1]==='false'&&+x.split('|')[2]>.02);assert.strictEqual(early.length,0,'the sky never shows before the moon turns, not even while the step slides in: '+early.slice(0,2));return seen.map(x=>lum(x.split('|')[0]));};
+  let l=await run('12:00',false);assert(Math.min(...l)>.55,'light mode, daytime: the background never goes dark on the way to the sky (darkest '+Math.min(...l).toFixed(2)+')');ok('light mode, daytime: no dark detour (darkest '+Math.min(...l).toFixed(2)+')');
+  l=await run('12:00',true);assert(Math.max(...l)<.4,'dark mode, daytime: the sky stays soft and deep, never a bright flash (brightest '+Math.max(...l).toFixed(2)+')');ok('dark mode, daytime: no bright flash (brightest '+Math.max(...l).toFixed(2)+')');
+  l=await run('06:30',true);assert(Math.max(...l)<.4,'dark mode, dawn: never a bright flash (brightest '+Math.max(...l).toFixed(2)+')');ok('dark mode, dawn: no bright flash');
+  l=await run('20:30',false);assert(l[0]>.8&&l[l.length-1]<.1,'light mode, night: from the plain light background to night');assert(l.every((v,i)=>i===0||v<=l[i-1]+.01),'and it only gets darker');ok('light mode, night: glides to night, only getting darker');
+  l=await run('20:30',true);assert(Math.max(...l)<.1,'dark mode, night: stays dark all the way');ok('dark mode, night: stays dark');}
 
  // 4. Reduce Motion lands in the same place
  for(const [h,sun] of [['23:00',false],['12:00',true]]){const q=await fresh(at(h),{reduced:true});await toFinale(q,{reduced:true});const r=await fin(q);assert(r.p>.99&&r.dawn===sun,'reduce motion at '+h+': '+JSON.stringify(r));await q.context().close();}
