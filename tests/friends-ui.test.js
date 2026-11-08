@@ -48,7 +48,7 @@ function ok(n){ console.log('ok -',n); }
   await p.evaluate(()=>document.getElementById('me').scrollTo(0,0)); await p.waitForTimeout(300);
   const w4=await p.evaluate(()=>[document.getElementById('tabInd').getBoundingClientRect().width,document.getElementById('tabs').getBoundingClientRect().width]); assert(Math.abs(w4[0]-(w4[1]-12)/4)<1.5,'pill is a quarter: '+w4);
   await p.click('#tabs [data-tab=friends]'); await p.waitForTimeout(400);
-  assert.match(await p.textContent('#friends'),/Friends needs an account\. Everything else works without one\./); assert(await p.isVisible('#friends [data-act=frsignin]')); await shot(p,'signed-out-en'); assert.strictEqual(await p.$$eval('#friends h1',h=>h.length),0,'no page title, like Today, Days and Me');
+  {const t=await p.textContent('#friends'); assert.match(t,/Fast with friends/); assert.match(t,/Make a private group and see who is fasting today\./); assert.match(t,/Friends is the only part of Lightly that needs an account\./);} assert(await p.isVisible('#friends [data-act=frsignin]')); await shot(p,'signed-out-en'); assert.strictEqual(await p.$$eval('#friends h1',h=>h.length),0,'no page title, like Today, Days and Me');
   await p.click('#friends [data-act=frsignin]'); await p.waitForSelector('#sheet.open'); assert(await p.isVisible('#sheet [data-act=google]')&&await p.isVisible('#sheet [data-act=emailsheet]')); await shot(p,'signin-sheet');
   ok('Friends is on for everyone: four tabs, no preview switch, signed-out state and sign-in sheet');
   await p.reload(); await p.waitForTimeout(500); assert.deepStrictEqual(await tabsVisible(p),['today','days','friends','me']); ok('four tabs after a reload');

@@ -23,17 +23,29 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   assert(!(await S(q)).body,'removed');assert(!/About you/.test(await q.textContent('#me')));
   ok('about you: saved for the check-in, removable from Me; no eating or estimate steps');await q.context().close();}
 
- // gender: optional, Prefer not to say is the default and saves nothing; Male or Female is kept and shown in Me
- {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);
+ // gender: asked on the health step, so a man is never offered the pregnancy answer. Prefer not to say is the default and saves nothing; Male, Female or Non-binary is kept and shown in Me
+ {const q=await toSafety('en');
   assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=n]','aria-pressed'),'true','Prefer not to say is pre-selected');
   const row=await q.$$eval('.ob-step.on .seg button[data-act=obsex]',bs=>bs.map(b=>b.textContent.trim()));assert.deepStrictEqual(row,['Male','Female','Non-binary','Prefer not to say'],'the four choices');
+  assert(await q.$('.ob-step.on [data-act=obsafe][data-v=preg]'),'Pregnant or breastfeeding is offered by default');
   assert(await q.$eval('.ob-step.on .seg button[data-v=n]',e=>e.getBoundingClientRect().height)<50,'Prefer not to say stays on one line');
   await q.click('.ob-step.on [data-act=obsex][data-v=f]');await q.waitForTimeout(300);assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=f]','aria-pressed'),'true');assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=n]','aria-pressed'),'false');
+  assert(await q.$('.ob-step.on [data-act=obsafe][data-v=preg]'),'still offered for Female');
   await q.click('.ob-step.on [data-act=obsex][data-v=x]');await q.waitForTimeout(300);assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=x]','aria-pressed'),'true');assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsex][data-v=f]','aria-pressed'),'false');
   assert((await q.$$eval('.ob-step.on .seg button[data-act=obsex]',bs=>bs.every(b=>b.getBoundingClientRect().height<50))),'every choice stays on one line');
+  await q.click('.ob-step.on [data-act=obsafe][data-v=none]');await nx(q);
+  assert(!(await q.$('.ob-step.on [data-act=obsex]')),'no gender question on the weight step');
   await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
   assert.strictEqual((await S(q)).body.sex,'x','Non-binary is saved');await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent('#sheet'),/GenderNon-binary/,'Me shows it');
-  ok('gender: optional, Prefer not to say saves nothing, Non-binary is kept and shown in Me');await q.context().close();}
+  ok('gender: asked on the health step, Prefer not to say saves nothing, Non-binary is kept and shown in Me');await q.context().close();}
+ {const q=await toSafety('en');
+  await q.click('.ob-step.on [data-act=obsafe][data-v=preg]');await q.waitForTimeout(200);assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsafe][data-v=preg]','aria-checked'),'true');
+  await q.click('.ob-step.on [data-act=obsex][data-v=m]');await q.waitForTimeout(300);
+  assert(!(await q.$('.ob-step.on [data-act=obsafe][data-v=preg]')),'Male: no pregnancy or breastfeeding answer');
+  assert(await q.$('.ob-step.on [data-act=obsafe][data-v=diab]')&&await q.$('.ob-step.on [data-act=obsafe][data-v=ed]'),'the other answers stay');
+  assert(await q.$eval('.ob-step.on [data-act=obnext]',e=>e.disabled),'a ticked pregnancy answer is dropped when Male is chosen, so Continue waits for a new answer');
+  await q.click('.ob-step.on [data-act=obsex][data-v=f]');await q.waitForTimeout(300);assert(await q.$('.ob-step.on [data-act=obsafe][data-v=preg]'),'it comes back for anyone else');assert.strictEqual(await q.getAttribute('.ob-step.on [data-act=obsafe][data-v=preg]','aria-checked'),'false','and starts unticked');
+  ok('gender: Male hides the pregnancy answer and drops one already ticked');await q.context().close();}
 
  // units
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);

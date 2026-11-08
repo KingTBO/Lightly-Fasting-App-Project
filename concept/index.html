@@ -955,6 +955,12 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .fr-hero h3{font:700 22px/1.2 var(--font-d);letter-spacing:-.01em;margin:26px 0 12px;max-width:16ch}
 html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
 .fr-hero p{font:400 15px/1.4 var(--font);color:var(--label-2);margin:0 0 32px;max-width:27ch}
+.fr-hero p.fr-s{margin-bottom:22px}
+.fr-pts{display:grid;gap:12px;max-width:288px;margin:0 auto 22px;text-align:left}
+.fr-pts>div{display:flex;align-items:center;gap:12px;font:500 15px/1.3 var(--font);color:var(--label)}
+.fr-pi{flex:none;width:34px;height:34px;border-radius:10px;background:var(--fill);display:grid;place-items:center}
+.fr-pi svg{width:18px;height:18px;fill:none;stroke:var(--tint);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.fr-hero p.fr-fine{font-size:13px;margin-bottom:20px}
 .fr-go{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out}
 .fr-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:0 -6px 20px}
 .fr-days button{min-height:56px;border:0;border-radius:16px;background:none;color:var(--label);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:inherit;cursor:pointer;transition:background .25s ease,color .25s ease}
@@ -1248,7 +1254,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
     <div class="kind">
       <div><b data-zh="目标就是终点">Your goal is the finish line</b><p data-zh="超出计划不会有任何奖励。">Nothing is rewarded past your plan.</p></div>
       <div><b data-zh="每周一个弹性日">A cheat day every week</b><p data-zh="聚会、加班、朋友生日，用掉一个弹性日，连续天数不会断。最多存两个，每 7 天最多用两个。当天开始断食的按钮会关闭，收回弹性日后即可恢复。提前结束也照样算数。">Office catch-up or a friend’s birthday? A cheat day keeps your streak. Hold up to two, use at most two in any 7 days. Start fast stays closed that day until you take it back. Ending early still counts.</p></div>
-      <div><b data-zh="关怀模式">Care mode</b><p data-zh="如果你在入门时选了怀孕或哺乳期、糖尿病药物或进食障碍史，轻伴会保持温和：没有连续天数、弹性日和斋月模式，计划最长到 16:8，也不提供 24 小时和 36 小时断食。随时可以在“我的 · 健康回答”里查看。加入新回答前会先出现警告：按钮倒数 3 秒后才能用，还要按住 2 秒才会生效，手机会震动提醒。点错了的话，24 小时内可以撤销，计划会恢复原样。">If you pick pregnant or breastfeeding, diabetes medication or an eating-disorder history when you start, Lightly stays gentle: no streaks, cheat days or Ramadan mode, plans stop at 16:8, and 24 h and 36 h fasts are never offered. Review it any time in Me, Health answers. Adding an answer shows a warning first: the button counts down 3 seconds, then you hold it for 2 before it takes effect, and the phone buzzes to get your attention. If you tapped by mistake you can undo it for 24 hours and your plan goes back to how it was.</p></div>
+      <div><b data-zh="关怀模式">Care mode</b><p data-zh="如果你在入门时选了怀孕或哺乳期、糖尿病药物或进食障碍史，轻伴会保持温和：没有连续天数、弹性日和斋月模式，计划最长到 16:8，也不提供 24 小时和 36 小时断食。选择“男”时不会出现怀孕或哺乳期。随时可以在“我的 · 健康回答”里查看。加入新回答前会先出现简短的警告（一两句话）：按钮倒数 3 秒后才能用，还要按住 2 秒才会生效，手机会震动提醒。点错了的话，24 小时内可以撤销，计划会恢复原样。">If you pick pregnant or breastfeeding, diabetes medication or an eating-disorder history when you start, Lightly stays gentle: no streaks, cheat days or Ramadan mode, plans stop at 16:8, and 24 h and 36 h fasts are never offered. Pregnancy is not offered if you choose Male. Review it any time in Me, Health answers. Adding an answer shows a short warning first (a line or two, nothing more): the button counts down 3 seconds, then you hold it for 2 before it takes effect, and the phone buzzes to get your attention. If you tapped by mistake you can undo it for 24 hours and your plan goes back to how it was.</p></div>
       <div><b data-zh="身体不舒服就停">Feeling unwell ends it</b><p data-zh="打卡时选择“头晕”或“不舒服”，轻伴会建议你结束断食，不扣任何东西。">Answer "dizzy" or "unwell" in a check-in and Lightly suggests ending the fast, with no penalty.</p></div>
       <div><b data-zh="计时器永远免费">The timer stays free</b><p data-zh="计时、修改时间、历史记录和桌面小组件都免费，第一次断食前不会出现付费墙。">Timing, editing, history and the widget are free, and no paywall appears before your first fast.</p></div>
       <div><b data-zh="不记录饮食">No food logging</b><p data-zh="不数卡路里，没有 AI 教练。">No calorie counting and no AI coach.</p></div>
@@ -2186,8 +2192,8 @@ window.LightlySphere=(function(){
       opt('first',L('This is my first time','这是第一次'),'',st.exp==='first')+
       opt('some',L('I\u2019ve fasted before','以前断食过'),'',st.exp==='some')+
       '</div><div class="grow"></div><button type="button" class="ob-cta" data-next'+(st.exp?'':' disabled')+'>'+L('Continue','继续')+'</button>';
-    if(i===2) return '<h4>'+L('Does any of this apply to you?','以下情况适用于你吗？')+'</h4><p class="sub">'+L('Only you see this. Pick all that apply.','只有你能看到。可多选。')+'</p><div class="ob-list cards" data-q="safety" data-multi="1">'+
-      opt('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'),'',st.safety.indexOf('preg')>=0,'multi')+
+    if(i===2) return '<h4>'+L('Does any of this apply to you?','以下情况适用于你吗？')+'</h4><p class="sub">'+L('Only you see this.','只有你能看到。')+'</p><div class="seg wide" role="group" aria-label="'+L('Gender','性别')+'">'+[['m',L('Male','男')],['f',L('Female','女')],['x',L('Non-binary','非二元')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-sex="'+g[0]+'" aria-pressed="'+((st.sex||'n')===g[0])+'" style="flex:1 1 auto;padding:8px 4px;white-space:nowrap">'+g[1]+'</button>'; }).join('')+'</div><p class="sub" style="margin-top:14px">'+L('Pick all that apply','可多选')+'</p><div class="ob-list cards" data-q="safety" data-multi="1">'+
+      (st.sex==='m'?'':opt('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'),'',st.safety.indexOf('preg')>=0,'multi'))+
       opt('diab',L('Taking diabetes medication','正在服用糖尿病药物'),'',st.safety.indexOf('diab')>=0,'multi')+
       opt('ed',L('A history of eating disorders','有进食障碍史'),'',st.safety.indexOf('ed')>=0,'multi')+
       opt('none',L('None of these','都不适用'),'',st.safety.indexOf('none')>=0,'multi')+
@@ -2202,7 +2208,7 @@ window.LightlySphere=(function(){
         '<div class="ob-list" data-q="custom" style="margin-top:14px"><div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField('start',before?L('Usual start time','通常开始时间'):L('When will you start?','你打算几点开始？'),st.start||'20:30','t')+'</div></div>'+
         '<div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default"><span>'+L('Remind me when I reach my goal','达成目标时提醒我')+'</span><span class="ck"></span></div></div><div class="grow"></div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'; }
     if(i===8) return '<h4>'+L('A little about you','关于你')+'</h4><p class="sub">'+L('Add them and see your weight trend, with a check-in every month.','填写后，每月回顾会带你看体重变化的趋势。')+'</p><div class="ob-list" data-q="custom">'+
-      ['age','wt','ht'].map(function(k){ return '<div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField(k,{age:L('Age','年龄'),wt:L('Weight','体重'),ht:L('Height','身高')}[k],st[k],'sel',{age:aopts,wt:wopts,ht:hopts}[k]())+'</div>'; }).join('')+'</div><div class="seg wide" role="group" aria-label="'+L('Gender','性别')+'" style="margin-top:12px">'+[['m',L('Male','男')],['f',L('Female','女')],['x',L('Non-binary','非二元')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-sex="'+g[0]+'" aria-pressed="'+((st.sex||'n')===g[0])+'"'+' style="flex:1 1 auto;padding:8px 4px;white-space:nowrap"'+'>'+g[1]+'</button>'; }).join('')+'</div><p class="ob-note">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>'+
+      ['age','wt','ht'].map(function(k){ return '<div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField(k,{age:L('Age','年龄'),wt:L('Weight','体重'),ht:L('Height','身高')}[k],st[k],'sel',{age:aopts,wt:wopts,ht:hopts}[k]())+'</div>'; }).join('')+'</div><p class="ob-note">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>'+
       '<button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button><button type="button" class="ob-cta quiet" data-skip>'+L('Skip','跳过')+'</button>';
     if(i===6){ if(st.imp) return '<div class="ob-big" style="justify-content:center;margin-top:18px"><span class="rn">1986</span></div><p class="sub" style="text-align:center;margin:0 0 6px">'+L('hours already fasted','小时已断食')+'</p><h4 style="text-align:center">'+L('Welcome. Your fasts came with you.','欢迎。你的断食记录都带来了。')+'</h4><div class="ob-sum"><div><span>'+L('Fasts','次断食')+'</span><b>128</b></div><div><span>'+L('Reached the goal','达成目标')+'</span><b>117</b></div><div><span>'+L('Skipped, already there','已跳过（重复）')+'</span><b>0</b></div></div><p class="ob-note">'+L('Sample result: nothing was added twice. In the app this reads your real file on the phone.','示例结果：没有任何重复。在应用里，这会在手机上读取你的真实文件。')+'</p><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>';
       return '<div class="ob-hero imp-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11.5v5M9.5 14l2.5 2.5 2.5-2.5"/></svg></div><h4 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h4><p class="sub" style="text-align:center">'+L('Optional. Zero’s data zip, or a CSV or JSON file.','可选。Zero 的数据 zip，或 CSV、JSON 文件。')+'</p><button type="button" class="ob-cta" data-imp>'+L('Choose a file (sample)','选择文件（示例）')+'</button><button type="button" class="ob-skip" data-next>'+L('Skip for now','暂时跳过')+'</button>'; }
@@ -2246,7 +2252,7 @@ window.LightlySphere=(function(){
   /* buttons are morphed in place between renders, so next / location / done are delegated rather than bound per node */
   stage.addEventListener('click',function(e){ var t=e.target.closest&&e.target.closest('[data-next],[data-loc],[data-done],[data-skip],[data-sex]'); if(!t||!stage.contains(t)) return;
     if(t.hasAttribute('data-done')) api.setPlan(risky()?'13':st.plan);
-    else if(t.hasAttribute('data-sex')){ st.sex=t.dataset.sex; rerender(); }
+    else if(t.hasAttribute('data-sex')){ st.sex=t.dataset.sex; if(st.sex==='m') st.safety=st.safety.filter(function(x){ return x!=='preg'; }); rerender(); }
     else if(t.hasAttribute('data-loc')){ st.loc=t.dataset.loc; rerender(); }
     else if(t.hasAttribute('data-skip')){ st.skip=true; show(st.step,1); }
     else if(!t.disabled){ if(flow()[st.step]===8) st.bodyDone=true; show(st.step+1,1); } });
@@ -3120,8 +3126,9 @@ function dyBloom(){
 
   function hero(out){
     return '<div class="fr-hero"><div class="fr-trio">'+disc('none',0)+disc('fasting',.6)+disc('done',1)+'</div>'+
-      '<h3>'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h3>'+
-      '<p>'+(out?L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不用账号也能用。'):L('Start a group and send one link. Your fasts stay yours.','建一个小组，发一个链接。你的断食数据仍然只属于你。'))+'</p>'+
+      (out?'<h3>'+L('Fast with friends','和朋友一起断食')+'</h3><p class="fr-s">'+L('Make a private group and see who is fasting today.','建一个私密小组，看看今天谁在断食。')+'</p>'+
+        '<div class="fr-pts">'+[[L('Private, by invite only','私密，仅限邀请'),'<circle cx="9" cy="8.5" r="3.4"/><path d="M2.8 19.5a6.2 6.2 0 0 1 12.4 0"/><path d="M15.6 5.4a3.2 3.2 0 0 1 0 6.2M17.5 14.2a6 6 0 0 1 3.7 5.3"/>'],[L('See each other\u2019s progress','看到彼此的进度'),'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'],[L('Cheer each other on','互相加油'),'<path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/>']].map(function(r){ return '<div><span class="fr-pi" aria-hidden="true"><svg viewBox="0 0 24 24">'+r[1]+'</svg></span><span>'+r[0]+'</span></div>'; }).join('')+'</div><p class="fr-fine">'+L('Friends is the only part of Lightly that needs an account.','轻伴里只有朋友功能需要账号。')+'</p>'
+       :'<h3>'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h3><p>'+L('Start a group and send one link. Your fasts stay yours.','建一个小组，发一个链接。你的断食数据仍然只属于你。')+'</p>')+
       '<button type="button" class="fr-go" data-a="'+(out?'in':'new')+'">'+(out?L('Sign in','登录'):L('Start a group','建一个小组'))+'</button>'+(out?'':'<button type="button" class="fr-lnk" data-a="code">'+L('I have an invite code','我有邀请码')+'</button>')+'</div>'; }
 
   function group(){

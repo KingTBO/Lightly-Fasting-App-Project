@@ -34,6 +34,7 @@ function init(h){
     else{ var a=d.fill*Math.PI*2, x=-r*Math.sin(a), y=-r*Math.cos(a); s+='<circle r="'+r+'" fill="var(--fill-2)"/>'+(d.fill>0?'<path d="M0 0L0 '+(-r)+'A'+r+' '+r+' 0 '+(d.fill>.5?1:0)+' 0 '+x.toFixed(2)+' '+y.toFixed(2)+'Z" fill="url(#frSun)"/>':''); }
     return s+'</svg>'; }
   function hero(){ return '<div class="fr-hero" aria-hidden="true">'+disc({kind:'empty'},44)+disc({kind:'wedge',fill:.55},44)+disc({kind:'full'},44)+'</div>'; }
+  var ICON_CLOCK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>', ICON_CHEER='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/></svg>';
   var ICON_PEOPLE='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.4"/><path d="M2.8 19.5a6.2 6.2 0 0 1 12.4 0"/><path d="M15.6 5.4a3.2 3.2 0 0 1 0 6.2M17.5 14.2a6 6 0 0 1 3.7 5.3"/></svg>';
 
   /* ---------- the tab ---------- */
@@ -43,8 +44,9 @@ function init(h){
   function render(){
     var el=$('friends'), x=''; if(!el) return; defs();
     if(!signedIn()){ view=null; var iv=st.joinCode&&tmp.prev&&tmp.prev.code===st.joinCode?tmp.prev.row:null;
-      x=hero()+(iv?'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Friends needs an account; everything else works without one.','登录后即可加入。朋友功能需要账号，其他功能不需要。')+'</p>'
-        :'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2><p class="fr-p">'+L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不需要。')+'</p>')+'<div class="fr-cta"><button class="btn" data-act="frsignin">'+L(iv?'Sign in to join':'Sign in',iv?'登录并加入':'登录')+'</button></div>';
+      x=hero()+(iv?'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Only Friends needs an account.','登录后即可加入。只有朋友功能需要账号。')+'</p>'
+        :'<h2 class="fr-h">'+L('Fast with friends','和朋友一起断食')+'</h2><p class="fr-p fr-s">'+L('Make a private group and see who is fasting today.','建一个私密小组，看看今天谁在断食。')+'</p>'+
+          '<div class="fr-pts">'+[[L('Private, by invite only','私密，仅限邀请'),ICON_PEOPLE],[L('See each other’s progress','看到彼此的进度'),ICON_CLOCK],[L('Cheer each other on','互相加油'),ICON_CHEER]].map(function(r){ return '<div><span class="fr-pi" aria-hidden="true">'+r[1]+'</span><span>'+r[0]+'</span></div>'; }).join('')+'</div><p class="fr-p fr-fine">'+L('Friends is the only part of Lightly that needs an account.','轻伴里只有朋友功能需要账号。')+'</p>')+'<div class="fr-cta"><button class="btn" data-act="frsignin">'+L(iv?'Sign in to join':'Sign in',iv?'登录并加入':'登录')+'</button></div>';
     }else if(view){ x=groupHtml();
     }else if(!st.groups.length){
       x=hero()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+(st.at||st.err?'<p class="fr-p">'+L('Start a group and send one link.','建一个小组，发一个链接。')+'</p><div class="fr-cta"><button class="btn" data-act="frnew">'+L('Start a group','建一个小组')+'</button><button class="btn quiet" data-act="frcode">'+L('I have an invite code','我有邀请码')+'</button></div>':'')+
@@ -131,7 +133,7 @@ function init(h){
   /* ---------- sheets ---------- */
   function fail(e){ h.toast(F.errorText(F.errorKey(e),lang())); }
   function signInSheet(){
-    h.openSheet('<h3>'+L('Sign in','登录')+'</h3><p class="lede">'+L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不需要。')+'</p><div class="btns"><button class="btn gbtn" data-act="google">'+h.GICON+'<span>'+L('Continue with Google','用 Google 继续')+'</span></button><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button></div>');
+    h.openSheet('<h3>'+L('Sign in','登录')+'</h3><p class="lede">'+L('Only Friends needs an account.','只有朋友功能需要账号。')+'</p><div class="btns"><button class="btn gbtn" data-act="google">'+h.GICON+'<span>'+L('Continue with Google','用 Google 继续')+'</span></button><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button></div>');
   }
   /* your name in groups: never taken from the email address, and the only free text friends ever see */
   function nameSheet(next){

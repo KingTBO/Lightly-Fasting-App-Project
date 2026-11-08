@@ -1145,11 +1145,10 @@ function careUndoGo(){
   save(); fx('select'); cache={}; ticksKey=''; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); careSheet();
 }
 function careConfirm(k){
-  var was=care(), t=CARE_TXT[k], what=was?L('Care mode is already on.','关怀模式已经开启。'):L('Plans stop at 16:8, no 24 h or 36 h fasts, no streaks, cheat days or Ramadan mode.','计划最长到 16:8，没有 24 小时和 36 小时断食，没有连续天数、弹性日和斋月模式。');
-  if(k==='ed') what+=L(' The Friends tab is hidden.','朋友标签页会隐藏。');
+  var was=care(), what=was?L('Care mode is already on.','关怀模式已经开启。'):L('Fasts stay at 16:8 or shorter, with no streaks.','断食最长 16:8，没有连续天数。');
+  if(k==='ed') what+=L(' Friends is hidden.','朋友标签页会隐藏。');
   var lab=was?['Add this answer','加入这个回答']:['Turn on Care mode','开启关怀模式'], ready=was?['Hold to add','按住加入']:['Hold to turn on','按住开启'];
-  openSheet('<!--keep--><div class="warn-ico care">'+WARN+'</div><h3 class="ctr">'+(was?L('Add this answer?','加入这个回答？'):L('Turn on Care mode?','开启关怀模式？'))+'</h3><p class="lede ctr">'+L('You ticked “'+t[0]+'”. ','你勾选了“'+t[1]+'”。')+what+'</p>'+
-    '<p class="note ctr">'+L('Not sure? Tap Cancel. You can undo for 24 hours.','不确定？点“取消”。24 小时内可以撤销。')+'</p>'+
+  openSheet('<!--keep--><div class="warn-ico care">'+WARN+'</div><h3 class="ctr">'+(was?L('Add this answer?','加入这个回答？'):L('Turn on Care mode?','开启关怀模式？'))+'</h3><p class="lede ctr">'+what+L(' ','')+L('You can undo it for 24 hours.','24 小时内可以撤销。')+'</p>'+
     '<div class="btns"><button class="btn dark" data-act="care">'+L('Cancel','取消')+'</button>'+lockedHold('careOnGo','careadd',lab,' data-k="'+k+'" data-buzz="1"','warm solid')+'</div>');
   fx('warn'); unlockHold('careOnGo',lab,ready);
 }
@@ -1475,6 +1474,8 @@ function obBigUpdate(){
   var o=st.querySelectorAll('.ob-day .trk i'), nw=t.querySelectorAll('.ob-day .trk i'), i; for(i=0;i<o.length&&i<nw.length;i++) o[i].setAttribute('style',nw[i].getAttribute('style'));
   var w=st.querySelector('.ob-win'); if(w) w.textContent=t.querySelector('.ob-win').textContent;
 }
+/* gender is asked on the health step, so a man is never offered the pregnancy answer; "prefer not to say" saves nothing */
+function obSexHtml(){ return '<div class="seg" role="group" aria-label="'+L('Gender','性别')+'">'+[['m',L('Male','男')],['f',L('Female','女')],['x',L('Non-binary','非二元')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-act="obsex" data-v="'+g[0]+'" aria-pressed="'+(ob.sex===g[0])+'">'+g[1]+'</button>'; }).join('')+'</div>'; }
 function obHtml(i){
   var back=i>0?'<button class="ob-back" data-act="obback"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg>'+L('Back','返回')+'</button>':'<span></span>';
   var flow=obFlow(), key=flow[i]; var dots=i>0&&i<flow.length-1?'<span class="ob-mslot"></span>':'<span></span>';   /* the one moon parks here as the progress bar */
@@ -1488,7 +1489,7 @@ function obHtml(i){
     cta='<button class="btn" data-act="obnext"'+(ob.fasted?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='safety'){
     function ck(v,label){ var on=ob.safe.indexOf(v)>=0; return '<button class="check" role="checkbox" aria-checked="'+on+'" data-act="obsafe" data-v="'+v+'"><span class="bx"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span>'+label+'</span></button>'; }
-    body='<h1>'+L('Is any of this true for you?','下面有符合你的情况吗？')+'</h1><p class="lede">'+L('Pick all that apply.','可多选。')+'</p><div class="group cards">'+ck('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'))+ck('diab',L('I take medication for diabetes','我在服用糖尿病药物'))+ck('ed',L('I have had an eating disorder','我有过进食障碍'))+ck('none',L('None of these','都不是'))+'</div>'+
+    body='<h1>'+L('Is any of this true for you?','下面有符合你的情况吗？')+'</h1><div class="gh obgh">'+L('Gender','性别')+'</div>'+obSexHtml()+'<div class="gh obgh">'+L('Pick all that apply','可多选')+'</div><div class="group cards">'+(ob.sex==='m'?'':ck('preg',L('Pregnant or breastfeeding','怀孕或哺乳期')))+ck('diab',L('I take medication for diabetes','我在服用糖尿病药物'))+ck('ed',L('I have had an eating disorder','我有过进食障碍'))+ck('none',L('None of these','都不是'))+'</div>'+
       (ob.safe.length&&ob.safe.indexOf('none')<0?'<p class="gf obnote" style="padding:0 4px;color:var(--label)">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts. Please talk to your doctor first.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。请先咨询医生。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obnext"'+(ob.safe.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='plan'){
@@ -1520,7 +1521,7 @@ function obHtml(i){
   }else if(key==='body'){
     body='<h1>'+L('A little about you','关于你')+'</h1><p class="lede">'+L('Add them and see your weight trend, with a check-in every month.','填写后，每月回顾会带你看体重变化的趋势。')+'</p><div class="group">'+pkField('obAge',L('Age','年龄'),ob.age,'sel',obAgeOpts())+pkField('obWt',L('Weight','体重'),Math.round(C.kgTo(ob.kg,ob.unit)),'sel',obWtOpts())+pkField('obHt',L('Height','身高'),obHtKey(),'sel',obHtOpts())+'</div>'+
       '<div class="seg" role="group" aria-label="'+L('Units','单位')+'">'+['kg','lb','jin'].map(function(u){ return '<button type="button" data-act="obunit" data-v="'+u+'" aria-pressed="'+(ob.unit===u)+'">'+uLbl(u)+'</button>'; }).join('')+'</div>'+
-      '<div class="seg" role="group" aria-label="'+L('Gender','性别')+'">'+[['m',L('Male','男')],['f',L('Female','女')],['x',L('Non-binary','非二元')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-act="obsex" data-v="'+g[0]+'" aria-pressed="'+(ob.sex===g[0])+'">'+g[1]+'</button>'; }).join('')+'</div><p class="gf obnote" style="padding:0 4px">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>';
+      '<p class="gf obnote" style="padding:0 4px">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obbody">'+L('Continue','继续')+'</button><button class="btn quiet" data-act="obbodyskip">'+L('Skip','跳过')+'</button>';
   }else if(key==='summary'){
     var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.start||'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
@@ -1891,7 +1892,7 @@ var A={
   rpwoff:function(){ if(!S.body) return; S.body.checkOff=true; if(S.body.share) trendStop(); save(); fx('select'); var e=$('rpW'); if(e) e.innerHTML='<h3 id="rpTw" class="rpi">'+L('No more check-ins','不再询问体重')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Your recap will not include weight any more. You can turn it back on in Me, About you.','回顾里不会再出现体重。你可以在“我的 · 关于你”里重新打开。')+'</p>'; },
   bodyrm:function(){ if(S.body&&S.body.share) trendStop(); S.body=null; save(); closeSheet(); renderMe(); },
   obunit:function(b){ ob.unit=b.dataset.v; obRefresh(); },
-  obsex:function(b){ ob.sex=b.dataset.v; fx('select'); obRefresh(); },
+  obsex:function(b){ ob.sex=b.dataset.v; if(ob.sex==='m') ob.safe=ob.safe.filter(function(x){ return x!=='preg'; }); fx('select'); obRefresh(); },
   obbody:function(){ ob.bodyDone=true; A.obnext(); },
   obbodyskip:function(){ ob.skip=true; ob.bodyDone=false; obRender(); },
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
