@@ -40,3 +40,7 @@ NODE_PATH=$(npm root -g) node qa/run-app.js [shots-dir] [--full] [--screens=idle
 ```
 
 Deploys with Cloudflare from the `main` branch of the GitLab repo (Workers & Pages, connected to GitLab; no build command, the repo root is served as is). Merging to `main` on GitLab publishes it, usually within a minute or two. GitHub Pages was the previous home and would only return if the code moves back to GitHub.
+
+## Credits
+
+The figures behind the star signs on the Friends screen (`img/sky/*.webp`) are processed from engravings in *Urania's Mirror* (Sidney Hall, London, 1825), which are in the public domain; the scans are on Wikimedia Commons (Category: Urania's Mirror). Each was inverted, turned into an alpha mask and softened at the edges, so the app can colour it. The same credit is in the Terms of Use, section 6.
