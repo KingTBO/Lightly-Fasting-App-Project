@@ -18,15 +18,15 @@ const ok=m=>console.log('ok  '+m);
 (async()=>{await new Promise(r=>mock.listen(0,r));await new Promise(r=>srv.listen(0,r));
  const murl='http://localhost:'+mock.address().port,url='http://localhost:'+srv.address().port+'/';
  const b=await chromium.launch(); const now=Date.now();
- const seed=(on)=>JSON.stringify({v:1,lang:'en',theme:'auto',onboarded:on,profile:{fastedBefore:true,safety:false},planId:'16',customH:16,place:{key:'shanghai'},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},ramadanPreview:false,startedAt:on?now-9*24*H:null,mod:now-1000,del:[]});
+ const seed=(on,prof)=>JSON.stringify({v:1,lang:'en',theme:'auto',onboarded:on,profile:prof||{fastedBefore:true,safety:false},planId:'16',customH:16,place:{key:'shanghai'},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},ramadanPreview:false,startedAt:on?now-9*24*H:null,mod:now-1000,del:[]});
  /* every frame from the first one: is Today actually on screen? (the neutral screen hides all tabs with html.signing) */
  const watch=()=>{ window.__frames=[]; (function f(){ const t=document.getElementById('today'),m=document.getElementById('me'),h=document.documentElement;
    if(t&&m) window.__frames.push({signing:h.classList.contains('signing'),today:t.classList.contains('on'),me:m.classList.contains('on'),ob:!document.getElementById('ob').hidden}); requestAnimationFrame(f); })(); };
- async function open(hash,{onboarded=true,search=''}={}){
+ async function open(hash,{onboarded=true,search='',profile=null}={}){
   const ctx=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'});
   await ctx.route('**/js/config.js',rt=>rt.fulfill({contentType:'text/javascript',body:`window.LIGHTLY_CLOUD={url:'${murl}',key:'anon'};`}));
   const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
-  await p.addInitScript(s=>{ if(!sessionStorage.s){ if(s) localStorage.setItem('lightly:v1',s); sessionStorage.s=1; } },onboarded===null?null:seed(onboarded));
+  await p.addInitScript(s=>{ if(!sessionStorage.s){ if(s) localStorage.setItem('lightly:v1',s); sessionStorage.s=1; } },onboarded===null?null:seed(onboarded,profile));
   await p.addInitScript(watch);
   await p.goto(url+search+hash); await p.waitForTimeout(2200);
   const fr=await p.evaluate(()=>window.__frames); return {ctx,p,fr,errs}; }
@@ -58,6 +58,27 @@ const ok=m=>console.log('ok  '+m);
 
  /* 6. a normal launch is unchanged: Today straight away, no neutral screen */
  {const t=await open('#'); assert(!t.fr.some(f=>f.signing),'no neutral screen'); assert(t.fr[t.fr.length-1].today,'Today'); await t.ctx.close(); ok('normal launch still opens on Today');}
+
+ /* 7. a sign-in that started on the Friends tab comes back to Friends (never Today); one that started on Me, or any link without a tab, comes back to Me */
+ const onTab=(p,t)=>p.evaluate(id=>document.getElementById(id).classList.contains('on'),t);
+ {const t=await open(tok('a@b.c'),{search:'?tab=friends'}); assert.strictEqual(todayShown(t.fr),0,'Today never shown'); assert(await onTab(t.p,'friends'),'back on Friends'); assert(!(await onTab(t.p,'me')),'not Me');
+  assert(!/tab=/.test(await t.p.evaluate(()=>location.search)),'tab is taken off the address'); assert.deepStrictEqual(t.errs,[]); await t.ctx.close(); ok('sign-in from Friends: back on Friends, Today never shown');}
+ {const t=await open(tok('a@b.c')); assert(await onTab(t.p,'me')&&!(await onTab(t.p,'friends')),'no tab: Me'); await t.ctx.close(); ok('sign-in without a tab: back on Me');}
+ {const t=await open(tok('a@b.c'),{search:'?tab=friends',profile:{fastedBefore:true,safety:true,care:['ed']}}); assert(await onTab(t.p,'me'),'the eating-disorder answer hides Friends: Me'); assert(!(await onTab(t.p,'friends'))); assert.strictEqual(todayShown(t.fr),0); await t.ctx.close(); ok('Friends hidden by Care mode: back on Me');}
+ {const t=await open(tok('a@b.c'),{search:'?tab=friends&join=K7QM4XD9'}); assert(await onTab(t.p,'friends'),'with an invite code too'); assert.strictEqual(await t.p.evaluate(()=>location.search),'','join and tab are both taken off the address'); await t.ctx.close(); ok('tab and invite code are both consumed');}
+
+ /* 8. the redirect_to the Google button builds: tab=friends from the Friends tab, nothing from Me */
+ async function googleRedirect(tab){
+  const ctx=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai'}); let hit='';
+  await ctx.route('**/js/config.js',rt=>rt.fulfill({contentType:'text/javascript',body:`window.LIGHTLY_CLOUD={url:'${murl}',key:'anon'};`}));
+  await ctx.route(murl+'/auth/v1/authorize**',rt=>{ hit=rt.request().url(); rt.fulfill({contentType:'text/html',body:'<p>google</p>'}); });
+  const p=await ctx.newPage(); await p.addInitScript(sd=>{ if(!sessionStorage.s){ localStorage.setItem('lightly:v1',sd); sessionStorage.s=1; } },seed(true));
+  await p.goto(url); await p.waitForTimeout(1200);
+  if(tab==='friends'){ await p.click('#tabs [data-tab=friends]'); await p.waitForTimeout(600); await p.click('#friends [data-act=frsignin]'); await p.waitForSelector('#sheet.open [data-act=google]'); await p.click('#sheet [data-act=google]'); }
+  else{ await p.click('#tabs [data-tab=me]'); await p.waitForTimeout(600); await p.click('#me [data-act=google]'); }
+  for(let i=0;i<30&&!hit;i++) await p.waitForTimeout(100); await ctx.close();
+  assert(hit,'the Google redirect was requested'); return decodeURIComponent(new URL(hit).searchParams.get('redirect_to')); }
+ {const f=await googleRedirect('friends'); assert(/[?&]tab=friends/.test(f),'from Friends: tab=friends in '+f); const m=await googleRedirect('me'); assert(!/tab=/.test(m),'from Me: no tab in '+m); ok('Google redirect_to carries tab=friends from Friends and not from Me');}
 
  await b.close(); mock.close(); srv.close(); console.log('signin-return tests passed'); process.exit(0);
 })().catch(e=>{console.error(e);process.exit(1);});

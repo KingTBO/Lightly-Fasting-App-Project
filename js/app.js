@@ -1813,13 +1813,13 @@ var A={
   careeasego:function(b){ careDrop([b.dataset.k]); careSheet(); },
   google:function(b){ if(b.disabled) return; var soon=function(){ b.disabled=false; toast(L('Google sign-in is not switched on yet. Email works now.','Google 登录还没开启，现在可用邮箱。')); };
     if(!CL.ready()) return soon(); b.disabled=true;
-    CL.providerOn('google').then(function(on){ if(!on) return soon(); location.assign(CL.oauthUrl('google',S,FUI&&FUI.joinCode())); }).catch(soon); },
+    CL.providerOn('google').then(function(on){ if(!on) return soon(); location.assign(CL.oauthUrl('google',S,FUI&&FUI.joinCode(),fromTab())); }).catch(soon); },
   emailsheet:function(){ emailSheet('email'); },
   emback:function(b){ emailSheet('email',b.dataset.e); },
   soon:function(b){ toast(({apple:L('Apple sign-in is coming. Email works now.','Apple 登录即将推出，现在可用邮箱。'),google:L('Google sign-in is coming. Email works now.','Google 登录即将推出，现在可用邮箱。'),wechat:'微信登录会随中国大陆版本推出，现在可用邮箱。',phone:'手机号登录会随中国大陆版本推出，现在可用邮箱。'})[b.dataset.k]); },
   emsend:function(b){ var e=($('emIn').value||'').trim(); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return emailSheet('email',e,L('That doesn’t look like an email address.','这个邮箱地址看起来不对。')); b.disabled=true; b.textContent=L('Sending…','发送中…');
-    emCool=Date.now()+60000; CL.sendCode(e,S,FUI&&FUI.joinCode()).then(function(){ emailSheet('sent',e); }).catch(function(x){ emCool=0; emailSheet('email',e,emailErr(x)); }); },
-  emresend:function(b){ var e=b.dataset.e; if(Date.now()<emCool) return; emCool=Date.now()+60000; CL.sendCode(e,S,FUI&&FUI.joinCode()).then(function(){ emailSheet('sent',e); toast(L('Sent again.','已重新发送。')); }).catch(function(x){ emCool=0; emailSheet('sent',e,emailErr(x)); }); },
+    emCool=Date.now()+60000; CL.sendCode(e,S,FUI&&FUI.joinCode(),fromTab()).then(function(){ emailSheet('sent',e); }).catch(function(x){ emCool=0; emailSheet('email',e,emailErr(x)); }); },
+  emresend:function(b){ var e=b.dataset.e; if(Date.now()<emCool) return; emCool=Date.now()+60000; CL.sendCode(e,S,FUI&&FUI.joinCode(),fromTab()).then(function(){ emailSheet('sent',e); toast(L('Sent again.','已重新发送。')); }).catch(function(x){ emCool=0; emailSheet('sent',e,emailErr(x)); }); },
   emverify:function(b){ var e=b.dataset.e, c=($('emCode').value||'').trim(); if(c.length<6) return emailSheet('sent',e,L('Enter the 6-digit code.','请输入 6 位验证码。')); b.disabled=true; b.textContent=L('Checking…','验证中…');
     CL.verify(e,c).then(function(){ closeSheet(); toast(L('Signed in.','已登录。')); renderMe(); syncNow(true); }).catch(function(x){ emailSheet('sent',e,L('That code didn’t work. ','验证码不对：')+x.message); }); },
   namesheet:nameSheet,
@@ -1962,16 +1962,19 @@ applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnl
 shortPage(); chrome();
 ['resize','orientationchange','pageshow'].forEach(function(e){ window.addEventListener(e,function(){ shortPage(); chrome(); }); });
 if(window.matchMedia){ var mq=matchMedia('(prefers-color-scheme:dark)'); if(mq.addEventListener) mq.addEventListener('change',function(){ setTimeout(chrome,50); }); }
-var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash)&&!!(CL&&CL.ready());
+var backTab=CL&&CL.takeTab?CL.takeTab():'', carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash)&&!!(CL&&CL.ready());
 if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }
 var rootEl=document.documentElement;
 /* Coming back through a sign-in link (Google, or the email link): the page opens on a neutral screen (index.html marks it before anything is drawn),
-   never on Today. Once the account has answered, the person lands on Me, where they started, or on onboarding if this really is a new account. */
+   never on Today. Once the account has answered, the person lands on Me or Friends, where they started, or on onboarding if this really is a new account. */
 var landed=false, landMsg='', toasted=false;
 function landToast(){ if(landMsg&&!toasted){ toasted=true; toast(landMsg); } }
+/* a sign-in comes back to the tab it started from: Friends (or a waiting invite) if the Friends tab is there for this person, otherwise Me */
+function landTab(){ var fr=FUI&&FUI.order().indexOf('friends')>=0; return fr&&(backTab==='friends'||FUI.joinCode())?'friends':'me'; }
+function fromTab(){ return curTab==='friends'?'friends':''; }   /* the tab a sign-in is started from; from Me it stays Me */
 function land(){
   if(landed) return; landed=true; holding=false; rootEl.classList.remove('signing');
-  if(!S.onboarded){ ph.classList.remove('sys'); updateToday(); obStart(); chrome(); } else{ showTab('me',true); if(FUI) FUI.pending(); }
+  if(!S.onboarded){ ph.classList.remove('sys'); updateToday(); obStart(); chrome(); } else{ showTab(landTab(),true); if(FUI) FUI.pending(); }
   landToast();
 }
 if(returning){ holding=true; ph.classList.add('sys'); chrome(); setTimeout(land,9000); /* never stay on the neutral screen if the network hangs */ }
