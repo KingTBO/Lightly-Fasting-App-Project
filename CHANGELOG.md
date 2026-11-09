@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.98.3
+- **chore** The live site now builds straight from GitHub `main` (Cloudflare is connected to this repository), so the extra push to the GitLab copy is no longer needed. GitLab stays as a backup. No change in the app.
+- **docs** README.md, RELEASING.md and AGENTS.md describe the GitHub deploy.
+
 ## 0.98.2
 - **chore** Lightly's code is back on GitHub (https://github.com/KingTBO/Lightly-Fasting-App-Project) and GitLab stays as a backup copy. This release brings the GitHub history and the GitLab history together without losing either: GitHub had one change GitLab never received (the "You're set" sky fix, below), and GitLab had fourteen releases GitHub never saw (0.93.4 to 0.98.1). Nothing in the app changes except that the "You're set" sky fix is now included. Both lines had a 0.94.0, so the sky fix keeps its number with a note.
 - **docs** README.md, RELEASING.md and AGENTS.md say the code lives on GitHub again, with GitLab as a mirror.
