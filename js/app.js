@@ -1550,7 +1550,7 @@ function obHtml(i){
     cta='<button class="btn" data-act="obdone">'+L('Open Lightly','打开 Lightly')+'</button>';
   }
   var nt=key==='welcome'||key==='summary', sky=nt?obStars()+(key==='summary'?'<i class="dawnbg"></i>':''):'';
-  return '<div class="ob-step'+(nt?' night':'')+(key==='summary'?' fin':'')+'" data-i="'+i+'">'+sky+top+body+'<div class="ob-cta">'+cta+'</div></div>';
+  return '<div class="ob-step'+(key==='welcome'?' night':'')+(key==='summary'?' fin':'')+'" data-i="'+i+'">'+sky+top+body+'<div class="ob-cta">'+cta+'</div></div>';
 }
 function obRender(dir,pre){
   /* forward pushes from the right; back reverses the same path (spatial symmetry). `pre` is the step a swipe already pulled in from behind (see obSwipe) */
@@ -1675,7 +1675,7 @@ function obSlot(st,cls){ var e=st.querySelector(cls); if(!e) return null; var x=
 /* the moon goes to wherever this step keeps it: big on the welcome and You're set, small in the header on the steps between */
 function obMove(st){
   var key=obFlow()[ob.step], kind=key==='welcome'?'wel':key==='summary'?'fin':'head', el=obLayer(), slot=obSlot(st,kind==='head'?'.ob-mslot':'.ob-bslot'); if(!slot) return;
-  el.hidden=false; el.classList.toggle('head',kind==='head'); el.classList.toggle('touch',kind==='wel');
+  el.hidden=false; el.classList.toggle('head',kind==='head'); el.classList.toggle('onbg',kind==='fin'); el.classList.toggle('touch',kind==='wel');
   var first=!OL.shown; OL.shown=true; if(first||reduce) el.style.transition='none';
   el.style.transform='translate('+slot.x+'px,'+slot.y+'px) scale('+(slot.w/236).toFixed(4)+')';
   if(first||reduce){ void el.offsetWidth; el.style.transition=''; }
@@ -1690,8 +1690,15 @@ function obMove(st){
 function obNow(){ var now=Date.now(); refreshSun(now); var hp=C.placeHour(pi,now), k=C.skyAt(hp,sun)[1], day=C.moonAmt(hp,sun)<.5; return {sun:day,sky:day?(['dawn','morning','day','sunset'].indexOf(k)>=0?k:'day'):'night'}; }
 function obFin(st){
   var nw=obNow(); st.setAttribute('data-fs',nw.sky);
-  if(reduce){ OL.p=1; OL.moon=nw.sun?0:1; OL.tw=null; if(nw.sun) st.classList.add('dawn'); return; }
+  if(reduce){ OL.p=1; OL.moon=nw.sun?0:1; OL.tw=null; obSky(st,nw.sun,true); return; }
   OL.tw=null; OL.fin={t0:performance.now(),p0:OL.p,st:st,sun:nw.sun,turned:false};
+}
+/* the sky arrives: the page glides from its plain background to the sky for this hour (and this light or dark setting); the strips around the phone follow it */
+function obSky(st,sun,now){
+  st.classList.add('sky'); if(OL.el) OL.el.classList.remove('onbg');
+  if(sun) st.classList.add('dawn'); else if(now) st.classList.add('nsk'); else setTimeout(function(){ st.classList.add('nsk'); },950);   /* the words turn white about as the page darkens */
+  if(now){ chrome(); return; }
+  var n=0, iv=setInterval(function(){ chrome(); if(++n>25||!st.isConnected) clearInterval(iv); },100);
 }
 function obFinStep(t){
   var f=OL.fin; if(!f.st.isConnected||obFlow()[ob.step]!=='summary'){ OL.fin=null; return; }
@@ -1699,10 +1706,9 @@ function obFinStep(t){
   if(el<GO) return;
   var e2=el-GO; OL.p=f.p0+(1-f.p0)*(1-Math.pow(1-Math.min(e2/FILL,1),3));
   if(e2<=REV) return;   /* the reveal starts as the moon nears full, not after the slow last stretch of the fill */
-  if(!f.turned){ f.turned=true; fx('success'); obBloom(); if(!f.sun) OL.pulse=1; }
+  if(!f.turned){ f.turned=true; fx('success'); obBloom(); obSky(f.st,f.sun,false); if(!f.sun) OL.pulse=1; }
   if(!f.sun){ if(e2>REV+TURN){ OL.p=1; OL.fin=null; } return; }   /* night: it stays a full moon, under the night sky */
   var v=Math.min((e2-REV)/TURN,1), e=v*v*(3-2*v); OL.moon=1-e; OL.boost=Math.max(0,1-v*1.15);
-  if(v>0&&!f.st.classList.contains('dawn')){ f.st.classList.add('dawn'); setTimeout(chrome,1750); }
   if(v>=1){ OL.moon=0; OL.boost=0; OL.fin=null; }
 }
 function obBloom(){

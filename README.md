@@ -2,7 +2,7 @@
 
 A fasting timer that follows the sky. Moon at night, sun by day, set by your real sunrise and sunset. Solo-first, English and 中文.
 
-**Live:** https://lightly-fasting-app.tengbo-zhuang.workers.dev/ (open on a phone, then Add to Home Screen). The code lives on GitLab: https://gitlab.com/lightly-group/lightly-fasting-app. The old GitHub Pages address, https://kingtbo.github.io/Lightly-Fasting-App-Project/, is not updated while GitHub is suspended.
+**Live:** https://lightly-fasting-app.tengbo-zhuang.workers.dev/ (open on a phone, then Add to Home Screen). The code lives on GitHub (this repository), with a backup copy on GitLab: https://gitlab.com/lightly-group/lightly-fasting-app. The old GitHub Pages address, https://kingtbo.github.io/Lightly-Fasting-App-Project/, serves the same code.
 
 ## Layout
 
@@ -21,7 +21,7 @@ Everything works signed out; an account only backs up fasts and settings. Email 
 
 1. Create a free project at supabase.com. In the SQL editor run `supabase/schema.sql` (one table, Row Level Security so people only see their own row).
 2. Authentication > Providers: keep Email on. The default Supabase email works as is: it carries a "Sign in" link, and the app tells people to tap it. Editing the template needs custom SMTP (a paid-plan or own-provider feature). Only if you set up custom SMTP and add `{{ .Token }}` to the Magic Link template, set `code:true` in `js/config.js` to also show a code field.
-3. Authentication > URL Configuration: add `https://lightly-fasting-app.tengbo-zhuang.workers.dev/**` (with the two stars) to the redirect allow-list (keep the old GitHub Pages address there too if you want it to work again if GitHub returns). The sign-in link carries a small copy of the person's settings and recent fasts in `?r=`, so if the link opens in a different browser it still lands on Today instead of onboarding; without the wildcard Supabase drops that and falls back to the Site URL.
+3. Authentication > URL Configuration: add `https://lightly-fasting-app.tengbo-zhuang.workers.dev/**` (with the two stars) to the redirect allow-list (keep the old GitHub Pages address there too, so it keeps working). The sign-in link carries a small copy of the person's settings and recent fasts in `?r=`, so if the link opens in a different browser it still lands on Today instead of onboarding; without the wildcard Supabase drops that and falls back to the Site URL.
 4. Put the Project URL and the anon public key in `js/config.js` (the anon key is meant to be public; never the service_role key).
 5. Delete account (one time): deploy `supabase/functions/delete-account` (Dashboard > Edge Functions, or `supabase functions deploy delete-account --no-verify-jwt`; it checks the person's token itself). Supabase hands the function its service role key at run time, so nothing secret is in the app or the repo. The public page people can use without the app is `delete-account/` (https://lightly-fasting-app.tengbo-zhuang.workers.dev/delete-account/); Google Play's Data safety form asks for that link. Steps for the form: [docs/delete-account.md](docs/delete-account.md).
 
@@ -39,7 +39,7 @@ NODE_PATH=$(npm root -g) node tests/cloud.test.js --e2e   # merge rules + sign-i
 NODE_PATH=$(npm root -g) node qa/run-app.js [shots-dir] [--full] [--screens=idle,ob]   # needs Playwright; quick by default (about 1 min); exits 1 on any alignment issue
 ```
 
-Deploys with Cloudflare from the `main` branch of the GitLab repo (Workers & Pages, connected to GitLab; no build command, the repo root is served as is). Merging to `main` on GitLab publishes it, usually within a minute or two. GitHub Pages was the previous home and would only return if the code moves back to GitHub.
+Deploys with Cloudflare (Workers & Pages; no build command, the repo root is served as is). Cloudflare is currently connected to the `main` branch of the GitLab backup, so after a change merges to `main` on GitHub, the same commit also goes to GitLab `main` (a fast-forward push), and the site updates within a minute or two. To deploy straight from GitHub instead, reconnect the Worker's build to this repository in the Cloudflare dashboard (Settings, Build, Git repository). GitHub Pages is the previous home and serves the same files.
 
 ## Credits
 
