@@ -22,11 +22,18 @@ Z.SIGNS.forEach(s=>{ assert(/^[一-鿿]{3}$/.test(s.zh),s.k+' has a three-charac
 // layouts: ten slots each, inside the 358 x 400 panel, never closer than a star's width
 Z.SIGNS.forEach(s=>{ const L=Z.layout(s,0); assert.strictEqual(L.slots.length,10,s.k+' has ten slots'); L.slots.forEach(p=>{ assert(p[0]>=22&&p[0]<=336&&p[1]>=22&&p[1]<=378,s.k+' slot inside the panel: '+p); }); assert(Z.minGap(L.slots)>=44,s.k+' stars never overlap: '+Z.minGap(L.slots)); });
 assert.deepStrictEqual(Z.layout(sc,0).slots.slice(0,6),[[72,56],[130,92],[116,160],[172,214],[150,282],[196,338]],'Scorpio people slots'); assert.deepStrictEqual(Z.layout(sc,0).slots.slice(6),[[262,350],[306,308],[300,244],[252,206]],'Scorpio open seats');
-assert.deepStrictEqual(Z.layout(sg,0).slots.slice(0,6),[[61,195],[111,152],[159,103],[224,90],[258,152],[298,237]],'Sagittarius people slots'); assert.deepStrictEqual(Z.layout(sg,0).slots.slice(6),[[233,294],[159,310],[132,248],[185,186]],'Sagittarius open seats');
+assert.deepStrictEqual(Z.layout(sg,0).slots.slice(0,6),[[61,195],[111,152],[159,103],[224,90],[262,156],[298,237]],'Sagittarius people slots'); assert.deepStrictEqual(Z.layout(sg,0).slots.slice(6),[[233,294],[159,310],[132,248],[185,186]],'Sagittarius open seats');
 assert.deepStrictEqual(Z.layout(sc,24).slots[0],[72,32],'the shorter panel of a group that is just you lifts the pattern by 24'); ok('slot layouts: Scorpio and Sagittarius as designed, a plain ring for the others, all inside the panel');
 
-// only Scorpio and Sagittarius have a figure for now; the files are bundled and precached
-Z.SIGNS.forEach(s=>{ const L=Z.layout(s,0); assert.strictEqual(L.fig,s.k==='scorpio'||s.k==='sagittarius',s.k+' figure flag'); if(L.fig){ const f=path.join(__dirname,'..',L.art); assert(fs.existsSync(f),L.art+' exists'); assert(fs.statSync(f).size<260*1024,L.art+' is small'); assert(fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8').includes("'"+L.art+"'"),L.art+' is precached'); } else assert.strictEqual(L.art,''); });
-assert(fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8').includes("'js/zodiac.js'")); assert(fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8').includes('js/zodiac.js'));
-assert(/Urania/.test(fs.readFileSync(path.join(__dirname,'..','terms','index.html'),'utf8'))&&/乌拉尼亚/.test(fs.readFileSync(path.join(__dirname,'..','terms','index.html'),'utf8')),'the credit is in the terms in both languages'); ok('figures: two bundled, small, precached, credited in English and 中文');
+// every sign has its own layout and figure: bundled, small, precached, credited; the ten new layouts follow the spacing rules
+const sw=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8');
+Z.SIGNS.forEach(s=>{ const L=Z.layout(s,0); assert.strictEqual(L.fig,true,s.k+' has a figure'); assert(Z.LAYOUTS[s.k],s.k+' has its own layout'); const f=path.join(__dirname,'..',L.art); assert(fs.existsSync(f),L.art+' exists'); assert(fs.statSync(f).size<150*1024,L.art+' is small ('+fs.statSync(f).size+' bytes)'); assert(sw.includes("'"+L.art+"'"),L.art+' is precached'); });
+const CAP=[14,344,166,388];   // the caption (sign name and dates), bottom left of the panel
+Z.SIGNS.filter(s=>s.k!=='scorpio'&&s.k!=='sagittarius').forEach(s=>{ const sl=Z.layout(s,0).slots;
+  sl.forEach((p,i)=>{ assert(p[0]>=52&&p[0]<=306&&p[1]>=52&&p[1]<=348,s.k+' slot '+(i+1)+' keeps its avatar at least 30 px from the panel edge: '+p);
+    const chip=[p[0]-32,p[1]+26,p[0]+32,p[1]+44], av=[p[0]-22,p[1]-22,p[0]+22,p[1]+22]; [chip,av].forEach(r=>assert(!(r[2]>CAP[0]&&r[0]<CAP[2]&&r[3]>CAP[1]&&r[1]<CAP[3]),s.k+' slot '+(i+1)+' keeps clear of the caption')); });
+  assert(Z.minGap(sl)>=46,s.k+' avatars never overlap: '+Z.minGap(sl));
+  for(let i=0;i<6;i++) for(let j=0;j<10;j++){ if(i===j) continue; const a=sl[i], b=sl[j], nx=Math.max(a[0]-32,Math.min(b[0],a[0]+32)), ny=Math.max(a[1]+26,Math.min(b[1],a[1]+44)); assert(Math.hypot(b[0]-nx,b[1]-ny)>=(j<6?22:14),s.k+': the name under person '+(i+1)+' does not run into slot '+(j+1)); } });
+assert(sw.includes("'js/zodiac.js'")); assert(fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8').includes('js/zodiac.js'));
+assert(/Urania/.test(fs.readFileSync(path.join(__dirname,'..','terms','index.html'),'utf8'))&&/乌拉尼亚/.test(fs.readFileSync(path.join(__dirname,'..','terms','index.html'),'utf8')),'the credit is in the terms in both languages'); ok('figures and layouts: all twelve bundled, small, precached and credited; the ten new layouts keep every avatar, name and the caption clear and 30 px from the edge');
 console.log('zodiac tests passed');

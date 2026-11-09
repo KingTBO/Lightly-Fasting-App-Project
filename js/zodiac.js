@@ -1,6 +1,6 @@
 /* The month's western star sign for the group screen (see friends-ui.js). Pure data and a few small functions, no DOM, so it can be tested in Node.
-   The sign follows the usual tropical dates and the person's own local date. Scorpio and Sagittarius have their own slot layouts and an engraved figure
-   (img/sky/*.webp, from Sidney Hall's Urania's Mirror, 1825, public domain); the other ten use a simple ring of slots and show stars and lines only. */
+   The sign follows the usual tropical dates and the person's own local date. Every sign has its own slot layout and an engraved figure
+   (img/sky/*.webp, from Sidney Hall's Urania's Mirror, 1825, public domain). */
 (function(root){
 'use strict';
 /* from/to are [month, day], inclusive; Capricorn wraps the new year */
@@ -36,13 +36,23 @@ function range(s,lang){ var f=s.from, t=s.to;
 /* "Oct 23 – Nov 21 · Water" */
 function caption(s,lang){ return range(s,lang)+' · '+s.el[lang==='zh'?1:0]; }
 
-/* Ten slots along each pattern, in the order people join (you first). The panel is 358 x 400 px, slot centres in panel px.
-   The first N slots hold people, the rest are open seats. Only the two signs with a figure have their own layout. */
+/* Ten slots along each sign's figure, in the order people join (you first). The panel is 358 x 400 px, slot centres in panel px.
+   The first N slots hold people, the rest are open seats. Every sign has its own layout and engraved figure; the ring below is only a fallback. */
 var LAYOUTS={
   scorpio:{art:'img/sky/scorpio.webp', slots:[[72,56],[130,92],[116,160],[172,214],[150,282],[196,338],[262,350],[306,308],[300,244],[252,206]]},
-  sagittarius:{art:'img/sky/sagittarius.webp', slots:[[61,195],[111,152],[159,103],[224,90],[258,152],[298,237],[233,294],[159,310],[132,248],[185,186]]}
+  sagittarius:{art:'img/sky/sagittarius.webp', slots:[[61,195],[111,152],[159,103],[224,90],[262,156],[298,237],[233,294],[159,310],[132,248],[185,186]]},
+  capricorn:{art:'img/sky/capricorn.webp', slots:[[304,138],[249,173],[191,201],[137,238],[110,172],[54,204],[90,280],[185,283],[251,290],[304,251]]},
+  aquarius:{art:'img/sky/aquarius.webp', slots:[[80,136],[140,162],[203,182],[229,114],[285,159],[256,234],[200,263],[153,299],[94,296],[54,256]]},
+  pisces:{art:'img/sky/pisces.webp', slots:[[145,120],[142,186],[86,219],[71,285],[134,285],[192,264],[247,243],[304,251],[304,185],[248,156]]},
+  aries:{art:'img/sky/aries.webp', slots:[[304,142],[249,174],[190,150],[136,186],[75,169],[54,235],[116,248],[180,242],[245,237],[301,270]]},
+  taurus:{art:'img/sky/taurus.webp', slots:[[66,108],[123,141],[178,174],[232,136],[292,161],[304,227],[286,288],[224,302],[195,243],[158,300]]},
+  gemini:{art:'img/sky/gemini.webp', slots:[[88,117],[145,160],[167,226],[226,255],[273,322],[292,255],[298,190],[254,138],[213,88],[149,94]]},
+  cancer:{art:'img/sky/cancer.webp', slots:[[133,65],[168,134],[164,200],[219,236],[165,274],[107,296],[207,332],[266,284],[278,208],[244,152]]},
+  leo:{art:'img/sky/leo.webp', slots:[[230,80],[227,148],[230,214],[167,228],[113,263],[58,228],[273,268],[230,317],[167,298],[59,299]]},
+  virgo:{art:'img/sky/virgo.webp', slots:[[266,119],[206,146],[190,213],[127,199],[117,265],[54,258],[292,189],[287,253],[226,272],[170,299]]},
+  libra:{art:'img/sky/libra.webp', slots:[[77,153],[132,117],[198,110],[256,140],[265,208],[230,274],[165,279],[112,241],[140,182],[205,181]]}
 };
-/* every other sign: a plain ring of ten slots, starting at the top and turning clockwise */
+/* a plain ring of ten slots, starting at the top and turning clockwise, kept as a fallback for a sign without a layout */
 function ring(){ var out=[], cx=179, cy=196, r=128; for(var i=0;i<10;i++){ var a=-Math.PI/2+i*Math.PI*2/10; out.push([Math.round(cx+r*Math.cos(a)),Math.round(cy+r*Math.sin(a))]); } return out; }
 var RING=ring();
 /* the layout for a sign; `up` lifts the pattern for the shorter panel of a group that is just you */
