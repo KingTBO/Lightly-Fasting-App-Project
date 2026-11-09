@@ -39,7 +39,7 @@ NODE_PATH=$(npm root -g) node tests/cloud.test.js --e2e   # merge rules + sign-i
 NODE_PATH=$(npm root -g) node qa/run-app.js [shots-dir] [--full] [--screens=idle,ob]   # needs Playwright; quick by default (about 1 min); exits 1 on any alignment issue
 ```
 
-Deploys with Cloudflare (Workers & Pages; no build command, the repo root is served as is). Cloudflare is currently connected to the `main` branch of the GitLab backup, so after a change merges to `main` on GitHub, the same commit also goes to GitLab `main` (a fast-forward push), and the site updates within a minute or two. To deploy straight from GitHub instead, reconnect the Worker's build to this repository in the Cloudflare dashboard (Settings, Build, Git repository). GitHub Pages is the previous home and serves the same files.
+Deploys with Cloudflare (Workers & Pages; no build command, the repo root is served as is). Cloudflare is connected to the `main` branch of this GitHub repository (Settings, Build, Git repository), so a change merged to `main` goes live within a minute or two. The GitLab copy is only a backup. GitHub Pages is the previous home and serves the same files.
 
 ## Credits
 
