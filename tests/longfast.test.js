@@ -20,7 +20,7 @@ const H=3600000,D=24*H;
    assert(!(await q.$('.plan[data-id="'+id+'"][disabled]')),id+' h is open');const t=await q.textContent('.plan[data-id="'+id+'"]');assert.match(t,/Advanced/);assert.match(t,/Only if you have done it before/);assert.match(t,rx);assert(!/Locked|Rest first|Paused/.test(t),'no lock on '+id);}
   // choosing 24 h: the warning opens, the phone buzzes, nothing is chosen until Yes
   await q.evaluate(()=>{window.__vib.length=0;});await q.click('.plan[data-id="24"]');await q.waitForTimeout(300);
-  let t=await q.textContent('#sheet');assert.match(t,/Done a 24-hour fast before\?/);assert.match(t,/only if you have done one before, not as your first time/);assert.match(t,/once a week at most/);
+  let t=await q.textContent('#sheet');assert.match(t,/Done a 24-hour fast before\?/);assert.match(t,/Only if you have done it before\. Once a week at most\./);assert(t.length<400,'the warning stays short');
   assert(await q.$('#sheet .warn-ico'),'the amber warning mark');assert.deepStrictEqual(await q.evaluate(()=>window.__vib.slice(-1)[0]),[22,50,22,50,34],'the warning buzz');
   assert.strictEqual((await S(q)).planId,'16','nothing is chosen while it is asked');
   // Not now goes back to the plan list, still on 16:8
@@ -32,7 +32,7 @@ const H=3600000,D=24*H;
   assert.strictEqual((await S(q)).planId,'24','Yes picks 24 h');assert.match(await q.textContent('#sheet'),/Your plan/);
   // 36 h has its own words
   await q.evaluate(()=>{window.__vib.length=0;});if(!(await q.$('.plan[data-id="36"]'))) await q.click('[data-act=more]');
-  await q.click('.plan[data-id="36"]');await q.waitForTimeout(300);t=await q.textContent('#sheet');assert.match(t,/Done a 36-hour fast before\?/);assert.match(t,/twice a month at most/);assert(await q.evaluate(()=>window.__vib.length)>0,'buzz');
+  await q.click('.plan[data-id="36"]');await q.waitForTimeout(300);t=await q.textContent('#sheet');assert.match(t,/Done a 36-hour fast before\?/);assert.match(t,/Twice a month at most\./);assert(await q.evaluate(()=>window.__vib.length)>0,'buzz');
   await q.click('[data-act=lwgo]');await q.waitForTimeout(300);assert.strictEqual((await S(q)).planId,'36');
   ok('experienced: 24 h and 36 h open with no fasts, Advanced tag, advice words, warning + buzz, Not now, Yes');
   // the short safety check before the fast is unchanged
@@ -48,15 +48,15 @@ const H=3600000,D=24*H;
 
  // advice, never a block: a recent long fast and an unwell check-in add an amber line, and the row says to rest
  {const q=await fresh(seed({fasts:[ago(2,24)]}));await open(q);assert(!(await q.$('.plan[data-id="24"][disabled]')),'still open');assert.match(await q.textContent('.plan[data-id="24"]'),/Maybe rest a few more days first/);
-  await q.click('.plan[data-id="24"]');await q.waitForTimeout(300);assert.match(await q.textContent('#sheet .lw-note'),/less than 3 days ago/);await q.click('[data-act=lwgo]');await q.waitForTimeout(300);assert.strictEqual((await S(q)).planId,'24','the advice does not stop anyone');
+  await q.click('.plan[data-id="24"]');await q.waitForTimeout(300);assert.match(await q.textContent('#sheet .lw-note'),/under 3 days ago/);await q.click('[data-act=lwgo]');await q.waitForTimeout(300);assert.strictEqual((await S(q)).planId,'24','the advice does not stop anyone');
   ok('a recent long fast: an amber note and a rest hint, not a block');await q.context().close();}
- {const q=await fresh(seed({fasts:[ago(5,24)]}));await open(q);await q.click('.plan[data-id="24"]');await q.waitForTimeout(300);assert.match(await q.textContent('#sheet .lw-note'),/one a week at most/);await q.context().close();}
- {const q=await fresh(seed({fasts:[ago(5,36),ago(12,36)]}));await open(q);await q.click('.plan[data-id="36"]');await q.waitForTimeout(300);assert.match(await q.textContent('#sheet .lw-note'),/two a month at most/);await q.context().close();}
+ {const q=await fresh(seed({fasts:[ago(5,24)]}));await open(q);await q.click('.plan[data-id="24"]');await q.waitForTimeout(300);assert.match(await q.textContent('#sheet .lw-note'),/Once a week is plenty/);await q.context().close();}
+ {const q=await fresh(seed({fasts:[ago(5,36),ago(12,36)]}));await open(q);await q.click('.plan[data-id="36"]');await q.waitForTimeout(300);assert.match(await q.textContent('#sheet .lw-note'),/Two a month is plenty/);await q.context().close();}
  {const q=await fresh(seed({unwell:Date.now()-2*D}));await open(q);assert(!(await q.$('.plan[data-id="24"][disabled]')),'unwell no longer locks the row');await q.click('.plan[data-id="24"]');await q.waitForTimeout(300);assert.match(await q.textContent('#sheet .lw-note'),/felt unwell recently/);
   ok('a week since the last 24 h, two 36 h in a month, and a recent unwell check-in each add one amber line');await q.context().close();}
 
  // 中文
- {const q=await fresh(seed({lang:'zh'}));await open(q);await q.click('.plan[data-id="24"]');await q.waitForTimeout(300);const t=await q.textContent('#sheet');assert.match(t,/以前做过 24 小时断食吗/);assert.match(t,/不要作为第一次/);assert.match(t,/每周最多一次/);assert.match(t,/是的，我以前做过/);
+ {const q=await fresh(seed({lang:'zh'}));await open(q);await q.click('.plan[data-id="24"]');await q.waitForTimeout(300);const t=await q.textContent('#sheet');assert.match(t,/以前做过 24 小时断食吗/);assert.match(t,/做过再选。每周最多一次。/);assert.match(t,/是的，我以前做过/);
   const bb=await q.locator('#sheet').boundingBox();const bt=await q.locator('[data-act=lwgo]').boundingBox();assert(bt.x>=bb.x&&bt.x+bt.width<=bb.x+bb.width+1,'the button fits');
   ok('中文 warning');await q.context().close();}
 

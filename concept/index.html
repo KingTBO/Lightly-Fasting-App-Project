@@ -2720,7 +2720,7 @@ window.LightlySphere=(function(){
   /* 24 h and 36 h for people who have fasted before: an amber warning that shakes and buzzes first. Advice, not a lock. */
   function warn(id){ var is24=id==='24', w=$('psWarn');
     $('pwT').textContent=is24?L('Done a 24-hour fast before?','以前做过 24 小时断食吗？'):L('Done a 36-hour fast before?','以前做过 36 小时断食吗？');
-    $('pwD').textContent=(is24?L('It is a long fast. We recommend it only if you have done one before, not as your first time.','这是长时间断食。我们建议只有以前做过的人再尝试，不要作为第一次。'):L('It is a very long fast, across more than one night. We recommend it only if you have done one before, not as your first time.','这是很长的断食，会跨过不止一个夜晚。我们建议只有以前做过的人再尝试，不要作为第一次。'))+L(' ','')+(is24?L('Please keep it to once a week at most.','建议每周最多一次。'):L('Please keep it to twice a month at most.','建议每月最多两次。'));
+    $('pwD').textContent=L('Only if you have done it before. ','做过再选。')+(is24?L('Once a week at most.','每周最多一次。'):L('Twice a month at most.','每月最多两次。'));
     $('pwYes').textContent=L('Yes, I have done this before','是的，我以前做过'); $('pwNo').textContent=L('Not now','以后再说');
     $('pwYes').onclick=function(){ w.hidden=true; choose(id); }; $('pwNo').onclick=function(){ w.hidden=true; };
     w.hidden=false; var m=w.querySelector('.pw-ico'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake');

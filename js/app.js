@@ -357,17 +357,15 @@ function startFlow(planId){
 function longPick(p){ if(S.cur){ return longSafety(p); } S.planId=p.id; save(); cache={}; updateToday(); return planSheet(); }
 function longNoteTxt(n){
   if(!n) return '';
-  var d=dateLbl(n.until);
-  if(n.k==='unwell') return L('You said you felt unwell recently. Please wait until you feel well again.','你最近说过身体不适，请等身体恢复后再试。');
-  if(n.k==='gap') return L('Your last long fast ended less than 3 days ago. A few more days of rest would be kinder.','你上一次长时间断食结束还不到 3 天，多休息几天会更好。');
-  if(n.k==='week') return L('You did a 24-hour fast within the last week. We suggest one a week at most. Fine again from '+d+'.','你最近一周内做过 24 小时断食，建议每周最多一次，'+d+'起更合适。');
-  return L('You have done two 36-hour fasts in the last 30 days. We suggest two a month at most. Fine again from '+d+'.','过去 30 天你已做过两次 36 小时断食，建议每月最多两次，'+d+'起更合适。');
+  if(n.k==='unwell') return L('You said you felt unwell recently. Wait until you feel well.','你最近说过身体不适，等恢复了再试。');
+  if(n.k==='gap') return L('Your last long fast ended under 3 days ago. Rest a little more.','上一次长时间断食结束还不到 3 天，再休息一下。');
+  if(n.k==='week') return L('You did a 24-hour fast this week. Once a week is plenty.','你这周已做过 24 小时断食，每周一次就够了。');
+  return L('You did two 36-hour fasts in the last 30 days. Two a month is plenty.','过去 30 天你已做过两次 36 小时断食，每月两次就够了。');
 }
 function longWarn(p,st){
   var is24=p.fast===24, note=longNoteTxt(st.note);
   openSheet('<!--keep--><div class="warn-ico care">'+WARN+'</div><h3 class="ctr">'+(is24?L('Done a 24-hour fast before?','以前做过 24 小时断食吗？'):L('Done a 36-hour fast before?','以前做过 36 小时断食吗？'))+'</h3>'+
-    '<p class="lede ctr">'+(is24?L('It is a long fast. We recommend it only if you have done one before, not as your first time.','这是长时间断食。我们建议只有以前做过的人再尝试，不要作为第一次。'):L('It is a very long fast, across more than one night. We recommend it only if you have done one before, not as your first time.','这是很长的断食，会跨过不止一个夜晚。我们建议只有以前做过的人再尝试，不要作为第一次。'))+L(' ','')+
-    (is24?L('Please keep it to once a week at most.','建议每周最多一次。'):L('Please keep it to twice a month at most.','建议每月最多两次。'))+'</p>'+
+    '<p class="lede ctr">'+L('Only if you have done it before. ','做过再选。')+(is24?L('Once a week at most.','每周最多一次。'):L('Twice a month at most.','每月最多两次。'))+'</p>'+
     (note?'<p class="note lw-note">'+note+'</p>':'')+
     '<div class="btns"><button class="btn warm solid" data-act="lwgo" data-p="'+p.id+'">'+L('Yes, I have done this before','是的，我以前做过')+'</button><button class="btn sec" data-act="lwback">'+L('Not now','以后再说')+'</button></div>');
   fx('warn');
