@@ -41,6 +41,16 @@ function init(h){
   /* the sky is drawn on a 358 px wide board; on a narrower phone the whole board scales down together */
   function fitSky(){ var k=document.querySelector('#friends .fr-sky'); if(k) k.style.setProperty('--ks',Math.min(1,k.clientWidth/358).toFixed(4)); }
   window.addEventListener('resize',fitSky);
+  /* The figure is a CSS mask. Until its image has loaded some browsers paint the whole panel unmasked, which shows as a flash of blue when the screen is rebuilt
+     (switching light and dark, coming back to the tab). So a new figure stays hidden until its image is decoded and a frame or two have passed. */
+  /* The fade runs on its own clock: it starts again from the Stars look whenever the tab is shown or a group opens, and keeps going through every other re-render
+     (the figure's element is kept, see render), so coming back to the tab or switching light and dark never makes it pop in or flash. */
+  var skyT0=Date.now();
+  function skyPhase(){ return (-(((Date.now()-skyT0)/1000)%14)).toFixed(2)+'s'; }
+  var artDecoded={};
+  function decodeArt(u){ if(artDecoded[u]) return artDecoded[u]; var i=new Image(); i.src=u; return artDecoded[u]=(i.decode?i.decode():new Promise(function(ok){ i.onload=ok; i.onerror=ok; })).catch(function(){}); }
+  function revealArt(){ [].forEach.call(document.querySelectorAll('#friends .fr-art:not(.rd)'),function(el){ decodeArt(el.getAttribute('data-art')).then(function(){ requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(el.isConnected) el.classList.add('rd'); }); }); }); }); }
+  if(Z){ try{ var a0=Z.layout(Z.signAt(h.today()),0).art; if(a0) decodeArt(a0); }catch(e){} }
   function reduceMotion(){ return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches); }
   function personCount(n){ return L(n+(n===1?' person':' people'),n+' 人'); }
   /* a group card: the app's card colour, the name, one line, and a stack of the people (read from today's board, kept on the phone) */
@@ -61,7 +71,11 @@ function init(h){
       x='<div class="gh">'+L('Your groups','你的小组')+'</div><div class="fr-gcs">'+st.groups.map(groupCard).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
         (st.err?'<div class="gf" role="status">'+esc(F.errorText(st.err,lang()))+'</div>':'');
     }
+    var keep=el.querySelector('.fr-art');   /* the figure already on screen is put back after the rebuild, at the right moment of the cycle */
     el.innerHTML=x; fitSky();
+    var na=el.querySelector('.fr-art');
+    if(keep&&na&&keep.getAttribute('data-art')===na.getAttribute('data-art')&&keep.getAttribute('data-up')===na.getAttribute('data-up')){ keep.style.animationDelay=skyPhase(); na.replaceWith(keep); }
+    revealArt();
   }
   /* read the groups (and whether this person already has a name for groups). The last good answer stays on screen if it fails. */
   function refresh(){
@@ -77,7 +91,7 @@ function init(h){
   function stacks(){ var keep={};
     return Promise.all(st.groups.map(function(g){ return CL.rpc('group_roster',{p_gid:g.group_id}).then(function(rows){ rows=(rows||[]).slice().sort(function(x,y){ return (y.is_me?1:0)-(x.is_me?1:0); }); keep[g.group_id]=rows.slice(0,5).map(function(x){ return [x.user_id,x.avatar]; }); }).catch(function(){ if(st.stack[g.group_id]) keep[g.group_id]=st.stack[g.group_id]; }); }))
       .then(function(){ st.stack=keep; save(); }); }
-  function show(){ render(); if(view) loadBoard(false); refresh().then(function(){ if(st.joinCode&&signedIn()&&!view) startJoin(st.joinCode); }); if(st.joinCode&&!signedIn()) previewFor(st.joinCode); }
+  function show(){ skyT0=Date.now(); render(); if(view) loadBoard(false); refresh().then(function(){ if(st.joinCode&&signedIn()&&!view) startJoin(st.joinCode); }); if(st.joinCode&&!signedIn()) previewFor(st.joinCode); }
 
   /* ---------- a group: the day strip, one row per person ---------- */
   var DOW=[['S','日'],['M','一'],['T','二'],['W','三'],['T','四'],['F','五'],['S','六']], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -118,11 +132,11 @@ function init(h){
   function skyHtml(rows,created){
     var sg=Z.signAt(h.today()), lay=Z.layout(sg,created?24:0), people=ordered(rows), N=people.length, H=created?360:400, pts=lay.slots, seats=pts.slice(N,10);
     var pl=pts.slice(0,N).map(function(p){ return p[0]+','+p[1]; }).join(' '), ds=(N?[pts[N-1]]:[]).concat(seats).map(function(p){ return p[0]+','+p[1]; }).join(' ');
-    var off=(-((Date.now()/1000)%14)).toFixed(2)+'s', look=view.look||'auto';
+    var off=skyPhase(), look=view.look||'auto';
     var lbl=L(sg.en+' sky. '+N+(N===1?' person is':' people are')+' a star in the pattern'+(seats.length?', '+seats.length+(seats.length===1?' place is':' places are')+' open.':'.'),sg.zh+'星空。'+N+' 人是图案里的星星'+(seats.length?'，还有 '+seats.length+' 个空位。':'。'));
     return '<div class="fr-sky'+(lay.fig?' fig':'')+'" data-look="'+look+'" role="group" aria-label="'+esc(lbl)+'" style="aspect-ratio:358/'+H+'"><div class="fr-skyi" style="height:'+H+'px">'+
       '<div class="fr-tw" aria-hidden="true">'+TW.map(function(t){ return '<i style="left:'+t[0]+'px;top:'+(t[1]-(created?24:0))+'px;animation-duration:'+t[2]+'s"></i>'; }).join('')+'</div>'+
-      (lay.fig?'<div class="fr-art" aria-hidden="true" style="-webkit-mask-image:url('+lay.art+');mask-image:url('+lay.art+');animation-delay:'+off+(created?';-webkit-mask-position:0 -24px;mask-position:0 -24px':'')+'"></div>':'')+
+      (lay.fig?'<div class="fr-art" aria-hidden="true" data-art="'+lay.art+'" data-up="'+(created?24:0)+'" style="-webkit-mask-image:url('+lay.art+');mask-image:url('+lay.art+');animation-delay:'+off+(created?';-webkit-mask-size:auto 100%;mask-size:auto 100%;-webkit-mask-position:center;mask-position:center':'')+'"></div>':'')+
       '<svg class="fr-ln" width="358" height="'+H+'" viewBox="0 0 358 '+H+'" aria-hidden="true" style="animation-delay:'+off+'">'+(N>1?'<polyline points="'+pl+'" fill="none" stroke="var(--fcl)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>':'')+(seats.length?'<polyline points="'+ds+'" fill="none" stroke="var(--fcl)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 6"/>':'')+'</svg>'+
       (lay.fig?'<button type="button" class="fr-look" data-act="frlook" aria-label="'+L('Switch between the stars and the figure','在星星和星座图之间切换')+'"></button>':'')+
       people.map(function(x,i){ return starHtml(x,pts[i]); }).join('')+seats.map(seatHtml).join('')+
@@ -156,7 +170,7 @@ function init(h){
   function openGroup(id){
     var g=st.groups.filter(function(x){ return x.group_id===id; })[0]; if(!g) return;
     var t=h.today(); view={id:id,name:g.name,role:g.role,n:g.member_count,wk:{days:F.weekDays(t),today:t,b:[],day:6,err:'',at:0},busy:false,sel:null,look:'auto',order:[],inv:null};
-    render(); var el=$('friends'); if(el) el.scrollTop=0; loadBoard(true);
+    skyT0=Date.now(); render(); var el=$('friends'); if(el) el.scrollTop=0; loadBoard(true);
   }
   /* the group's boards: all seven days when it opens (so a person's week is ready), then just today every minute */
   function loadBoard(all){
