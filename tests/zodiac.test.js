@@ -12,6 +12,16 @@ const seen={}; for(let m=1;m<=12;m++) for(let d=1;d<=new Date(2024,m,0).getDate(
 assert.strictEqual(Object.keys(seen).length,12,'all twelve signs are used'); assert.strictEqual(Object.values(seen).reduce((a,b)=>a+b,0),366);
 assert.strictEqual(Z.signAt(new Date(2026,10,8)).k,'scorpio','a Date works too'); ok('the sign by date: 12 signs, exact boundaries, Capricorn across the new year');
 
+// the leap day, and the phone's LOCAL date (not UTC) far from UTC: the same instant is a different sign on opposite sides of the date line
+assert.strictEqual(Z.signAt('2024-02-29').k,'pisces','Feb 29 in a leap year is Pisces'); assert.strictEqual(Z.signAt('2028-02-29').k,'pisces'); assert.strictEqual(Z.signAt('2024-02-18').k,'aquarius'); assert.strictEqual(Z.signAt('2024-02-19').k,'pisces'); assert.strictEqual(Z.signAt(new Date(2024,1,29,23,59,59)).k,'pisces');
+const {execFileSync}=require('child_process');
+const inTZ=(tz,iso)=>execFileSync(process.execPath,['-e',"const C=require('./js/core.js'),Z=require('./js/zodiac.js'); const ms=Date.parse('"+iso+"'); console.log(C.dayKey(ms)+' '+Z.signAt(C.dayKey(ms)).k+' '+Z.signAt(new Date(ms)).k)"],{cwd:path.join(__dirname,'..'),env:Object.assign({},process.env,{TZ:tz})}).toString().trim();
+assert.strictEqual(inTZ('UTC','2026-11-21T23:30:00Z'),'2026-11-21 scorpio scorpio','23:30 UTC on Nov 21 is still Scorpio in UTC');
+assert.strictEqual(inTZ('Pacific/Kiritimati','2026-11-21T23:30:00Z'),'2026-11-22 sagittarius sagittarius','but it is already Nov 22 (Sagittarius) at UTC+14');
+assert.strictEqual(inTZ('Pacific/Pago_Pago','2026-11-22T05:00:00Z'),'2026-11-21 scorpio scorpio','and still Nov 21 (Scorpio) at UTC-11 after UTC has reached Nov 22');
+assert.strictEqual(inTZ('Asia/Shanghai','2026-12-21T16:00:00Z'),'2026-12-22 capricorn capricorn','Shanghai at midnight: Dec 22 is Capricorn'); assert.strictEqual(inTZ('America/Los_Angeles','2027-01-01T05:00:00Z'),'2026-12-31 capricorn capricorn','Los Angeles on New Year\'s Eve is still Capricorn'); assert.strictEqual(inTZ('Pacific/Auckland','2027-01-19T11:30:00Z'),'2027-01-20 aquarius aquarius','Auckland has passed Jan 19 into Aquarius');
+ok('local date: leap day, the date line, midnight in far time zones (UTC, UTC+14, UTC-11, Shanghai, Los Angeles, Auckland)');
+
 // names, dates and element, in both languages
 const sc=Z.signAt('2026-11-08'), sg=Z.signAt('2026-11-22');
 assert.strictEqual(Z.name(sc,'en'),'Scorpio'); assert.strictEqual(Z.name(sc,'zh'),'天蝎座'); assert.strictEqual(Z.caption(sc,'en'),'Oct 23 – Nov 21 · Water'); assert.strictEqual(Z.caption(sc,'zh'),'10月23日 – 11月21日 · 水象');

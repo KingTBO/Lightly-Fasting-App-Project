@@ -3191,7 +3191,7 @@ function dyBloom(){
   var RING=[]; (function(){ for(var i=0;i<10;i++){ var a=-Math.PI/2+i*Math.PI*2/10; RING.push([Math.round(179+128*Math.cos(a)),Math.round(196+128*Math.sin(a))]); } })();
   function signNow(){ var d=new Date(), v=(d.getMonth()+1)*100+d.getDate(), i, s, a, b; for(i=0;i<SIGNS.length;i++){ s=SIGNS[i]; a=s[4][0]*100+s[4][1]; b=s[5][0]*100+s[5][1]; if(a<=b?(v>=a&&v<=b):(v>=a||v<=b)) return s; } return SIGNS[0]; }
   function signCap(s){ var f=s[4], t=s[5], zh=api.lang()==='zh'; return (zh?f[0]+'月'+f[1]+'日 – '+t[0]+'月'+t[1]+'日':MON[f[0]-1]+' '+f[1]+' – '+MON[t[0]-1]+' '+t[1])+' · '+s[3][zh?1:0]; }
-  var sel=null, look='auto', view='list';
+  var sel=null, look='auto', view='list', lastSign='';
   function ringSvg(x,on){ var s='<svg class="fr-ring" width="44" height="44" viewBox="-22 -22 44 44" aria-hidden="true">'+(on?'<circle r="21" fill="none" stroke="var(--tint)" stroke-width="2"/>':'')+'<circle r="17" fill="var(--fseat)"/>';
     if(x.s==='done') s+='<circle r="17.5" fill="none" stroke="url(#frRing)" stroke-width="3.8"/>';
     else if(x.s==='rest') s+='<circle r="17.5" fill="none" stroke="var(--fdash)" stroke-width="2.4" stroke-dasharray="3.4 3.6"/>';
@@ -3201,7 +3201,7 @@ function dyBloom(){
   var FLARE='<svg class="fr-flare" width="60" height="60" viewBox="-30 -30 60 60" aria-hidden="true"><path d="M0 -28C2 -9 9 -2 28 0C9 2 2 9 0 28C-2 9 -9 2 -28 0C-9 -2 -2 -9 0 -28Z" fill="#FFC93C"/></svg>';
   var TW=[[30,26,5],[208,24,7],[318,64,6],[260,120,8],[36,210,6.5],[78,350,5.5],[330,170,9],[224,300,7.5]];
   function sky(b,created){
-    var sg=signNow(), L0=SLOTS[sg[0]], fig=!!L0, up=created?24:0, H=created?360:400, slots=(L0||RING).map(function(p){ return [p[0],p[1]-up]; }), N=b.length, seats=slots.slice(N,10);
+    var sg=signNow(); lastSign=sg[0]; var L0=SLOTS[sg[0]], fig=!!L0, up=created?24:0, H=created?360:400, slots=(L0||RING).map(function(p){ return [p[0],p[1]-up]; }), N=b.length, seats=slots.slice(N,10);
     var pl=slots.slice(0,N).map(function(p){ return p.join(','); }).join(' '), ds=(N?[slots[N-1]]:[]).concat(seats).map(function(p){ return p.join(','); }).join(' '), off=skyPhase();
     var stars=b.map(function(x,i){ var p=slots[i], on=sel===x.k, dim=x.s==='rest'||x.s==='none';
       return '<button type="button" class="fr-st" data-a="star" data-k="'+x.k+'" style="left:'+(p[0]-22)+'px;top:'+(p[1]-22)+'px" aria-pressed="'+(sel===x.k)+'" aria-label="'+nm(x.k)+', '+word(x)+'">'+(x.s==='done'?FLARE:'')+ringSvg(x,on)+'<span class="fr-sav'+(dim?' dim':'')+'">'+av(x.k)+'</span><span class="fr-sl">'+(x.k==='you'&&created?L('You','我'):nm(x.k))+'</span></button>'; }).join('');
@@ -3306,6 +3306,9 @@ function dyBloom(){
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ if(shown) render(); if(sheetFn) setSheet(sheetFn); },0); }); });
   $('meSignOut').addEventListener('click',function(){ has=false; cheered={}; });
 
+  /* the sky follows the date: another sign after midnight, or when the page comes back to the front */
+  function checkSign(){ if(shown&&(view==='group'||view==='created')&&lastSign&&signNow()[0]!==lastSign){ skyT0=Date.now(); render(); } }
+  setInterval(checkSign,20000); document.addEventListener('visibilitychange',function(){ if(!document.hidden) checkSign(); });
   window.LightlyFriends={ show:function(v){ if(v){ if(!signedIn()) has=false; day=6; skyT0=Date.now(); if(!has) view='list'; render(); fr.scrollTop=0; } else closeSheet(); shown=v; fr.classList.toggle('open',v); fr.setAttribute('aria-hidden',!v); } };
 
   /* "Try it" in the Friends section: sign in as a demo, jump to the phone, open Friends on the sample group */

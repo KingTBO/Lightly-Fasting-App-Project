@@ -71,10 +71,13 @@ function init(h){
       x='<div class="gh">'+L('Your groups','你的小组')+'</div><div class="fr-gcs">'+st.groups.map(groupCard).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
         (st.err?'<div class="gf" role="status">'+esc(F.errorText(st.err,lang()))+'</div>':'');
     }
-    var keep=el.querySelector('.fr-art');   /* the figure already on screen is put back after the rebuild, at the right moment of the cycle */
+    var keep=el.querySelector('.fr-art'), keepOp=keep?parseFloat(getComputedStyle(keep).opacity)||0:0;   /* the figure already on screen is put back after the rebuild, at the right moment of the cycle */
     el.innerHTML=x; fitSky();
     var na=el.querySelector('.fr-art');
     if(keep&&na&&keep.getAttribute('data-art')===na.getAttribute('data-art')&&keep.getAttribute('data-up')===na.getAttribute('data-up')){ keep.style.animationDelay=skyPhase(); na.replaceWith(keep); }
+    else if(keep&&na&&keepOp>.02&&view&&h.tab()==='friends'){   /* a new sign (the date changed): the old figure fades out while the new one starts from the Stars look */
+      var host=na.parentNode; keep.removeAttribute('data-art'); keep.classList.add('out'); keep.style.animation='none'; keep.style.opacity=keepOp; keep.style.transition='opacity .7s ease'; host.insertBefore(keep,na);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ keep.style.opacity='0'; }); }); setTimeout(function(){ if(keep.parentNode) keep.parentNode.removeChild(keep); },900); }
     revealArt();
   }
   /* read the groups (and whether this person already has a name for groups). The last good answer stays on screen if it fails. */
@@ -130,7 +133,7 @@ function init(h){
     var by={}; rows.forEach(function(r){ by[r.user_id]=r; });
     (view.order||[]).forEach(function(u){ if(by[u]) out.push(by[u]); }); return out; }
   function skyHtml(rows,created){
-    var sg=Z.signAt(h.today()), lay=Z.layout(sg,created?24:0), people=ordered(rows), N=people.length, H=created?360:400, pts=lay.slots, seats=pts.slice(N,10);
+    var sg=Z.signAt(h.today()), lay=Z.layout(sg,created?24:0); view.sign=sg.k; var  people=ordered(rows), N=people.length, H=created?360:400, pts=lay.slots, seats=pts.slice(N,10);
     var pl=pts.slice(0,N).map(function(p){ return p[0]+','+p[1]; }).join(' '), ds=(N?[pts[N-1]]:[]).concat(seats).map(function(p){ return p[0]+','+p[1]; }).join(' ');
     var off=skyPhase(), look=view.look||'auto';
     var lbl=L(sg.en+' sky. '+N+(N===1?' person is':' people are')+' a star in the pattern'+(seats.length?', '+seats.length+(seats.length===1?' place is':' places are')+' open.':'.'),sg.zh+'星空。'+N+' 人是图案里的星星'+(seats.length?'，还有 '+seats.length+' 个空位。':'。'));
@@ -198,12 +201,18 @@ function init(h){
     return CL.rpc('publish_me',p).then(function(){ pub.last=p; pub.at=Date.now(); }).catch(function(e){ if(F.errorKey(e)==='no_profile') st.profile=null; }).then(function(){ pub.busy=false; });
   }
   function changed(){ if(!wantsPublish()) return; clearTimeout(pub.t); pub.t=setTimeout(function(){ publish(false); },1500); }
+  /* the sky follows the date: when the day rolls over into another sign (midnight, or coming back to the app the next day), the whole sky changes at once */
+  function checkSign(){ if(Z&&view&&view.sign&&h.tab()==='friends'&&Z.signAt(h.today()).k!==view.sign){ skyT0=Date.now(); render(); } }
   function tick(){
-    if(document.hidden||!enabled()||!signedIn()) return; publish(false);
+    if(document.hidden||!enabled()||!signedIn()) return; checkSign(); publish(false);
     if(h.tab()==='friends'&&!document.querySelector('#sheet.open')){ if(view) loadBoard(false); else refresh(); }
   }
   setInterval(tick,F.POLL_MS);
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) tick(); });
+  window.addEventListener('focus',tick); window.addEventListener('pageshow',tick);
+  /* and exactly at the next local midnight, when the app is open */
+  function toMidnight(){ var d=new Date(); return new Date(d.getFullYear(),d.getMonth(),d.getDate()+1,0,0,1,0)-d; }
+  (function midnight(){ setTimeout(function(){ tick(); midnight(); },toMidnight()+300); })();
 
   /* ---------- sheets ---------- */
   function fail(e){ h.toast(F.errorText(F.errorKey(e),lang())); }
