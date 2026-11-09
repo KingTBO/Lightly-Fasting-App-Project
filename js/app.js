@@ -7,7 +7,7 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 
 /* ---------- state ---------- */
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
-function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null},
+function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null,careUndo:null},
   planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
   prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,body:null,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
@@ -18,7 +18,7 @@ function load(){
   catch(e){ storageOk=false; }
 }
 /* Care mode keeps the three health answers in profile.care (profile.safety is true while any is ticked). People who answered before Care mode existed have safety true and no list: they are 'earlier'. */
-function careMigrate(){ var P=S.profile; if(!P) return; if(!Array.isArray(P.care)) P.care=[]; if(P.safety&&!P.care.length) P.care=['earlier']; P.safety=P.care.length>0; if(P.careOff===undefined) P.careOff=null; }
+function careMigrate(){ var P=S.profile; if(!P) return; if(!Array.isArray(P.care)) P.care=[]; if(P.safety&&!P.care.length) P.care=['earlier']; P.safety=P.care.length>0; if(P.careOff===undefined) P.careOff=null; if(P.careUndo===undefined) P.careUndo=null; }
 var saveT=0;
 var quiet=false;
 function save(){ if(!quiet) S.mod=Date.now(); clearTimeout(saveT); saveT=setTimeout(saveNow,60); if(!quiet){ cloudSoon(); if(FUI) FUI.changed(); } }
@@ -115,8 +115,8 @@ function canTick(){ return !!navigator.vibrate||IOS; }
 function buzz(p){ if(!S.prefs.haptics) return; try{ if(navigator.vibrate) navigator.vibrate(p); else iosTap(); }catch(e){} }
 /* one fixed vocabulary, so the same thing always feels the same:
    select = a wheel detent, light = a touch or toggle, hour = the hour turns, medium = a fast starts or a hold completes,
-   success = the goal is reached, or an import adds fasts (its soft chime is the biggest sound; the wheels also make a very quiet tick, see sTick), nope = a gentle "not now" (two light taps, no sound). Nothing fires on routine saves. */
-var FX={select:3,light:6,hour:8,medium:14,success:[30,60,30],nope:[8,70,8]};
+   success = the goal is reached, or an import adds fasts (its soft chime is the biggest sound; the wheels also make a very quiet tick, see sTick), nope = a gentle "not now" (two light taps, no sound), warn = a three-pulse buzz when a sheet asks you to check a change. Nothing fires on routine saves. */
+var FX={select:3,light:6,hour:8,medium:14,success:[30,60,30],nope:[8,70,8],warn:[22,50,22,50,34]};
 function fx(k){ buzz(FX[k]); if(k==='success') sChime(); else if(k==='select') sTick(); }
 
 /* ---------- toast, sheet ---------- */
@@ -334,8 +334,9 @@ act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } i
 
 /* a button in a sheet that must be held to confirm, the same press-and-hold as ending a fast */
 var HB=null;
-function hbEnd(){ if(!HB) return; var x=HB; HB=null; cancelAnimationFrame(x.raf); x.b.classList.remove('holding'); x.b.style.setProperty('--hold',0); x.lbl.textContent=x.orig; }
-function hbBegin(b){ if(HB||b.disabled) return; var lbl=b.querySelector('.hl'), t0=performance.now(), ms=+b.dataset.ms||HOLD_MS; HB={b:b,lbl:lbl,orig:lbl.textContent,raf:0}; b.classList.add('holding'); lbl.textContent=L('Keep holding…','继续按住…'); fx('light');
+function hbEnd(){ if(!HB) return; var x=HB; HB=null; cancelAnimationFrame(x.raf); clearInterval(x.bz); var w=sheetEl.querySelector('.warn-ico'); if(w) w.classList.remove('trem'); x.b.classList.remove('holding'); x.b.style.setProperty('--hold',0); x.lbl.textContent=x.orig; }
+function hbBegin(b){ if(HB||b.disabled) return; var lbl=b.querySelector('.hl'), t0=performance.now(), ms=+b.dataset.ms||HOLD_MS; HB={b:b,lbl:lbl,orig:lbl.textContent,raf:0,bz:0}; b.classList.add('holding'); lbl.textContent=L('Keep holding…','继续按住…'); fx('light');
+  if(b.dataset.buzz){ var w=sheetEl.querySelector('.warn-ico'); if(w) w.classList.add('trem'); HB.bz=setInterval(function(){ buzz(12); },140); } /* a warning hold (Care mode): the mark trembles and the phone buzzes for as long as you hold */
   (function step(){ if(!HB||HB.b!==b) return; var f=Math.min((performance.now()-t0)/ms,1); b.style.setProperty('--hold',f); if(f>=1){ hbEnd(); fx('medium'); A[b.dataset.hold](b); return; } HB.raf=requestAnimationFrame(step); })(); }
 document.addEventListener('pointerdown',function(e){ var b=e.target.closest&&e.target.closest('.btn[data-hold]'); if(!b||!ph.contains(b)) return; e.preventDefault(); try{ b.setPointerCapture(e.pointerId); }catch(x){} hbBegin(b); });
 ['pointerup','pointercancel'].forEach(function(n){ document.addEventListener(n,hbEnd); });
@@ -350,6 +351,24 @@ function startFlow(planId){
   if(!p.long&&!planOk(id)){ normalisePlan(); p=plan(); toast(L('That plan opens later. Starting '+C.planLabel(p)+' instead.','那个计划稍后开放，先用 '+C.planLabel(p)+'。')); }
   if(p.long){ var st=longSt(p.fast); if(st.st!=='ok'){ toast(L('That fast isn’t available yet. Open your plan to see why.','这个断食现在还不能用，打开计划看看原因。')); return; } return longSafety(p); }
   beginFast(p,Date.now());
+}
+/* 24 h and 36 h for people who have fasted before: open from the start, but choosing one asks first, with an amber warning mark that shakes and a buzz.
+   It is advice, not a lock: how often (once a week at most for 24 h, twice a month for 36 h) is only a note, and a rest the person's own history suggests is added in amber. */
+function longPick(p){ if(S.cur){ return longSafety(p); } S.planId=p.id; save(); cache={}; updateToday(); return planSheet(); }
+function longNoteTxt(n){
+  if(!n) return '';
+  if(n.k==='unwell') return L('You said you felt unwell recently. Wait until you feel well.','你最近说过身体不适，等恢复了再试。');
+  if(n.k==='gap') return L('Your last long fast ended under 3 days ago. Rest a little more.','上一次长时间断食结束还不到 3 天，再休息一下。');
+  if(n.k==='week') return L('You did a 24-hour fast this week. Once a week is plenty.','你这周已做过 24 小时断食，每周一次就够了。');
+  return L('You did two 36-hour fasts in the last 30 days. Two a month is plenty.','过去 30 天你已做过两次 36 小时断食，每月两次就够了。');
+}
+function longWarn(p,st){
+  var is24=p.fast===24, note=longNoteTxt(st.note);
+  openSheet('<!--keep--><div class="warn-ico care">'+WARN+'</div><h3 class="ctr">'+(is24?L('Done a 24-hour fast before?','以前做过 24 小时断食吗？'):L('Done a 36-hour fast before?','以前做过 36 小时断食吗？'))+'</h3>'+
+    '<p class="lede ctr">'+L('Only if you have done it before. ','做过再选。')+(is24?L('Once a week at most.','每周最多一次。'):L('Twice a month at most.','每月最多两次。'))+'</p>'+
+    (note?'<p class="note lw-note">'+note+'</p>':'')+
+    '<div class="btns"><button class="btn warm solid" data-act="lwgo" data-p="'+p.id+'">'+L('Yes, I have done this before','是的，我以前做过')+'</button><button class="btn sec" data-act="lwback">'+L('Not now','以后再说')+'</button></div>');
+  fx('warn');
 }
 function longSafety(p){
   openSheet('<h3>'+L('Before a '+p.fast+'-hour fast','开始 '+p.fast+' 小时断食之前')+'</h3><p class="lede">'+L('A short check. This takes ten seconds.','简单确认一下，只要十秒。')+'</p>'+
@@ -1123,9 +1142,33 @@ function careTick(){ var P=S.profile, w=P.careOff; if(!w||!w.keys||Date.now()<w.
 /* make everything agree with the answers: Care mode stops at 16:8, has no Ramadan and no long fasts */
 function careApply(){ var P=S.profile; careMigrate(); if(!P.safety) return; S.ramadanPreview=false; if(S.customH>16) S.customH=16; if(S.planId==='24'||S.planId==='36'||S.planId==='ramadan') S.planId='13'; normalisePlan(); }
 function careDrop(keys,quiet0){
-  var P=S.profile; P.care=(P.care||[]).filter(function(k){ return keys.indexOf(k)<0; }); P.careOff=null;
+  var P=S.profile; P.care=(P.care||[]).filter(function(k){ return keys.indexOf(k)<0; }); P.careOff=null; if(P.careUndo&&keys.indexOf(P.careUndo.k)>=0) P.careUndo=null;
   if(P.care.length) careApply(); else{ P.safety=false; P.fastedBefore=false; S.unlocked={}; S.flex.mon=C.mondayOf(Date.now()); }
   save(); if(quiet0) return; cache={}; ticksKey=''; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe();
+}
+/* Adding an answer is confirmed first, and can be undone for 24 hours: the plan, custom hours and Ramadan preview from before are kept in profile.careUndo and put back. */
+function careUndoOpen(){ var P=S.profile, u=P.careUndo; return u&&(P.care||[]).indexOf(u.k)>=0&&Date.now()<u.at+C.CARE_UNDO?u:null; }
+function careAdd(k){
+  var P=S.profile; if(!Array.isArray(P.care)) P.care=[]; if(P.care.indexOf(k)>=0) return;
+  P.careUndo={k:k,at:Date.now(),prev:{planId:S.planId,customH:S.customH,ramadanPreview:!!S.ramadanPreview}};
+  P.care.push(k); careApply(); save(); fx('select'); cache={}; ticksKey=''; updateToday(); if(curTab==='me') renderMe();
+}
+function careUndoGo(){
+  var P=S.profile, u=careUndoOpen(); if(!u) return careSheet();
+  P.care=P.care.filter(function(x){ return x!==u.k; }); P.careUndo=null;
+  if(P.careOff&&P.careOff.keys){ P.careOff.keys=P.careOff.keys.filter(function(x){ return x!==u.k; }); if(!P.careOff.keys.length) P.careOff=null; }
+  P.safety=P.care.length>0;
+  if(u.prev){ if(typeof u.prev.planId==='string') S.planId=u.prev.planId; if(typeof u.prev.customH==='number') S.customH=u.prev.customH; S.ramadanPreview=!!u.prev.ramadanPreview; }
+  if(P.safety) careApply(); normalisePlan();
+  save(); fx('select'); cache={}; ticksKey=''; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); careSheet();
+}
+function careConfirm(k){
+  var was=care(), what=was?L('Care mode is already on.','关怀模式已经开启。'):L('Fasts stay at 16:8 or shorter, with no streaks.','断食最长 16:8，没有连续天数。');
+  if(k==='ed') what+=L(' Friends is hidden.','朋友标签页会隐藏。');
+  var lab=was?['Add this answer','加入这个回答']:['Turn on Care mode','开启关怀模式'], ready=was?['Hold to add','按住加入']:['Hold to turn on','按住开启'];
+  openSheet('<!--keep--><div class="warn-ico care">'+WARN+'</div><h3 class="ctr">'+(was?L('Add this answer?','加入这个回答？'):L('Turn on Care mode?','开启关怀模式？'))+'</h3><p class="lede ctr">'+what+L(' ','')+L('You can undo it for 24 hours.','24 小时内可以撤销。')+'</p>'+
+    '<div class="btns"><button class="btn dark" data-act="care">'+L('Cancel','取消')+'</button>'+lockedHold('careOnGo','careadd',lab,' data-k="'+k+'" data-buzz="1"','warm solid')+'</div>');
+  fx('warn'); unlockHold('careOnGo',lab,ready);
 }
 function careSheet(){
   careTick(); var P=S.profile, cur=P.care||[], w=P.careOff, h='<h3>'+L('Health answers','健康回答')+'</h3><p class="lede">'+L('These keep Lightly gentle for you.','这些回答让轻伴对你更温和。')+'</p><div class="group">';
@@ -1133,7 +1176,9 @@ function careSheet(){
     h+='<button class="check" role="checkbox" aria-checked="'+on+'" data-act="carerow" data-k="'+k+'"><span class="bx">'+CK_SVG+'</span><span>'+L(CARE_TXT[k][0],CARE_TXT[k][1])+'</span></button>'; });
   h+='</div>';
   if(w) h+='<p class="note">'+L('Easing starts '+dateLbl(w.start+C.CARE_WAIT)+'. Nothing changes until then.','放宽将在 '+dateLbl(w.start+C.CARE_WAIT)+' 开始，在此之前一切照旧。')+'</p><div class="btns"><button class="btn sec" data-act="carecancel">'+L('Cancel the wait','取消等待')+'</button>';
-  else h+='<p class="note">'+L('Tick one to add it now. To untick, tap it.','点选即可加入，点已选的可以调整。')+'</p><div class="btns">';
+  else{ var u=careUndoOpen(), until=u&&u.at+C.CARE_UNDO;
+    if(u) h+='<p class="note">'+L('Added by mistake? You can undo “'+CARE_TXT[u.k][0]+'” until '+dateLbl(until)+', '+clockMs(until)+'. Your plan goes back to how it was.','点错了？可以在 '+dateLbl(until)+' '+clockMs(until)+' 之前撤销“'+CARE_TXT[u.k][1]+'”，你的计划会恢复原样。')+'</p><div class="btns"><button class="btn" data-act="careundo">'+L('Undo','撤销')+'</button>';
+    else h+='<p class="note">'+L('Tap an answer to add it. You will be asked to confirm. To change one you already have, tap it.','点一个回答即可加入，加入前会请你确认。已有的回答，点一下可以调整。')+'</p><div class="btns">'; }
   openSheet(h+'<button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>');
 }
 function bodySheet(){
@@ -1145,7 +1190,7 @@ function bodySheet(){
 }
 function careRow(b){
   var k=b.dataset.k, P=S.profile, on=(P.care||[]).indexOf(k)>=0;
-  if(!on){ if(!Array.isArray(P.care)) P.care=[]; P.care.push(k); careApply(); save(); fx('select'); cache={}; updateToday(); if(curTab==='me') renderMe(); return careSheet(); }
+  if(!on) return careConfirm(k);
   var how=C.careEase(k);
   if(how==='now') return openSheet('<h3>'+L('No longer pregnant or breastfeeding?','不再怀孕或哺乳了吗？')+'</h3><p class="lede">'+L('Care mode eases once nothing else is ticked. Please check with your doctor before longer fasts.','没有其他勾选时，关怀模式会放宽。想断食更久之前，请先咨询医生。')+'</p>'+
     '<div class="btns"><button class="btn" data-act="careeasego" data-k="'+k+'">'+L('Yes, update','是的，更新')+'</button><button class="btn sec" data-act="care">'+L('Not now','先不用')+'</button></div>');
@@ -1178,6 +1223,7 @@ function planRow(p,selId){
     else if(st.st==='locked'){ dis=true; pill='<span class="pill">'+L('Locked','未解锁')+'</span>'; sub=st.label; bar='<div class="bar"><i style="width:'+Math.round(st.pct*100)+'%"></i></div>'; if(S.lang==='zh') sub=zhProgress(st.label); }
     else if(st.st==='paused'){ dis=true; pill='<span class="pill">'+L('Paused','已暂停')+'</span>'; sub=L('You said you felt unwell. Available again ','你说过身体不适，可用时间：')+dateLbl(st.until); }
     else if(st.st==='wait'){ dis=true; pill='<span class="pill">'+L('Rest first','先休息')+'</span>'; sub=L('Available again ','可用时间：')+dateLbl(st.until); }
+    else if(st.exp){ pill='<span class="pill">'+L('Advanced','进阶')+'</span>'; sub=p.fast===24?L('Only if you have done it before. Once a week at most.','做过再选，每周最多一次。'):L('Only if you have done it before. Twice a month at most.','做过再选，每月最多两次。'); if(st.note) sub=L('Maybe rest a few more days first.','也许再多休息几天。'); }
     else sub=L('Unlocked. Water and electrolytes recommended.','已解锁。建议补充水分和电解质。');
   }else{
     var ps=pst(p.id);
@@ -1194,7 +1240,7 @@ function zhProgress(l){ return l.replace(/(\d+) of (\d+) fasts of (\d+) h or mor
 function pickPlan(id){
   var p=C.planById(id,S.customH);
   if(id==='ramadan'){ S.planId='ramadan'; if(S.cur){ toast(L('Ramadan runs dawn to sunset. End this fast first.','斋月从黎明到日落。先结束当前断食。')); return; } save(); closeSheet(); updateToday(); return startRamadan(); }
-  if(p.long){ var st=longSt(p.fast); if(st.st!=='ok') return; if(S.cur){ return longSafety(p); } S.planId=id; save(); cache={}; updateToday(); return planSheet(); }
+  if(p.long){ var st=longSt(p.fast); if(st.st!=='ok') return; if(st.exp) return longWarn(p,st); return longPick(p); }
   if(!planOk(id)) return;
   S.planId=id; if(S.cur){ S.cur.planId=id; S.cur.goalH=p.fast; S.cur.reached=(Date.now()-S.cur.start)/H>=p.fast; scheduleGoal(); }
   var was=pst(id).st==='soft'&&p.id===id; save(); cache={}; ticksKey=''; updateToday(); planSheet();
@@ -1447,6 +1493,8 @@ function obBigUpdate(){
   var o=st.querySelectorAll('.ob-day .trk i'), nw=t.querySelectorAll('.ob-day .trk i'), i; for(i=0;i<o.length&&i<nw.length;i++) o[i].setAttribute('style',nw[i].getAttribute('style'));
   var w=st.querySelector('.ob-win'); if(w) w.textContent=t.querySelector('.ob-win').textContent;
 }
+/* gender is asked on the health step, so a man is never offered the pregnancy answer; "prefer not to say" saves nothing */
+function obSexHtml(){ return '<div class="seg" role="group" aria-label="'+L('Gender','性别')+'">'+[['m',L('Male','男')],['f',L('Female','女')],['x',L('Non-binary','非二元')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-act="obsex" data-v="'+g[0]+'" aria-pressed="'+(ob.sex===g[0])+'">'+g[1]+'</button>'; }).join('')+'</div>'; }
 function obHtml(i){
   var back=i>0?'<button class="ob-back" data-act="obback"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg>'+L('Back','返回')+'</button>':'<span></span>';
   var flow=obFlow(), key=flow[i]; var dots=i>0&&i<flow.length-1?'<span class="ob-mslot"></span>':'<span></span>';   /* the one moon parks here as the progress bar */
@@ -1460,7 +1508,7 @@ function obHtml(i){
     cta='<button class="btn" data-act="obnext"'+(ob.fasted?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='safety'){
     function ck(v,label){ var on=ob.safe.indexOf(v)>=0; return '<button class="check" role="checkbox" aria-checked="'+on+'" data-act="obsafe" data-v="'+v+'"><span class="bx"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span>'+label+'</span></button>'; }
-    body='<h1>'+L('Is any of this true for you?','下面有符合你的情况吗？')+'</h1><p class="lede">'+L('Pick all that apply.','可多选。')+'</p><div class="group cards">'+ck('preg',L('Pregnant or breastfeeding','怀孕或哺乳期'))+ck('diab',L('I take medication for diabetes','我在服用糖尿病药物'))+ck('ed',L('I have had an eating disorder','我有过进食障碍'))+ck('none',L('None of these','都不是'))+'</div>'+
+    body='<h1>'+L('Is any of this true for you?','下面有符合你的情况吗？')+'</h1><div class="gh obgh">'+L('Gender','性别')+'</div>'+obSexHtml()+'<div class="gh obgh">'+L('Pick all that apply','可多选')+'</div><div class="group cards">'+(ob.sex==='m'?'':ck('preg',L('Pregnant or breastfeeding','怀孕或哺乳期')))+ck('diab',L('I take medication for diabetes','我在服用糖尿病药物'))+ck('ed',L('I have had an eating disorder','我有过进食障碍'))+ck('none',L('None of these','都不是'))+'</div>'+
       (ob.safe.length&&ob.safe.indexOf('none')<0?'<p class="gf obnote" style="padding:0 4px;color:var(--label)">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts. Please talk to your doctor first.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。请先咨询医生。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obnext"'+(ob.safe.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='plan'){
@@ -1492,7 +1540,7 @@ function obHtml(i){
   }else if(key==='body'){
     body='<h1>'+L('A little about you','关于你')+'</h1><p class="lede">'+L('Add them and see your weight trend, with a check-in every month.','填写后，每月回顾会带你看体重变化的趋势。')+'</p><div class="group">'+pkField('obAge',L('Age','年龄'),ob.age,'sel',obAgeOpts())+pkField('obWt',L('Weight','体重'),Math.round(C.kgTo(ob.kg,ob.unit)),'sel',obWtOpts())+pkField('obHt',L('Height','身高'),obHtKey(),'sel',obHtOpts())+'</div>'+
       '<div class="seg" role="group" aria-label="'+L('Units','单位')+'">'+['kg','lb','jin'].map(function(u){ return '<button type="button" data-act="obunit" data-v="'+u+'" aria-pressed="'+(ob.unit===u)+'">'+uLbl(u)+'</button>'; }).join('')+'</div>'+
-      '<div class="seg" role="group" aria-label="'+L('Gender','性别')+'">'+[['m',L('Male','男')],['f',L('Female','女')],['x',L('Non-binary','非二元')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-act="obsex" data-v="'+g[0]+'" aria-pressed="'+(ob.sex===g[0])+'">'+g[1]+'</button>'; }).join('')+'</div><p class="gf obnote" style="padding:0 4px">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>';
+      '<p class="gf obnote" style="padding:0 4px">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obbody">'+L('Continue','继续')+'</button><button class="btn quiet" data-act="obbodyskip">'+L('Skip','跳过')+'</button>';
   }else if(key==='summary'){
     var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.start||'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
@@ -1718,7 +1766,7 @@ function eraseLine(n,st){
 }
 /* a red button that is locked for 3 seconds (counting down), then must be held for 2 seconds */
 var WARN='<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28"/><path d="M28 15v17" /><circle class="dot" cx="28" cy="40" r="2.6"/></svg>';
-function lockedHold(id,act,lab){ return '<button class="btn red solid hold" id="'+id+'" data-hold="'+act+'" data-ms="2000" disabled aria-label="'+L(lab[0]+', available in 3 seconds',lab[1]+'，3 秒后可用')+'"><span class="hl">'+L(lab[0]+' · 3',lab[1]+' · 3')+'</span></button>'; }
+function lockedHold(id,act,lab,extra,cls){ return '<button class="btn '+(cls||'red solid')+' hold" id="'+id+'" data-hold="'+act+'" data-ms="2000"'+(extra||'')+' disabled aria-label="'+L(lab[0]+', available in 3 seconds',lab[1]+'，3 秒后可用')+'"><span class="hl">'+L(lab[0]+' · 3',lab[1]+' · 3')+'</span></button>'; }
 function unlockHold(id,lab,ready){
   var go=$(id), lbl=go.querySelector('.hl'), n=3, iv=setInterval(function(){
     if(!go.isConnected||!sheetOpen){ clearInterval(iv); return; } /* closed early: the countdown stops, with no buzz */
@@ -1746,6 +1794,8 @@ function delAcctDone(){
 var A={
   close:closeSheet,
   delkeep:function(){ closeSheet(); renderMe(); },
+  lwgo:function(b){ longPick(C.planById(b.dataset.p)); },
+  lwback:function(){ planSheet(); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
   day:function(b){ selDay=b.dataset.k; fabOn=true; renderDays(); },
@@ -1782,19 +1832,21 @@ var A={
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
   plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet, care:careSheet,
   carerow:careRow,
+  careadd:function(b){ careAdd(b.dataset.k); careSheet(); },
+  careundo:careUndoGo,
   carepro:function(b){ var on=b.getAttribute('aria-checked')!=='true'; b.setAttribute('aria-checked',on); $('careGo').disabled=!on; },
   carewait:function(b){ var P=S.profile, k=b.dataset.k, keys=(P.careOff&&P.careOff.keys||[]).filter(function(x){ return x!==k; }); keys.push(k); P.careOff={keys:keys,start:Date.now()}; save(); careSheet(); },
   carecancel:function(){ S.profile.careOff=null; save(); careSheet(); },
   careeasego:function(b){ careDrop([b.dataset.k]); careSheet(); },
   google:function(b){ if(b.disabled) return; var soon=function(){ b.disabled=false; toast(L('Google sign-in is not switched on yet. Email works now.','Google 登录还没开启，现在可用邮箱。')); };
     if(!CL.ready()) return soon(); b.disabled=true;
-    CL.providerOn('google').then(function(on){ if(!on) return soon(); location.assign(CL.oauthUrl('google',S,FUI&&FUI.joinCode())); }).catch(soon); },
+    CL.providerOn('google').then(function(on){ if(!on) return soon(); location.assign(CL.oauthUrl('google',S,FUI&&FUI.joinCode(),fromTab())); }).catch(soon); },
   emailsheet:function(){ emailSheet('email'); },
   emback:function(b){ emailSheet('email',b.dataset.e); },
   soon:function(b){ toast(({apple:L('Apple sign-in is coming. Email works now.','Apple 登录即将推出，现在可用邮箱。'),google:L('Google sign-in is coming. Email works now.','Google 登录即将推出，现在可用邮箱。'),wechat:'微信登录会随中国大陆版本推出，现在可用邮箱。',phone:'手机号登录会随中国大陆版本推出，现在可用邮箱。'})[b.dataset.k]); },
   emsend:function(b){ var e=($('emIn').value||'').trim(); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return emailSheet('email',e,L('That doesn’t look like an email address.','这个邮箱地址看起来不对。')); b.disabled=true; b.textContent=L('Sending…','发送中…');
-    emCool=Date.now()+60000; CL.sendCode(e,S,FUI&&FUI.joinCode()).then(function(){ emailSheet('sent',e); }).catch(function(x){ emCool=0; emailSheet('email',e,emailErr(x)); }); },
-  emresend:function(b){ var e=b.dataset.e; if(Date.now()<emCool) return; emCool=Date.now()+60000; CL.sendCode(e,S,FUI&&FUI.joinCode()).then(function(){ emailSheet('sent',e); toast(L('Sent again.','已重新发送。')); }).catch(function(x){ emCool=0; emailSheet('sent',e,emailErr(x)); }); },
+    emCool=Date.now()+60000; CL.sendCode(e,S,FUI&&FUI.joinCode(),fromTab()).then(function(){ emailSheet('sent',e); }).catch(function(x){ emCool=0; emailSheet('email',e,emailErr(x)); }); },
+  emresend:function(b){ var e=b.dataset.e; if(Date.now()<emCool) return; emCool=Date.now()+60000; CL.sendCode(e,S,FUI&&FUI.joinCode(),fromTab()).then(function(){ emailSheet('sent',e); toast(L('Sent again.','已重新发送。')); }).catch(function(x){ emCool=0; emailSheet('sent',e,emailErr(x)); }); },
   emverify:function(b){ var e=b.dataset.e, c=($('emCode').value||'').trim(); if(c.length<6) return emailSheet('sent',e,L('Enter the 6-digit code.','请输入 6 位验证码。')); b.disabled=true; b.textContent=L('Checking…','验证中…');
     CL.verify(e,c).then(function(){ closeSheet(); toast(L('Signed in.','已登录。')); renderMe(); syncNow(true); }).catch(function(x){ emailSheet('sent',e,L('That code didn’t work. ','验证码不对：')+x.message); }); },
   namesheet:nameSheet,
@@ -1867,7 +1919,7 @@ var A={
   rpwoff:function(){ if(!S.body) return; S.body.checkOff=true; if(S.body.share) trendStop(); save(); fx('select'); var e=$('rpW'); if(e) e.innerHTML='<h3 id="rpTw" class="rpi">'+L('No more check-ins','不再询问体重')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Your recap will not include weight any more. You can turn it back on in Me, About you.','回顾里不会再出现体重。你可以在“我的 · 关于你”里重新打开。')+'</p>'; },
   bodyrm:function(){ if(S.body&&S.body.share) trendStop(); S.body=null; save(); closeSheet(); renderMe(); },
   obunit:function(b){ ob.unit=b.dataset.v; obRefresh(); },
-  obsex:function(b){ ob.sex=b.dataset.v; fx('select'); obRefresh(); },
+  obsex:function(b){ ob.sex=b.dataset.v; if(ob.sex==='m') ob.safe=ob.safe.filter(function(x){ return x!=='preg'; }); fx('select'); obRefresh(); },
   obbody:function(){ ob.bodyDone=true; A.obnext(); },
   obbodyskip:function(){ ob.skip=true; ob.bodyDone=false; obRender(); },
   obopt:function(b){ ob.fasted=b.dataset.v; obRefresh(); },
@@ -1937,16 +1989,19 @@ applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnl
 shortPage(); chrome();
 ['resize','orientationchange','pageshow'].forEach(function(e){ window.addEventListener(e,function(){ shortPage(); chrome(); }); });
 if(window.matchMedia){ var mq=matchMedia('(prefers-color-scheme:dark)'); if(mq.addEventListener) mq.addEventListener('change',function(){ setTimeout(chrome,50); }); }
-var carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash)&&!!(CL&&CL.ready());
+var backTab=CL&&CL.takeTab?CL.takeTab():'', carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash)&&!!(CL&&CL.ready());
 if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }
 var rootEl=document.documentElement;
 /* Coming back through a sign-in link (Google, or the email link): the page opens on a neutral screen (index.html marks it before anything is drawn),
-   never on Today. Once the account has answered, the person lands on Me, where they started, or on onboarding if this really is a new account. */
+   never on Today. Once the account has answered, the person lands on Me or Friends, where they started, or on onboarding if this really is a new account. */
 var landed=false, landMsg='', toasted=false;
 function landToast(){ if(landMsg&&!toasted){ toasted=true; toast(landMsg); } }
+/* a sign-in comes back to the tab it started from: Friends (or a waiting invite) if the Friends tab is there for this person, otherwise Me */
+function landTab(){ var fr=FUI&&FUI.order().indexOf('friends')>=0; return fr&&(backTab==='friends'||FUI.joinCode())?'friends':'me'; }
+function fromTab(){ return curTab==='friends'?'friends':''; }   /* the tab a sign-in is started from; from Me it stays Me */
 function land(){
   if(landed) return; landed=true; holding=false; rootEl.classList.remove('signing');
-  if(!S.onboarded){ ph.classList.remove('sys'); updateToday(); obStart(); chrome(); } else{ showTab('me',true); if(FUI) FUI.pending(); }
+  if(!S.onboarded){ ph.classList.remove('sys'); updateToday(); obStart(); chrome(); } else{ showTab(landTab(),true); if(FUI) FUI.pending(); }
   landToast();
 }
 if(returning){ holding=true; ph.classList.add('sys'); chrome(); setTimeout(land,9000); /* never stay on the neutral screen if the network hangs */ }

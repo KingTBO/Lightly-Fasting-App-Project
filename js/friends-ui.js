@@ -2,12 +2,12 @@
    Solo fasting stays the main experience: nothing about Friends ever appears on Today, Days or Me, and the tab is hidden for anyone who answered the eating-disorder question. js/app.js hands this file what it needs through init(h) (see the call at the bottom of app.js). */
 (function(root){
 'use strict';
-var F=root.LightlyFriends, QR=root.LightlyQR, KEY='lightly:friends';
+var F=root.LightlyFriends, QR=root.LightlyQR, Z=root.LightlyZodiac, KEY='lightly:friends';
 
 function init(h){
   var L=h.L, esc=h.esc, $=h.$, CL=h.CL, AV=h.AV, CHEV=h.CHEV, A=h.A;
   /* Friends keeps its own small copy on the phone, apart from the app state: it stays out of the backup, the sign-in link and the export file */
-  var st={groups:[],profile:null,at:0,err:'',joinCode:'',uid:''}, loading=false, tmp={av:null}, view=null, pub={last:null,at:0,busy:false,t:0};
+  var st={groups:[],profile:null,at:0,err:'',joinCode:'',uid:'',stack:{}}, loading=false, tmp={av:null}, view=null, pub={last:null,at:0,busy:false,t:0};
   try{ var raw=JSON.parse(localStorage.getItem(KEY)||'null'); if(raw&&typeof raw==='object') Object.keys(st).forEach(function(k){ if(raw[k]!==undefined) st[k]=raw[k]; }); }catch(e){}
   function save(){ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} }
   /* an invite link (?join=CODE): keep the code (it survives a sign-in in this browser, and the sign-in link carries it to another one) and take it out of the address bar */
@@ -25,7 +25,7 @@ function init(h){
 
   /* ---------- drawings ---------- */
   function defs(){ if($('frDefs')) return; var d=document.createElement('div'); d.id='frDefs'; d.setAttribute('aria-hidden','true'); d.style.cssText='position:absolute;width:0;height:0;overflow:hidden';
-    d.innerHTML='<svg width="0" height="0"><defs><radialGradient id="frSun" cx=".4" cy=".36" r=".78"><stop offset="0" stop-color="#FFF4C8"/><stop offset=".5" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/></radialGradient></defs></svg>'; h.ph.appendChild(d); }
+    d.innerHTML='<svg width="0" height="0"><defs><radialGradient id="frSun" cx=".4" cy=".36" r=".78"><stop offset="0" stop-color="#FFF4C8"/><stop offset=".5" stop-color="#FFC93C"/><stop offset="1" stop-color="#FF9F1C"/></radialGradient><linearGradient id="frRing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD84D"/><stop offset="1" stop-color="#FF9F1C"/></linearGradient></defs></svg>'; h.ph.appendChild(d); }
   /* a friend's disc: always a sun, counter-clockwise from 12 o'clock, measured against that person's own plan (see F.disc) */
   function disc(d,size){ var r=16, s='<svg class="frd" viewBox="-18 -18 36 36" width="'+size+'" height="'+size+'" aria-hidden="true">';
     if(d.kind==='empty') s+='<circle r="'+r+'" fill="none" stroke="var(--label-3)" stroke-width="1.6"/>';
@@ -34,26 +34,51 @@ function init(h){
     else{ var a=d.fill*Math.PI*2, x=-r*Math.sin(a), y=-r*Math.cos(a); s+='<circle r="'+r+'" fill="var(--fill-2)"/>'+(d.fill>0?'<path d="M0 0L0 '+(-r)+'A'+r+' '+r+' 0 '+(d.fill>.5?1:0)+' 0 '+x.toFixed(2)+' '+y.toFixed(2)+'Z" fill="url(#frSun)"/>':''); }
     return s+'</svg>'; }
   function hero(){ return '<div class="fr-hero" aria-hidden="true">'+disc({kind:'empty'},44)+disc({kind:'wedge',fill:.55},44)+disc({kind:'full'},44)+'</div>'; }
+  var ICON_CLOCK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>', ICON_CHEER='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/></svg>';
   var ICON_PEOPLE='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.4"/><path d="M2.8 19.5a6.2 6.2 0 0 1 12.4 0"/><path d="M15.6 5.4a3.2 3.2 0 0 1 0 6.2M17.5 14.2a6 6 0 0 1 3.7 5.3"/></svg>';
 
   /* ---------- the tab ---------- */
+  /* the sky is drawn on a 358 px wide board; on a narrower phone the whole board scales down together */
+  function fitSky(){ var k=document.querySelector('#friends .fr-sky'); if(k) k.style.setProperty('--ks',Math.min(1,k.clientWidth/358).toFixed(4)); }
+  window.addEventListener('resize',fitSky);
+  /* The figure is a CSS mask. Until its image has loaded some browsers paint the whole panel unmasked, which shows as a flash of blue when the screen is rebuilt
+     (switching light and dark, coming back to the tab). So a new figure stays hidden until its image is decoded and a frame or two have passed. */
+  /* The fade runs on its own clock: it starts again from the Stars look whenever the tab is shown or a group opens, and keeps going through every other re-render
+     (the figure's element is kept, see render), so coming back to the tab or switching light and dark never makes it pop in or flash. */
+  var skyT0=Date.now();
+  function skyPhase(){ return (-(((Date.now()-skyT0)/1000)%14)).toFixed(2)+'s'; }
+  var artDecoded={};
+  function decodeArt(u){ if(artDecoded[u]) return artDecoded[u]; var i=new Image(); i.src=u; return artDecoded[u]=(i.decode?i.decode():new Promise(function(ok){ i.onload=ok; i.onerror=ok; })).catch(function(){}); }
+  function revealArt(){ [].forEach.call(document.querySelectorAll('#friends .fr-art:not(.rd)'),function(el){ decodeArt(el.getAttribute('data-art')).then(function(){ requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(el.isConnected) el.classList.add('rd'); }); }); }); }); }
+  if(Z){ try{ var a0=Z.layout(Z.signAt(h.today()),0).art; if(a0) decodeArt(a0); }catch(e){} }
+  function reduceMotion(){ return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches); }
   function personCount(n){ return L(n+(n===1?' person':' people'),n+' 人'); }
-  function groupRow(g){ var sub=personCount(g.member_count)+(g.fasting?' · '+L(g.fasting+' fasting',g.fasting+' 人断食中'):'');
-    return '<button class="row" data-act="frgroup" data-id="'+esc(g.group_id)+'"><span class="stack"><span>'+esc(g.name)+'</span><small>'+esc(sub)+'</small></span>'+CHEV+'</button>'; }
+  /* a group card: the app's card colour, the name, one line, and a stack of the people (read from today's board, kept on the phone) */
+  function groupCard(g){ var n=g.member_count, sub=personCount(n)+' · '+(g.fasting?L(g.fasting+' fasting now',g.fasting+' 人断食中'):L('Quiet today','今天安静')),
+      stk=(st.stack[g.group_id]||[]).map(function(x){ return '<span class="fr-gav">'+(AV.html(x[1])||AV.html(AV.defaultIcon(x[0]||'')))+'</span>'; }).join('');
+    return '<button type="button" class="fr-gc" data-act="frgroup" data-id="'+esc(g.group_id)+'" aria-label="'+esc(g.name+', '+sub)+'"><span class="fr-gt"><b>'+esc(g.name)+'</b><small>'+esc(sub)+'</small></span><span class="fr-gs" aria-hidden="true">'+stk+'</span></button>'; }
   function render(){
     var el=$('friends'), x=''; if(!el) return; defs();
     if(!signedIn()){ view=null; var iv=st.joinCode&&tmp.prev&&tmp.prev.code===st.joinCode?tmp.prev.row:null;
-      x=hero()+(iv?'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Friends needs an account; everything else works without one.','登录后即可加入。朋友功能需要账号，其他功能不需要。')+'</p>'
-        :'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2><p class="fr-p">'+L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不需要。')+'</p>')+'<div class="fr-cta"><button class="btn" data-act="frsignin">'+L(iv?'Sign in to join':'Sign in',iv?'登录并加入':'登录')+'</button></div>';
+      x=hero()+(iv?'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Only Friends needs an account.','登录后即可加入。只有朋友功能需要账号。')+'</p>'
+        :'<h2 class="fr-h">'+L('Fast with friends','和朋友一起断食')+'</h2><p class="fr-p fr-s">'+L('Make a private group and see who is fasting today.','建一个私密小组，看看今天谁在断食。')+'</p>'+
+          '<div class="fr-pts">'+[[L('Private, by invite only','私密，仅限邀请'),ICON_PEOPLE],[L('See each other’s progress','看到彼此的进度'),ICON_CLOCK],[L('Cheer each other on','互相加油'),ICON_CHEER]].map(function(r){ return '<div><span class="fr-pi" aria-hidden="true">'+r[1]+'</span><span>'+r[0]+'</span></div>'; }).join('')+'</div><p class="fr-p fr-fine">'+L('Friends is the only part of Lightly that needs an account.','轻伴里只有朋友功能需要账号。')+'</p>')+'<div class="fr-cta"><button class="btn" data-act="frsignin">'+L(iv?'Sign in to join':'Sign in',iv?'登录并加入':'登录')+'</button></div>';
     }else if(view){ x=groupHtml();
     }else if(!st.groups.length){
       x=hero()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+(st.at||st.err?'<p class="fr-p">'+L('Start a group and send one link.','建一个小组，发一个链接。')+'</p><div class="fr-cta"><button class="btn" data-act="frnew">'+L('Start a group','建一个小组')+'</button><button class="btn quiet" data-act="frcode">'+L('I have an invite code','我有邀请码')+'</button></div>':'')+
         (st.err&&!st.at?'<p class="fr-p fr-err" role="status">'+esc(F.errorText(st.err,lang()))+'</p>':'');
     }else{
-      x='<div class="gh">'+L('Your groups','你的小组')+'</div><div class="group">'+st.groups.map(groupRow).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
+      x='<div class="gh">'+L('Your groups','你的小组')+'</div><div class="fr-gcs">'+st.groups.map(groupCard).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
         (st.err?'<div class="gf" role="status">'+esc(F.errorText(st.err,lang()))+'</div>':'');
     }
-    el.innerHTML=x;
+    var keep=el.querySelector('.fr-art'), keepOp=keep?parseFloat(getComputedStyle(keep).opacity)||0:0;   /* the figure already on screen is put back after the rebuild, at the right moment of the cycle */
+    el.innerHTML=x; fitSky();
+    var na=el.querySelector('.fr-art');
+    if(keep&&na&&keep.getAttribute('data-art')===na.getAttribute('data-art')&&keep.getAttribute('data-up')===na.getAttribute('data-up')){ keep.style.animationDelay=skyPhase(); na.replaceWith(keep); }
+    else if(keep&&na&&keepOp>.02&&view&&h.tab()==='friends'){   /* a new sign (the date changed): the old figure fades out while the new one starts from the Stars look */
+      var host=na.parentNode; keep.removeAttribute('data-art'); keep.classList.add('out'); keep.style.animation='none'; keep.style.opacity=keepOp; keep.style.transition='opacity .7s ease'; host.insertBefore(keep,na);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ keep.style.opacity='0'; }); }); setTimeout(function(){ if(keep.parentNode) keep.parentNode.removeChild(keep); },900); }
+    revealArt();
   }
   /* read the groups (and whether this person already has a name for groups). The last good answer stays on screen if it fails. */
   function refresh(){
@@ -62,9 +87,14 @@ function init(h){
     return Promise.all([CL.rpc('my_groups',{p_today:h.today()}),CL.rest('profiles?select=display_name,avatar')]).then(function(r){
       st.groups=r[0]||[]; st.profile=(r[1]&&r[1][0])||null; st.at=Date.now(); st.err=''; save();
       if(view&&!st.groups.some(function(g){ return g.group_id===view.id; })) view=null; /* removed or left on another phone */
+      return stacks();
     }).catch(function(e){ st.err=F.errorKey(e); if(e&&e.status===401) st.err='failed'; }).then(function(){ loading=false; if(h.tab()==='friends') render(); publish(false); });
   }
-  function show(){ render(); if(view) loadBoard(false); refresh().then(function(){ if(st.joinCode&&signedIn()&&!view) startJoin(st.joinCode); }); if(st.joinCode&&!signedIn()) previewFor(st.joinCode); }
+  /* the first few people of each group, for the avatar stack on its card (at most MAX_GROUPS small reads); a failed read leaves the old stack */
+  function stacks(){ var keep={};
+    return Promise.all(st.groups.map(function(g){ return CL.rpc('group_roster',{p_gid:g.group_id}).then(function(rows){ rows=(rows||[]).slice().sort(function(x,y){ return (y.is_me?1:0)-(x.is_me?1:0); }); keep[g.group_id]=rows.slice(0,5).map(function(x){ return [x.user_id,x.avatar]; }); }).catch(function(){ if(st.stack[g.group_id]) keep[g.group_id]=st.stack[g.group_id]; }); }))
+      .then(function(){ st.stack=keep; save(); }); }
+  function show(){ skyT0=Date.now(); render(); if(view) loadBoard(false); refresh().then(function(){ if(st.joinCode&&signedIn()&&!view) startJoin(st.joinCode); }); if(st.joinCode&&!signedIn()) previewFor(st.joinCode); }
 
   /* ---------- a group: the day strip, one row per person ---------- */
   var DOW=[['S','日'],['M','一'],['T','二'],['W','三'],['T','四'],['F','五'],['S','六']], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -81,20 +111,69 @@ function init(h){
     if(cheerable(x)) ch='<button type="button" class="fr-ch" data-act="frcheer" data-u="'+esc(x.user_id)+'" aria-pressed="'+!!x.cheered_by_me+'" aria-label="'+esc(x.cheered_by_me?L('Cheered ','已给')+x.display_name+L('','加油'):L('Cheer ','给')+x.display_name+L('','加油'))+'"><span>'+(x.cheered_by_me?L('Cheered','已加油'):L('Cheer','加油'))+'</span></button>';
     return '<div class="fr-row"><button type="button" class="fr-tap" data-act="frwho" data-u="'+esc(x.user_id)+'" aria-label="'+esc(x.display_name+', '+F.rowText(x,lang()))+'">'+av(x.avatar,x.user_id)+'<span class="fr-nm"><b>'+esc(x.display_name)+(x.is_me?'<i>'+L('You','我')+'</i>':'')+'</b><small>'+esc(sub)+'</small></span></button>'+ch+disc(F.disc(x),30)+'</div>';
   }
+  /* ---------- the month's sky: the people are its stars, in the order they joined ---------- */
+  var TW=[[30,26,5],[208,24,7],[318,64,6],[260,120,8],[36,210,6.5],[78,350,5.5],[330,170,9],[224,300,7.5]];
+  function ringSvg(d,on){
+    var s='<svg class="fr-ring" width="44" height="44" viewBox="-22 -22 44 44" aria-hidden="true">'+(on?'<circle r="21" fill="none" stroke="var(--tint)" stroke-width="2"/>':'')+'<circle r="17" fill="var(--fseat)"/>';
+    if(d.kind==='full') s+='<circle r="17.5" fill="none" stroke="url(#frRing)" stroke-width="3.8"/>';
+    else if(d.kind==='rest') s+='<circle r="17.5" fill="none" stroke="var(--fdash)" stroke-width="2.4" stroke-dasharray="3.4 3.6"/>';
+    else if(d.kind==='wedge') s+='<circle r="17.5" fill="none" stroke="var(--ftrk)" stroke-width="3"/>'+(d.fill>0?'<circle r="17.5" fill="none" stroke="url(#frRing)" stroke-width="3.6" stroke-linecap="round" pathLength="100" stroke-dasharray="'+Math.round(d.fill*100)+' 100" transform="scale(-1,1) rotate(-90)"/>':'');
+    else s+='<circle r="17.5" fill="none" stroke="var(--ftrk)" stroke-width="2"/>';
+    return s+'</svg>'; }
+  var FLARE='<svg class="fr-flare" width="60" height="60" viewBox="-30 -30 60 60" aria-hidden="true"><path d="M0 -28C2 -9 9 -2 28 0C9 2 2 9 0 28C-2 9 -9 2 -28 0C-9 -2 -2 -9 0 -28Z" fill="#FFC93C"/></svg>';
+  function starHtml(x,pt){
+    var d=F.disc(x), on=view.sel===x.user_id, dim=d.kind==='rest'||d.kind==='empty';
+    return '<button type="button" class="fr-st'+(on?' on':'')+'" data-act="frstar" data-u="'+esc(x.user_id)+'" style="left:'+(pt[0]-22)+'px;top:'+(pt[1]-22)+'px" aria-pressed="'+on+'" aria-label="'+esc(x.display_name+', '+F.rowText(x,lang()))+'">'+
+      (d.kind==='full'?FLARE:'')+ringSvg(d,on)+'<span class="fr-sav'+(dim?' dim':'')+'">'+(AV.html(x.avatar)||AV.html(AV.defaultIcon(x.user_id||'')))+'</span><span class="fr-sl">'+esc(x.display_name)+'</span></button>'; }
+  function seatHtml(pt){ return '<button type="button" class="fr-seat" data-act="frinvite" style="left:'+(pt[0]-22)+'px;top:'+(pt[1]-22)+'px" aria-label="'+L('Invite a friend','邀请朋友')+'"><i><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></i></button>'; }
+  /* the people in the order they joined: you first, then by when they came (the order the server sends), kept steady from day to day */
+  function ordered(rows){
+    var seen={}, out=[]; (view.order||[]).forEach(function(u){ seen[u]=1; });
+    rows.forEach(function(r){ if(!seen[r.user_id]){ seen[r.user_id]=1; (view.order=view.order||[]).push(r.user_id); } });
+    var by={}; rows.forEach(function(r){ by[r.user_id]=r; });
+    (view.order||[]).forEach(function(u){ if(by[u]) out.push(by[u]); }); return out; }
+  function skyHtml(rows,created){
+    var sg=Z.signAt(h.today()), lay=Z.layout(sg,created?24:0); view.sign=sg.k; var  people=ordered(rows), N=people.length, H=created?360:400, pts=lay.slots, seats=pts.slice(N,10);
+    var pl=pts.slice(0,N).map(function(p){ return p[0]+','+p[1]; }).join(' '), ds=(N?[pts[N-1]]:[]).concat(seats).map(function(p){ return p[0]+','+p[1]; }).join(' ');
+    var off=skyPhase(), look=view.look||'auto';
+    var lbl=L(sg.en+' sky. '+N+(N===1?' person is':' people are')+' a star in the pattern'+(seats.length?', '+seats.length+(seats.length===1?' place is':' places are')+' open.':'.'),sg.zh+'星空。'+N+' 人是图案里的星星'+(seats.length?'，还有 '+seats.length+' 个空位。':'。'));
+    return '<div class="fr-sky'+(lay.fig?' fig':'')+'" data-look="'+look+'" role="group" aria-label="'+esc(lbl)+'" style="aspect-ratio:358/'+H+'"><div class="fr-skyi" style="height:'+H+'px">'+
+      '<div class="fr-tw" aria-hidden="true">'+TW.map(function(t){ return '<i style="left:'+t[0]+'px;top:'+(t[1]-(created?24:0))+'px;animation-duration:'+t[2]+'s"></i>'; }).join('')+'</div>'+
+      (lay.fig?'<div class="fr-art" aria-hidden="true" data-art="'+lay.art+'" data-up="'+(created?24:0)+'" style="-webkit-mask-image:url('+lay.art+');mask-image:url('+lay.art+');animation-delay:'+off+(created?';-webkit-mask-size:auto 100%;mask-size:auto 100%;-webkit-mask-position:center;mask-position:center':'')+'"></div>':'')+
+      '<svg class="fr-ln" width="358" height="'+H+'" viewBox="0 0 358 '+H+'" aria-hidden="true" style="animation-delay:'+off+'">'+(N>1?'<polyline points="'+pl+'" fill="none" stroke="var(--fcl)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>':'')+(seats.length?'<polyline points="'+ds+'" fill="none" stroke="var(--fcl)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 6"/>':'')+'</svg>'+
+      (lay.fig?'<button type="button" class="fr-look" data-act="frlook" aria-label="'+L('Switch between the stars and the figure','在星星和星座图之间切换')+'"></button>':'')+
+      people.map(function(x,i){ return starHtml(x,pts[i]); }).join('')+seats.map(seatHtml).join('')+
+      '<div class="fr-cap"><b>'+esc(Z.name(sg,lang()))+'</b><span>'+esc(Z.caption(sg,lang()))+'</span></div></div></div>'; }
+  /* the star you tapped: name, status, Cheer (the rest of the week is one tap on the name) */
+  function selCard(rows){
+    var x=rows.filter(function(r){ return r.user_id===view.sel; })[0]; if(!x) return '';
+    var ch=cheerable(x)?'<button type="button" class="fr-chb'+(x.cheered_by_me?' done':'')+'" data-act="frcheer" data-u="'+esc(x.user_id)+'" aria-pressed="'+!!x.cheered_by_me+'"'+(x.cheered_by_me?' disabled':'')+'>'+(x.cheered_by_me?L('Cheered','已加油'):L('Cheer','加油'))+'</button>':'';
+    return '<div class="fr-sc"><button type="button" class="fr-sct" data-act="frwho" data-u="'+esc(x.user_id)+'">'+av(x.avatar,x.user_id)+'<span class="fr-nm"><b>'+esc(x.display_name)+(x.is_me?'<i>'+L('You','我')+'</i>':'')+'</b><small>'+esc(F.rowText(x,lang()))+'</small></span></button>'+ch+'</div>'; }
+  /* a group that is just you: the invite is right there, no need to open a sheet */
+  function inviteInline(){
+    var inv=view.inv; if(!inv) return '<div class="fr-inv2"><small>'+L('Invite code','邀请码')+'</small><b dir="ltr">…</b></div>';
+    return '<div class="fr-inv2"><small>'+L('Invite code','邀请码')+'</small><b dir="ltr">'+F.formatCode(inv.code)+'</b><div class="fr-two"><button class="btn" data-act="frshare">'+L('Share link','分享链接')+'</button><button class="btn sec" id="frCopyPage" data-act="frcopy">'+L('Copy','复制')+'</button></div><p class="note fr-note">'+L('Valid for 7 days. Share it only with people you know.','7 天内有效，请只发给你认识的人。')+'</p></div>'; }
   function groupHtml(){
-    var w=view.wk, b=w.b[w.day], n=b?b.length:view.n, body='';
+    var w=view.wk, b=w.b[w.day], n=b?b.length:view.n, body='', created=!!b&&b.length===1;
     var strip=w.days.map(function(k,i){ return '<button type="button" data-act="frday" data-i="'+i+'" aria-pressed="'+(i===w.day)+'" aria-label="'+esc(dayLong(i))+'"><span>'+dow(k)+'</span><b>'+(+k.slice(8,10))+'</b></button>'; }).join('');
-    if(b) body='<p class="fr-sum">'+esc(F.summary(b,dayLong(w.day),lang()))+'</p>'+(w.err?'<p class="fr-sum" role="status">'+esc(F.errorText(w.err,lang()))+'</p>':'')+'<div class="fr-card">'+b.map(personRow).join('')+'</div>';
+    if(b&&created) body=skyHtml(b,true)+inviteInline();
+    else if(b) body=skyHtml(b,false)+selCard(b)+'<p class="fr-sum">'+esc(F.summary(b,dayLong(w.day),lang()))+'</p>'+(w.err?'<p class="fr-sum" role="status">'+esc(F.errorText(w.err,lang()))+'</p>':'')+'<div class="fr-card">'+b.map(personRow).join('')+'</div>';
     else if(w.err) body='<p class="fr-wait" role="status">'+esc(F.errorText(w.err,lang()))+'</p><div class="fr-cta"><button class="btn sec" data-act="frretry">'+L('Try again','重试')+'</button></div>';
     else body='<p class="fr-wait" role="status">'+L('Loading…','加载中…')+'</p>';
+    var sub=created?L('Just you for now','现在只有你'):personCount(n), fasting=b?F.counts(b).fasting+F.counts(b).reached:0;
     return '<div class="fr-top"><button type="button" class="fr-back" data-act="frback">'+BACK+'<span>'+L('Friends','朋友')+'</span></button></div>'+
-      '<div class="fr-t"><div><h1 class="lt fr-name">'+esc(view.name)+'</h1><div class="fr-sub">'+personCount(n)+'</div></div><div class="fr-tools"><button type="button" class="fr-inv" data-act="frinvite">'+L('Invite','邀请')+'</button><button type="button" class="fr-more" data-act="frset" aria-label="'+L('Group settings','小组设置')+'">'+MORE+'</button></div></div>'+
-      '<div class="fr-days" role="group" aria-label="'+L('Days','日子')+'">'+strip+'</div>'+body;
+      '<div class="fr-t"><div><h1 class="lt fr-name">'+esc(view.name)+'</h1><div class="fr-sub">'+sub+(!created&&b&&w.day===6?' · '+(fasting?L(fasting+' fasting now',fasting+' 人断食中'):L('Quiet today','今天安静')):'')+'</div></div><div class="fr-tools">'+(created?'':'<button type="button" class="fr-inv" data-act="frinvite">'+L('Invite','邀请')+'</button>')+'<button type="button" class="fr-more" data-act="frset" aria-label="'+L('Group settings','小组设置')+'">'+MORE+'</button></div></div>'+
+      (created?'':'<div class="fr-days" role="group" aria-label="'+L('Days','日子')+'">'+strip+'</div>')+body;
+  }
+  /* a group that is just you shows its invite on the page: read it once */
+  function ensureInvite(){
+    var v=view, b=v&&v.wk.b[v.wk.day]; if(!v||v.inv||v.invBusy||!b||b.length!==1) return; v.invBusy=true;
+    CL.rpc('current_invite',{p_gid:v.id}).then(function(r){ var inv=r&&r[0]; v.invBusy=false; if(!inv) return; v.inv=inv; tmp.link=link(inv.code); tmp.name=v.name; if(view===v&&h.tab()==='friends') render(); }).catch(function(){ v.invBusy=false; });
   }
   function openGroup(id){
     var g=st.groups.filter(function(x){ return x.group_id===id; })[0]; if(!g) return;
-    var t=h.today(); view={id:id,name:g.name,role:g.role,n:g.member_count,wk:{days:F.weekDays(t),today:t,b:[],day:6,err:'',at:0},busy:false};
-    render(); var el=$('friends'); if(el) el.scrollTop=0; loadBoard(true);
+    var t=h.today(); view={id:id,name:g.name,role:g.role,n:g.member_count,wk:{days:F.weekDays(t),today:t,b:[],day:6,err:'',at:0},busy:false,sel:null,look:'auto',order:[],inv:null};
+    skyT0=Date.now(); render(); var el=$('friends'); if(el) el.scrollTop=0; loadBoard(true);
   }
   /* the group's boards: all seven days when it opens (so a person's week is ready), then just today every minute */
   function loadBoard(all){
@@ -108,6 +187,7 @@ function init(h){
       v.busy=false; if(view!==v) return;
       if(w.err==='not_member'){ view=null; loading=false; refresh(); h.toast(F.errorText('not_member',lang())); return; }
       if(h.tab()==='friends'&&before!==JSON.stringify([w.b,w.err])) render();
+      ensureInvite();
     });
   }
 
@@ -121,17 +201,23 @@ function init(h){
     return CL.rpc('publish_me',p).then(function(){ pub.last=p; pub.at=Date.now(); }).catch(function(e){ if(F.errorKey(e)==='no_profile') st.profile=null; }).then(function(){ pub.busy=false; });
   }
   function changed(){ if(!wantsPublish()) return; clearTimeout(pub.t); pub.t=setTimeout(function(){ publish(false); },1500); }
+  /* the sky follows the date: when the day rolls over into another sign (midnight, or coming back to the app the next day), the whole sky changes at once */
+  function checkSign(){ if(Z&&view&&view.sign&&h.tab()==='friends'&&Z.signAt(h.today()).k!==view.sign){ skyT0=Date.now(); render(); } }
   function tick(){
-    if(document.hidden||!enabled()||!signedIn()) return; publish(false);
+    if(document.hidden||!enabled()||!signedIn()) return; checkSign(); publish(false);
     if(h.tab()==='friends'&&!document.querySelector('#sheet.open')){ if(view) loadBoard(false); else refresh(); }
   }
   setInterval(tick,F.POLL_MS);
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) tick(); });
+  window.addEventListener('focus',tick); window.addEventListener('pageshow',tick);
+  /* and exactly at the next local midnight, when the app is open */
+  function toMidnight(){ var d=new Date(); return new Date(d.getFullYear(),d.getMonth(),d.getDate()+1,0,0,1,0)-d; }
+  (function midnight(){ setTimeout(function(){ tick(); midnight(); },toMidnight()+300); })();
 
   /* ---------- sheets ---------- */
   function fail(e){ h.toast(F.errorText(F.errorKey(e),lang())); }
   function signInSheet(){
-    h.openSheet('<h3>'+L('Sign in','登录')+'</h3><p class="lede">'+L('Friends needs an account. Everything else works without one.','朋友功能需要账号，其他功能不需要。')+'</p><div class="btns"><button class="btn gbtn" data-act="google">'+h.GICON+'<span>'+L('Continue with Google','用 Google 继续')+'</span></button><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button></div>');
+    h.openSheet('<h3>'+L('Sign in','登录')+'</h3><p class="lede">'+L('Only Friends needs an account.','只有朋友功能需要账号。')+'</p><div class="btns"><button class="btn gbtn" data-act="google">'+h.GICON+'<span>'+L('Continue with Google','用 Google 继续')+'</span></button><button class="btn sec" data-act="emailsheet">'+L('Continue with email','用邮箱继续')+'</button></div>');
   }
   /* your name in groups: never taken from the email address, and the only free text friends ever see */
   function nameSheet(next){
@@ -171,7 +257,7 @@ function init(h){
     CL.rpc('create_group',{p_name:n}).then(function(r){ var g=r&&r[0]; h.fx('success'); loading=false; refresh().then(function(){ openGroup(g.group_id); }); inviteSheet(g.group_id,n); }).catch(function(e){ b.disabled=false; if(F.errorKey(e)==='no_profile'){ st.profile=null; return nameSheet(newSheet); } fail(e); }); };
   A.frshare=function(){ var u=tmp.link; if(!u) return; var msg=L('Fast with me on Lightly: ','来轻伴和我一起断食：')+(tmp.name?'“'+tmp.name+'” ':'');
     if(navigator.share){ navigator.share({title:'Lightly 轻伴',text:msg,url:u}).catch(function(){}); } else A.frcopy(); };
-  A.frcopy=function(){ var u=tmp.link; if(!u) return; copy(u).then(function(){ var b=$('frCopy'); if(b){ b.textContent=L('Copied','已复制'); setTimeout(function(){ if($('frCopy')) $('frCopy').textContent=L('Copy','复制'); },1600); } h.fx('light'); }).catch(function(){ h.toast(L('Couldn’t copy. Select the code instead.','复制失败，请直接记下邀请码。')); }); };
+  A.frcopy=function(btn){ var u=tmp.link; if(!u) return; copy(u).then(function(){ var b=btn&&btn.isConnected?btn:$('frCopy'); if(b){ b.textContent=L('Copied','已复制'); setTimeout(function(){ if(b.isConnected) b.textContent=L('Copy','复制'); },1600); } h.fx('light'); }).catch(function(){ h.toast(L('Couldn’t copy. Select the code instead.','复制失败，请直接记下邀请码。')); }); };
 
 
   /* ---------- one person, group settings, leaving ---------- */
@@ -206,6 +292,8 @@ function init(h){
   A.frback=function(){ view=null; h.fx('light'); render(); refresh(); };
   A.frretry=function(){ view.wk.err=''; render(); loadBoard(true); };
   A.frday=function(b){ var i=+b.dataset.i; if(!(i>=0&&i<=6)) return; view.wk.day=i; h.fx('select'); render(); var on=document.querySelector('#friends .fr-days [aria-pressed="true"]'); if(on) on.focus({preventScroll:true}); if(!view.wk.b[i]) loadBoard(false); };
+  A.frstar=function(b){ var u=b.dataset.u; view.sel=view.sel===u?null:u; h.fx('select'); render(); var on=document.querySelector('#friends .fr-st.on'); if(on) on.focus({preventScroll:true}); };
+  A.frlook=function(){ var sky=document.querySelector('#friends .fr-sky'), cur=view.look==='auto'?(reduceMotion()?'lines':'auto'):view.look; view.look=cur==='art'?'lines':'art'; h.fx('light'); if(sky) sky.setAttribute('data-look',view.look); };
   A.frinvite=function(){ if(view) inviteSheet(view.id,view.name); };
   A.frwho=function(b){ whoSheet(b.dataset.u); };
   A.frset=function(){ if(view) settingsSheet(); };

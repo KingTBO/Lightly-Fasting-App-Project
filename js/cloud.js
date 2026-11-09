@@ -45,15 +45,17 @@ function pack(S){ if(!S||!S.onboarded) return ''; var c=scrub(S); delete c.cloud
   for(;;){ c.fasts=f; out=b64(JSON.stringify(c)); if(out.length<=1800||!f.length) break; f.shift(); } return out.length<=1800?out:''; }
 function unpack(x){ try{ var o=JSON.parse(unb64(x)); return o&&o.onboarded?o:null; }catch(e){ return null; } }
 function takeCarried(){ var m=/[?&]r=([\w-]+)/.exec(location.search); if(!m) return null; try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){} return unpack(m[1]); }
+/* the tab a sign-in started from (?tab=friends): read it once and take only that part off the address, so the rest of the link (r=, join=) is still there for the others */
+function takeTab(){ var m=/[?&]tab=(\w+)/.exec(location.search); if(!m) return ''; try{ var q=location.search.replace(/^\?/,'').split('&').filter(function(x){ return x&&!/^tab=/.test(x); }).join('&'); history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash); }catch(e){} return m[1]==='friends'?'friends':''; }
 function codeOn(){ return !!cfg().code; }
-/* where a sign-in comes back to: this page, with the packed state (?r=) and, if the person came from a Friends invite, its code (join=), so neither is lost in another browser */
-function landing(state,join){ var r=pack(state), j=/^[2-9A-HJKMNP-Z]{8}$/.test(String(join||'').toUpperCase())?String(join).toUpperCase():'', q=[]; if(r) q.push('r='+r); if(j) q.push('join='+j); return location.origin+location.pathname+(q.length?'?'+q.join('&'):''); }
-function sendCode(email,state,join){ return call('/auth/v1/otp?redirect_to='+encodeURIComponent(landing(state,join)),{method:'POST',body:{email:email,create_user:true}}); }
+/* where a sign-in comes back to: this page, with the packed state (?r=) and, if the person came from a Friends invite, its code (join=), so neither is lost in another browser; and tab=friends when the sign-in started on the Friends tab (from Me it comes back to Me) */
+function landing(state,join,tab){ var r=pack(state), j=/^[2-9A-HJKMNP-Z]{8}$/.test(String(join||'').toUpperCase())?String(join).toUpperCase():'', q=[]; if(r) q.push('r='+r); if(j) q.push('join='+j); if(tab==='friends') q.push('tab=friends'); return location.origin+location.pathname+(q.length?'?'+q.join('&'):''); }
+function sendCode(email,state,join,tab){ return call('/auth/v1/otp?redirect_to='+encodeURIComponent(landing(state,join,tab)),{method:'POST',body:{email:email,create_user:true}}); }
 function verify(email,code){ return call('/auth/v1/verify',{method:'POST',body:{type:'email',email:email,token:String(code).replace(/\s/g,'')}}).then(function(r){ var a=toAuth(r); setAuth(a); return a; }); }
 /* Google (and other providers): Supabase sends the person to the provider, then back here with the tokens in the hash, exactly like the email link */
 var provCache=null;
 function providerOn(name){ if(!ready()) return Promise.resolve(false); if(!provCache) provCache=call('/auth/v1/settings').catch(function(){ provCache=null; return null; }); return provCache.then(function(st){ return !!(st&&st.external&&st.external[name]); }); }
-function oauthUrl(name,state,join){ return cfg().url.replace(/\/$/,'')+'/auth/v1/authorize?provider='+encodeURIComponent(name)+'&redirect_to='+encodeURIComponent(landing(state,join)); }
+function oauthUrl(name,state,join,tab){ return cfg().url.replace(/\/$/,'')+'/auth/v1/authorize?provider='+encodeURIComponent(name)+'&redirect_to='+encodeURIComponent(landing(state,join,tab)); }
 /* the access token is a JWT whose payload names the person: used only if the network drops right after the redirect, so the tokens in the link are not lost */
 function jwtUser(t){ try{ var o=JSON.parse(unb64(String(t).split('.')[1])); return o&&o.sub?{id:o.sub,email:o.email||'',user_metadata:o.user_metadata||{}}:null; }catch(e){ return null; } }
 /* returning from a magic link: the tokens arrive in the URL hash */
@@ -95,6 +97,6 @@ function rpc(name,args){ return token().then(function(t){ return call('/rest/v1/
 function rest(path){ return token().then(function(t){ return call('/rest/v1/'+path,{token:t}); }); }
 function rpcAnon(name,args){ return call('/rest/v1/rpc/'+name,{method:'POST',body:args||{}}); }
 
-root.LightlyCloud={landing:landing,rest:rest,rpc:rpc,rpcAnon:rpcAnon,pack:pack,unpack:unpack,takeCarried:takeCarried,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,deleteAccount:deleteAccount,alive:alive,pull:pull,push:push};
+root.LightlyCloud={landing:landing,rest:rest,rpc:rpc,rpcAnon:rpcAnon,pack:pack,unpack:unpack,takeCarried:takeCarried,takeTab:takeTab,ready:ready,codeOn:codeOn,AK:AK,merge:merge,getAuth:getAuth,sendCode:sendCode,verify:verify,fromHash:fromHash,profile:profile,providerOn:providerOn,oauthUrl:oauthUrl,signOut:signOut,deleteAccount:deleteAccount,alive:alive,pull:pull,push:push};
 if(typeof module!=='undefined'&&module.exports) module.exports=root.LightlyCloud;
 })(typeof self!=='undefined'?self:this);
