@@ -886,6 +886,18 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .ps-more[aria-expanded="true"]::after{transform:rotate(225deg);margin-top:4px}
 .ps-extra{overflow:hidden;max-height:0;transition:max-height .45s cubic-bezier(.16,1,.3,1)}
 .ps-extra.open{max-height:520px}
+/* 24 h and 36 h for people who have fasted before: an amber warning card over the list */
+.ps-warn{position:absolute;left:0;right:0;bottom:0;z-index:3;background:var(--card,var(--bg));border-radius:20px 20px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom,0px));text-align:center;box-shadow:0 -10px 30px rgba(0,0,0,.18)}
+.ps-warn[hidden]{display:none}
+.ps-warn .pw-ico{width:44px;height:44px;display:block;margin:0 auto 10px}
+.ps-warn .pw-ico.shake{animation:pwShake .55s .1s both}
+@keyframes pwShake{0%,100%{transform:none}15%{transform:translateX(-4px) rotate(-5deg)}35%{transform:translateX(4px) rotate(5deg)}55%{transform:translateX(-3px) rotate(-3deg)}75%{transform:translateX(3px) rotate(3deg)}}
+@media (prefers-reduced-motion:reduce){.ps-warn .pw-ico.shake{animation:none}}
+.ps-warn h5{font:600 19px/1.25 var(--font);margin:0 0 6px}
+.ps-warn p{font-size:15px;line-height:1.4;color:var(--label-2);margin:0 0 16px}
+.ps-warn button{display:block;width:100%;min-height:50px;border:0;border-radius:14px;font:600 17px var(--font);cursor:pointer}
+.ps-warn .pw-yes{background:#B35C00;color:#fff;margin-bottom:8px}
+.ps-warn .pw-no{background:var(--fill);color:var(--label)}
 .ps-extra .ps-row{border-top:.5px solid var(--sep)}
 .ps-foot{font-size:13px;color:var(--label-2);margin:10px 4px 0;line-height:1.4}
 #pScrim,#cScrim{transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}#pScrim.on,#cScrim.on{visibility:visible;transition-delay:0s}
@@ -1195,6 +1207,11 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
         <div class="grab"></div>
         <div class="ps-h"><h4 id="psTitle"></h4><button type="button" class="x" id="psClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>
         <p class="ps-note" id="psNote"></p>
+        <div class="ps-warn" id="psWarn" role="alertdialog" aria-labelledby="pwT" aria-describedby="pwD" hidden>
+          <svg class="pw-ico" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="28" fill="#B35C00"/><path d="M28 15v17" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="28" cy="40" r="2.6" fill="#fff"/></svg>
+          <h5 id="pwT"></h5><p id="pwD"></p>
+          <button type="button" class="pw-yes" id="pwYes"></button><button type="button" class="pw-no" id="pwNo"></button>
+        </div>
         <div class="ps-scroll"><div class="ps-list" id="psList"></div><p class="ps-foot" id="psFoot"></p></div>
       </div>
       <div class="scrim" id="iScrim"></div>
@@ -1300,7 +1317,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
     <div class="sec-head"><h2 class="h2" id="pl-h" data-zh="你的计划，就是你的终点">Your plan is your finish line</h2>
       <p data-zh="不管选哪种计划，圆都会在你的目标时刻刚好变满，时间轴上的小点也会按你的小时数排列。超出目标不计分，更长也不等于更好。四个计划已经能满足大多数人，所以只把它们放在前面，其他的都收在“更多计划”里。点一张卡片，上面的演示就会换成这个计划。">Whatever plan you pick, the disc is exactly full at your goal, and the dots on the timeline match your hours. Time past the goal isn't scored, and longer isn't treated as better. Four plans cover most people, so only those show up front. Everything else is one tap away under More plans. Tap a card to load it into the demo above.</p></div>
     <div id="planGrid"></div>
-    <p class="note" data-zh="新手只从 13:11 开始，完成三次后开放 16:8，之后每个计划都在完成三次下一档后开放；以前断食过的人从一开始就能用所有日常计划。24 小时和 36 小时断食一开始都是锁着的，随着你完成的断食逐步解锁，就像一个可以努力达到的目标，而不是付费墙。如果在安全问题里回答了“是”，就永远不会提供，并建议先咨询医生。轻伴只会在你连续一周轻松完成后，才建议试试下一级（13、16、18），从不催你超过自己选的计划。">New fasters start with 13:11 only; 16:8 opens after three completed fasts, then each plan after three at the one below. People who have fasted before get every everyday plan from the start. The 24 h and 36 h fasts start locked and unlock as you complete fasts, like a goal to work towards, not a paywall. A yes on the safety question means they're never offered, and Lightly suggests seeing a doctor. Lightly suggests the next step up (13, 16, 18) only after a week of comfortable fasts, and never pushes past the plan you chose.</p>
+    <p class="note" data-zh="新手只从 13:11 开始，完成三次后开放 16:8，之后每个计划都在完成三次下一档后开放；以前断食过的人从一开始就能用所有日常计划。第一次断食的人，24 小时和 36 小时一开始是锁着的，随着完成的断食逐步解锁（2 周内完成 6 次 16 小时断食解锁 24 小时，再完成一次 24 小时并等 2 周解锁 36 小时），就像一个可以努力达到的目标，而不是付费墙。以前断食过的人从一开始就能用这两个；选择时会出现警告并震动，提醒只有以前做过的人再试，建议 24 小时每周最多一次、36 小时每月最多两次。如果在安全问题里回答了“是”，就永远不会提供，并建议先咨询医生。轻伴只会在你连续一周轻松完成后，才建议试试下一级（13、16、18），从不催你超过自己选的计划。">New fasters start with 13:11 only; 16:8 opens after three completed fasts, then each plan after three at the one below. People who have fasted before get every everyday plan from the start. For first-timers the 24 h and 36 h fasts start locked and unlock as you complete fasts (6 fasts of 16 h over two weeks for 24 h, then a 24 h fast and two more weeks for 36 h), like a goal to work towards, not a paywall. People who have fasted before get both from the start; choosing one shows a warning and a buzz that say to try it only if you have done it before, and we suggest one 24 h fast a week and two 36 h fasts a month at most. A yes on the safety question means they're never offered, and Lightly suggests seeing a doctor. Lightly suggests the next step up (13, 16, 18) only after a week of comfortable fasts, and never pushes past the plan you chose.</p>
   </section>
 
   <section class="sec" id="start" aria-labelledby="o-h">
@@ -1699,8 +1716,8 @@ window.LightlySphere=(function(){
     {id:'18', feat:1, fast:18, eat:6, en:'Steady', zh:'稳健', den:'Two more hours, for when 16:8 feels easy.', dzh:'多两个小时，适合 16:8 已经轻松的时候。', grp:'daily'},
     {id:'20', feat:1, fast:20, eat:4, en:'Warrior', zh:'勇士', den:'Twenty hours of fasting.', dzh:'断食二十小时。', grp:'daily'},
     {id:'23', fast:23, eat:1, en:'One meal', zh:'一餐', den:'Also called OMAD. A single meal a day.', dzh:'也叫 OMAD，一天只吃一餐。', grp:'daily'},
-    {id:'24', fast:24, eat:8, en:'24 hours', zh:'24 小时', den:'Unlocks as you go. A one-time safety screen, plus water and electrolyte reminders.', dzh:'随进度解锁。会先看一次安全提示，并提醒你补水和电解质。', grp:'long'},
-    {id:'36L', fast:36, eat:8, en:'36 hours', zh:'36 小时', den:'Unlocks after a 24-hour fast. Spans more than one night.', dzh:'完成 24 小时断食后解锁，会跨过不止一个夜晚。', grp:'long'}];
+    {id:'24', fast:24, eat:8, en:'24 hours', zh:'24 小时', den:'Open if you have fasted before, at most once a week. Unlocks with progress if you have not. A one-time safety screen, plus water and electrolyte reminders.', dzh:'以前断食过的人可直接使用，建议每周最多一次；第一次断食的人随进度解锁。会先看一次安全提示，并提醒你补水和电解质。', grp:'long'},
+    {id:'36L', fast:36, eat:8, en:'36 hours', zh:'36 小时', den:'Open if you have fasted before, at most twice a month. Otherwise it unlocks after a 24-hour fast. Spans more than one night.', dzh:'以前断食过的人可直接使用，建议每月最多两次；否则完成 24 小时断食后解锁。会跨过不止一个夜晚。', grp:'long'}];
   var plan=PLANS.filter(function(p){ return p.id==='18'; })[0];
 
   /* start options: minutes after midnight */
@@ -2047,7 +2064,7 @@ window.LightlySphere=(function(){
   var FEAT=PLANS.filter(function(p){return p.feat;});
   $('planSeg').innerHTML=FEAT.map(function(p){return '<button type="button" data-plan="'+p.id+'" aria-pressed="false">'+p.fast+':'+p.eat+'</button>';}).join('');
   function card(p){ var bar='', span=Math.max(24,p.fast+p.eat); for(var i=0;i<span;i++) bar+='<i'+(i>=p.fast&&i<p.fast+p.eat?' class="e"':'')+'></i>';
-    return '<button type="button" class="plan-card" data-plan="'+p.id+'" aria-pressed="false">'+(p.top?'<span class="top" data-pen="Most popular" data-pzh="最受欢迎"></span>':'')+(p.grp==='long'?'<span class="lock" data-pen="Unlocks as you go" data-pzh="逐步解锁"></span>':'')+'<span class="pn">'+planLbl(p)+'</span><span class="bar24" aria-hidden="true">'+bar+'</span><span class="pt" data-pen="'+p.en+'" data-pzh="'+p.zh+'"></span><span class="pd" data-pen="'+p.den+'" data-pzh="'+p.dzh+'"></span></button>'; }
+    return '<button type="button" class="plan-card" data-plan="'+p.id+'" aria-pressed="false">'+(p.top?'<span class="top" data-pen="Most popular" data-pzh="最受欢迎"></span>':'')+(p.grp==='long'?'<span class="lock" data-pen="For people who have fasted before" data-pzh="适合以前断食过的人"></span>':'')+'<span class="pn">'+planLbl(p)+'</span><span class="bar24" aria-hidden="true">'+bar+'</span><span class="pt" data-pen="'+p.en+'" data-pzh="'+p.zh+'"></span><span class="pd" data-pen="'+p.den+'" data-pzh="'+p.dzh+'"></span></button>'; }
   function info(t,en,zh,den,dzh){ return '<div class="plan-card info"><span class="pn">'+t+'</span><span class="pt" data-pen="'+en+'" data-pzh="'+zh+'"></span><span class="pd" data-pen="'+den+'" data-pzh="'+dzh+'"></span></div>'; }
   var groups=GRP.map(function(g){ var cards=PLANS.filter(function(p){return p.grp===g[0]&&!p.feat;}).map(card).join('');
     if(g[0]==='weekly') cards=info('5:2','Two light days','两天少吃','Eat normally five days and mark two light days. No food logging, so there is no timer for this one.','五天正常吃，标记两天少吃。不记录饮食，所以这个计划没有计时器。')+cards;
@@ -2147,11 +2164,13 @@ window.LightlySphere=(function(){
     /* from the research thread, 2026-10-26 */
     longIds:['24','36L'],
     unlock:{
-      first:{ '24':['Unlocks after 4 weeks and 12 fasts of 16 h or more (2 of them 18 h or more), with no \u201cunwell\u201d check-in in the last 14 days.','4 周内完成 12 次 16 小时以上的断食（其中 2 次 18 小时以上），且最近 14 天没有“不舒服”的打卡后解锁。','0 of 12 fasts','12 次中已完成 0 次'],
-              '36':['Unlocks 4 weeks after your first 24-hour fast.','完成第一次 24 小时断食 4 周后解锁。','Needs a 24 h fast first','需要先完成一次 24 小时断食'] },
-      some: { '24':['Unlocks after 3 fasts of 16 h or more in Lightly.','在轻伴里完成 3 次 16 小时以上的断食后解锁。','0 of 3 fasts','3 次中已完成 0 次'],
-              '36':['Unlocks after one completed 24-hour fast.','完成一次 24 小时断食后解锁。','Needs a 24 h fast first','需要先完成一次 24 小时断食'] } },
+      first:{ '24':['Unlocks after 6 fasts of 16 h or more over at least 2 weeks, with no \u201cunwell\u201d check-in in the last 14 days.','至少 2 周内完成 6 次 16 小时以上的断食，且最近 14 天没有“不舒服”的打卡后解锁。','0 of 6 fasts','6 次中已完成 0 次'],
+              '36':['Unlocks 2 weeks after your first 24-hour fast.','完成第一次 24 小时断食 2 周后解锁。','Needs a 24 h fast first','需要先完成一次 24 小时断食'] },
+      /* people who have fasted before: open from the start, with a warning and advice instead of waiting */
+      some: { '24':['Open to you, only if you have done it before. We suggest one a week at most.','对你开放，但只有做过的人再选。建议每周最多一次。','',''],
+              '36':['Open to you, only if you have done it before. We suggest two a month at most.','对你开放，但只有做过的人再选。建议每月最多两次。','',''] } },
     freqText:['For the first 2 months after unlocking, at most one long fast a month. After that, 24 h up to once a week and 36 h up to twice a month, always at least 3 days apart. An \u201cunwell\u201d check-in pauses long fasts for 2 weeks.','解锁后的头 2 个月，每月最多一次长断食。之后 24 小时最多每周一次，36 小时最多每月两次，两次之间至少隔 3 天。一次“不舒服”的打卡会让长断食暂停 2 周。'],
+    freqSome:['24 h and 36 h are open because you have fasted before. We recommend them only if you have done it before, not as a first time: one 24 h fast a week at most, and two 36 h fasts a month at most.','因为你以前断食过，24 小时和 36 小时都已开放。我们建议只有做过的人再尝试，不要作为第一次：24 小时每周最多一次，36 小时每月最多两次。'],
     recommend:{first:'13', some:'16'}
   };
   function key36(id){ return id==='24'?'24':'36'; } /* 36L uses the '36' rule */
@@ -2173,8 +2192,8 @@ window.LightlySphere=(function(){
   function fmtClock(h){ h=((h%24)+24)%24; var hh=Math.floor(h), mm=Math.round((h-hh)*60); if(mm===60){ mm=0; hh=(hh+1)%24; } return (hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm; }
   function opt(id,label,sub,checked,extra,disabled){ return '<button type="button" class="ob-opt" role="'+(extra==='multi'?'checkbox':'radio')+'" data-v="'+id+'" aria-checked="'+(!!checked)+'"'+(disabled?' disabled':'')+'><span>'+label+(sub?'<small>'+sub+'</small>':'')+'</span><span class="ck"></span></button>'; }
   function risky(){ return st.safety.length&&st.safety.indexOf('none')<0; }
-  /* nobody starts with long fasts unlocked: they unlock with progress, and never with a safety flag */
-  function allowed(id){ if(RULES.longIds.indexOf(id)>=0) return false; if(['16','18','20'].indexOf(id)>=0) return risky()?false:true; return true; }
+  /* first-timers start with long fasts locked: they unlock with progress, and never with a safety flag. People who have fasted before get them open, with a warning when they choose one. */
+  function allowed(id){ if(RULES.longIds.indexOf(id)>=0) return st.exp==='some'&&!risky(); if(['16','18','20'].indexOf(id)>=0) return risky()?false:true; return true; }
   function soft(id){ return st.exp!=='some'&&!risky()&&(id==='18'||id==='20'); }   /* first-timers can pick 18:6 and 20:4 with a calm note, nothing is blocked */
   function softNote(){ return L('New to fasting? Start at 13:11 or 16:8 and step up after a few fasts.','第一次断食？先从 13:11 或 16:8 开始，几次之后再往上加。'); }
   function lockInfo(id){ if(['16','18','20'].indexOf(id)>=0) return [L('Opens as you build up.','随进度开放。'),L('0 of 3 fasts','3 次中已完成 0 次')]; if(risky()) return [L('Not offered. Please talk to a doctor.','不提供。请先咨询医生。'),'']; var u=RULES.unlock[st.exp||'first'][key36(id)]; return [L(u[0],u[1]),L(u[2],u[3])]; }
@@ -2470,8 +2489,8 @@ window.LightlySphere=(function(){
       [risky()?L('Never offered','不提供'):L('Locked for now','暂时锁定'),locked.length?locked.map(planName).join(', '):'\u2014'],
       [L('Doctor first','先咨询医生'),risky()?L('Yes, suggested','是，建议'):L('No','否')]];
     document.getElementById('obOut').innerHTML=rows.map(function(r){ return '<li><span>'+r[0]+'</span><b>'+r[1]+'</b></li>'; }).join('');
-    document.getElementById('obRule').textContent=!started?'':risky()?L('Care mode is on: plans stop at 16:8, long fasts are never offered, and there are no streaks, cheat days or Ramadan mode.','关怀模式已开启：计划最长到 16:8，不提供长时间断食，也没有连续天数、弹性日和斋月模式。'):L('Long fasts unlock as you go: ','长时间断食随着进度解锁：')+lockInfo('24')[0]+' '+lockInfo('36L')[0]+' '+L(RULES.freqText[0],RULES.freqText[1]);
-    api.lock(locked,L('Locked for you for now','暂时为你锁定')); api.lockedIds=locked; api.lockInfo=lockInfo; api.risky=risky; }
+    document.getElementById('obRule').textContent=!started?'':risky()?L('Care mode is on: plans stop at 16:8, long fasts are never offered, and there are no streaks, cheat days or Ramadan mode.','关怀模式已开启：计划最长到 16:8，不提供长时间断食，也没有连续天数、弹性日和斋月模式。'):st.exp==='some'?L(RULES.freqSome[0],RULES.freqSome[1]):L('Long fasts unlock as you go: ','长时间断食随着进度解锁：')+lockInfo('24')[0]+' '+lockInfo('36L')[0]+' '+L(RULES.freqText[0],RULES.freqText[1]);
+    api.lock(locked,L('Locked for you for now','暂时为你锁定')); api.lockedIds=locked; api.lockInfo=lockInfo; api.risky=risky; api.longExp=function(){ return st.exp==='some'&&!risky(); }; }
   document.getElementById('obReset').addEventListener('click',function(){ st={step:0,exp:null,safety:[],plan:null,imp:false,city:'shanghai',start:'20:30',age:30,wt:70,ht:170,sex:'n',skip:false,bodyDone:false}; show(0,-1); });
   ['l-en','l-zh'].forEach(function(id){ document.getElementById(id).addEventListener('click',function(){ setTimeout(rerender,0); }); });
   show(0,0);
@@ -2671,11 +2690,12 @@ window.LightlySphere=(function(){
   function P(id){ return api.plans.filter(function(p){ return p.id===id; })[0]; }
   function lbl(p){ return p.grp==='long'?p.fast+' h':p.fast+':'+p.eat; }
   function dur(x){ var m=Math.round(x*60), a=Math.floor(m/60), b=m%60; return L((a||!b?a+' h':'')+(a&&b?' ':'')+(b?b+' min':''),(a||!b?a+' 小时':'')+(a&&b?' ':'')+(b?b+' 分':'')); }
-  function locked(id){ return ['24','36L'].indexOf(id)>=0||(api.lockedIds||[]).indexOf(id)>=0; } /* long fasts start locked for everyone */
+  function isLong(id){ return ['24','36L'].indexOf(id)>=0; }
+  function locked(id){ return (isLong(id)&&!(api.longExp&&api.longExp()))||(api.lockedIds||[]).indexOf(id)>=0; } /* long fasts start locked for first-timers; people who have fasted before get them open, behind a warning */
   var LOCK='<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.5" width="8" height="5.5" rx="1.5" fill="currentColor"/><path d="M3.8 5.5V4a2.2 2.2 0 0 1 4.4 0v1.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
   function row(p,cur){ var lk=locked(p.id), bar='', span=24; if(p.grp!=='long'&&p.fast+p.eat<=24){ for(var i=0;i<24;i++) bar+='<i'+(i>=p.fast?' class="e"':'')+'></i>'; }
     var info=lk?(api.lockInfo?api.lockInfo(p.id):[L('Unlocks as you go','随进度解锁'),L('Locked','已锁定')]):null;
-    return '<button type="button" class="ps-row" role="radio" data-id="'+p.id+'" aria-checked="'+(p.id===cur)+'"'+(lk?' aria-disabled="true"':'')+'><span class="pl">'+lbl(p)+'</span><span class="nm"><b>'+L(p.en,p.zh)+'</b>'+(lk?'<small class="lkt">'+LOCK+(info[1]||L('Locked','已锁定'))+'</small>':bar?'<span class="pbar" aria-hidden="true">'+bar+'</span>':'<small>'+(p.grp==='long'?L('Long fast','长时间断食'):L('Weekly','每周'))+'</small>')+'</span>'
+    return '<button type="button" class="ps-row" role="radio" data-id="'+p.id+'" aria-checked="'+(p.id===cur)+'"'+(lk?' aria-disabled="true"':'')+'><span class="pl">'+lbl(p)+'</span><span class="nm"><b>'+L(p.en,p.zh)+'</b>'+(lk?'<small class="lkt">'+LOCK+(info[1]||L('Locked','已锁定'))+'</small>':bar?'<span class="pbar" aria-hidden="true">'+bar+'</span>':'<small>'+(p.grp==='long'?(api.longExp&&api.longExp()?(p.fast===24?L('Only if you have done it before \u00b7 once a week at most','做过再选 \u00b7 每周最多一次'):L('Only if you have done it before \u00b7 twice a month at most','做过再选 \u00b7 每月最多两次')):L('Long fast','长时间断食')):L('Weekly','每周'))+'</small>')+'</span>'
       +(lk?'':'<span class="ck"></span>')+'</button>'; }
   function note(){ var s=api.state(), c=api.clock;
     if(s.mode==='fast'||s.mode==='saved') return L('You’re '+dur(s.h)+' in, since '+c(s.start)+'. Switching keeps that time, and the disc refills to the new goal.','你已经断食 '+dur(s.h)+'（从 '+c(s.start)+' 开始）。换计划会保留已断食的时间，圆会按新目标重新计算。');
@@ -2687,14 +2707,24 @@ window.LightlySphere=(function(){
     var rm=window.LightlyRamadan&&window.LightlyRamadan.on()?'<button type="button" class="ps-row ps-ram" role="radio" data-id="ramadan" aria-checked="false"><span class="pl"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="rgba(142,142,147,.28)"/><path d="M0 -10A10 10 0 0 1 0 10A4 10 0 0 0 0 -10Z" fill="#E9E3D3"/></svg></span><span class="nm"><b>'+L('Ramadan','斋月')+'</b><small>'+L('Dawn to sunset \u00b7 this month only','黎明到日落 \u00b7 只在这个月')+'</small></span><span class="ck"></span></button>':'';
     $('psList').innerHTML=rm+feat.map(function(p){ return row(p,cur); }).join('')
       +'<button type="button" class="ps-more" id="psMore" aria-expanded="'+more+'">'+L('More plans','更多计划')+'</button><div class="ps-extra'+(more?' open':'')+'" id="psExtra">'+rest.map(function(p){ return row(p,cur); }).join('')+'</div>';
-    $('psFoot').textContent=window.LightlyRamadan&&window.LightlyRamadan.on()?L('Ramadan shows up here only while Ramadan is on, and leaves after Eid. Your usual plan rests for the month.','斋月只在斋月期间出现在这里，开斋节后消失。这个月你平时的计划先休息。'):api.risky&&api.risky()?L('Long fasts aren’t offered because of your safety answer. Please talk to a doctor first.','因为你的安全问题回答，不提供长时间断食，请先咨询医生。'):L('Long fasts unlock as you go, never with a paywall. 5:2 and custom plans live in Me › Plan.','长时间断食随进度解锁，从不收费解锁。5:2 和自定义计划在“我 › 计划”里。');
+    $('psFoot').textContent=window.LightlyRamadan&&window.LightlyRamadan.on()?L('Ramadan shows up here only while Ramadan is on, and leaves after Eid. Your usual plan rests for the month.','斋月只在斋月期间出现在这里，开斋节后消失。这个月你平时的计划先休息。'):api.risky&&api.risky()?L('Long fasts aren’t offered because of your safety answer. Please talk to a doctor first.','因为你的安全问题回答，不提供长时间断食，请先咨询医生。'):(api.longExp&&api.longExp()?L('24 h and 36 h are open because you have fasted before. Try them only if you have done it before: one 24 h fast a week and two 36 h fasts a month at most. 5:2 and custom plans live in Me › Plan.','因为你以前断食过，24 小时和 36 小时已开放。只有做过的人再试：24 小时每周最多一次，36 小时每月最多两次。5:2 和自定义计划在“我 › 计划”里。'):L('Long fasts unlock as you go, never with a paywall. 5:2 and custom plans live in Me › Plan.','长时间断食随进度解锁，从不收费解锁。5:2 和自定义计划在“我 › 计划”里。'));
     $('psMore').addEventListener('click',function(){ more=!more; this.setAttribute('aria-expanded',more); $('psExtra').classList.toggle('open',more); });
     [].forEach.call(sh.querySelectorAll('.ps-row'),function(b){ b.addEventListener('click',function(){
       if(b.dataset.id==='ramadan'){ open(false); setTimeout(function(){ window.LightlyRamadan.show(); },reduceMs()+80); return; }
       if(b.getAttribute('aria-disabled')){ $('psNote').textContent=(api.lockInfo?api.lockInfo(b.dataset.id)[0]:L('Unlocks as you go.','随进度解锁。')); return; }
-      api.setPlanHere(b.dataset.id); try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){}
-      [].forEach.call(sh.querySelectorAll('.ps-row'),function(x){ x.setAttribute('aria-checked',x===b); });
-      setTimeout(function(){ open(false); },reduceMs()); }); }); }
+      if(isLong(b.dataset.id)){ warn(b.dataset.id); return; }
+      choose(b.dataset.id,b); }); }); }
+  function choose(id,b){ api.setPlanHere(id); try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){}
+    [].forEach.call(sh.querySelectorAll('.ps-row'),function(x){ x.setAttribute('aria-checked',x.dataset.id===id); });
+    setTimeout(function(){ open(false); },reduceMs()); }
+  /* 24 h and 36 h for people who have fasted before: an amber warning that shakes and buzzes first. Advice, not a lock. */
+  function warn(id){ var is24=id==='24', w=$('psWarn');
+    $('pwT').textContent=is24?L('Done a 24-hour fast before?','以前做过 24 小时断食吗？'):L('Done a 36-hour fast before?','以前做过 36 小时断食吗？');
+    $('pwD').textContent=(is24?L('It is a long fast. We recommend it only if you have done one before, not as your first time.','这是长时间断食。我们建议只有以前做过的人再尝试，不要作为第一次。'):L('It is a very long fast, across more than one night. We recommend it only if you have done one before, not as your first time.','这是很长的断食，会跨过不止一个夜晚。我们建议只有以前做过的人再尝试，不要作为第一次。'))+L(' ','')+(is24?L('Please keep it to once a week at most.','建议每周最多一次。'):L('Please keep it to twice a month at most.','建议每月最多两次。'));
+    $('pwYes').textContent=L('Yes, I have done this before','是的，我以前做过'); $('pwNo').textContent=L('Not now','以后再说');
+    $('pwYes').onclick=function(){ w.hidden=true; choose(id); }; $('pwNo').onclick=function(){ w.hidden=true; };
+    w.hidden=false; var m=w.querySelector('.pw-ico'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake');
+    try{ if(navigator.vibrate) navigator.vibrate([22,50,22,50,34]); }catch(e){} $('pwNo').focus({preventScroll:true}); }
   function reduceMs(){ return window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches?0:260; }
   function open(v){ if(v) render(); sh.classList.toggle('open',v); sh.setAttribute('aria-hidden',!v); sc.classList.toggle('on',v); if(v) $('psClose').focus({preventScroll:true}); else $('planBtn').focus({preventScroll:true}); }
   $('planBtn').addEventListener('click',function(){ open(true); });

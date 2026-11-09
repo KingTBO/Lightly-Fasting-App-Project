@@ -44,6 +44,7 @@ NODE_PATH=$(npm root -g) node tests/signin-return.test.js     # coming back from
 NODE_PATH=$(npm root -g) node tests/body.test.js              # optional weight in onboarding: about you, units, skip, who keeps a weight (adults, no BMI cut-off), gender, the opt-out of the check-in, the monthly check-in (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/recappop.test.js           # the monthly recap pop-up: once a month on the 1st to 3rd, Later, See my recap, 中文, and the cases where it stays away
 NODE_PATH=$(npm root -g) node tests/trend.test.js             # compare with others: only day and percent are sent, opt-in, offline deletion, the recap chart (Supabase faked); database: scripts/test-trend-db.sh
+NODE_PATH=$(npm root -g) node tests/longfast.test.js         # 24 h and 36 h: open for people who have fasted before behind a warning and buzz, locked for first-timers, hidden in Care mode (about 1 minute)
 NODE_PATH=$(npm root -g) node tests/care.test.js              # Care mode: health answers, plan caps, no streaks or cheat days, the 14-day wait (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright
 NODE_PATH=$(npm root -g) node qa/run-app.js --screens=idle    # alignment check for one scenario (idle, mid, goal, eat, empty, ob)
@@ -87,7 +88,7 @@ These protect people who fast, and they are not up for trade-off:
 - **Never push past the person's own plan.** No nudge either way, nothing that grows past the goal. After the goal the timer keeps counting quietly; the app does not urge people to stop or to continue. Ending early stays kind (no red).
 - **No food logging and no AI coach.** They were left out on purpose. Do not add them.
 - **No health or weight gamification.** No fat-burn stages, no body or scale imagery. Rewards are for consistency, never for longer fasts.
-- **Long fasts stay gated.** The 24 h and 36 h plans unlock with progress, and a safety flag means they are never offered. The rules live in `js/core.js` and are described in the CHANGELOG; do not loosen them.
+- **Long fasts stay gated.** First-timers unlock 24 h and 36 h with progress (24 h: 6 fasts of 16 h over 2 weeks; 36 h: a 24 h fast and 2 more weeks), and a safety flag (Care mode) means they are never offered. People who answered "fasted before" get both from the start (v0.98.0), but choosing one always shows the amber warning and buzz ("only if you have done it before, not as a first time") with the advice of one 24 h fast a week and two 36 h a month at most. The rules live in `js/core.js` (`longStatus`, `longNote`) and are described in the CHANGELOG; do not loosen them further. The numbers are product judgement and still need a doctor or dietitian review.
 - **Solo first.** Fasting alone is the main experience. Friends and groups are a small optional extra (the fourth tab, never on Today); they never share weight, hours, times, place or a streak, and nothing pushes anyone past their own plan.
 - **Privacy.** Location is used on the phone only, never uploaded or shared. Never say "where you are". Ramadan and other sacred fasts are free, calm, dry-fast aware, and the app never presents itself as a religious authority.
 

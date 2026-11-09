@@ -23,15 +23,40 @@ assert.deepStrictEqual(C.offKeys([o2]),['2026-10-20','2026-10-21','2026-10-22'])
 assert.strictEqual(C.offActive([o2],now),null);
 const o3={id:'q',kind:'unwell',start:new Date(2026,9,25,9).getTime(),days:14};
 assert.strictEqual(C.offActive([o3],now).id,'q');assert.strictEqual(C.offDayNo(o3,now),3);
-// long fast unlock
+// long fast unlock: people who have fasted before get 24 h and 36 h at once, with advice instead of waits
 const prof={fastedBefore:true,safety:false};
-const st={fasts:[mk(1),mk(2)],unwell:null,unlocked:{}};
-assert.strictEqual(C.longStatus(24,prof,st,now).st,'locked');
-st.fasts.push(mk(3));assert.strictEqual(C.longStatus(24,prof,st,now).st,'ok');
-assert.strictEqual(C.longStatus(24,{fastedBefore:false,safety:false},st,now).st,'locked');
-assert.strictEqual(C.longStatus(24,{fastedBefore:true,safety:true},st,now).st,'hidden');
-assert.strictEqual(C.longStatus(36,prof,st,now).st,'locked');
-st.unwell=now-D;assert.strictEqual(C.longStatus(24,prof,st,now).st,'paused');
+const st={fasts:[],unwell:null,unlocked:{}};
+let r=C.longStatus(24,prof,st,now);
+assert.strictEqual(r.st,'ok');assert.strictEqual(r.exp,true);assert.strictEqual(r.note,null);
+assert.strictEqual(C.longStatus(36,prof,st,now).st,'ok','36 h too, with no 24 h fast on record');
+assert.strictEqual(C.longStatus(24,{fastedBefore:true,safety:true},st,now).st,'hidden','Care mode hides both');
+assert.strictEqual(C.longStatus(36,{fastedBefore:true,safety:true},st,now).st,'hidden');
+// the advice: a rest after any long fast, a second 24 h within a week, a third 36 h in 30 days, a recent unwell check-in. Never a block.
+const lg=(daysAgo,h)=>{const e=new Date(2026,9,27,6).getTime()-daysAgo*D;return{id:'l'+daysAgo+'_'+h,start:e-h*H,end:e,goalH:h}};
+r=C.longStatus(24,prof,{fasts:[lg(2,24)],unwell:null,unlocked:{}},now);assert.strictEqual(r.st,'ok');assert.strictEqual(r.note.k,'gap');
+assert.strictEqual(C.longStatus(36,prof,{fasts:[lg(2,24)],unwell:null,unlocked:{}},now).note.k,'gap','any long fast counts for the rest');
+r=C.longStatus(24,prof,{fasts:[lg(5,24)],unwell:null,unlocked:{}},now);assert.strictEqual(r.st,'ok');assert.strictEqual(r.note.k,'week');
+assert(r.note.until>now&&r.note.until-now<=2*D+H,'a week after that fast');
+assert.strictEqual(C.longStatus(24,prof,{fasts:[lg(8,24)],unwell:null,unlocked:{}},now).note,null,'a week later it is fine');
+assert.strictEqual(C.longStatus(24,prof,{fasts:[lg(5,36)],unwell:null,unlocked:{}},now).note,null,'a 36 h fast does not count against the weekly 24 h');
+assert.strictEqual(C.longStatus(36,prof,{fasts:[lg(5,36)],unwell:null,unlocked:{}},now).note,null,'one 36 h fast this month is fine');
+r=C.longStatus(36,prof,{fasts:[lg(5,36),lg(12,36)],unwell:null,unlocked:{}},now);assert.strictEqual(r.st,'ok');assert.strictEqual(r.note.k,'month');
+assert.strictEqual(C.longStatus(36,prof,{fasts:[lg(5,36),lg(40,36)],unwell:null,unlocked:{}},now).note,null);
+r=C.longStatus(24,prof,{fasts:[],unwell:now-D,unlocked:{}},now);assert.strictEqual(r.st,'ok','feeling unwell is a note, not a block');assert.strictEqual(r.note.k,'unwell');
+assert.strictEqual(C.longStatus(24,prof,{fasts:[],unwell:now-15*D,unlocked:{}},now).note,null);
+// first-timers: 24 h after 6 fasts of 16 h or more over 2 weeks (was 12 and 4); 36 h two weeks after a first 24 h (was 4)
+const ft={fastedBefore:false,safety:false};
+const mkw=(daysAgo,h=16)=>{const e=new Date(2026,9,27,6).getTime()-daysAgo*D;return{id:'w'+daysAgo,start:e-h*H,end:e,goalH:16}};
+const six=[1,2,3,4,5,6].map(d=>mkw(d));
+r=C.longStatus(24,ft,{fasts:six,unwell:null,unlocked:{}},now);assert.strictEqual(r.st,'locked','six fasts but only six days in');assert(/6 of 6 fasts of 16 h or more, week 0 of 2/.test(r.label),r.label);
+const six2=[1,3,5,8,11,15].map(d=>mkw(d));
+assert.strictEqual(C.longStatus(24,ft,{fasts:six2,unwell:null,unlocked:{}},now).st,'ok','six fasts over two weeks');
+assert.strictEqual(C.longStatus(24,ft,{fasts:six2.slice(1),unwell:null,unlocked:{}},now).st,'locked','five fasts is not enough');
+assert.strictEqual(C.longStatus(24,ft,{fasts:six2,unwell:now-3*D,unlocked:{}},now).st,'locked','a recent unwell check-in holds first-timers back');
+assert.strictEqual(C.longStatus(36,ft,{fasts:six2,unwell:null,unlocked:{}},now).st,'locked');
+const f24=lg(15,24);
+assert.strictEqual(C.longStatus(36,ft,{fasts:six2.concat([lg(10,24)]),unwell:null,unlocked:{}},now).st,'locked','a 24 h fast 10 days ago: not yet two weeks');
+r=C.longStatus(36,ft,{fasts:six2.concat([f24]),unwell:null,unlocked:{24:now-20*D}},now);assert.strictEqual(r.st,'wait','unlocked, but first-timers still rest after their first long fast (61-day monthly rule)');
 // flex refill & block
 const fx={bank:1,mon:C.mondayOf(new Date(2026,9,5).getTime())};C.flexRefill(fx,new Date(2026,9,5).getTime(),now);
 assert.strictEqual(fx.bank,2);

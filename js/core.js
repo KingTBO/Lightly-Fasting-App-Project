@@ -172,29 +172,45 @@ function weightFit(o){
 /* ---------- unlock rules for long fasts (24 h, 36 h) ----------
    profile = {fastedBefore:boolean, safety:boolean}
    state   = {fasts, unwell:ms|null, unlocked:{24:ms,36:ms}}   returns {st, label, pct, until}
-   st: hidden (safety flag) | locked | paused | wait | ok */
+   st: hidden (safety flag) | locked | paused | wait | ok
+   People who have fasted before (and gave no safety flag) get both long fasts from the start, with no waiting (v0.98.0): st is 'ok' with exp:true, and the app
+   asks "have you done this before?" before it lets them choose one. How often is advice, not a rule: note says why the app would ask for a longer rest
+   (kind 'unwell' within 14 days, 'gap' under 3 days after any long fast, 'week' for a second 24 h within 7 days, 'month' for a third 36 h in 30 days) and until when.
+   First-timers keep the progress rules below (24 h: 6 fasts of 16 h or more over at least 2 weeks and no unwell check-in in 14 days; 36 h: one 24 h fast and 2 more weeks;
+   was 12 fasts and 4 weeks before v0.98.0), and their waits between long fasts stay hard. */
+function longNote(kind,done,fasts,state,now){
+  if(state.unwell&&now-state.unwell<14*D) return {k:'unwell',until:state.unwell+14*D};
+  var longs=done.filter(function(f){return f.goalH>=24;}).concat(fasts.filter(function(f){return f.goalH>=24&&!isDone(f);}));
+  var last=longs.length?Math.max.apply(null,longs.map(function(f){return f.end;})):0;
+  if(last&&now-last<3*D) return {k:'gap',until:last+3*D};
+  var same=longs.filter(function(f){return kind===24?f.goalH===24:f.goalH===36;});
+  if(kind===24){ var w7=same.filter(function(f){return now-f.end<7*D;}); if(w7.length) return {k:'week',until:Math.max.apply(null,w7.map(function(f){return f.end;}))+7*D}; }
+  else{ var c36=same.filter(function(f){return now-f.end<30*D;}); if(c36.length>=2) return {k:'month',until:Math.min.apply(null,c36.map(function(f){return f.end;}))+30*D}; }
+  return null;
+}
 function longStatus(kind,profile,state,now){
   now=now||Date.now();
   if(profile.safety) return {st:'hidden'};
   var fasts=state.fasts.filter(function(f){return f.end;}), done=fasts.filter(isDone);
   var first=fasts.length?Math.min.apply(null,fasts.map(function(f){return f.start;})):null;
-  var n16=done.filter(function(f){return f.goalH>=16&&hours(f)>=15.98;}), n18=n16.filter(function(f){return hours(f)>=17.98;});
+  var n16=done.filter(function(f){return f.goalH>=16&&hours(f)>=15.98;});
   var l24=done.filter(function(f){return f.goalH>=24;}).sort(function(a,b){return a.end-b.end;});
   var unwellRecent=state.unwell&&now-state.unwell<14*D;
+  if(profile.fastedBefore) return {st:'ok',exp:true,unlockedAt:state.unlocked&&state.unlocked[kind]||now,note:longNote(kind,done,fasts,state,now)};
   var ok=false,label='',pct=0;
   if(kind===24){
     if(profile.fastedBefore){ ok=n16.length>=3; label=Math.min(n16.length,3)+' of 3 fasts of 16 h or more'; pct=Math.min(n16.length/3,1); }
     else{
       var weeks=first?Math.floor((now-first)/(7*D)):0;
-      ok=weeks>=4&&n16.length>=12&&n18.length>=2&&!unwellRecent;
-      var a=Math.min(n16.length,12),b=Math.min(n18.length,2),w=Math.min(weeks,4);
-      label=a+' of 12 fasts of 16 h or more, '+b+' of 2 of 18 h or more, week '+w+' of 4';
-      pct=(a/12+b/2+w/4)/3;
+      ok=weeks>=2&&n16.length>=6&&!unwellRecent;
+      var a=Math.min(n16.length,6),w=Math.min(weeks,2);
+      label=a+' of 6 fasts of 16 h or more, week '+w+' of 2';
+      pct=(a/6+w/2)/2;
     }
   }else{
     var f24=l24[0];
     if(profile.fastedBefore){ ok=!!f24; label=(f24?1:0)+' of 1 fast of 24 h'; pct=f24?1:0; }
-    else{ var wk=f24?Math.floor((now-f24.end)/(7*D)):0; ok=!!f24&&wk>=4; label=(f24?'24 h done, ':'First finish a 24 h fast, ')+'week '+Math.min(wk,4)+' of 4'; pct=(f24?.5:0)+Math.min(wk,4)/8; }
+    else{ var wk=f24?Math.floor((now-f24.end)/(7*D)):0; ok=!!f24&&wk>=2; label=(f24?'24 h done, ':'First finish a 24 h fast, ')+'week '+Math.min(wk,2)+' of 2'; pct=(f24?.5:0)+Math.min(wk,2)/4; }
   }
   if(!ok) return {st:'locked',label:label,pct:pct};
   var u=state.unlocked&&state.unlocked[kind]||now;
@@ -351,7 +367,7 @@ function trendBuckets(points){
   return out;
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);

@@ -22,3 +22,5 @@ Use the system haptic path, not the ringer-gated one:
 - Patterned buzzes (`success`, `nope`): `Vibrator.vibrate(VibrationEffect, VibrationAttributes.createForUsage(USAGE_TOUCH))` on Android 13+ (older versions: `AudioAttributes.USAGE_ASSISTANCE_SONIFICATION`). Touch-usage vibrations are governed by the touch-feedback setting.
 - Keep the in-app Vibration switch as the only Lightly-level off.
 - **Verify on real phones** (a Pixel and one Samsung or Xiaomi): ringer on, vibrate only, silent, and Do Not Disturb. The wheel ticks, a goal reached and the hold-to-end button must buzz in all four unless the switch is off.
+
+- The `warn` pattern (three pulses) also fires when a person who has fasted before chooses 24 h or 36 h and the amber "Done a 24-hour fast before?" sheet opens (v0.98.0). It follows the Vibration switch like everything else.

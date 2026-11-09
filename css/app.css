@@ -778,6 +778,10 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .warn-ico.care{animation:warnShake .55s .15s both}
 .warn-ico.care.trem{animation:warnTrem .09s linear infinite}
 @media (prefers-reduced-motion:reduce){.warn-ico.care,.warn-ico.care.trem{animation:none}}
+/* 24 h and 36 h for people who have fasted before: the rest the history suggests, in amber under the warning */
+.sheet .lw-note{text-align:center;color:#B35C00;font-weight:500}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sheet .lw-note{color:var(--orange)}}
+:root[data-theme="dark"] .sheet .lw-note{color:var(--orange)}
 
 /* sheet pattern: the title row carries the dismiss */
 .sh-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:var(--m)}

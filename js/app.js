@@ -352,6 +352,26 @@ function startFlow(planId){
   if(p.long){ var st=longSt(p.fast); if(st.st!=='ok'){ toast(L('That fast isn’t available yet. Open your plan to see why.','这个断食现在还不能用，打开计划看看原因。')); return; } return longSafety(p); }
   beginFast(p,Date.now());
 }
+/* 24 h and 36 h for people who have fasted before: open from the start, but choosing one asks first, with an amber warning mark that shakes and a buzz.
+   It is advice, not a lock: how often (once a week at most for 24 h, twice a month for 36 h) is only a note, and a rest the person's own history suggests is added in amber. */
+function longPick(p){ if(S.cur){ return longSafety(p); } S.planId=p.id; save(); cache={}; updateToday(); return planSheet(); }
+function longNoteTxt(n){
+  if(!n) return '';
+  var d=dateLbl(n.until);
+  if(n.k==='unwell') return L('You said you felt unwell recently. Please wait until you feel well again.','你最近说过身体不适，请等身体恢复后再试。');
+  if(n.k==='gap') return L('Your last long fast ended less than 3 days ago. A few more days of rest would be kinder.','你上一次长时间断食结束还不到 3 天，多休息几天会更好。');
+  if(n.k==='week') return L('You did a 24-hour fast within the last week. We suggest one a week at most. Fine again from '+d+'.','你最近一周内做过 24 小时断食，建议每周最多一次，'+d+'起更合适。');
+  return L('You have done two 36-hour fasts in the last 30 days. We suggest two a month at most. Fine again from '+d+'.','过去 30 天你已做过两次 36 小时断食，建议每月最多两次，'+d+'起更合适。');
+}
+function longWarn(p,st){
+  var is24=p.fast===24, note=longNoteTxt(st.note);
+  openSheet('<!--keep--><div class="warn-ico care">'+WARN+'</div><h3 class="ctr">'+(is24?L('Done a 24-hour fast before?','以前做过 24 小时断食吗？'):L('Done a 36-hour fast before?','以前做过 36 小时断食吗？'))+'</h3>'+
+    '<p class="lede ctr">'+(is24?L('It is a long fast. We recommend it only if you have done one before, not as your first time.','这是长时间断食。我们建议只有以前做过的人再尝试，不要作为第一次。'):L('It is a very long fast, across more than one night. We recommend it only if you have done one before, not as your first time.','这是很长的断食，会跨过不止一个夜晚。我们建议只有以前做过的人再尝试，不要作为第一次。'))+L(' ','')+
+    (is24?L('Please keep it to once a week at most.','建议每周最多一次。'):L('Please keep it to twice a month at most.','建议每月最多两次。'))+'</p>'+
+    (note?'<p class="note lw-note">'+note+'</p>':'')+
+    '<div class="btns"><button class="btn warm solid" data-act="lwgo" data-p="'+p.id+'">'+L('Yes, I have done this before','是的，我以前做过')+'</button><button class="btn sec" data-act="lwback">'+L('Not now','以后再说')+'</button></div>');
+  fx('warn');
+}
 function longSafety(p){
   openSheet('<h3>'+L('Before a '+p.fast+'-hour fast','开始 '+p.fast+' 小时断食之前')+'</h3><p class="lede">'+L('A short check. This takes ten seconds.','简单确认一下，只要十秒。')+'</p>'+
    '<div class="group" id="lsChecks"><button class="check" role="checkbox" aria-checked="false" data-act="lsck"><span class="bx"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span>'+L('I feel well today and have no fever or illness','我今天感觉良好，没有发烧或生病')+'</span></button>'+
@@ -1205,6 +1225,7 @@ function planRow(p,selId){
     else if(st.st==='locked'){ dis=true; pill='<span class="pill">'+L('Locked','未解锁')+'</span>'; sub=st.label; bar='<div class="bar"><i style="width:'+Math.round(st.pct*100)+'%"></i></div>'; if(S.lang==='zh') sub=zhProgress(st.label); }
     else if(st.st==='paused'){ dis=true; pill='<span class="pill">'+L('Paused','已暂停')+'</span>'; sub=L('You said you felt unwell. Available again ','你说过身体不适，可用时间：')+dateLbl(st.until); }
     else if(st.st==='wait'){ dis=true; pill='<span class="pill">'+L('Rest first','先休息')+'</span>'; sub=L('Available again ','可用时间：')+dateLbl(st.until); }
+    else if(st.exp){ pill='<span class="pill">'+L('Advanced','进阶')+'</span>'; sub=p.fast===24?L('Only if you have done it before. Once a week at most.','做过再选，每周最多一次。'):L('Only if you have done it before. Twice a month at most.','做过再选，每月最多两次。'); if(st.note) sub=L('Maybe rest a few more days first.','也许再多休息几天。'); }
     else sub=L('Unlocked. Water and electrolytes recommended.','已解锁。建议补充水分和电解质。');
   }else{
     var ps=pst(p.id);
@@ -1221,7 +1242,7 @@ function zhProgress(l){ return l.replace(/(\d+) of (\d+) fasts of (\d+) h or mor
 function pickPlan(id){
   var p=C.planById(id,S.customH);
   if(id==='ramadan'){ S.planId='ramadan'; if(S.cur){ toast(L('Ramadan runs dawn to sunset. End this fast first.','斋月从黎明到日落。先结束当前断食。')); return; } save(); closeSheet(); updateToday(); return startRamadan(); }
-  if(p.long){ var st=longSt(p.fast); if(st.st!=='ok') return; if(S.cur){ return longSafety(p); } S.planId=id; save(); cache={}; updateToday(); return planSheet(); }
+  if(p.long){ var st=longSt(p.fast); if(st.st!=='ok') return; if(st.exp) return longWarn(p,st); return longPick(p); }
   if(!planOk(id)) return;
   S.planId=id; if(S.cur){ S.cur.planId=id; S.cur.goalH=p.fast; S.cur.reached=(Date.now()-S.cur.start)/H>=p.fast; scheduleGoal(); }
   var was=pst(id).st==='soft'&&p.id===id; save(); cache={}; ticksKey=''; updateToday(); planSheet();
@@ -1769,6 +1790,8 @@ function delAcctDone(){
 var A={
   close:closeSheet,
   delkeep:function(){ closeSheet(); renderMe(); },
+  lwgo:function(b){ longPick(C.planById(b.dataset.p)); },
+  lwback:function(){ planSheet(); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
   day:function(b){ selDay=b.dataset.k; fabOn=true; renderDays(); },
