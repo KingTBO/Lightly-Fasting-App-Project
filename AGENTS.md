@@ -46,6 +46,7 @@ NODE_PATH=$(npm root -g) node tests/recappop.test.js           # the monthly rec
 NODE_PATH=$(npm root -g) node tests/trend.test.js             # compare with others: only day and percent are sent, opt-in, offline deletion, the recap chart (Supabase faked); database: scripts/test-trend-db.sh
 NODE_PATH=$(npm root -g) node tests/longfast.test.js         # 24 h and 36 h: open for people who have fasted before behind a warning and buzz, locked for first-timers, hidden in Care mode (about 1 minute)
 NODE_PATH=$(npm root -g) node tests/birds.test.js              # the daytime birds (partner of the shooting stars): only by day, none with Reduce Motion, leave with Today, app and concept (about 40 seconds)
+NODE_PATH=$(npm root -g) node tests/tester.test.js           # tester options: the Ramadan preview switch and the screen-size pop-up are hidden until seven taps on the version line (about 20 seconds)
 NODE_PATH=$(npm root -g) node tests/care.test.js              # Care mode: health answers, plan caps, no streaks or cheat days, the 14-day wait (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright
 NODE_PATH=$(npm root -g) node qa/run-app.js --screens=idle    # alignment check for one scenario (idle, mid, goal, eat, empty, ob)
