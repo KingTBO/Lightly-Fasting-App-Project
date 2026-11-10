@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.98.5
+- **feature** Every version now also has a GitHub Release, with the version's changelog entry as its release notes and its category on top, so the Releases page reads like the changelog (192 past versions plus this one; the newest is marked Latest). The same Version tags action creates a Release for each new version after it tags it. `scripts/release-notes.sh <version>` builds the notes. The past releases carry today's date on GitHub (it cannot be set back); the tag dates are the original commit dates.
+- **docs** RELEASING.md and AGENTS.md add the release to the tag step.
+
 ## 0.98.4
 - **chore** Every version now has a version tag on GitHub (v0.1.0 up to this one, 192 tags). A small GitHub Action (`.github/workflows/version-tags.yml`) tags the commit as `v<version>` on every push to `main` and fills in any tag still missing from `scripts/version-tags.tsv`, which maps each past version to its commit. Existing tags are never moved. Two versions had the same number at the time: the "You're set" sky fix keeps `v0.94.0` and the health-answer hold is `v0.94.0-health`. No change in the app.
 - **docs** RELEASING.md and AGENTS.md say the tag is automatic and what to check.
