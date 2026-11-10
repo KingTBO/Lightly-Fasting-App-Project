@@ -1,4 +1,4 @@
-# Puts a version tag on GitHub for every release.
+# Puts a version tag and a GitHub Release (notes from CHANGELOG.md) on GitHub for every version.
 #  - Each push to main: if js/version.js names a version that has no tag yet, tag that commit as v<version>.
 #  - Also creates any tag still missing from scripts/version-tags.tsv (the history from v0.1.0 on).
 # Existing tags are never moved or deleted. Nothing here uses a secret; it uses the workflow's own token.
@@ -9,6 +9,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: version-tags
+  cancel-in-progress: false
 jobs:
   tag:
     runs-on: ubuntu-latest
@@ -35,3 +38,18 @@ jobs:
             echo "tagged v$v at $GITHUB_SHA"
           fi
           git push origin --tags
+      - name: Create missing GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # oldest first, so the Releases page lists the newest version on top
+          cur=$(sed -n "s/.*LIGHTLY_VERSION *= *'\([0-9][0-9.]*\)'.*/\1/p" js/version.js)
+          for tag in $(git tag --list 'v*' | sort -V); do
+            v=${tag#v}
+            if gh release view "$tag" >/dev/null 2>&1; then continue; fi
+            sh scripts/release-notes.sh "$v" > "$RUNNER_TEMP/notes.md"
+            if [ "$v" = "$cur" ]; then latest="--latest"; else latest="--latest=false"; fi
+            gh release create "$tag" --verify-tag --title "$tag" --notes-file "$RUNNER_TEMP/notes.md" $latest
+            echo "released $tag"
+            sleep 1
+          done
