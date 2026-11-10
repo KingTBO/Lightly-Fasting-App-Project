@@ -1,0 +1,37 @@
+# Puts a version tag on GitHub for every release.
+#  - Each push to main: if js/version.js names a version that has no tag yet, tag that commit as v<version>.
+#  - Also creates any tag still missing from scripts/version-tags.tsv (the history from v0.1.0 on).
+# Existing tags are never moved or deleted. Nothing here uses a secret; it uses the workflow's own token.
+name: Version tags
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create missing version tags
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # 1. history: every version listed in scripts/version-tags.tsv
+          grep -v '^#' scripts/version-tags.tsv | while IFS="$(printf '\t')" read -r v sha cat; do
+            [ -n "$v" ] || continue
+            if git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then continue; fi
+            if ! git cat-file -e "$sha^{commit}" 2>/dev/null; then echo "skip v$v: commit $sha not found"; continue; fi
+            git tag -a "v$v" -m "v$v $cat" "$sha"
+            echo "tagged v$v at $sha"
+          done
+          # 2. this push: the version in js/version.js
+          v=$(sed -n "s/.*LIGHTLY_VERSION *= *'\([0-9][0-9.]*\)'.*/\1/p" js/version.js)
+          if [ -n "$v" ] && ! git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
+            git tag -a "v$v" -m "v$v $(git log -1 --format=%s "$GITHUB_SHA" | sed -n 's/^\([a-z]*\):.*/\1/p')" "$GITHUB_SHA"
+            echo "tagged v$v at $GITHUB_SHA"
+          fi
+          git push origin --tags
