@@ -2033,6 +2033,27 @@ if(CL&&CL.ready()){ window.addEventListener('storage',function(ev){ if(ev.key===
   function plan(first){ setTimeout(function(){ shoot(); plan(); },(first?7000+Math.random()*8000:22000+Math.random()*38000)); }
   window.lightlyShoot=shoot; plan(true);
 })();
+/* a bird or two now and then, only under a daytime sky (the daytime partner of the shooting stars); one flock at a time, never with Reduce Motion, never over a sheet or onboarding */
+(function(){ var NS='http://www.w3.org/2000/svg', svg=$('birds'); if(!svg) return;
+  function light(){ return /dawn|morning|day|sunset/.test(ph.getAttribute('data-sky')); }
+  function fly(force){
+    if(reduce||!svg.animate) return false;
+    if(!force&&(document.hidden||curTab!=='today'||!light()||sheetOpen||!$('ob').hidden)) return false;
+    var dir=Math.random()<.5?-1:1, n=1+Math.floor(Math.random()*3), y0=62+Math.random()*46, rise=-14+Math.random()*28, dur=13000+Math.random()*4000, x0=dir>0?-24:414, x1=dir>0?414:-24;
+    for(var i=0;i<n;i++){ (function(i){
+      var s=(.8+Math.random()*.35).toFixed(2), lag=i*(-1)*dir*(20+Math.random()*10), dy=(i%2?1:-1)*Math.ceil(i/2)*9, by=(Math.random()<.5?-1:1)*(3+Math.random()*3);
+      var g=document.createElementNS(NS,'g'), p=document.createElementNS(NS,'path');
+      g.setAttribute('transform','translate(-60 -60) scale('+s+')'); p.setAttribute('d','M-7 1.2Q-3.5 -3.6 0 .6Q3.5 -3.6 7 1.2'); g.appendChild(p); svg.appendChild(g);
+      var yA=y0+dy, yB=y0+dy+rise;
+      var an=g.animate([{transform:'translate('+(x0+lag)+'px,'+yA.toFixed(1)+'px) scale('+s+')',opacity:0},{opacity:1,offset:.12},{transform:'translate('+((x0+x1)/2+lag).toFixed(0)+'px,'+(yA+rise/2+by).toFixed(1)+'px) scale('+s+')',offset:.5},{opacity:1,offset:.88},{transform:'translate('+(x1+lag)+'px,'+yB.toFixed(1)+'px) scale('+s+')',opacity:0}],{duration:dur,delay:i*320+Math.random()*200,easing:'linear',fill:'backwards'});
+      p.animate([{transform:'scaleY(1)'},{transform:'scaleY(-.45)',offset:.09},{transform:'scaleY(1)',offset:.2},{transform:'scaleY(-.45)',offset:.29},{transform:'scaleY(1)',offset:.4},{transform:'scaleY(-.45)',offset:.49},{transform:'scaleY(1)',offset:.6},{transform:'scaleY(1)'}],{duration:1900+Math.random()*500,iterations:Infinity,easing:'ease-in-out'});
+      an.onfinish=function(){ if(g.parentNode) g.parentNode.removeChild(g); };
+    })(i); }
+    return true;
+  }
+  function plan(first){ setTimeout(function(){ fly(); plan(); },(first?4000+Math.random()*5000:20000+Math.random()*30000)); }
+  window.lightlyBirds=fly; plan(true);
+})();
 var lastT=performance.now(), lastSec=0, frame=0;
 function loop(t){
   var dt=Math.min((t-lastT)/1000,.1); lastT=t; frame++;
