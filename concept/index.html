@@ -116,7 +116,8 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .ph .skypill i{width:3px;height:3px;border-radius:50%;background:var(--ink-2);flex:none}
 .ph .skypill .sx{font:400 13px/1.2 var(--font);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 #ph .nav{align-items:center}
-@media (max-width:340px){.ph .skypill{gap:6px;padding:0 10px 0 8px}.ph .skypill .sx{font-size:12px}}
+@media (max-width:340px){.ph .skypill{gap:6px;padding:0 10px 0 8px}.ph .skypill .sx{font-size:12px}.ph .skypill .si{display:none}#ph .nav .chip{padding:0 9px}}
+#ph .nav .chip{white-space:nowrap;flex:none}
 #ph .nav .chip{min-height:44px;padding:0 14px;display:inline-flex;align-items:center;margin-bottom:0}
 .ph .chip{font:500 13px var(--font);padding:5px 10px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);margin-bottom:8px}
 .disc-wrap{display:flex;justify-content:center;margin-top:2px;height:236px;perspective:480px}
@@ -129,7 +130,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .read{text-align:center;padding:0 24px}
 .read .kline{display:flex;justify-content:center;flex-wrap:wrap;column-gap:.4em;min-height:20px;font:500 15px/1.3 var(--font);color:var(--ink-2)}
 .read .k{display:block}
-.read .alt{display:block;font-variant-numeric:tabular-nums;opacity:.8}
+.read .alt{display:block;font-variant-numeric:tabular-nums;font-weight:400}
 .read .alt:not(:empty)::before{content:"\00b7";margin-right:.4em}
 .read .big{font:600 56px/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:block}
 .read .big{font:300 min(58px,15vw)/1 var(--font-d);letter-spacing:-.045em}
@@ -201,7 +202,7 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .tabs>span.sel{color:var(--tabsel)}
 .tabs>span{position:relative;z-index:1;transition:color .3s ease}
 .ph{--tabsel:var(--tint);--tabfill:color-mix(in srgb,var(--tint) 24%,transparent)}
-.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:var(--tint)}
+.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:color-mix(in srgb,var(--tint) 72%,#fff);--tabfill:color-mix(in srgb,var(--tint) 12%,transparent)}
 .ph[data-sky="dawn"],.ph[data-sky="morning"],.ph[data-sky="day"],.ph[data-sky="sunset"]{--tabsel:#1C1C1E;--tabfill:rgba(255,255,255,.55)}
 .ph[data-me]{--tabsel:var(--label);--tabfill:color-mix(in srgb,var(--tint) 40%,transparent)}
 .tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/4);border-radius:999px;background:var(--tabfill);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s cubic-bezier(.2,1,.3,1),background .3s ease;will-change:transform;pointer-events:none}
@@ -583,7 +584,7 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .tmoon{display:flex;flex-direction:column;align-items:center;gap:6px;flex:none;padding-bottom:16px}.tmoon svg{display:block;width:84px;height:84px;overflow:visible}.tmoon span{font:500 12px var(--font);color:var(--label-2);white-space:nowrap}
 .tm-u{fill:var(--fill-2)}.tm-c{fill:rgba(120,90,20,.1)}.tm-r{fill:none;stroke:rgba(120,100,50,.45);stroke-width:.5}
 .tstats{display:grid;grid-template-columns:repeat(3,1fr);border-top:.5px solid var(--sep);margin:0 -16px}.tstats div{padding:12px 4px 14px;text-align:center;min-width:0}.tstats div+div{border-left:.5px solid var(--sep)}
-.tstats b{display:block;font:700 20px/1.15 var(--font-r);font-variant-numeric:tabular-nums}.tstats span{font:400 12px var(--font);color:var(--label-2)}
+.tstats b{display:block;font:700 20px/1.15 var(--font-r);font-variant-numeric:tabular-nums;white-space:nowrap}.tstats b small{font-size:.7em;font-weight:600}.tstats span{font:400 12px var(--font);color:var(--label-2)}
 /* the recap card on Days: a tinted card that opens into the report */
 .rcard{position:relative;margin:0 var(--m) var(--group-gap);border-radius:14px;background:var(--tint);color:var(--on-tint);transition:transform .5s cubic-bezier(.16,1,.3,1)}
 .rcard:has(.rcmain:active){transform:scale(.975);transition-duration:.12s}
@@ -3010,7 +3011,7 @@ function dyBloom(){
     (function step(t){ var k=Math.min((t-t0)/1100,1), e=1-Math.pow(1-k,3); if(!document.body.contains(l)) return; l.setAttribute('d',dyWedge(p*e,16)); if(k<1) requestAnimationFrame(step); })(t0); }
   function dyTotals(st,done,fd,dim){ var zh=api.lang()==='zh', n=77+done, hrs=Math.round(1268+done*16.5), avg=hrs/n;
     return '<div class="tot"><div class="tmain"><div class="tt"><span class="tk">'+(zh?'累计断食':'Total fasted')+'</span><b class="tn"><span class="rn">'+DY_FNUM(hrs)+'</span><small>'+(zh?'小时':'hours')+'</small></b><span class="ts">'+(zh?'自 2026年4月 起':'Since April 2026')+'</span></div>'+dyMoon(fd,dim)+'</div>'+
-      '<div class="tstats"><div><b>'+st+'</b><span>'+(zh?'天连续':'Day streak')+'</span></div><div><b>'+n+'</b><span>'+(zh?'次断食':'Fasts')+'</span></div><div><b>'+DY_FNUM(avg)+' '+(zh?'小时':'h')+'</b><span>'+(zh?'平均':'Average')+'</span></div></div></div>'; }
+      '<div class="tstats"><div><b>'+st+'</b><span>'+(zh?'天连续':'Day streak')+'</span></div><div><b>'+n+'</b><span>'+(zh?'次断食':'Fasts')+'</span></div><div><b>'+DY_FNUM(avg)+'<small>'+(zh?' 小时':' h')+'</small></b><span>'+(zh?'平均':'Average')+'</span></div></div></div>'; }
   function dyAvgData(){ var zh=api.lang()==='zh', now=new Date(), md=dyMonthDate(dyOff), y=md.getFullYear(), m=md.getMonth(), bars=[], fmt=function(d,o){ return new Intl.DateTimeFormat(zh?'zh-CN':'en',o).format(d); };
     if(dyMode==='months'){ var vals=[15.8,16.2,16.1,16.6,16.9,17.1]; for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(),now.getMonth()-i,1); bars.push({n:10+i*2,h:vals[5-i],lab:fmt(d,{month:'short'}),full:fmt(d,{month:'long',year:'numeric'}),cur:5-i===5-dyOff}); } return bars; }
     var dim=new Date(y,m+1,0).getDate(), lastDay=dyOff===0?now.getDate()-1:dim, d1=new Date(y,m,1), wk=1-((d1.getDay()+6)%7), wi=0;

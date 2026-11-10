@@ -26,8 +26,8 @@
 [data-sky="night"]   {--sky2:#1A2250;--stars:1;--sky:#0E1430;--ink:#fff;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.10);--rim:rgba(255,255,255,.28);--glass:rgba(40,44,70,.55)}
 [data-sky="first"]   {--sky2:#5A5A92;--stars:.45;--sky:#33406E;--ink:#fff;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.12);--rim:rgba(255,255,255,.3);--glass:rgba(60,68,110,.5)}
 [data-sky="dawn"]    {--sky:#8FB4DE;--sky2:#F0B48C;--birds:.5;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.74);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.45)}
-[data-sky="morning"] {--sky:#8FC3EA;--sky2:#CDE6F6;--birds:.65;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.66);--unlit:rgba(28,28,30,.09);--rim:rgba(28,28,30,.24);--glass:rgba(255,255,255,.5)}
-[data-sky="day"]     {--sky:#A9D6F2;--sky2:#E1F0FA;--birds:.65;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.66);--unlit:rgba(28,28,30,.08);--rim:rgba(28,28,30,.22);--glass:rgba(255,255,255,.55)}
+[data-sky="morning"] {--sky:#8FC3EA;--sky2:#CDE6F6;--birds:.65;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.76);--unlit:rgba(28,28,30,.09);--rim:rgba(28,28,30,.24);--glass:rgba(255,255,255,.5)}
+[data-sky="day"]     {--sky:#A9D6F2;--sky2:#E1F0FA;--birds:.65;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.76);--unlit:rgba(28,28,30,.08);--rim:rgba(28,28,30,.22);--glass:rgba(255,255,255,.55)}
 [data-sky="sunset"]  {--sky:#9DB4D8;--sky2:#F3B07C;--birds:.5;--ink:#1C1C1E;--ink-2:rgba(28,28,30,.74);--unlit:rgba(28,28,30,.10);--rim:rgba(28,28,30,.26);--glass:rgba(255,255,255,.45)}
 [data-sky="evening"] {--sky2:#6C5A88;--stars:.7;--sky:#2C3762;--ink:#fff;--ink-2:rgba(235,235,245,.8);--unlit:rgba(255,255,255,.11);--rim:rgba(255,255,255,.3);--glass:rgba(56,64,104,.5)}
 
@@ -72,7 +72,8 @@ html:lang(zh-Hans) .lt{letter-spacing:0}
 .skypill .sx{font:400 0.8125rem/1.2 var(--font);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 @media (max-width:360px){.skypill i{display:none}}
 @media (max-width:340px){.skypill{gap:6px;padding:0 8px 0 8px}.skypill .sx{font-size:.75rem}}
-.chip{font:500 0.8125rem var(--font);padding:0 14px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:0;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--ink)}
+@media (max-width:340px){.skypill .si{display:none}.skypill{padding:0 10px 0 8px}.chip{padding:0 9px}}   /* 320 px: the plan button stays on one line and the pill has room for "10 小时 20 分后日落" */
+.chip{white-space:nowrap;flex:none;font:500 0.8125rem var(--font);padding:0 14px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:0;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--ink)}
 
 /* ---------- Today ---------- */
 .disc-wrap{position:relative;display:flex;justify-content:center;height:calc(236px*var(--ds,1));margin-top:6px;flex:none}
@@ -429,7 +430,7 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .read .big{display:flex;justify-content:center;align-items:baseline;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;cursor:default;-webkit-user-select:none;user-select:none}
 .read .big .dg{font-weight:inherit;display:inline-block;will-change:transform}
 .read .big .co{font-style:normal;opacity:.5;display:inline-block;width:.3em;text-align:center;transform:translateY(-.08em)}
-.read .alt{display:block;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;opacity:.8}
+.read .alt{display:block;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-weight:400}   /* a lighter weight, not a lower opacity: the faded line was 3:1 on the day sky */
 .read .alt:not(:empty)::before{content:"\00b7";margin-right:.4em}
 /* A, classic: bold rounded numerals, as before but with seconds */
 .ph[data-ts="a"] .read .big{font:600 3.25rem/1.05 var(--font-r);letter-spacing:-.02em}
@@ -445,7 +446,7 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 @media (max-height:700px){.ph[data-ts] .read .big.greet{font-size:min(2.25rem,10vw)}}
 /* ---------- tab bar: a selection pill that glides between tabs, accent-coloured selection ---------- */
 .ph{--tabsel:var(--tint);--tabfill:color-mix(in srgb,var(--tint) 24%,transparent);--spr:cubic-bezier(.2,1,.3,1)}
-.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:var(--tint)}
+.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:color-mix(in srgb,var(--tint) 72%,#fff);--tabfill:color-mix(in srgb,var(--tint) 12%,transparent)}   /* a paler yellow label on a fainter pill keeps 4.5:1 on the dusk skies */
 .ph[data-sky="dawn"],.ph[data-sky="morning"],.ph[data-sky="day"],.ph[data-sky="sunset"]{--tabsel:#1C1C1E;--tabfill:rgba(255,255,255,.55)}
 .ph.sys{--tabsel:var(--label);--tabfill:color-mix(in srgb,var(--tint) 40%,transparent)}
 .tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/var(--nt,3));border-radius:999px;background:var(--tabfill);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s var(--spr),background .3s ease;will-change:transform;pointer-events:none}
@@ -552,7 +553,8 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .tstats{display:grid;grid-template-columns:repeat(3,1fr);border-top:.5px solid var(--sep);margin:0 -16px}
 .tstats div{padding:12px 4px 14px;text-align:center;min-width:0}
 .tstats div+div{border-left:.5px solid var(--sep)}
-.tstats b{display:block;font:700 1.25rem/1.15 var(--font-r);font-variant-numeric:tabular-nums}
+.tstats b{display:block;font:700 1.25rem/1.15 var(--font-r);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tstats b small{font-size:.7em;font-weight:600}   /* the unit is smaller, so "17.0 小时" never wraps on a 320 px phone */
 .tstats span{font:400 0.75rem var(--font);color:var(--label-2)}
 /* the recap card on Days: a tinted card that opens into the report */
 .rcard{position:relative;margin:0 var(--m) var(--group-gap);border-radius:14px;background:var(--tint);color:var(--on-tint);transition:transform .5s var(--spring)}
