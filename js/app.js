@@ -546,7 +546,7 @@ function numTxt(h){ var r=h>=100; return new Intl.NumberFormat(loc(),{minimumFra
 function totalsHtml(){
   var t=C.totals(S.fasts), st=curStreak(), since=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(t.since));
   return '<div class="group tot"><div class="tmain"><div class="tt"><span class="tk">'+L('Total fasted','累计断食')+'</span><b class="tn" aria-label="'+numTxt(t.hours)+' '+L('hours','小时')+'"><span class="rn">'+numTxt(t.hours)+'</span><small>'+L('hours','小时')+'</small></b><span class="ts">'+L('Since '+since,'自 '+since+' 起')+'</span></div>'+monthMoon()+'</div>'+
-    '<div class="tstats"><div><b>'+(care()?monthDays():st)+'</b><span>'+(care()?L('Days this month','本月天数'):L('Day streak','天连续'))+'</span></div><div><b>'+t.n+'</b><span>'+L(t.n===1?'Fast':'Fasts','次断食')+'</span></div><div><b>'+numTxt(t.avg)+' '+L('h','小时')+'</b><span>'+L('Average','平均')+'</span></div></div></div>';
+    '<div class="tstats"><div><b>'+(care()?monthDays():st)+'</b><span>'+(care()?L('Days this month','本月天数'):L('Day streak','天连续'))+'</span></div><div><b>'+t.n+'</b><span>'+L(t.n===1?'Fast':'Fasts','次断食')+'</span></div><div><b>'+numTxt(t.avg)+'<small>'+L(' h',' 小时')+'</small></b><span>'+L('Average','平均')+'</span></div></div></div>';
 }
 /* Care mode: days this month with a fast, in place of the streak */
 function monthDays(){ var d=new Date(); return C.monthRecap(S.fasts,d.getFullYear(),d.getMonth(),[],[]).days.filter(function(s){ return s==='done'||s==='early'; }).length; }
