@@ -186,6 +186,18 @@ function plan(res,have,cur,gone,now){
   return out;
 }
 
-var api={parse:parse,plan:plan,ts:ts,csv:csv,unzip:unzip,fromZip:fromZip};
+/* Export: one line per finished fast, for a spreadsheet. Times are the phone's local time (the same shape the importer reads back).
+   The column names avoid the words "hours" and "plan" alone, which other apps' files use for the goal. */
+function pad(n){ return (n<10?'0':'')+n; }
+function stamp(ms){ var d=new Date(ms); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes()); }
+function cell(v){ v=String(v); return /[",\r\n;]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function toCsv(fasts){
+  var rows=['start,end,duration_hours,goal_hours,reached_goal,plan_name'];
+  arr(fasts).filter(function(f){ return f&&isFinite(f.start)&&isFinite(f.end)&&f.end>f.start; }).sort(function(a,b){ return a.start-b.start; }).forEach(function(f){
+    var h=(f.end-f.start)/H, g=+f.goalH||0;
+    rows.push([stamp(f.start),stamp(f.end),(Math.round(h*100)/100).toFixed(2),g?String(g):'',g?(h+1e-6>=g-0.0167?'yes':'no'):'',f.plan||''].map(cell).join(',')); });
+  return '\uFEFF'+rows.join('\r\n')+'\r\n';
+}
+var api={parse:parse,plan:plan,ts:ts,csv:csv,toCsv:toCsv,unzip:unzip,fromZip:fromZip};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyImport=api;
 })(typeof self!=='undefined'?self:this);

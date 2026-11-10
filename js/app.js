@@ -1044,11 +1044,20 @@ function fastSave(id){
 
 /* ---------- import from other apps ---------- */
 var impPlan=null, impZip=null; /* impZip: the zip the person chose, kept in memory only while they type its password */
+/* Me, Export my fasts: a spreadsheet to read, or a backup file to keep. Says plainly what each brings back. */
+function saveFile(text,type,name){ try{ var blob=new Blob([text],{type:type}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); return true; }catch(e){ toast(L('Couldn’t export.','导出失败。')); } }
+function exportSheet(){
+  var n=S.fasts.filter(function(f){ return f.end>f.start; }).length;
+  openSheet('<h3>'+L('Export my fasts','导出我的记录')+'</h3><p class="lede">'+(n?L('Choose a file to save. It is made on this phone and never uploaded.','选择要保存的文件。文件在手机上生成，不会上传。'):L('There are no finished fasts to export yet.','还没有已完成的断食可以导出。'))+'</p>'+
+   '<div class="group"><button class="row" data-act="exportcsv"'+(n?'':' disabled')+'>'+mi('exp','grey')+'<span class="stack"><span>'+L('Spreadsheet (CSV)','表格（CSV）')+'</span><small>'+L('One line per fast: start, end, hours and goal. Opens in Excel, Numbers and Google Sheets.','每次断食一行：开始、结束、时长和目标。可用 Excel、Numbers 和 Google 表格打开。')+'</small></span>'+CHEV+'</button>'+
+   '<button class="row" data-act="exportbk">'+mi('exp','grey')+'<span class="stack"><span>'+L('Backup file (JSON)','备份文件（JSON）')+'</span><small>'+L('Everything saved on this phone, including your health answers and weight, so keep it private.','保存在这台手机上的全部内容，包括健康回答和体重，请妥善保管。')+'</small></span>'+CHEV+'</button></div>'+
+   '<p class="note">'+L('Importing a backup brings back each fast’s start, end and goal. Your plan, settings and health answers are not restored. Sign in to back up everything.','导入备份会恢复每次断食的开始、结束和目标，不会恢复计划、设置和健康回答。登录后可备份全部。')+'</p>');
+}
 function importSheet(err){
   impPlan=null; impZip=null;
   openSheet('<h3>'+L('Import from another app','从其他应用导入')+'</h3><p class="lede">'+L('Bring your past fasts with you. The file is read on this phone and never uploaded.','把过去的断食记录带过来。文件只在这台手机上读取，不会上传。')+'</p>'+
    '<div class="group"><div class="row"><span class="stack"><span>Zero</span><small>'+L('Download your data from Zero, then choose the zip.','在 Zero 里下载你的数据，然后选择 zip 文件。')+'</small></span></div>'+
-   '<div class="row"><span class="stack"><span>'+L('Other apps','其他应用')+'</span><small>'+L('A CSV or JSON file with a start and an end time for each fast.','包含每次断食开始和结束时间的 CSV 或 JSON 文件。')+'</small></span></div></div>'+
+   '<div class="row"><span class="stack"><span>'+L('Other apps','其他应用')+'</span><small>'+L('A CSV or JSON file with a start and an end time for each fast.','包含每次断食开始和结束时间的 CSV 或 JSON 文件。')+'</small></span></div><div class="row"><span class="stack"><span>'+L('Lightly backup','轻伴备份')+'</span><small>'+L('Brings back each fast’s start, end and goal. Your plan, settings and health answers are not restored.','恢复每次断食的开始、结束和目标，不会恢复计划、设置和健康回答。')+'</small></span></div></div>'+
    (err?'<p class="note err" role="alert">'+err+'</p>':'')+
    '<div class="btns"><label class="btn" for="impFile">'+L('Choose a file','选择文件')+'</label><input id="impFile" type="file" accept=".zip,.json,.csv,.txt,application/zip,application/x-zip-compressed,application/json,text/csv,text/plain" hidden><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>');
 }
@@ -1443,7 +1452,7 @@ function renderMe(){
   h+='<div class="gh">'+L('Care','关怀')+'</div><div class="group"><button class="row" data-act="timeoff">'+mi('heart','gold')+'<span class="stack"><span>'+L('Time off','休息一下')+'</span></span>'+(offNow()?'<span class="v">'+(offNow().kind==='travel'?L('Travelling','旅行中'):L('Resting','休养中'))+'</span>':'')+CHEV+'</button>'+
    '<button class="row" data-act="care">'+mi('shield','gold')+'<span>'+L('Health answers','健康回答')+'</span><span class="v">'+(care()?L('Care mode on','关怀模式已开启'):L('None','无'))+'</span>'+CHEV+'</button></div>'+
    (care()?'<div class="gf">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。')+'</div>':'');
-  h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group">'+(S.body?'<button class="row" data-act="bodyinfo">'+mi('lock','grey')+'<span>'+L('About you','关于你')+'</span><span class="v">'+L('Saved','已保存')+'</span>'+CHEV+'</button>':'')+'<button class="row" data-act="import">'+mi('imp','grey')+'<span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="export">'+mi('exp','grey')+'<span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase">'+mi('trash','red')+'<span>'+L('Erase everything','清除所有数据')+'</span></button>'+(cloudOn()?'<button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button>':'')+'</div>';
+  h+='<div class="gh">'+L('Your data','你的数据')+'</div><div class="group">'+(S.body?'<button class="row" data-act="bodyinfo">'+mi('lock','grey')+'<span>'+L('About you','关于你')+'</span><span class="v">'+L('Saved','已保存')+'</span>'+CHEV+'</button>':'')+'<button class="row" data-act="import">'+mi('imp','grey')+'<span>'+L('Import from another app','从其他应用导入')+'</span>'+CHEV+'</button><button class="row" data-act="exportsheet">'+mi('exp','grey')+'<span>'+L('Export my fasts','导出我的记录')+'</span>'+CHEV+'</button><button class="row red" data-act="erase">'+mi('trash','red')+'<span>'+L('Erase everything','清除所有数据')+'</span></button>'+(cloudOn()?'<button class="row red" data-act="delacct">'+mi('userx','red')+'<span>'+L('Delete account','删除账号')+'</span></button>':'')+'</div>';
   if(C.ramadanDay()===0&&!care()&&(isTester()||S.ramadanPreview)) h+='<div class="group">'+(sw('ram',L('Preview Ramadan mode','预览斋月模式'),S.ramadanPreview,0,mi('moon','gold')))+'</div><div class="gf">'+L('Ramadan appears in your plans only during Ramadan. This switch lets you look at it now.','斋月只在当季出现在计划里。这个开关让你现在就能看看。')+'</div>';
   h+='<div class="gh">'+L('About','关于')+'</div><div class="group"><a class="row" href="privacy/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('lock','grey')+'<span>'+L('Privacy Policy','隐私政策')+'</span>'+CHEV+'</a><a class="row" href="terms/?lang='+S.lang+'" target="_blank" rel="noopener">'+mi('doc','grey')+'<span>'+L('Terms of Use','使用条款')+'</span>'+CHEV+'</a></div>'; /* public pages, also the URLs entered in Google Play */
   if(cloudOn()) h+='<div class="group"><button class="row red so" data-act="signout"><span>'+L('Sign out','退出登录')+'</span></button></div>'; /* signed in only: a plain button at the very end */
@@ -1886,7 +1895,10 @@ var A={
   import:function(){ importSheet(); },
   impdo:function(){ importDo(); },
   zipgo:function(){ var i=$('zipPw'), b=$('zipGo'); if(!impZip||!i||!i.value||(b&&b.disabled)) return; if(b) b.disabled=true; var z=impZip; LightlyImport.fromZip(z,i.value).then(function(res){ if(!sheetOpen||impZip!==z) return; if(res.error==='password') return zipSheet(true); if(res.error==='encrypted') return zipSheet(false); if(res.error) return importSheet(impMsg(res.error)); importPreview(LightlyImport.plan(res,S.fasts,S.cur,S.del,Date.now())); }); },
-  export:function(){ try{ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lightly-fasts-'+today()+'.json'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }catch(e){ toast(L('Couldn’t export.','导出失败。')); } },
+  exportsheet:exportSheet,
+  export:function(){ saveFile(JSON.stringify(S,null,2),'application/json','lightly-fasts-'+today()+'.json'); },   /* from the erase and delete sheets: stays open */
+  exportcsv:function(){ if(saveFile(LightlyImport.toCsv(S.fasts),'text/csv;charset=utf-8','lightly-fasts-'+today()+'.csv')) setTimeout(closeSheet,250); },
+  exportbk:function(){ if(saveFile(JSON.stringify(S,null,2),'application/json','lightly-fasts-'+today()+'.json')) setTimeout(closeSheet,250); },
   /* Erase everything: the one step that can't be undone. A red warning mark and a plain list of what goes, Cancel as the main button, and the erase button
      is locked for 3 seconds (counting down), then must be held for 2 seconds. An export is one tap away. */
   erase:function(){

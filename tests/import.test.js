@@ -51,5 +51,21 @@ const makeZip=(f,o)=>{const u=makeZip0(f,o);return u.buffer.slice(u.byteOffset,u
     assert.strictEqual((await I.fromZip(fx(n),'')).error,'password',n+' empty password');
     z=await I.fromZip(fx(n),'lightly-test');assert.strictEqual(z.source,'Zero',n);assert.strictEqual(z.items.length,2,n);
   }
+  /* export to a spreadsheet (audit S4): one line per finished fast, local times, opens in Excel (BOM), and Lightly reads its own CSV back */
+  {const T=(y,m,d,h,mi)=>new Date(y,m,d,h,mi).getTime();
+   const fasts=[{id:'2',start:T(2026,10,9,20,0),end:T(2026,10,10,11,30),goalH:16,plan:'16'},{id:'1',start:T(2026,10,7,21,0),end:T(2026,10,8,9,0),goalH:16,plan:'custom'},{id:'3',start:T(2026,10,3,8,0),end:T(2026,10,4,10,0),goalH:24,plan:'24'},{id:'x',start:5,end:0,goalH:16},{id:'y',start:T(2026,10,1,8,0),end:T(2026,10,2,8,0),goalH:0,plan:'a,"b"'}];
+   const out=I.toCsv(fasts), lines=out.split('\r\n');
+   assert.strictEqual(out.charCodeAt(0),0xFEFF,'starts with a BOM so Excel reads 中文 and accents');
+   assert.strictEqual(lines[0].slice(1),'start,end,duration_hours,goal_hours,reached_goal,plan_name','header');
+   assert.strictEqual(lines.length,6,'header, four fasts, and a closing newline (the broken one is left out)');
+   assert.strictEqual(lines[1].split(',')[0],'2026-11-01 08:00','sorted oldest first, local time');
+   assert.strictEqual(lines[1],'2026-11-01 08:00,2026-11-02 08:00,24.00,,,"a,""b"""','no goal: empty goal and reached; quotes escaped');
+   assert.strictEqual(lines[2],'2026-11-03 08:00,2026-11-04 10:00,26.00,24,yes,24');
+   assert.strictEqual(lines[3],'2026-11-07 21:00,2026-11-08 09:00,12.00,16,no,custom','12 h of a 16 h goal: not reached');
+   assert.strictEqual(lines[4],'2026-11-09 20:00,2026-11-10 11:30,15.50,16,no,16','15.5 h of a 16 h goal: not reached');
+   assert.deepStrictEqual(I.toCsv([]).replace('\uFEFF','').trim(),'start,end,duration_hours,goal_hours,reached_goal,plan_name','an empty list is just the header');
+   const back=I.parse(out); assert.strictEqual(back.source,'import');assert.strictEqual(back.items.length,4,'Lightly reads its own spreadsheet back');
+   const b3=back.items.filter(x=>x.start===T(2026,10,3,8,0))[0]; assert.ok(b3&&b3.end===T(2026,10,4,10,0)&&b3.goalH===24,'start, end and goal come back exactly (the duration column is not mistaken for the goal)');
+   console.log('csv export ok');}
   console.log('import tests ok');
 })().catch(e=>{console.error(e);process.exit(1);});
