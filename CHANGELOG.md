@@ -4,6 +4,10 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.98.4
+- **chore** Every version now has a version tag on GitHub (v0.1.0 up to this one, 192 tags). A small GitHub Action (`.github/workflows/version-tags.yml`) tags the commit as `v<version>` on every push to `main` and fills in any tag still missing from `scripts/version-tags.tsv`, which maps each past version to its commit. Existing tags are never moved. Two versions had the same number at the time: the "You're set" sky fix keeps `v0.94.0` and the health-answer hold is `v0.94.0-health`. No change in the app.
+- **docs** RELEASING.md and AGENTS.md say the tag is automatic and what to check.
+
 ## 0.98.3
 - **chore** The live site now builds straight from GitHub `main` (Cloudflare is connected to this repository), so the extra push to the GitLab copy is no longer needed. GitLab stays as a backup. No change in the app.
 - **docs** README.md, RELEASING.md and AGENTS.md describe the GitHub deploy.
