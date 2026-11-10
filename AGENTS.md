@@ -47,6 +47,7 @@ NODE_PATH=$(npm root -g) node tests/trend.test.js             # compare with oth
 NODE_PATH=$(npm root -g) node tests/longfast.test.js         # 24 h and 36 h: open for people who have fasted before behind a warning and buzz, locked for first-timers, hidden in Care mode (about 1 minute)
 NODE_PATH=$(npm root -g) node tests/birds.test.js              # the daytime birds (partner of the shooting stars): only by day, none with Reduce Motion, leave with Today, app and concept (about 40 seconds)
 NODE_PATH=$(npm root -g) node tests/sky-contrast.test.js     # small text on Today is at least 4.5:1 under every sky, and a 320 px phone in 中文 keeps the plan button, sky pill and Days stats on one line (about 3 minutes)
+node tests/public-copy.test.js                                  # the public pages: no question count, no competitor or China notes on the product page, Vibration row, privacy names Cloudflare
 NODE_PATH=$(npm root -g) node tests/export.test.js           # Export my fasts: the spreadsheet and backup sheet, the restore note, the erase sheet (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/tester.test.js           # tester options: the Ramadan preview switch and the screen-size pop-up are hidden until seven taps on the version line (about 20 seconds)
 NODE_PATH=$(npm root -g) node tests/care.test.js              # Care mode: health answers, plan caps, no streaks or cheat days, the 14-day wait (about 30 seconds)
