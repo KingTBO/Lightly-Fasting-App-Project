@@ -4,6 +4,9 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
+## 0.98.6
+- **fix** Switching from Today's daytime sky to another tab (Days, Friends, Me) no longer leaves grey smudges behind. The tab's plain background appeared at once, but the daytime clouds took a whole second to fade out, so they showed as dim blurred patches over the dark screen. The clouds now leave as quickly as Today's own content (about a fifth of a second) and come back gently (a third of a second) when you return to Today; while the sky itself changes through the day they still drift in and out slowly. The concept page does the same. Reduce Motion is unchanged (the clouds already stand still). Tests: tests/clouds-fade.test.js (the clouds are gone within 450 ms of leaving Today and back on return, app and concept, light and dark).
+
 ## 0.98.5
 - **feature** Every version now also has a GitHub Release, with the version's changelog entry as its release notes and its category on top, so the Releases page reads like the changelog (192 past versions plus this one; the newest is marked Latest). The same Version tags action creates a Release for each new version after it tags it. `scripts/release-notes.sh <version>` builds the notes. The past releases carry today's date on GitHub (it cannot be set back); the tag dates are the original commit dates.
 - **docs** RELEASING.md and AGENTS.md add the release to the tag step.
