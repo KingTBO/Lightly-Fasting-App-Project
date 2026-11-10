@@ -52,6 +52,9 @@ h1,h2,h3,p{margin:0}
 .clouds i:nth-child(2){left:230px;top:236px;width:130px;height:34px;animation-duration:62s}
 @keyframes cdrift{from{transform:translateX(-30px)}to{transform:translateX(40px)}}
 .ph.sys .clouds{opacity:0}
+/* switching tabs: the clouds belong to Today, so they leave and return with its content (quick out, gentle in) instead of fading for a second over the plain tab background */
+.ph.snap .clouds{transition-duration:.38s}
+.ph.sys .clouds{transition-duration:.16s}
 @media (prefers-reduced-motion:reduce){.clouds i{animation:none}}
 .stars{position:absolute;left:0;right:0;top:0;width:100%;height:420px;z-index:-1;pointer-events:none;opacity:var(--stars,0);transition:opacity 1.2s ease}
 .ph.sys .stars{opacity:0}

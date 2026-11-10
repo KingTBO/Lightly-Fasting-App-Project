@@ -171,6 +171,9 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .clouds i:nth-child(2){left:230px;top:236px;width:130px;height:34px;animation-duration:62s}
 @keyframes cdrift{from{transform:translateX(-30px)}to{transform:translateX(40px)}}
 @media (prefers-reduced-motion:reduce){.clouds i{animation:none}}
+/* switching tabs: the clouds belong to Today, so they leave and return with its content (quick out, gentle in) */
+.ph.snap .clouds{transition-duration:.38s}
+.ph[data-me] .clouds{opacity:0;transition-duration:.16s}
 .track .strip{display:none}
 .track.tls>svg{display:none}
 .track.tls .strip{display:block;padding:0 2px}
