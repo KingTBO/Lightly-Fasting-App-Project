@@ -34,7 +34,6 @@ function init(h){
     else{ var a=d.fill*Math.PI*2, x=-r*Math.sin(a), y=-r*Math.cos(a); s+='<circle r="'+r+'" fill="var(--fill-2)"/>'+(d.fill>0?'<path d="M0 0L0 '+(-r)+'A'+r+' '+r+' 0 '+(d.fill>.5?1:0)+' 0 '+x.toFixed(2)+' '+y.toFixed(2)+'Z" fill="url(#frSun)"/>':''); }
     return s+'</svg>'; }
   function hero(){ return '<div class="fr-hero" aria-hidden="true">'+disc({kind:'empty'},44)+disc({kind:'wedge',fill:.55},44)+disc({kind:'full'},44)+'</div>'; }
-  var ICON_CLOCK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>', ICON_CHEER='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/></svg>';
   var ICON_PEOPLE='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.4"/><path d="M2.8 19.5a6.2 6.2 0 0 1 12.4 0"/><path d="M15.6 5.4a3.2 3.2 0 0 1 0 6.2M17.5 14.2a6 6 0 0 1 3.7 5.3"/></svg>';
 
   /* ---------- the tab ---------- */
@@ -60,13 +59,15 @@ function init(h){
   function render(){
     var el=$('friends'), x=''; if(!el) return; defs();
     if(!signedIn()){ view=null; var iv=st.joinCode&&tmp.prev&&tmp.prev.code===st.joinCode?tmp.prev.row:null;
-      x=hero()+(iv?'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Only Friends needs an account.','登录后即可加入。只有朋友功能需要账号。')+'</p>'
-        :'<h2 class="fr-h">'+L('Fast with friends','和朋友一起断食')+'</h2><p class="fr-p fr-s">'+L('Make a private group and see who is fasting today.','建一个私密小组，看看今天谁在断食。')+'</p>'+
-          '<div class="fr-pts">'+[[L('Private, by invite only','私密，仅限邀请'),ICON_PEOPLE],[L('See each other’s progress','看到彼此的进度'),ICON_CLOCK],[L('Cheer each other on','互相加油'),ICON_CHEER]].map(function(r){ return '<div><span class="fr-pi" aria-hidden="true">'+r[1]+'</span><span>'+r[0]+'</span></div>'; }).join('')+'</div><p class="fr-p fr-fine">'+L('Friends is the only part of Lightly that needs an account.','轻伴里只有朋友功能需要账号。')+'</p>')+'<div class="fr-cta"><button class="btn" data-act="frsignin">'+L(iv?'Sign in to join':'Sign in',iv?'登录并加入':'登录')+'</button></div>';
+      /* an invite keeps its own words; otherwise the tab leads with an example group, says what Friends is in one sentence, and the button sits at the bottom */
+      x='<div class="fr-empty">'+(iv?hero()+'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Only Friends needs an account.','登录后即可加入。只有朋友功能需要账号。')+'</p>'
+        :demoSky()+'<h2 class="fr-h">'+L('Fast with friends','和朋友一起断食')+'</h2><p class="fr-p">'+L('A private group, by invite only. See who is fasting today and cheer them on.','私密小组，仅限邀请。看看今天谁在断食，互相加油。')+'</p>')+
+        '<div class="fr-cta">'+(iv?'':'<p class="fr-p fr-fine">'+L('Friends is the only part of Lightly that needs an account.','轻伴里只有朋友功能需要账号。')+'</p>')+'<button class="btn" data-act="frsignin">'+L(iv?'Sign in to join':'Sign in',iv?'登录并加入':'登录')+'</button></div></div>';
     }else if(view){ x=groupHtml();
     }else if(!st.groups.length){
-      x=hero()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+(st.at||st.err?'<p class="fr-p">'+L('Start a group and send one link.','建一个小组，发一个链接。')+'</p><div class="fr-cta"><button class="btn" data-act="frnew">'+L('Start a group','建一个小组')+'</button><button class="btn quiet" data-act="frcode">'+L('I have an invite code','我有邀请码')+'</button></div>':'')+
-        (st.err&&!st.at?'<p class="fr-p fr-err" role="status">'+esc(F.errorText(st.err,lang()))+'</p>':'');
+      x='<div class="fr-empty">'+demoSky()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+(st.at||st.err?'<p class="fr-p">'+L('Start a group and send one link.','建一个小组，发一个链接。')+'</p>':'')+
+        (st.err&&!st.at?'<p class="fr-p fr-err" role="status">'+esc(F.errorText(st.err,lang()))+'</p>':'')+
+        (st.at||st.err?'<div class="fr-cta"><button class="btn" data-act="frnew">'+L('Start a group','建一个小组')+'</button><button class="btn quiet" data-act="frcode">'+L('I have an invite code','我有邀请码')+'</button></div>':'')+'</div>';
     }else{
       x='<div class="gh">'+L('Your groups','你的小组')+'</div><div class="fr-gcs">'+st.groups.map(groupCard).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
         (st.err?'<div class="gf" role="status">'+esc(F.errorText(st.err,lang()))+'</div>':'');
@@ -126,6 +127,18 @@ function init(h){
     return '<button type="button" class="fr-st'+(on?' on':'')+'" data-act="frstar" data-u="'+esc(x.user_id)+'" style="left:'+(pt[0]-22)+'px;top:'+(pt[1]-22)+'px" aria-pressed="'+on+'" aria-label="'+esc(x.display_name+', '+F.rowText(x,lang()))+'">'+
       (d.kind==='full'?FLARE:'')+ringSvg(d,on)+'<span class="fr-sav'+(dim?' dim':'')+'">'+(AV.html(x.avatar)||AV.html(AV.defaultIcon(x.user_id||'')))+'</span><span class="fr-sl">'+esc(x.display_name)+'</span></button>'; }
   function seatHtml(pt){ return '<button type="button" class="fr-seat" data-act="frinvite" style="left:'+(pt[0]-22)+'px;top:'+(pt[1]-22)+'px" aria-label="'+L('Invite a friend','邀请朋友')+'"><i><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></i></button>'; }
+  /* An example group for the empty states: the same sky with five made-up people and two open places, marked "Example".
+     It is a picture, not a control: nothing in it can be tapped, and screen readers skip it (the sentence under it says what Friends is). */
+  function demoSky(){
+    var P=[[62,62,'lantern',L('Maya','小雅'),{kind:'wedge',fill:.8}],[150,100,'crescent',L('Mei','阿梅'),{kind:'wedge',fill:.45}],[102,178,'sunrise',L('Arjun','大伟'),{kind:'wedge',fill:.2}],[216,168,'tea',L('Lena','莉娜'),{kind:'full'}],[290,86,'star',L('Sam','小山'),{kind:'empty'}]], S=[[310,190],[240,238]], H=288;
+    var pl=P.map(function(p){ return p[0]+','+p[1]; }).join(' '), ds=[P[4]].concat(S).map(function(p){ return p[0]+','+p[1]; }).join(' ');
+    return '<div class="fr-sky fr-demo" data-look="lines" aria-hidden="true" style="aspect-ratio:358/'+H+'"><div class="fr-skyi" style="height:'+H+'px">'+
+      '<div class="fr-tw">'+TW.filter(function(t){ return t[1]<H-20; }).map(function(t){ return '<i style="left:'+t[0]+'px;top:'+t[1]+'px;animation-duration:'+t[2]+'s"></i>'; }).join('')+'</div>'+
+      '<svg class="fr-ln" width="358" height="'+H+'" viewBox="0 0 358 '+H+'"><polyline points="'+pl+'" fill="none" stroke="var(--fcl)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><polyline points="'+ds+'" fill="none" stroke="var(--fcl)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 6"/></svg>'+
+      P.map(function(p){ var d=p[4]; return '<span class="fr-st" style="left:'+(p[0]-22)+'px;top:'+(p[1]-22)+'px">'+(d.kind==='full'?FLARE:'')+ringSvg(d,false)+'<span class="fr-sav'+(d.kind==='empty'?' dim':'')+'">'+AV.html(p[2])+'</span><span class="fr-sl">'+p[3]+'</span></span>'; }).join('')+
+      S.map(function(p){ return '<span class="fr-seat" style="left:'+(p[0]-22)+'px;top:'+(p[1]-22)+'px"><i><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></span>'; }).join('')+
+      '<span class="fr-ex">'+L('Example','示例')+'</span>'+
+      '<div class="fr-cap"><b>'+L('Morning crew','晨间小队')+'</b><span>'+L('3 fasting now','3 人断食中')+'</span></div></div></div>'; }
   /* the people in the order they joined: you first, then by when they came (the order the server sends), kept steady from day to day */
   function ordered(rows){
     var seen={}, out=[]; (view.order||[]).forEach(function(u){ seen[u]=1; });

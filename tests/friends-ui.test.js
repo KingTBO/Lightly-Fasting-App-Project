@@ -49,7 +49,7 @@ function ok(n){ console.log('ok -',n); }
   await p.evaluate(()=>document.getElementById('me').scrollTo(0,0)); await p.waitForTimeout(300);
   const w4=await p.evaluate(()=>[document.getElementById('tabInd').getBoundingClientRect().width,document.getElementById('tabs').getBoundingClientRect().width]); assert(Math.abs(w4[0]-(w4[1]-12)/4)<1.5,'pill is a quarter: '+w4);
   await p.click('#tabs [data-tab=friends]'); await p.waitForTimeout(400);
-  {const t=await p.textContent('#friends'); assert.match(t,/Fast with friends/); assert.match(t,/Make a private group and see who is fasting today\./); assert.match(t,/Friends is the only part of Lightly that needs an account\./);} assert(await p.isVisible('#friends [data-act=frsignin]')); await shot(p,'signed-out-en'); assert.strictEqual(await p.$$eval('#friends h1',h=>h.length),0,'no page title, like Today, Days and Me');
+  {const t=await p.textContent('#friends'); assert.match(t,/Fast with friends/); assert.match(t,/A private group, by invite only\. See who is fasting today and cheer them on\./); assert(!/See each other|Cheer each other on/.test(t),'one sentence, not three rows'); assert(await p.$eval('#friends .fr-demo',e=>e.getAttribute('aria-hidden')==='true'&&/Example/.test(e.textContent)&&!e.querySelector('button')),'an example group, marked Example, that is a picture and not a control'); assert.match(t,/Friends is the only part of Lightly that needs an account\./);} assert(await p.isVisible('#friends [data-act=frsignin]')); await shot(p,'signed-out-en'); assert.strictEqual(await p.$$eval('#friends h1',h=>h.length),0,'no page title, like Today, Days and Me');
   await p.click('#friends [data-act=frsignin]'); await p.waitForSelector('#sheet.open'); assert(await p.isVisible('#sheet [data-act=google]')&&await p.isVisible('#sheet [data-act=emailsheet]')); await shot(p,'signin-sheet');
   ok('Friends is on for everyone: four tabs, no preview switch, signed-out state and sign-in sheet');
   await p.reload(); await p.waitForTimeout(500); assert.deepStrictEqual(await tabsVisible(p),['today','days','friends','me']); ok('four tabs after a reload');
@@ -57,7 +57,7 @@ function ok(n){ console.log('ok -',n); }
 
   // 3. signed in: empty state, name and avatar, new group, invite
   const e=await device(base(),true), q=e.p; await q.evaluate(()=>localStorage.setItem('lightly:friends',JSON.stringify({preview:true}))); await q.reload(); await q.waitForTimeout(500);
-  await q.click('#tabs [data-tab=friends]'); await q.waitForSelector('#friends [data-act=frnew]'); assert.match(await q.textContent('#friends'),/Start a group and send one link\./); await shot(q,'empty-en');
+  await q.click('#tabs [data-tab=friends]'); await q.waitForSelector('#friends [data-act=frnew]'); assert.match(await q.textContent('#friends'),/Start a group and send one link\./); assert(await q.$('#friends .fr-empty .fr-demo[aria-hidden=true]'),'with no group yet, the tab leads with the example group'); await shot(q,'empty-en');
   assert(!/Enter an invite code/.test(await q.textContent('#friends')),'the code link arrives with the join flow');
   await q.click('#friends [data-act=frnew]'); await q.waitForSelector('#frName'); assert.strictEqual(await q.inputValue('#frName'),'','never prefilled from the email'); assert.strictEqual((await q.$$('#frAvs .avt')).length,8); await shot(q,'name-sheet');
   await q.click('[data-act=frnamego]'); assert.match(await q.textContent('body'),/Add a name first/); // blank is refused
