@@ -140,7 +140,7 @@ function shChrome(html){ if(!/^<h3[ >]/.test(html)) return html; var i=html.inde
 function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); sheetEl.classList.remove('pop'); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
 var sheetHold=false; /* true for the short pause before the import result rises: taps on the dim must not close it (a double tap on Add lands there) */
-function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop(); if(pic||ph.classList.contains('picup')){ picDrop(); $('report').removeAttribute('inert'); setTimeout(function(){ if(!sheetOpen) ph.classList.remove('picup'); },400); } sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
+function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop(); sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
 /* drag the grabber: 1:1 with the finger, then project where the flick was going and dismiss or spring back */
 (function(){ var y0=0,dy=0,vy=0,lt=0,ly=0,drag=false;
   sheetEl.addEventListener('pointerdown',function(e){ if(reduce||!e.target.closest('.grab')) return; drag=true; y0=e.clientY; ly=e.clientY; lt=performance.now(); vy=0; dy=0; sheetEl.style.transition='none'; try{ sheetEl.setPointerCapture(e.pointerId); }catch(x){} });
@@ -453,49 +453,12 @@ function endFast(){
   var done=C.isDone(f), st=curStreak(), beat=done?(reduce?300:850):(reduce?0:700); if(!done&&beat) endHold={p:Math.min(hrs/cur.goalH,1),until:now+beat}; var news=['16','18','20','23'].filter(function(i){ return planEarned(i)&&openBefore.indexOf(i)<0; }).map(function(i){ return C.planLabel(C.planById(i)); });
   var ask=!S.prefs.backupAsked&&S.fasts.filter(C.isDone).length===1&&CL&&CL.ready()&&!CL.getAuth(); if(ask){ S.prefs.backupAsked=true; save(); }
   if(done) celebrate();
-  setTimeout(function(){ endSummary(f,{news:news,ask:ask,count:true}); },beat);
-}
-/* the summary of a fast that just ended. It opens again, without the one-time notes, when the person comes back from the picture sheet. */
-function endSummary(f,o){
-  o=o||{}; var hrs=C.hours(f), done=C.isDone(f), st=curStreak(), news=o.news||[], ask=!!o.ask;
-  openSheet((picOn()&&f.plan!=='ramadan'?'<button type="button" class="sh-pic" data-act="picfast" data-from="end" data-id="'+f.id+'" aria-label="'+L('Share a picture','分享图片')+'">'+PIC_I+'</button>':'')+
-    '<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span><span class="of">'+(done?L('Your '+durTxt(f.goalH)+' goal, reached','你的 '+durTxt(f.goalH).replace(' 小时','小时')+'目标，达成了'):L('of your '+durTxt(f.goalH)+' goal','目标是 '+durTxt(f.goalH).replace(' 小时','小时')))+'</span>'+
-    '<div class="facts"><div><b>'+(care()?C.totals(S.fasts).n:f.plan==='ramadan'?'–':st)+'</b><span>'+(care()?L('Fasts','次断食'):L('Day streak','天连续'))+'</span></div><div><b>'+clockMs(f.end)+'</b><span>'+L('Ended','结束时间')+'</span></div></div>'+(f.plan==='ramadan'?'':feelSeg(f,true))+
+  setTimeout(function(){ openSheet('<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span><span class="of">'+(done?L('Your '+durTxt(cur.goalH)+' goal, reached','你的 '+durTxt(cur.goalH).replace(' 小时','小时')+'目标，达成了'):L('of your '+durTxt(cur.goalH)+' goal','目标是 '+durTxt(cur.goalH).replace(' 小时','小时')))+'</span>'+
+    '<div class="facts"><div><b>'+(care()?C.totals(S.fasts).n:f.plan==='ramadan'?'–':st)+'</b><span>'+(care()?L('Fasts','次断食'):L('Day streak','天连续'))+'</span></div><div><b>'+clockMs(now)+'</b><span>'+L('Ended','结束时间')+'</span></div></div>'+(f.plan==='ramadan'?'':feelSeg(f,true))+
     '<p class="note">'+(done?L('You reached your goal. Eat gently and drink some water.','你达成了目标。慢慢吃，先喝点水。'):LC('That still counts as a fast. Listening to your body is the point, and your streak is yours to keep going.','这也算一次断食。倾听身体才是重点，你的连续记录还可以继续。','That still counts as a fast. Listening to your body is the point.','这也算一次断食。倾听身体才是重点。'))+'</p>'+
     (news.length?'<p class="note" style="color:var(--label)"><b>'+L(news.join(' and ')+' is now open.',news.join('、')+' 现已开放。')+'</b> '+L('Choose it from the plan button on Today.','在今天页面的计划按钮里选择。')+'</p>':'')+
     (ask?'<p class="note">'+L('Want to keep these fasts if you change phones? Back them up with your email. It’s optional, and everything works without it.','想在换手机时保留这些记录吗？可以用邮箱备份。这是可选的，不备份也能正常使用。')+'</p>':'')+
-    '<div class="btns"><button class="btn" data-act="close">'+L('Start eating window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); if(o.count) countUp(document.querySelector('#sheet .big'),hrs);
-}
-
-/* ---------- share a picture: one finished fast, or one month, drawn on the phone by js/share.js and shown first, so the person sees exactly what goes out.
-   It leaves the phone only through Share or Save picture. It never shows weight, a streak, a name, a place or how a fast felt, and it is the same for every length of fast.
-   Not offered in Care mode or for a Ramadan fast. ---------- */
-var pic=null, PIC_I='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8M5 12.5v6A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-6"/></svg>';
-function picOn(){ return !care()&&!!window.LightlyShare; }
-function picFast(f){
-  var p=C.placeInfo(S.place,f.end), su=C.sunTimes(p,f.end), hp=C.placeHour(p,f.end), m=Math.max(0,Math.round(C.hours(f)*60)), hh=Math.floor(m/60), mm=m%60, zh=S.lang==='zh', done=C.isDone(f), parts=[], g=durTxt(f.goalH);
-  if(hh||!mm) parts.push([String(hh),zh?'小时':'h']); if(mm) parts.push([String(mm),zh?'分':'m']);
-  return {sky:C.skyAt(hp,su)[1],moon:C.moonAmt(hp,su)>=.5,fill:done?1:dayPart([f]),parts:parts,line:done?L(g+' goal, reached',g.replace(' 小时','小时')+'目标，达成了'):L('of a '+g+' goal','目标是 '+g.replace(' 小时','小时')),
-    date:dateLbl(f.end,{weekday:'long',month:'long',day:'numeric'}),brand:'Lightly 轻伴',alt:durTxt(C.hours(f))+', '+(done?L(g+' goal, reached',g+'目标，达成了'):L('of a '+g+' goal','目标是 '+g))}; }
-function picRecap(pm,r){
-  var fm=C.fastDays(S.fasts), ym=pm.y+'-'+('0'+(pm.m+1)).slice(-2)+'-', title=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(pm.y,pm.m,1)), sub=r.n+' '+L(r.n===1?'fast':'fasts','次断食')+' · '+r.daysWith+' '+L('of','/')+' '+r.dim+' '+L('days','天');
-  return {title:title,big:numTxt(r.hours),unit:L('hours fasted','小时断食'),heads:S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S'],offset:(new Date(pm.y,pm.m,1).getDay()+6)%7,
-    days:r.days.map(function(s,d){ return {s:s==='done'||s==='early'||s==='flex'||s==='off'?s:'none',p:s==='early'?dayPart(fm[ym+('0'+(d+1)).slice(-2)]):0}; }),
-    sub:sub,brand:'Lightly 轻伴',tint:getComputedStyle($('report')).getPropertyValue('--tint').trim()||'#FFCC00',alt:title+', '+numTxt(r.hours)+' '+L('hours fasted','小时断食')+', '+sub}; }
-function picDrop(){ if(pic){ try{ URL.revokeObjectURL(pic.url); }catch(e){} pic=null; } }
-function picSheet(kind,data,back){
-  var cv=document.createElement('canvas'), fail=function(){ toast(L('Couldn’t make the picture.','图片生成失败。')); };
-  try{ LightlyShare[kind==='fast'?'fastCard':'recapCard'](cv,data); }catch(e){ return fail(); }
-  cv.toBlob(function(b){ if(!b) return fail(); picDrop();
-    var name='lightly-'+kind+'-'+today()+'.png', file=null; try{ file=new File([b],name,{type:'image/png'}); }catch(e){}
-    var can=false; try{ can=!!(file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})); }catch(e){}
-    pic={kind:kind,data:data,blob:b,file:file,name:name,url:URL.createObjectURL(b),back:back||null};
-    if(rp.open){ ph.classList.add('picup'); $('report').setAttribute('inert',''); }   /* the recap is a full screen above the sheets: this one sheet opens over it */
-    openSheet('<h3>'+L('Share a picture','分享图片')+'</h3><p class="lede">'+L('Made on this phone. Nothing is sent anywhere until you share it.','图片在手机上生成。分享之前，不会发送到任何地方。')+'</p>'+
-      '<div class="picbox"><img src="'+pic.url+'" width="1080" height="1350" alt="'+esc(data.alt||'')+'"></div>'+
-      '<div class="btns">'+(can?'<button class="btn" data-act="picshare">'+L('Share','分享')+'</button>':'')+'<button class="btn'+(can?' sec':'')+'" data-act="picsave">'+L('Save picture','保存图片')+'</button></div>');
-    if(back){ var x=sheetEl.querySelector('.sh-h .x'); if(x) x.dataset.act='picback'; }
-  },'image/png');
+    '<div class="btns"><button class="btn" data-act="close">'+L('Start eating window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); countUp(document.querySelector('#sheet .big'),hrs); },beat);
 }
 
 /* ---------- how did it feel: one optional tap when a fast ends (easy, okay, hard). It is a note for the person: shown on the day in Days and counted in the monthly recap.
@@ -788,7 +751,7 @@ function reportHtml(pm,r){
     feelHtml(r.feel)+
     '<section class="rp-s rv" aria-labelledby="rpT6"><h3 id="rpT6" class="rpi">'+L('Highlights','亮点')+'</h3><div class="rp-tiles">'+tiles+'</div></section>'+
     (S.body&&!S.body.checkOff&&!care()?'<section class="rp-s rp-card rv" id="rpW" aria-labelledby="rpTw">'+rpWeightHtml(pm)+'</section>':'')+
-    '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?L('A steady month.','稳稳的一个月。'):L('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+L('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="btn rpi" style="--i:2" data-act="rpclose">'+L('Done','完成')+'</button>'+(picOn()?'<button type="button" class="btn rp-share rpi" style="--i:3" data-act="picrecap">'+L('Share this month','分享这个月')+'</button>':'')+'</section></div><button type="button" class="rp-x" data-act="rpclose" aria-label="'+L('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>';
+    '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?L('A steady month.','稳稳的一个月。'):L('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+L('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="btn rpi" style="--i:2" data-act="rpclose">'+L('Done','完成')+'</button></section></div><button type="button" class="rp-x" data-act="rpclose" aria-label="'+L('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>';
 }
 /* the hero disc is the same moon and sun as Today: the real 3D ball when the 3D switch is on (and WebGL works), the flat drawing otherwise.
    The lit part fills counter-clockwise like the moon on Today, then the moon turns into the sun, with the goal bloom. */
@@ -995,64 +958,10 @@ function renderDays(){
   h+='</div>';
   }
   h+=(first1?'':'<div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i class="wedge"></i>'+L('Ended early','提前结束')+'</span>'+(care()?'':'<span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span>')+'<span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div>')+'</div>';
-  if(!first1&&ysOn()) h+=ysCard();
   if(!first1) h+='<div class="gh avgh">'+L('Average fast','平均断食时长')+'</div><div id="avgBox">'+avgHtml(avgPlay)+'</div>';
   $('days').innerHTML=h; avgPlay=false; ddIn=false;
   if(numPlay){ numPlay=false; odo($('days').querySelector('.tot .rn')); moonFill($('days').querySelector('.tot')); }
 }
-
-/* ---------- Your sky: every day with a finished fast lights a star in the season's star sign (the signs, slots and figures of the Friends sky) ----------
-   A card on the Days tab opens it. It counts days, never hours: a star looks the same for every fast, and nothing here says how many are left.
-   Not shown in Care mode or while the plan is Ramadan, and a fast kept in Ramadan mode lights no star (the same fasts the streak leaves alone). */
-var ZD=window.LightlyZodiac, ysView=null, ysSel=null, SKY_H=400;
-var SKY_TW=[[30,26,5],[208,24,7],[318,64,6],[260,120,8],[36,210,6.5],[78,350,5.5],[330,170,9],[224,300,7.5]];
-var STAR_D='M0 -28C2 -9 9 -2 28 0C9 2 2 9 0 28C-2 9 -9 2 -28 0C-9 -2 -2 -9 0 -28Z';
-function ysOn(){ return !care()&&!!ZD&&S.planId!=='ramadan'; }
-function ysNow(){ return ZD.season(today()); }
-function ysStars(se){ return C.starDays(streakFasts(),se.from,se.to); }
-function ysFirst(){ var l=C.finished(streakFasts()); return l.length?ZD.season(C.dayKey(Math.min.apply(null,l.map(function(f){ return f.end; })))):ysNow(); }
-function starsTxt(n){ return L(n+(n===1?' star lit':' stars lit'),'已点亮 '+n+' 颗星'); }
-function ysDayLbl(k){ return dateLbl(C.keyToDate(k).getTime(),{weekday:'long',month:'long',day:'numeric'}); }
-/* the small picture on the card: the same stars, lines and open places as the sheet */
-function ysThumb(se,days){
-  var lay=ZD.layout(se.sign,0), n=Math.min(days.length,10), ex=ZD.extras(se.sign,0,SKY_H).slice(0,Math.max(0,days.length-10)), pts=lay.slots.map(function(p){ return p[0]+','+p[1]; });
-  return '<span class="skyc-th" aria-hidden="true"><svg viewBox="0 0 358 '+SKY_H+'">'+(n<10?'<polyline class="th-d" points="'+pts.slice(Math.max(n-1,0)).join(' ')+'"/>':'')+(n>1?'<polyline class="th-l" points="'+pts.slice(0,n).join(' ')+'"/>':'')+
-    lay.slots.map(function(p,i){ return i<n?'<path class="th-s" transform="translate('+p[0]+' '+p[1]+') scale(1.3)" d="'+STAR_D+'"/>':'<circle class="th-o" cx="'+p[0]+'" cy="'+p[1]+'" r="8"/>'; }).join('')+
-    ex.map(function(p){ return '<path class="th-s" transform="translate('+p[0]+' '+p[1]+') scale(.5)" d="'+STAR_D+'"/>'; }).join('')+'</svg></span>'; }
-function ysCard(){ var se=ysNow(), days=ysStars(se), n=days.length;
-  return '<button type="button" class="skyc" data-act="mysky" aria-haspopup="dialog">'+ysThumb(se,days)+'<span class="stack"><b>'+L('Your sky','你的星空')+'</b><small>'+esc(ZD.name(se.sign,S.lang))+' · '+(n?starsTxt(n):L('each fast lights a star','每次断食点亮一颗星'))+'</small></span>'+CHEV+'</button>'; }
-/* the words under the sky: the count, or the day of the star that was tapped. Never how many are left. */
-function ysLine(se,days){
-  var n=days.length, cur=se.from===ysNow().from, b, s='';
-  if(ysSel&&days.indexOf(ysSel)>=0){ b=ysDayLbl(ysSel); s=(C.fastDays(C.finished(streakFasts()))[ysSel]||[]).map(function(f){ return durTxt(C.hours(f)); }).join(L(', ','、')); }
-  else if(!n){ b=cur?L('No stars yet','还没有星星'):L('A quiet season','安静的一季'); s=cur?L('Your next fast lights the first one.','下一次断食会点亮第一颗。'):''; }
-  else{ b=starsTxt(n); s=n>=10?L('The whole figure is lit. More days add small stars.','整个星座都亮了。之后的日子会添上小星星。'):L('One for each day with a fast. Tap a star to see its day.','每个有断食的日子一颗。点一下星星，看看是哪一天。'); }
-  return '<b>'+esc(b)+'</b>'+(s?'<small>'+esc(s)+'</small>':''); }
-function ysPanel(se,days){
-  var sg=se.sign, lay=ZD.layout(sg,0), n=Math.min(days.length,10), ex=ZD.extras(sg,0,SKY_H).slice(0,Math.max(0,days.length-10)), pts=lay.slots.map(function(p){ return p[0]+','+p[1]; });
-  var lbl=L(sg.en+' sky, '+ZD.seasonText(se,'en')+'. '+starsTxt(days.length)+', one for each day with a fast.',sg.zh+'星空，'+ZD.seasonText(se,'zh')+'。'+starsTxt(days.length)+'，每个有断食的日子一颗。');
-  function st(p,k,i,small){ var on=ysSel===k; return '<button type="button" class="my-st'+(small?' sm':'')+(on?' on':'')+'" data-act="skystar" data-k="'+k+'" style="left:'+p[0]+'px;top:'+p[1]+'px;--i:'+i+'" aria-pressed="'+on+'" aria-label="'+esc(ysDayLbl(k))+'"><svg viewBox="-30 -30 60 60" aria-hidden="true"><path d="'+STAR_D+'"/></svg></button>'; }
-  return '<div class="fr-sky my-sky" role="group" aria-label="'+esc(lbl)+'" style="aspect-ratio:358/'+SKY_H+';--lit:'+(n/10)+'"><div class="fr-skyi" style="height:'+SKY_H+'px">'+
-    '<div class="fr-tw" aria-hidden="true">'+SKY_TW.map(function(t){ return '<i style="left:'+t[0]+'px;top:'+t[1]+'px;animation-duration:'+t[2]+'s"></i>'; }).join('')+'</div>'+
-    (lay.fig?'<div class="fr-art" aria-hidden="true" data-art="'+lay.art+'" style="-webkit-mask-image:url('+lay.art+');mask-image:url('+lay.art+')"></div>':'')+
-    '<svg class="fr-ln" width="358" height="'+SKY_H+'" viewBox="0 0 358 '+SKY_H+'" aria-hidden="true">'+(n<10?'<polyline points="'+pts.slice(Math.max(n-1,0)).join(' ')+'" fill="none" stroke="var(--fcl)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 6"/>':'')+
-      (n>1?'<polyline points="'+pts.slice(0,n).join(' ')+'" fill="none" stroke="var(--fcl)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>':'')+
-      lay.slots.slice(n).map(function(p){ return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.4" fill="var(--fseat)" stroke="var(--fdash)" stroke-width="1.2"/>'; }).join('')+'</svg>'+
-    days.slice(0,10).map(function(k,i){ return st(lay.slots[i],k,i); }).join('')+ex.map(function(p,i){ return st(p,days[10+i],10+i,true); }).join('')+
-    '<div class="fr-cap"><b>'+esc(ZD.name(sg,S.lang))+'</b><span>'+esc(ZD.seasonText(se,S.lang))+'</span></div></div></div>'; }
-/* the board is 358 px wide; on a narrower phone the whole of it scales down together (as the Friends sky does) */
-function ysFit(){ var k=sheetEl.querySelector('.my-sky'); if(k) k.style.setProperty('--ks',Math.min(1,k.clientWidth/358).toFixed(4)); }
-window.addEventListener('resize',ysFit);
-/* the figure is a mask: it stays hidden until its picture is decoded, so the panel never flashes a flat colour */
-function ysArt(){ var el=sheetEl.querySelector('.my-sky .fr-art:not(.rd)'); if(!el) return; var i=new Image(); i.src=el.getAttribute('data-art');
-  (i.decode?i.decode():new Promise(function(ok){ i.onload=ok; i.onerror=ok; })).catch(function(){}).then(function(){ requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(el.isConnected) el.classList.add('rd'); }); }); }); }
-function ysSheet(se){
-  if(!ysOn()) return; ysView=se||ysView||ysNow(); var days=ysStars(ysView), first=ysFirst().from, now=ysNow().from, nav=first<now;
-  if(ysView.from<first||ysView.from>now){ ysView=ysNow(); days=ysStars(ysView); }
-  function arrow(d,lbl,can){ return '<button type="button" data-act="skygo" data-d="'+d+'" aria-label="'+lbl+'"'+(can?'':' disabled')+'><svg viewBox="0 0 10 18" aria-hidden="true"><path d="'+(d<0?'M8.5 1.5 1.5 9l7 7.5':'M1.5 1.5 8.5 9l-7 7.5')+'"/></svg></button>'; }
-  openSheet('<h3>'+L('Your sky','你的星空')+'</h3><p class="lede">'+L('Every day you finish a fast lights a star. Any fast counts, whatever its length.','每个完成断食的日子，都会点亮一颗星。断食长短都算。')+'</p>'+ysPanel(ysView,days)+
-    '<div class="sky-nav">'+(nav?arrow(-1,L('Earlier sky','更早的星空'),ysView.from>first):'')+'<div class="sky-ln" id="skyLn" aria-live="polite">'+ysLine(ysView,days)+'</div>'+(nav?arrow(1,L('Later sky','更近的星空'),ysView.from<now):'')+'</div>');
-  ysFit(); ysArt(); }
 
 /* ---------- in-app wheel pickers: they replace the browser's date, time and select controls ----------
    A row shows the value in a capsule and opens a wheel inline. The wheel has its own physics, like the Apple Clock picker, so it feels the same on
@@ -1188,7 +1097,7 @@ function fastSheet(f,addKey){
   var goal=isNew?plan().fast:f.goalH;
   openSheet('<h3>'+(isNew?L('Add a fast','补记断食'):L('Edit fast','编辑断食'))+'</h3><p class="lede">'+L('Fix a start or end time, or add one you forgot to log.','修改开始或结束时间，或补上忘记记录的一次。')+'</p>'+
    '<div class="group">'+pkField('fsS',L('Started','开始'),start,'dt')+pkField('fsE',L('Ended','结束'),end,'dt')+'<div class="field"><label for="fsG">'+L('Goal (hours)','目标（小时）')+'</label><input id="fsG" type="number" min="1" max="36" step="1" inputmode="numeric" value="'+Math.round(goal)+'"></div></div>'+(!isNew&&f.plan==='ramadan'?'':feelSeg(isNew?null:f,false))+
-   (isNew?'':'<div class="group">'+(picOn()&&f.plan!=='ramadan'?'<button class="row" data-act="picfast" data-from="edit" data-id="'+f.id+'"><span>'+L('Share a picture','分享图片')+'</span>'+CHEV+'</button>':'')+'<button class="row red" data-act="fsdel" data-id="'+f.id+'">'+L('Delete this fast','删除这次断食')+'</button></div>')+'<div class="btns"><button class="btn" data-act="fssave" data-id="'+(isNew?'':f.id)+'">'+L('Save','保存')+'</button></div>');
+   (isNew?'':'<div class="group"><button class="row red" data-act="fsdel" data-id="'+f.id+'">'+L('Delete this fast','删除这次断食')+'</button></div>')+'<div class="btns"><button class="btn" data-act="fssave" data-id="'+(isNew?'':f.id)+'">'+L('Save','保存')+'</button></div>');
 }
 function fastSave(id){
   var s=+pkVal('fsS'), e=+pkVal('fsE'), g=Math.round(+$('fsG').value), now=Date.now();
@@ -1999,11 +1908,6 @@ var A={
   pickthis:function(){ var n=new Date(), i=n.getFullYear()*12+n.getMonth(), c=calY*12+calM; closeSheet(); calGo(n.getFullYear(),n.getMonth(),i<c?-1:i>c?1:0); },
   impdays:function(){ closeSheet(); showTab('days'); },
   edit:function(b){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(f) fastSheet(f); },
-  picfast:function(b){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(!f||!picOn()||f.plan==='ramadan') return; var from=b.dataset.from; picSheet('fast',picFast(f),from==='end'?function(){ endSummary(f); }:from==='edit'?function(){ fastSheet(f); }:null); },
-  picrecap:function(){ var pm=recapMonth(); if(!pm||!picOn()) return; picSheet('recap',picRecap(pm,C.monthReport(S.fasts,pm.y,pm.m,S.flex.used,C.offKeys(S.off),S.place))); },
-  picback:function(){ var b=pic&&pic.back; picDrop(); if(b) b(); else closeSheet(); },
-  picshare:function(){ if(!pic||!pic.file) return; try{ navigator.share({files:[pic.file]}).catch(function(){}); }catch(e){ A.picsave(); } },   /* called straight from the tap, with the picture already made, so the system share sheet is allowed to open */
-  picsave:function(){ if(pic&&saveFile(pic.blob,'image/png',pic.name)) toast(L('Picture saved.','图片已保存。')); },
   /* one tap picks, the same tap again clears. On the summary it is saved at once; in the edit sheet it waits for Save. */
   feel:function(b){ var on=b.getAttribute('aria-pressed')==='true'; [].forEach.call(b.parentNode.children,function(x){ x.setAttribute('aria-pressed',String(!on&&x===b)); }); fx('select');
     if(b.dataset.id){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(f){ if(on) delete f.feel; else f.feel=b.dataset.v; save(); if(curTab==='days') renderDays(); } } },
@@ -2019,9 +1923,6 @@ var A={
   geo:function(){ toast(L('Finding your location…','正在定位…')); geo(function(){ placeSheet(); },function(){ if(sheetOpen) placeSheet(); }); },
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
   plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet, care:careSheet,
-  mysky:function(){ ysSel=null; ysSheet(ysNow()); },
-  skygo:function(b){ var d=+b.dataset.d; ysSel=null; ysSheet(ZD.seasonStep(ysView,d)); fx('select'); var nb=sheetEl.querySelector('.sky-nav [data-d="'+d+'"]:not(:disabled)')||sheetEl.querySelector('.sky-nav button:not(:disabled)'); if(nb) nb.focus({preventScroll:true}); },
-  skystar:function(b){ var k=b.dataset.k; ysSel=ysSel===k?null:k; fx('select'); [].forEach.call(sheetEl.querySelectorAll('.my-st'),function(s){ var on=s.dataset.k===ysSel; s.classList.toggle('on',on); s.setAttribute('aria-pressed',on); }); var ln=$('skyLn'); if(ln&&ysView) ln.innerHTML=ysLine(ysView,ysStars(ysView)); },
   nowsheet:function(){ nowSheet(); }, nowrow:function(b){ var i=+b.dataset.i; nowSheet(i===nowOpen?-2:i); },
   carerow:careRow,
   careadd:function(b){ careAdd(b.dataset.k); careSheet(); },
