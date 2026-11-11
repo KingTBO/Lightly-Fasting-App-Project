@@ -327,9 +327,6 @@ function flexBlock(k,state,now){
    Every finished fast counts (also one ended early and one imported), so the totals are your whole history and only ever go up.
    A fast belongs to the day it ended on, the same as the calendar. */
 function finished(fasts){ return fasts.filter(function(f){ return f.end&&f.end>f.start; }); }
-/* Your sky: the days in a span of dates (keys, both ends included) that hold a finished fast, oldest first.
-   Any finished fast counts, whatever its length and whether or not it reached its goal, and a day counts once however many fasts it holds. */
-function starDays(fasts,from,to){ var m=fastDays(finished(fasts)); return Object.keys(m).filter(function(k){ return k>=from&&k<=to; }).sort(); }
 function totals(fasts){ var l=finished(fasts), h=0, since=0; l.forEach(function(f){ h+=hours(f); if(!since||f.start<since) since=f.start; }); return {hours:h,n:l.length,avg:l.length?h/l.length:0,since:since}; }
 function avgOf(l){ var h=0; l.forEach(function(f){ h+=hours(f); }); return l.length?h/l.length:0; }
 /* weeks of month m (0-based), Monday first, like the calendar; a week that crosses into the next month only counts its days inside the month.
@@ -395,6 +392,6 @@ function trendBuckets(points){
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
-  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,starDays:starDays,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
+  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);

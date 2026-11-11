@@ -305,14 +305,6 @@ a.row{text-decoration:none;color:var(--label)}
 .facts b{display:block;font:600 1.375rem var(--font-r);font-variant-numeric:tabular-nums}
 .facts span{font-size:0.8125rem;color:var(--label-2)}
 .sheet .note{font:400 0.9375rem/1.4 var(--font);color:var(--label-2);padding:0 var(--m) 16px}
-/* share a picture: a round button in the corner of the summary, and the sheet that shows the picture before it goes anywhere */
-.sh-pic{position:absolute;top:16px;right:calc(var(--m) - 6px);width:44px;height:44px;border:0;background:none;color:var(--label);display:grid;place-items:center;padding:0}
-.sh-pic::before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--fill)}
-.sh-pic svg{position:relative;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.picbox{display:flex;justify-content:center;padding:2px var(--m) 18px}
-.picbox img{display:block;height:min(42vh,400px);width:auto;aspect-ratio:4/5;border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,.16);background:var(--fill)}
-.ph.picup .scrim{z-index:21}.ph.picup .sheet{z-index:22}
-.rp-end .btn.rp-share{margin-top:8px;background:transparent;color:var(--on-tint);min-height:44px;font:500 0.9375rem var(--font)}
 /* how did it feel: a caption and three choices in one segmented control, the look of every other choice in the app */
 .feel{padding:0 var(--m) 16px}
 .feel-q{display:block;font:500 0.8125rem/1.3 var(--font);color:var(--label-2);padding:0 0 6px 2px}
@@ -1100,9 +1092,9 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 .fr-gav{width:32px;height:32px;border-radius:50%;overflow:hidden;margin-left:-9px;box-shadow:0 0 0 2px var(--card);display:block}
 .fr-gav:first-child{margin-left:0}
 .fr-gav>svg,.fr-gav>img{width:100%;height:100%;display:block;object-fit:cover}
-.fr-sky,.skyc-th{--mystar:#F0A400;--fsky:linear-gradient(180deg,#E3EDFB 0%,#EEEAFA 55%,#F7EBDD 100%);--fseat:#F3F5FC;--flab:rgba(255,255,255,.78);--fcl:rgba(50,62,120,.38);--ftrk:rgba(50,50,90,.16);--fdash:rgba(50,50,90,.42);--fplab:#2B2F4A;--fstars:0;--fglow:none;--fflare:.55;--fart:#5B6FD6;--fart-o:.42}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fr-sky,:root:not([data-theme="light"]) .skyc-th{--mystar:#FFC93C;--fsky:linear-gradient(180deg,#0E1535 0%,#18244F 60%,#26224F 100%);--fseat:#141B40;--flab:rgba(14,21,53,.78);--fcl:rgba(190,205,255,.42);--ftrk:rgba(255,255,255,.2);--fdash:rgba(255,255,255,.5);--fplab:#FFFFFF;--fstars:1;--fglow:drop-shadow(0 0 6px rgba(255,201,60,.55));--fflare:.4;--fart:#9DB4FF;--fart-o:.55}}
-:root[data-theme="dark"] .fr-sky,:root[data-theme="dark"] .skyc-th{--mystar:#FFC93C;--fsky:linear-gradient(180deg,#0E1535 0%,#18244F 60%,#26224F 100%);--fseat:#141B40;--flab:rgba(14,21,53,.78);--fcl:rgba(190,205,255,.42);--ftrk:rgba(255,255,255,.2);--fdash:rgba(255,255,255,.5);--fplab:#FFFFFF;--fstars:1;--fglow:drop-shadow(0 0 6px rgba(255,201,60,.55));--fflare:.4;--fart:#9DB4FF;--fart-o:.55}
+.fr-sky{--fsky:linear-gradient(180deg,#E3EDFB 0%,#EEEAFA 55%,#F7EBDD 100%);--fseat:#F3F5FC;--flab:rgba(255,255,255,.78);--fcl:rgba(50,62,120,.38);--ftrk:rgba(50,50,90,.16);--fdash:rgba(50,50,90,.42);--fplab:#2B2F4A;--fstars:0;--fglow:none;--fflare:.55;--fart:#5B6FD6;--fart-o:.42}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fr-sky{--fsky:linear-gradient(180deg,#0E1535 0%,#18244F 60%,#26224F 100%);--fseat:#141B40;--flab:rgba(14,21,53,.78);--fcl:rgba(190,205,255,.42);--ftrk:rgba(255,255,255,.2);--fdash:rgba(255,255,255,.5);--fplab:#FFFFFF;--fstars:1;--fglow:drop-shadow(0 0 6px rgba(255,201,60,.55));--fflare:.4;--fart:#9DB4FF;--fart-o:.55}}
+:root[data-theme="dark"] .fr-sky{--fsky:linear-gradient(180deg,#0E1535 0%,#18244F 60%,#26224F 100%);--fseat:#141B40;--flab:rgba(14,21,53,.78);--fcl:rgba(190,205,255,.42);--ftrk:rgba(255,255,255,.2);--fdash:rgba(255,255,255,.5);--fplab:#FFFFFF;--fstars:1;--fglow:drop-shadow(0 0 6px rgba(255,201,60,.55));--fflare:.4;--fart:#9DB4FF;--fart-o:.55}
 .fr-sky{position:relative;width:min(358px,calc(100% - 2*var(--m)));margin:0 auto 12px;border-radius:32px;overflow:hidden;background:var(--fsky);isolation:isolate}
 .fr-skyi{position:absolute;left:0;top:0;width:358px;transform-origin:0 0;transform:scale(var(--ks,1))}
 .fr-tw{position:absolute;inset:0;opacity:var(--fstars);pointer-events:none}
@@ -1135,40 +1127,6 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 .fr-cap{position:absolute;left:18px;bottom:16px;color:var(--fplab);pointer-events:none}
 .fr-cap b{display:block;font:700 15px/1.2 var(--font-d);letter-spacing:-.01em}
 .fr-cap span{display:block;font:400 12px/1.3 var(--font);opacity:.75;margin-top:2px;letter-spacing:0}
-/* Your sky: the card on Days and the sheet it opens. It borrows the Friends sky (.fr-sky) for its colours, twinkles, figure and caption. */
-.skyc{display:flex;align-items:center;gap:14px;width:calc(100% - 2*var(--m));margin:0 var(--m) var(--group-gap);min-height:80px;padding:10px 16px 10px 10px;border:0;border-radius:14px;background:var(--card);color:var(--label);text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .5s var(--spring)}
-.skyc:active{transform:scale(.975);transition-duration:.12s}
-.skyc:focus-visible{outline:2px solid var(--tint);outline-offset:2px}
-.skyc .stack{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.skyc .stack b{font:600 1.0625rem/1.25 var(--font);letter-spacing:-.01em}
-.skyc .stack small{font:400 0.875rem/1.3 var(--font);color:var(--label-2)}
-.skyc .chev{width:8px;height:14px;flex:none;stroke:var(--label-3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.skyc-th{flex:none;display:block;width:54px;height:60px;border-radius:12px;background:var(--fsky);overflow:hidden}
-.skyc-th svg{display:block;width:100%;height:100%}
-.th-l{fill:none;stroke:var(--fcl);stroke-width:6;stroke-linecap:round;stroke-linejoin:round}
-.th-d{fill:none;stroke:var(--fcl);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 16}
-.th-o{fill:var(--fdash)}.th-s{fill:var(--mystar)}
-.sheet .my-sky{margin-bottom:0}
-.my-sky .fr-art{animation:none;filter:none}
-.my-sky .fr-art.rd{opacity:calc(var(--fart-o)*var(--lit,0))}
-.my-sky .fr-ln{animation:none;opacity:1}
-.my-st{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;padding:0;border:0;border-radius:50%;background:none;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.my-st svg{width:34px;height:34px;fill:var(--mystar);filter:var(--fglow);animation:myStar .6s var(--spring) both;animation-delay:calc(var(--i)*45ms + .2s)}
-.my-st.sm{width:28px;height:28px;margin:-14px 0 0 -14px}
-.my-st.sm svg{width:14px;height:14px}
-.my-st::before{content:"";position:absolute;inset:2px;border-radius:50%;border:1.6px solid var(--fplab);opacity:0;transform:scale(.8);transition:opacity .2s ease,transform .3s var(--spring)}
-.my-st.sm::before{inset:0}
-.my-st.on::before{opacity:.5;transform:none}
-.my-st:focus-visible{outline:2px solid var(--tint);outline-offset:1px}
-@keyframes myStar{from{opacity:0;transform:scale(.3) rotate(-40deg)}to{opacity:1;transform:none}}
-.sky-nav{display:flex;align-items:center;gap:8px;min-height:60px;margin:10px var(--m) 0}
-.sky-nav>button{flex:none;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--label);display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.sky-nav>button:disabled{opacity:.3;cursor:default}
-.sky-nav>button svg{width:9px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sky-ln{flex:1;min-width:0;text-align:center}
-.sky-ln b{display:block;font:600 1.0625rem/1.25 var(--font);letter-spacing:-.01em}
-.sky-ln small{display:block;margin-top:2px;font:400 0.8125rem/1.35 var(--font);color:var(--label-2)}
-@media (prefers-reduced-motion:reduce){.my-st svg{animation:none}.my-st::before,.skyc{transition:none}}
 .fr-sc{display:flex;align-items:center;gap:8px;margin:0 var(--m) 12px;min-height:68px;padding:0 12px 0 0;border-radius:22px;background:var(--card)}
 .fr-sct{flex:1;min-width:0;display:flex;align-items:center;gap:12px;min-height:68px;padding:10px 0 10px 14px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer}
 .fr-sct .fr-av{width:40px;height:40px}
