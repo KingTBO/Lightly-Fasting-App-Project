@@ -53,18 +53,20 @@ const makeZip=(f,o)=>{const u=makeZip0(f,o);return u.buffer.slice(u.byteOffset,u
   }
   /* export to a spreadsheet (audit S4): one line per finished fast, local times, opens in Excel (BOM), and Lightly reads its own CSV back */
   {const T=(y,m,d,h,mi)=>new Date(y,m,d,h,mi).getTime();
-   const fasts=[{id:'2',start:T(2026,10,9,20,0),end:T(2026,10,10,11,30),goalH:16,plan:'16'},{id:'1',start:T(2026,10,7,21,0),end:T(2026,10,8,9,0),goalH:16,plan:'custom'},{id:'3',start:T(2026,10,3,8,0),end:T(2026,10,4,10,0),goalH:24,plan:'24'},{id:'x',start:5,end:0,goalH:16},{id:'y',start:T(2026,10,1,8,0),end:T(2026,10,2,8,0),goalH:0,plan:'a,"b"'}];
+   const fasts=[{id:'2',start:T(2026,10,9,20,0),end:T(2026,10,10,11,30),goalH:16,plan:'16',feel:'ok'},{id:'1',start:T(2026,10,7,21,0),end:T(2026,10,8,9,0),goalH:16,plan:'custom'},{id:'3',start:T(2026,10,3,8,0),end:T(2026,10,4,10,0),goalH:24,plan:'24',feel:'hard'},{id:'x',start:5,end:0,goalH:16},{id:'y',start:T(2026,10,1,8,0),end:T(2026,10,2,8,0),goalH:0,plan:'a,"b"',feel:'great'}];
    const out=I.toCsv(fasts), lines=out.split('\r\n');
    assert.strictEqual(out.charCodeAt(0),0xFEFF,'starts with a BOM so Excel reads 中文 and accents');
-   assert.strictEqual(lines[0].slice(1),'start,end,duration_hours,goal_hours,reached_goal,plan_name','header');
+   assert.strictEqual(lines[0].slice(1),'start,end,duration_hours,goal_hours,reached_goal,plan_name,felt','header');
    assert.strictEqual(lines.length,6,'header, four fasts, and a closing newline (the broken one is left out)');
    assert.strictEqual(lines[1].split(',')[0],'2026-11-01 08:00','sorted oldest first, local time');
-   assert.strictEqual(lines[1],'2026-11-01 08:00,2026-11-02 08:00,24.00,,,"a,""b"""','no goal: empty goal and reached; quotes escaped');
-   assert.strictEqual(lines[2],'2026-11-03 08:00,2026-11-04 10:00,26.00,24,yes,24');
-   assert.strictEqual(lines[3],'2026-11-07 21:00,2026-11-08 09:00,12.00,16,no,custom','12 h of a 16 h goal: not reached');
-   assert.strictEqual(lines[4],'2026-11-09 20:00,2026-11-10 11:30,15.50,16,no,16','15.5 h of a 16 h goal: not reached');
-   assert.deepStrictEqual(I.toCsv([]).replace('\uFEFF','').trim(),'start,end,duration_hours,goal_hours,reached_goal,plan_name','an empty list is just the header');
+   assert.strictEqual(lines[1],'2026-11-01 08:00,2026-11-02 08:00,24.00,,,"a,""b""",','no goal: empty goal and reached; quotes escaped; a feeling that is not one of the three is left out');
+   assert.strictEqual(lines[2],'2026-11-03 08:00,2026-11-04 10:00,26.00,24,yes,24,hard');
+   assert.strictEqual(lines[3],'2026-11-07 21:00,2026-11-08 09:00,12.00,16,no,custom,','12 h of a 16 h goal: not reached');
+   assert.strictEqual(lines[4],'2026-11-09 20:00,2026-11-10 11:30,15.50,16,no,16,okay','15.5 h of a 16 h goal: not reached');
+   assert.deepStrictEqual(I.toCsv([]).replace('\uFEFF','').trim(),'start,end,duration_hours,goal_hours,reached_goal,plan_name,felt','an empty list is just the header');
    const back=I.parse(out); assert.strictEqual(back.source,'import');assert.strictEqual(back.items.length,4,'Lightly reads its own spreadsheet back');
+   assert.deepStrictEqual(back.items.map(x=>x.feel).sort(),['hard','ok',null,null].sort(),'how each fast felt comes back from the spreadsheet');
+   {const bk=I.parse(JSON.stringify({app:'Lightly',fasts:fasts.slice(0,3)})); assert.strictEqual(bk.source,'Lightly'); assert.deepStrictEqual(bk.items.map(x=>x.feel),['ok',undefined,'hard'],'the backup file keeps it'); const pl=I.plan(bk,[],null,[],T(2026,11,1,0,0)); assert.deepStrictEqual(pl.add.map(x=>x.feel||null).sort(),['hard','ok',null].sort(),'and a restore puts it back on the fasts');}
    const b3=back.items.filter(x=>x.start===T(2026,10,3,8,0))[0]; assert.ok(b3&&b3.end===T(2026,10,4,10,0)&&b3.goalH===24,'start, end and goal come back exactly (the duration column is not mistaken for the goal)');
    console.log('csv export ok');}
   console.log('import tests ok');

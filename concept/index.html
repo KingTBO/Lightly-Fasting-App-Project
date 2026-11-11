@@ -265,6 +265,15 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .sheet p{font-size:15px;color:var(--label-2);margin:14px 0 18px;line-height:1.4}
 .sheet .done{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out}
 .sheet .done:active{transform:scale(.97)}
+/* how did it feel: one optional tap, the same three choices as the app */
+.sheet .feel{margin-top:14px;transition:opacity .3s ease,transform .45s cubic-bezier(.16,1,.3,1);opacity:0;transform:translateY(12px)}
+.sheet.open .feel{opacity:1;transform:none;transition-delay:.11s}
+.sheet .feel-q{display:block;font:500 13px/1.3 var(--font);color:var(--label-2);padding:0 0 6px 2px}
+.sheet .feel .seg{display:flex}
+.sheet .feel .seg button{flex:1;min-height:44px;padding:0 4px;font:500 14px/1.2 var(--font);color:var(--label)}
+.sheet .feel .seg button[aria-pressed="true"]{font-weight:600}
+.sheet .feel+p{margin-top:12px}
+@media (prefers-reduced-motion:reduce){.sheet .feel{transform:none!important;transition:opacity .2s ease}}
 
 /* hour tick pop */
 @keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.9)}100%{transform:scale(1)}}
@@ -690,6 +699,11 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .rp-skyl span:not(.rn){display:flex;align-items:center;gap:8px;font:500 0.9375rem var(--font);color:var(--label-2);margin-top:2px}
 .rp-skyl span i{width:10px;height:10px;border-radius:50%}
 .rp-skyl .rn{display:inline-block}
+.rp-feel{background:transparent}
+.rp-feel .f-easy,.rp-feell .f-easy{background:var(--tint)}
+.rp-feel .f-ok,.rp-feell .f-ok{background:color-mix(in srgb,var(--tint) 45%,var(--card))}
+.rp-feel .f-hard,.rp-feell .f-hard{background:var(--label-3)}
+.rp-feell{grid-template-columns:repeat(3,1fr);gap:10px}
 /* rhythm */
 .rp-24{margin-top:26px}
 .rp-24 .trk{position:relative;height:30px;border-radius:10px;background:var(--fill);overflow:hidden}
@@ -1341,6 +1355,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
         <span class="big" id="shBig"></span>
         <span class="of" id="shOf"></span>
         <div class="row"><div><b id="shStreak">7</b><span data-zh="天连续">Day streak</span></div><div><b id="shEnd"></b><span data-zh="结束时间">Ended</span></div></div>
+        <div class="feel" id="shFeel"><span class="feel-q" id="shFeelQ" data-zh="感觉怎么样？">How did it feel?</span><div class="seg" role="group" aria-labelledby="shFeelQ"><button type="button" data-v="easy" aria-pressed="false" data-zh="轻松">Easy</button><button type="button" data-v="ok" aria-pressed="false" data-zh="还行">Okay</button><button type="button" data-v="hard" aria-pressed="false" data-zh="有点难">Hard</button></div></div>
         <p id="shNote"></p>
         <button class="done" type="button" id="shDone" data-zh="开始进食窗口">Start eating window</button>
       </div>
@@ -2057,7 +2072,7 @@ window.LightlySphere=(function(){
   }
   
   function endFast(){ var early=h<GOAL; if(!early){ celebrate(); setTimeout(finishSheet,reduce?300:850); } else finishSheet(); }
-  function finishSheet(){ var early=h<GOAL; setMode('saved'); var s=START[startKey];
+  function finishSheet(){ var early=h<GOAL; setMode('saved'); var s=START[startKey]; [].forEach.call($('shFeel').querySelectorAll('button'),function(x){ x.setAttribute('aria-pressed','false'); });
     $('shK').textContent=early?L('Ended early','提前结束'):L('Fast saved','已保存');
     $('shOf').textContent=early?L('of your '+GOAL+' h goal','目标是 '+GOAL+'小时'):L('Your '+GOAL+' h goal, reached','你的 '+GOAL+'小时目标，达成了');
     var fin=h, c0=performance.now(); (function cu(){ var k=reduce?1:Math.min((performance.now()-c0)/700,1); $('shBig').innerHTML=fmt(fin*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(cu); })(); $('shEnd').textContent=clock(s+h);
@@ -2090,6 +2105,8 @@ window.LightlySphere=(function(){
     if(mode==='idle'||mode==='eat'){ startFast(); return; } if(mode==='fast'){ act.classList.add('pressed'); holdStart(); } } });
   act.addEventListener('keyup',function(ev){ if(ev.key===' '||ev.key==='Enter') up(); });
   $('shDone').addEventListener('click',function(){ cancelAuto(); toEat(); lapseTo('e',2.5,3500); });
+  /* how did it feel: one tap picks, the same tap again clears (sample, nothing is kept) */
+  $('shFeel').addEventListener('click',function(ev){ var b=ev.target.closest('button'); if(!b) return; var on=b.getAttribute('aria-pressed')==='true'; [].forEach.call(b.parentNode.children,function(x){ x.setAttribute('aria-pressed',String(!on&&x===b)); }); buzz(8); });
 
   /* ---------- drag along the timeline: 1:1, velocity handoff, projection, snap to the hour ---------- */
   var track=$('track');
@@ -2993,7 +3010,7 @@ window.LightlySphere=(function(){
   function dySample(){ var now=new Date(), py=now.getFullYear(), pmI=now.getMonth()-1, pm=new Date(py,pmI,1), dim=new Date(py,pmI+1,0).getDate(), days=[], dw=0, fl=0, run=0, best=0, i;
     for(i=1;i<=dim;i++){ var s=(i%9===4)?'early':(i%11===6)?'flex':(i%7===0)?'none':'done'; days.push(s); if(s==='done'||s==='early') dw++; if(s==='flex') fl++; if(s==='done'){ run++; best=Math.max(best,run); } else if(s!=='flex') run=0; }
     var wk=[], first=(pm.getDay()+6)%7, d0=1-first, wi=0; for(;d0<=dim;d0+=7,wi++){ var s0=Math.max(1,d0), e0=Math.min(dim,d0+6); wk.push({s:new Date(py,pmI,s0),e:new Date(py,pmI,e0),n:3+(wi*2)%4,h:16.1+((wi*5+3)%9)/6}); }
-    return {y:py,m:pmI,n:25,hours:428,avg:17.1,reached:18,days:days,dim:dim,daysWith:dw,flex:fl,run:best,moonH:171,sunH:257,start:20,finish:12,weeks:wk,busy:{s:wk[2].s,e:wk[2].e,n:6}}; }
+    return {y:py,m:pmI,n:25,hours:428,avg:17.1,reached:18,days:days,dim:dim,daysWith:dw,flex:fl,run:best,moonH:171,sunH:257,start:20,finish:12,feel:{easy:14,ok:8,hard:3,n:25},weeks:wk,busy:{s:wk[2].s,e:wk[2].e,n:6}}; }
   function dyClock(h){ var m=Math.round(h*60)%1440, a=Math.floor(m/60), b=m%60; return (a<10?'0':'')+a+':'+(b<10?'0':'')+b; }
   function dyRng(a,b){ var zh=api.lang()==='zh', f=function(d,o){ return new Intl.DateTimeFormat(zh?'zh-CN':'en',o).format(d); };
     if(zh) return (a.getMonth()+1)+'/'+a.getDate()+(+a===+b?'':'–'+(a.getMonth()===b.getMonth()?'':(b.getMonth()+1)+'/')+b.getDate());
@@ -3053,6 +3070,8 @@ function dyBloom(){
       '<section class="rp-s rp-night rv"><h3 class="rpi">'+LL('Moon and sun','月亮与太阳')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('Where your fasting hours fell','断食的时间落在哪里')+'</p><div class="rp-sky" role="img" aria-label="'+r.moonH+' / '+r.sunH+'"><i class="m" style="width:'+mp+'%"></i><i class="s" style="width:'+(100-mp)+'%"></i></div>'+
       '<div class="rp-skyl rpi" style="--i:3"><div><b><span class="rn">'+r.moonH+'</span><small> '+LL('h','小时')+'</small></b><span><i class="m"></i>'+LL('under the moon','月下')+'</span></div><div><b><span class="rn">'+r.sunH+'</span><small> '+LL('h','小时')+'</small></b><span><i class="s"></i>'+LL('under the sun','日下')+'</span></div></div></section>'+
       '<section class="rp-s rv"><h3 class="rpi">'+LL('Your rhythm','你的节奏')+'</h3><p class="rp-line rpi" style="--i:1">'+LL('You usually start around <b>'+dyClock(r.start)+'</b> and finish around <b>'+dyClock(r.finish)+'</b>.','你通常在 <b>'+dyClock(r.start)+'</b> 左右开始，<b>'+dyClock(r.finish)+'</b> 左右结束。')+'</p><div class="rp-24" aria-hidden="true"><div class="trk">'+bands+'</div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div></section>'+
+      '<section class="rp-s rp-card rv"><h3 class="rpi">'+LL('How it felt','感觉如何')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('From the '+r.feel.n+' fasts you marked','来自你标记的 '+r.feel.n+' 次断食')+'</p><div class="rp-sky rp-feel" role="img" aria-label="'+r.feel.easy+' / '+r.feel.ok+' / '+r.feel.hard+'">'+['easy','ok','hard'].map(function(k){ return '<i class="f-'+k+'" style="width:'+(100*r.feel[k]/r.feel.n).toFixed(1)+'%"></i>'; }).join('')+'</div>'+
+      '<div class="rp-skyl rp-feell rpi" style="--i:3">'+[['easy','Easy','轻松'],['ok','Okay','还行'],['hard','Hard','有点难']].map(function(k){ return '<div><b><span class="rn">'+r.feel[k[0]]+'</span></b><span><i class="f-'+k[0]+'"></i>'+LL(k[1],k[2])+'</span></div>'; }).join('')+'</div></section>'+
       '<section class="rp-s rv"><h3 class="rpi">'+LL('Highlights','亮点')+'</h3><div class="rp-tiles">'+tiles+'</div></section>'+
       '<section class="rp-s rp-card rp-w rv" id="dyW"><h3 class="rpi">'+LL('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="rpwr rpi" style="--i:2"><span>'+LL('Weight now','现在的体重')+'</span><span>82 kg</span></div><button type="button" class="rpwb rpi" style="--i:3" data-rpw="save">'+LL('Save','保存')+'</button><button type="button" class="rpwb q rpi" style="--i:4" data-rpw="off">'+LL('Don\u2019t ask me again','不再询问')+'</button></section>'+
       '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?LL('A steady month.','稳稳的一个月。'):LL('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+LL('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="rpdone rpi" style="--i:2" data-rpclose>'+LL('Done','完成')+'</button></section></div>'+
@@ -3143,7 +3162,7 @@ function dyBloom(){
     if(none) h+='<div class="dd-acts"><button type="button" class="dd-e" data-dd="1">'+(zh?'补记断食':'Add a fast')+'</button></div>';
     else if(c==='flex') h+='<div class="dd-row"><i class="dd-m flex" aria-hidden="true"></i><span class="stack"><b>'+(zh?'弹性日':'Cheat day')+'</b><small>'+(zh?'连续记录保持不变，但不增加。':'Your streak holds, and doesn’t grow.')+'</small></span></div>';
     else{ var hrs=c==='early'?16*p:16.2, hh=Math.floor(hrs), mm=Math.round((hrs-hh)*60), end=(20+hrs)%24, eh=Math.floor(end), em=Math.round((end-eh)*60), pad=function(n){ return String(n).padStart(2,'0'); };
-      h+='<button type="button" class="dd-row" data-dd="1"><i class="dd-m'+(c==='early'?'':' full')+'"'+(c==='early'?' style="--p:'+p+'"':'')+' aria-hidden="true"></i><span class="stack"><b>'+(zh?hh+' 小时'+(mm?' '+mm+' 分':''):hh+' h'+(mm?' '+mm+' m':''))+'</b><small>20:00 → '+pad(eh)+':'+pad(em)+' · '+(c==='early'?(zh?'提前结束':'ended early'):(zh?'达成目标':'goal reached'))+'</small></span><span class="dd-e">'+(zh?'编辑':'Edit')+'</span></button>'; }
+      h+='<button type="button" class="dd-row" data-dd="1"><i class="dd-m'+(c==='early'?'':' full')+'"'+(c==='early'?' style="--p:'+p+'"':'')+' aria-hidden="true"></i><span class="stack"><b>'+(zh?hh+' 小时'+(mm?' '+mm+' 分':''):hh+' h'+(mm?' '+mm+' m':''))+'</b><small>20:00 → '+pad(eh)+':'+pad(em)+' · '+(c==='early'?(zh?'提前结束 · 感觉有点难':'ended early · felt hard'):(zh?'达成目标 · ':'goal reached · ')+(dySel[1]%3?(zh?'感觉轻松':'felt easy'):(zh?'感觉还行':'felt okay')))+'</small></span><span class="dd-e">'+(zh?'编辑':'Edit')+'</span></button>'; }
     el.innerHTML=h; el.hidden=false; }
   $('dyCal').addEventListener('click',function(e){ var b=e.target.closest('button[data-d]'); if(!b||performance.now()-dyGone<350||b.classList.contains('fut')) return; dySel=[dyOff,+b.dataset.d,b.className.split(' ')[0],parseFloat(b.style.getPropertyValue('--p'))||0]; [].forEach.call($('dyCal').querySelectorAll('button'),function(x){ x.classList.toggle('sel',x===b); }); dyDetail(); var dd=$('dyDet'), sc=$('daysScr'), tb=ph.querySelector('.tabs'), over=dd.getBoundingClientRect().bottom-(Math.min(sc.getBoundingClientRect().bottom,tb?tb.getBoundingClientRect().top:1e9)-12); if(over>0) sc.scrollBy({top:over,behavior:reduce?'auto':'smooth'}); });
   $('dyDet').addEventListener('click',function(e){ var b=e.target.closest('[data-dd]'); if(!b) return; impFrom=b; impOpen(true,3); });

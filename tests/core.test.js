@@ -142,4 +142,10 @@ assert.deepStrictEqual([0,3.99,4,7.9,8,12,17.9,18,23.9,24,60].map(C.bodyStage),[
 assert.deepStrictEqual(C.BODY.map(b=>b.id),['digest','settle','sugar','switch','fat','long']);C.BODY.forEach((b,i)=>{if(i)assert.strictEqual(b.from,C.BODY[i-1].to);});
 assert.strictEqual(C.bodyShown(1,13),4);assert.strictEqual(C.bodyShown(1,16),4);assert.strictEqual(C.bodyShown(1,18),4);assert.strictEqual(C.bodyShown(1,20),5);assert.strictEqual(C.bodyShown(1,24),5);assert.strictEqual(C.bodyShown(1,36),6);
 assert.strictEqual(C.bodyShown(19,16),5,'a fast that runs past its goal lists the stage it has reached');assert.strictEqual(C.bodyShown(25,24),6);assert.strictEqual(C.bodyShown(0,12),3);
+/* how did it feel: only the three answers count, and the month report counts them */
+assert.deepStrictEqual(C.FEELS,['easy','ok','hard']);assert.strictEqual(C.feelOf({feel:'easy'}),'easy');assert.strictEqual(C.feelOf({feel:'great'}),null);assert.strictEqual(C.feelOf({}),null);assert.strictEqual(C.feelOf(null),null);
+assert.deepStrictEqual(C.feelCount([{feel:'easy'},{feel:'easy'},{feel:'hard'},{},{feel:'x'}]),{easy:2,ok:0,hard:1,n:3});assert.deepStrictEqual(C.feelCount([]),{easy:0,ok:0,hard:0,n:0});
+{const T=(d,h)=>new Date(2026,9,d,h).getTime(),fs=[{id:'a',start:T(3,20),end:T(4,12),goalH:16,feel:'ok'},{id:'b',start:T(5,20),end:T(6,12),goalH:16,feel:'hard'},{id:'c',start:T(7,20),end:T(8,12),goalH:16},{id:'d',start:new Date(2026,10,2,20).getTime(),end:new Date(2026,10,3,12).getTime(),goalH:16,feel:'easy'}];
+ const r=C.monthReport(fs,2026,9,[],[]);assert.deepStrictEqual(r.feel,{easy:0,ok:1,hard:1,n:2},'the month counts only its own marked fasts');
+ const st=C.streak(fs.map(f=>Object.assign({},f,{feel:undefined})),[],new Date(2026,10,3,13).getTime()),st2=C.streak(fs,[],new Date(2026,10,3,13).getTime());assert.deepStrictEqual(st,st2,'how a fast felt never changes a streak');}
 console.log('core ok',s);
