@@ -49,6 +49,7 @@ NODE_PATH=$(npm root -g) node tests/birds.test.js              # the daytime bir
 NODE_PATH=$(npm root -g) node tests/sky-contrast.test.js     # small text on Today is at least 4.5:1 under every sky, and a 320 px phone in 中文 keeps the plan button, sky pill and Days stats on one line (about 3 minutes)
 node tests/public-copy.test.js                                  # the public pages: no question count, no competitor or China notes on the product page, Vibration row, privacy names Cloudflare
 NODE_PATH=$(npm root -g) node tests/export.test.js           # Export my fasts: the spreadsheet and backup sheet, the restore note, the erase sheet (about 30 seconds)
+NODE_PATH=$(npm root -g) node tests/quiet-ui.test.js         # one look per control: quiet end button, neutral tab pill, one switch colour, no black button, plan rows with a day bar and an end time, the 320 px fixes (about 1 minute)
 NODE_PATH=$(npm root -g) node tests/tester.test.js           # tester options: the Ramadan preview switch and the screen-size pop-up are hidden until seven taps on the version line (about 20 seconds)
 NODE_PATH=$(npm root -g) node tests/care.test.js              # Care mode: health answers, plan caps, no streaks or cheat days, the 14-day wait (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright
@@ -78,6 +79,7 @@ How much to test is set by the size of the change (RELEASING.md, step 5):
 - **Apple's look on every platform.** Follow Apple's Human Interface Guidelines for visual style, motion and typography, on Android and the web as well as iOS. No Material styling. Apple celebrates with restraint (one object, real material, a ring closing), not colour washes, rays or gold gradients.
 - **Alignment (checked by `qa/run-app.js`):** 16 px side margin, tap targets of at least 44 pt (except standard switches and inline links), icons centred with their labels, no clipped text, nothing outside the phone. Text contrast must meet WCAG AA in light and dark.
 - **Motion:** honour Reduce Motion (same colours, no movement), and Reduce Transparency.
+- **One look per control (v0.101.0, from the UI audit).** Yellow is for actions: Start and the main button of a sheet. While a fast runs the main button is glass (`.act.end`), so the moon or sun stays the loudest thing on Today. The selected tab is a neutral pill on every tab and under every sky. Switches are yellow everywhere. Three button kinds only: main (`.btn`), secondary (`.btn.sec`, also for Cancel) and destructive (`.btn.red`); there is no black button. A row's arrow sits at the right edge. Checked by `tests/quiet-ui.test.js`.
 - **Today's vertical layout** uses weighted spacers (`.sp`, flex 1 : .5 : 1.5). When you change it, check 440x956, 390x844 and 375x667.
 - **Wait for a pick.** TEEBO often publishes design options and chooses a letter. Do not build an option until it has been picked.
 

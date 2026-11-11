@@ -271,7 +271,7 @@ function init(h){
       '<p class="fr-lbl">'+L('Last 7 days','过去 7 天')+'</p><div class="fr-wk">'+strip+'</div>'+ch+links+'</div>');
   }
   function confirmSheet(titleT,lede,go,goLabel){
-    h.openSheet('<!--keep--><h3 class="ctr">'+titleT+'</h3><p class="lede ctr">'+lede+'</p><div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button><button class="btn red solid" data-act="'+go+'">'+goLabel+'</button></div>');
+    h.openSheet('<!--keep--><h3 class="ctr">'+titleT+'</h3><p class="lede ctr">'+lede+'</p><div class="btns"><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button><button class="btn red solid" data-act="'+go+'">'+goLabel+'</button></div>');
   }
   function mi(d,tone){ return '<span class="mi '+tone+'" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="'+d+'"/></svg></span>'; }
   var ICON_PLUS='M12 5v14M5 12h14', ICON_PEN='M4 20h4L19 9l-4-4L4 16zM13 7l4 4', ICON_FLAG='M5 21V4M5 4h11l-2 4 2 4H5', ICON_EXIT='M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10';

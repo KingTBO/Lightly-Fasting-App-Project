@@ -124,7 +124,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 #disc{cursor:grab;will-change:transform}
 .sw{position:relative;flex:none;width:51px;height:31px;border-radius:999px;border:0;background:var(--fill-2);cursor:pointer;transition:background .2s ease}
 .sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16);transition:transform .3s cubic-bezier(.16,1,.3,1)}
-.sw[aria-checked="true"]{background:#34C759}.sw[aria-checked="true"]::after{transform:translateX(20px)}
+.sw[aria-checked="true"]{background:var(--tint)}.sw[aria-checked="true"]::after{transform:translateX(20px)}
 .row2{display:flex;align-items:center;justify-content:space-between;gap:12px}.row2 b{font-weight:500;font-size:16px;display:block}.row2 span{font-size:13px;color:var(--label-2)}
 #disc{width:236px;height:236px;overflow:visible;touch-action:none}
 .read{text-align:center;padding:0 24px}
@@ -144,7 +144,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .track .ends{display:flex;justify-content:space-between;align-items:flex-start;margin-top:2px;font-variant-numeric:tabular-nums}
 .track .ends>span{display:flex;flex-direction:column;gap:2px;padding:2px 2px 0}
 .track #endB{align-items:flex-end}
-.ends .cap{font:600 10.5px/1.2 var(--font);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+.ends .cap{font:600 11px/1.2 var(--font);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
 html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform:none}
 .ends .trow{display:flex;align-items:center;gap:7px}
 .ends .eg{width:14px;height:14px;flex:none;display:block}.ends .eg svg{display:block;width:100%;height:100%}
@@ -164,6 +164,10 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .act.pressed{transform:scale(.97)}
 .act::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.16);transform-origin:left;transform:scaleX(var(--hold,0));z-index:-1;transition:transform .35s cubic-bezier(.16,1,.3,1)}
 .act.holding::before{transition:none}
+/* while a fast runs the button goes quiet: the same glass as the tab bar. Yellow is kept for Start. */
+.act{transition:transform .1s ease-out,background-color .5s ease,color .5s ease}
+.act.end{background:var(--glass);color:var(--ink);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--ink) 14%,transparent),inset 0 .5px 0 rgba(255,255,255,.45)}
+.act.end::before{background:color-mix(in srgb,var(--ink) 16%,transparent)}
 /* stars: only in dark skies, fade with the sky */
 .ph::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;background:linear-gradient(180deg,transparent 14%,var(--sky2))}
 .birds{position:absolute;left:0;right:0;top:0;width:100%;height:420px;z-index:-1;pointer-events:none;color:var(--ink);opacity:var(--birds,0);transition:opacity 1.2s ease}
@@ -201,10 +205,11 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .tabs>span>span{display:block}
 .tabs>span.sel{color:var(--tabsel)}
 .tabs>span{position:relative;z-index:1;transition:color .3s ease}
-.ph{--tabsel:var(--tint);--tabfill:color-mix(in srgb,var(--tint) 24%,transparent)}
-.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:color-mix(in srgb,var(--tint) 72%,#fff);--tabfill:color-mix(in srgb,var(--tint) 12%,transparent)}
+/* the selected tab is a neutral pill on every tab and under every sky; yellow is kept for actions */
+.ph{--tabsel:var(--ink);--tabfill:color-mix(in srgb,var(--ink) 14%,transparent)}
+.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:#fff;--tabfill:rgba(255,255,255,.16)}
 .ph[data-sky="dawn"],.ph[data-sky="morning"],.ph[data-sky="day"],.ph[data-sky="sunset"]{--tabsel:#1C1C1E;--tabfill:rgba(255,255,255,.55)}
-.ph[data-me]{--tabsel:var(--label);--tabfill:color-mix(in srgb,var(--tint) 40%,transparent)}
+.ph[data-me]{--tabsel:var(--label);--tabfill:var(--fill-2)}
 .tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/4);border-radius:999px;background:var(--tabfill);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s cubic-bezier(.2,1,.3,1),background .3s ease;will-change:transform;pointer-events:none}
 @supports (transition-timing-function:linear(0,1)){.tab-ind{transition-timing-function:linear(0,.18 6%,.52 13%,.82 21%,1.03 30%,1.07 38%,1.04 46%,1.01 56%,.995 70%,1),ease}}
 @media (prefers-reduced-motion:reduce){.tab-ind{transition:background .2s}}
@@ -478,7 +483,7 @@ html:lang(zh-Hans) .friends .tag{text-transform:none}
   .act,.play,.sheet .done{transition:none}
 }
 /* solid fallback stays close to the sky so labels keep their contrast */
-@media (prefers-reduced-transparency:reduce){.tabs,.ph .chip,.ph .skypill{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--sky) 86%,var(--ink) 14%)}}
+@media (prefers-reduced-transparency:reduce){.tabs,.ph .chip,.ph .skypill,.act.end{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--sky) 86%,var(--ink) 14%)}}
 @media (max-width:1180px){
   .demo{grid-template-columns:minmax(0,1fr) 390px}
   .moments{grid-column:1 / -1}
@@ -1328,7 +1333,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
 
   <section class="sec" id="plans" aria-labelledby="pl-h">
     <div class="sec-head"><h2 class="h2" id="pl-h" data-zh="你的计划，就是你的终点">Your plan is your finish line</h2>
-      <p data-zh="不管选哪种计划，圆都会在你的目标时刻刚好变满，时间轴上的小点也会按你的小时数排列。超出目标不计分，更长也不等于更好。四个计划已经能满足大多数人，所以只把它们放在前面，其他的都收在“更多计划”里。点一张卡片，上面的演示就会换成这个计划。">Whatever plan you pick, the disc is exactly full at your goal, and the dots on the timeline match your hours. Time past the goal isn't scored, and longer isn't treated as better. Four plans cover most people, so only those show up front. Everything else is one tap away under More plans. Tap a card to load it into the demo above.</p></div>
+      <p data-zh="不管选哪种计划，圆都会在你的目标时刻刚好变满，时间轴上的小点也会按你的小时数排列。超出目标不计分，更长也不等于更好。四个计划已经能满足大多数人，所以只把它们放在前面，其他的都收在“更多计划”里。在应用里，每个计划都用一条横条画出它占一天的多少，并写出这次断食到几点结束。点一张卡片，上面的演示就会换成这个计划。">Whatever plan you pick, the disc is exactly full at your goal, and the dots on the timeline match your hours. Time past the goal isn't scored, and longer isn't treated as better. Four plans cover most people, so only those show up front. Everything else is one tap away under More plans. In the app, each plan draws its share of the day as a bar and says what time that fast would end. Tap a card to load it into the demo above.</p></div>
     <div id="planGrid"></div>
     <p class="note" data-zh="新手只从 13:11 开始，完成三次后开放 16:8，之后每个计划都在完成三次下一档后开放；以前断食过的人从一开始就能用所有日常计划。第一次断食的人，24 小时和 36 小时一开始是锁着的，随着完成的断食逐步解锁（2 周内完成 6 次 16 小时断食解锁 24 小时，再完成一次 24 小时并等 2 周解锁 36 小时），就像一个可以努力达到的目标，而不是付费墙。以前断食过的人从一开始就能用这两个；选择时会出现警告并震动，提醒只有以前做过的人再试，建议 24 小时每周最多一次、36 小时每月最多两次。如果在安全问题里回答了“是”，就永远不会提供，并建议先咨询医生。轻伴只会在你连续一周轻松完成后，才建议试试下一级（13、16、18），从不催你超过自己选的计划。">New fasters start with 13:11 only; 16:8 opens after three completed fasts, then each plan after three at the one below. People who have fasted before get every everyday plan from the start. For first-timers the 24 h and 36 h fasts start locked and unlock as you complete fasts (6 fasts of 16 h over two weeks for 24 h, then a 24 h fast and two more weeks for 36 h), like a goal to work towards, not a paywall. People who have fasted before get both from the start; choosing one shows a warning and a buzz that say to try it only if you have done it before, and we suggest one 24 h fast a week and two 36 h fasts a month at most. A yes on the safety question means they're never offered, and Lightly suggests seeing a doctor. Lightly suggests the next step up (13, 16, 18) only after a week of comfortable fasts, and never pushes past the plan you chose.</p>
   </section>
@@ -1865,6 +1870,7 @@ window.LightlySphere=(function(){
       else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L((oh?oh+' h':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' m':'')+' past your goal','超出目标 '+(oh?oh+' 小时':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' 分':''))); put(readBig,'b',fmt(h),1); put($('readAlt'),'alt',L('Goal ','目标 ')+GOAL+L(' h',' 小时')); tip(L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
       if(!holding) put(actLbl,'a',L('Hold to end fast','按住结束断食')); }
     else if(mode==='eat'){ put(readK,'k',L('Eating window left','进食窗口还剩')); put(readBig,'b',fmtS(EAT-e),1); tip(L('Your next fast can start at ','下一次断食可以在 ')+clock(s+24)+L(', or whenever you’re ready.',' 开始，也可以随时提前。')); put(actLbl,'a',L('Start next fast','开始下一次断食')); }
+    act.classList.toggle('end',(mode==='fast'||mode==='saved')&&!chd&&!brk); /* quiet while a fast runs, yellow for Start */
     var a0=mode==='eat'?s+GOAL:s, a1=mode==='eat'?s+GOAL+EAT:s+GOAL;
     var egl=function(hd){ hd=((hd%24)+24)%24; var mn=!(hd>=SUN.rise&&hd<SUN.set); return '<span class="eg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="url(#'+(mn?'gMoon':'gSun')+')" stroke="var(--rim)" stroke-width=".8"/>'+(mn?'<circle cx="8.6" cy="9.4" r="2.1" fill="rgba(60,50,30,.10)"/><circle cx="14.6" cy="14.6" r="2.8" fill="rgba(60,50,30,.09)"/><circle cx="14" cy="7.4" r="1.2" fill="rgba(60,50,30,.08)"/>':'')+'</svg></span>'; };
     var edA=mode!=='idle'&&!brk;
