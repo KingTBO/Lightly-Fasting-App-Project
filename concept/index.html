@@ -265,6 +265,18 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .sheet p{font-size:15px;color:var(--label-2);margin:14px 0 18px;line-height:1.4}
 .sheet .done{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out}
 .sheet .done:active{transform:scale(.97)}
+/* share a picture: the round button on the summary, and the sheet that shows the picture first (drawn by the app's own js/share.js) */
+.sh-pic{position:absolute;top:18px;right:10px;width:44px;height:44px;border:0;background:none;color:var(--label);display:grid;place-items:center;padding:0;cursor:pointer}
+.sh-pic::before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--fill)}
+.sh-pic svg{position:relative;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#picScrim{transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}#picScrim.on{visibility:visible;transition-delay:0s;opacity:1;pointer-events:auto}
+#picScrim.over{z-index:21}#picSheet.over{z-index:22}
+.picbox{display:flex;justify-content:center;padding:2px 0 16px}
+.picbox img{display:block;height:300px;width:auto;aspect-ratio:4/5;border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,.16);background:var(--fill)}
+.pic-bs{display:flex;flex-direction:column;gap:10px}
+.pic-b{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer}
+.pic-b.sec{background:var(--fill);color:var(--label)}
+.rp-end .rp-share{display:block;margin:8px auto 0;min-height:44px;border:0;background:transparent;color:var(--on-tint);font:500 15px var(--font);cursor:pointer}
 /* how did it feel: one optional tap, the same three choices as the app */
 .sheet .feel{margin-top:14px;transition:opacity .3s ease,transform .45s cubic-bezier(.16,1,.3,1);opacity:0;transform:translateY(12px)}
 .sheet.open .feel{opacity:1;transform:none;transition-delay:.11s}
@@ -1351,6 +1363,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
       <div class="scrim" id="scrim"></div>
       <div class="sheet" id="sheet" role="dialog" aria-label="Fast saved">
         <div class="grab"></div>
+        <button type="button" class="sh-pic" id="shPic" aria-label="Share a picture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8M5 12.5v6A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-6"/></svg></button>
         <span class="k" id="shK">Fast saved</span>
         <span class="big" id="shBig"></span>
         <span class="of" id="shOf"></span>
@@ -1358,6 +1371,14 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
         <div class="feel" id="shFeel"><span class="feel-q" id="shFeelQ" data-zh="感觉怎么样？">How did it feel?</span><div class="seg" role="group" aria-labelledby="shFeelQ"><button type="button" data-v="easy" aria-pressed="false" data-zh="轻松">Easy</button><button type="button" data-v="ok" aria-pressed="false" data-zh="还行">Okay</button><button type="button" data-v="hard" aria-pressed="false" data-zh="有点难">Hard</button></div></div>
         <p id="shNote"></p>
         <button class="done" type="button" id="shDone" data-zh="开始进食窗口">Start eating window</button>
+      </div>
+      <div class="scrim" id="picScrim"></div>
+      <div class="sheet psheet" id="picSheet" role="dialog" aria-modal="true" aria-labelledby="picTitle" aria-hidden="true">
+        <div class="grab"></div>
+        <div class="ps-h"><h4 id="picTitle"></h4><button type="button" class="x" id="picClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>
+        <p class="ps-note" id="picNote"></p>
+        <div class="picbox"><img id="picImg" alt="" width="1080" height="1350"></div>
+        <div class="pic-bs" id="picBtns"></div>
       </div>
     </div>
 
@@ -2825,6 +2846,33 @@ window.LightlySphere=(function(){
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ $('planBtn').setAttribute('aria-label',L('Change plan','更换计划')); if(sh.classList.contains('open')) render(); },0); }); });
 })();
 </script>
+<script src="../js/share.js"></script>
+<script>
+/* ---------- Share a picture: the same picture the app makes (js/share.js), shown first; Save really saves it, Share appears where the browser can share files ---------- */
+(function(){
+  var api=window.LightlyAPI, SH=window.LightlyShare; if(!api||!SH) return;
+  var $=function(i){ return document.getElementById(i); }, sh=$('picSheet'), sc=$('picScrim'), url=null, blob=null, file=null, name='', from=null;
+  function L(en,zh){ return api.lang()==='zh'?zh:en; }
+  function fastData(){ var s=api.state(), zh=api.lang()==='zh', m=Math.round(s.h*60), hh=Math.floor(m/60), mm=m%60, done=s.h>=s.goal-.02, end=((s.start+s.h)%24+24)%24, night=end<6.5||end>=18.5, parts=[];
+    if(hh||!mm) parts.push([String(hh),zh?'小时':'h']); if(mm) parts.push([String(mm),zh?'分':'m']);
+    var line=done?L(s.goal+' h goal, reached',s.goal+'小时目标，达成了'):L('of a '+s.goal+' h goal','目标是 '+s.goal+'小时');
+    return {sky:night?'night':'day',moon:night,fill:done?1:Math.min(Math.max(s.h/s.goal,.08),.92),parts:parts,line:line,date:new Intl.DateTimeFormat(zh?'zh-CN':'en-US',{weekday:'long',month:'long',day:'numeric'}).format(new Date()),brand:'Lightly 轻伴',alt:parts.map(function(p){ return p.join(' '); }).join(' ')+', '+line}; }
+  function open(v){ sh.classList.toggle('open',v); sh.setAttribute('aria-hidden',!v); sc.classList.toggle('on',v); if(v) $('picClose').focus({preventScroll:true}); else{ if(from) try{ from.focus({preventScroll:true}); }catch(e){} setTimeout(function(){ if(!sh.classList.contains('open')){ sh.classList.remove('over'); sc.classList.remove('over'); } },450); } }
+  function show(kind,data,back,over){ var cv=document.createElement('canvas'); try{ SH[kind==='fast'?'fastCard':'recapCard'](cv,data); }catch(e){ return; }
+    cv.toBlob(function(b){ if(!b) return; if(url) URL.revokeObjectURL(url); blob=b; url=URL.createObjectURL(b); from=back||null; name='lightly-'+kind+'.png'; file=null; var can=false;
+      try{ file=new File([b],name,{type:'image/png'}); can=!!(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})); }catch(e){}
+      $('picTitle').textContent=L('Share a picture','分享图片'); $('picNote').textContent=L('Made on this phone. Nothing is sent anywhere until you share it.','图片在手机上生成。分享之前，不会发送到任何地方。'); $('picImg').src=url; $('picImg').alt=data.alt||'';
+      $('picBtns').innerHTML=(can?'<button type="button" class="pic-b" data-p="share">'+L('Share','分享')+'</button>':'')+'<button type="button" class="pic-b'+(can?' sec':'')+'" data-p="save">'+L('Save picture','保存图片')+'</button>';
+      sh.classList.toggle('over',!!over); sc.classList.toggle('over',!!over); open(true); },'image/png'); }
+  $('shPic').addEventListener('click',function(){ $('shPic').setAttribute('aria-label',L('Share a picture','分享图片')); show('fast',fastData(),$('shPic')); });
+  $('picClose').addEventListener('click',function(){ open(false); }); sc.addEventListener('click',function(){ open(false); });
+  sh.addEventListener('keydown',function(e){ if(e.key==='Escape'){ e.stopPropagation(); open(false); } });
+  $('picBtns').addEventListener('click',function(e){ var b=e.target.closest('[data-p]'); if(!b||!blob) return;
+    if(b.dataset.p==='share'){ try{ navigator.share({files:[file]}).catch(function(){}); }catch(er){} }
+    else{ var a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); } });
+  window.LightlyPic={show:show};
+})();
+</script>
 <script>
 /* ---------- What is happening now: the stages of a fast, the current one open (mirrors the app's sheet) ---------- */
 (function(){
@@ -3074,7 +3122,7 @@ function dyBloom(){
       '<div class="rp-skyl rp-feell rpi" style="--i:3">'+[['easy','Easy','轻松'],['ok','Okay','还行'],['hard','Hard','有点难']].map(function(k){ return '<div><b><span class="rn">'+r.feel[k[0]]+'</span></b><span><i class="f-'+k[0]+'"></i>'+LL(k[1],k[2])+'</span></div>'; }).join('')+'</div></section>'+
       '<section class="rp-s rv"><h3 class="rpi">'+LL('Highlights','亮点')+'</h3><div class="rp-tiles">'+tiles+'</div></section>'+
       '<section class="rp-s rp-card rp-w rv" id="dyW"><h3 class="rpi">'+LL('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="rpwr rpi" style="--i:2"><span>'+LL('Weight now','现在的体重')+'</span><span>82 kg</span></div><button type="button" class="rpwb rpi" style="--i:3" data-rpw="save">'+LL('Save','保存')+'</button><button type="button" class="rpwb q rpi" style="--i:4" data-rpw="off">'+LL('Don\u2019t ask me again','不再询问')+'</button></section>'+
-      '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?LL('A steady month.','稳稳的一个月。'):LL('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+LL('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="rpdone rpi" style="--i:2" data-rpclose>'+LL('Done','完成')+'</button></section></div>'+
+      '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?LL('A steady month.','稳稳的一个月。'):LL('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+LL('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="rpdone rpi" style="--i:2" data-rpclose>'+LL('Done','完成')+'</button><button type="button" class="rp-share rpi" style="--i:3" data-rppic>'+LL('Share this month','分享这个月')+'</button></section></div>'+
       '<button type="button" class="rp-x" data-rpclose aria-label="'+LL('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>'; }
   function dyRpWatch(R,r){ var sc=$('dyRpScroll'), els=[].slice.call(R.querySelectorAll('.rv')), p=r.dim?r.daysWith/r.dim:0; dyRp.heroGo=null;
     if(reduce||!('IntersectionObserver' in window)){ els.forEach(function(e){ e.classList.add('in'); }); dyDisc(p,false); return; }
@@ -3103,7 +3151,10 @@ function dyBloom(){
   function dyChart(){ var you=[[0,0],[21,-1.2],[52,-2.9],[83,-4.4]], avg=[[0,0],[30,-.9],[60,-1.7],[90,-2.4]], X=function(d){ return 30+d/90*262; }, Y=function(v){ return 10+(1-v)/6*116; }, pl=function(a){ return a.map(function(p){ return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1); }).join(' '); };
     return '<h4 class="tr-h">'+LL('You and others','你和其他人')+'</h4><div class="tr-box"><svg viewBox="0 0 300 152" role="img" aria-label="'+LL('Sample chart: your weight change next to the average','示例图：你的体重变化和平均线')+'"><line class="tr-grid" x1="30" x2="292" y1="'+Y(0)+'" y2="'+Y(0)+'"/><text class="tr-t" x="24" y="'+(Y(0)+3.5)+'" text-anchor="end">0%</text><text class="tr-t" x="24" y="'+(Y(-5)-1)+'" text-anchor="end">\u22125%</text>'+
       [0,30,60,90].map(function(d){ return '<text class="tr-t" x="'+X(d)+'" y="146" text-anchor="'+(d===0?'start':d===90?'end':'middle')+'">'+(d===0?LL('Day 0','第 0 天'):d)+'</text>'; }).join('')+'<polyline class="tr-avg" points="'+pl(avg)+'"/><polyline class="tr-you" points="'+pl(you)+'"/>'+you.slice(1).map(function(p){ return '<circle class="tr-dot" cx="'+X(p[0]).toFixed(1)+'" cy="'+Y(p[1]).toFixed(1)+'" r="4.5"/>'; }).join('')+'</svg><div class="tr-leg"><span><i style="background:#FFCC00"></i>'+LL('You','你')+'</span><span><i style="background:#A7ACC0"></i>'+LL('Average','平均')+'</span></div></div><p class="rp-cap">'+LL('Sample data. Day 90: you \u22124.4%, average \u22122.4%. Down more than 78% of people.','示例数据。第 90 天：你 \u22124.4%，平均 \u22122.4%。比 78% 的人降得更多。')+'</p><p class="rp-cap tr-note">'+LL('Everyone\u2019s pace is different. This is not medical advice.','每个人的节奏不同。这不是医疗建议。')+'</p>'; }
-  $('dyReport').addEventListener('click',function(e){ if(e.target.closest('[data-rpclose]')) dyRpClose(); var w=e.target.closest('[data-rpw]'); if(w){ var el=$('dyW'); if(w.dataset.rpw==='off') el.innerHTML='<h3 class="rpi">'+LL('No more check-ins','不再询问体重')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('Your recap will not include weight any more. You can turn it back on in Me, About you.','回顾里不会再出现体重。你可以在“我的 · 关于你”里重新打开。')+'</p>'; else if(w.dataset.rpw==='save') el.innerHTML=dyDone()+dyAsk(); else if(w.dataset.rpw==='trendyes') el.innerHTML=dyDone()+dyChart(); else if(w.dataset.rpw==='trendno') el.innerHTML=dyDone(); else el.innerHTML='<h3 class="rpi">'+LL('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="rpwr rpi" style="--i:2"><span>'+LL('Weight now','现在的体重')+'</span><span>82 kg</span></div><button type="button" class="rpwb rpi" style="--i:3" data-rpw="save">'+LL('Save','保存')+'</button><button type="button" class="rpwb q rpi" style="--i:4" data-rpw="off">'+LL('Don\u2019t ask me again','不再询问')+'</button>'; } });
+  $('dyReport').addEventListener('click',function(e){ if(e.target.closest('[data-rpclose]')) dyRpClose();
+    var pb=e.target.closest('[data-rppic]'); if(pb&&window.LightlyPic){ var r0=dySample(), zh0=api.lang()==='zh', sub0=r0.n+' '+LL('fasts','次断食')+' · '+r0.daysWith+' '+LL('of','/')+' '+r0.dim+' '+LL('days','天');
+      window.LightlyPic.show('recap',{title:new Intl.DateTimeFormat(zh0?'zh-CN':'en-US',{month:'long',year:'numeric'}).format(new Date(r0.y,r0.m,1)),big:String(r0.hours),unit:LL('hours fasted','小时断食'),heads:zh0?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S'],offset:(new Date(r0.y,r0.m,1).getDay()+6)%7,
+        days:r0.days.map(function(s){ return {s:s,p:.6}; }),sub:sub0,brand:'Lightly 轻伴',tint:'#FFCC00',alt:sub0},pb,true); } var w=e.target.closest('[data-rpw]'); if(w){ var el=$('dyW'); if(w.dataset.rpw==='off') el.innerHTML='<h3 class="rpi">'+LL('No more check-ins','不再询问体重')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('Your recap will not include weight any more. You can turn it back on in Me, About you.','回顾里不会再出现体重。你可以在“我的 · 关于你”里重新打开。')+'</p>'; else if(w.dataset.rpw==='save') el.innerHTML=dyDone()+dyAsk(); else if(w.dataset.rpw==='trendyes') el.innerHTML=dyDone()+dyChart(); else if(w.dataset.rpw==='trendno') el.innerHTML=dyDone(); else el.innerHTML='<h3 class="rpi">'+LL('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+LL('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="rpwr rpi" style="--i:2"><span>'+LL('Weight now','现在的体重')+'</span><span>82 kg</span></div><button type="button" class="rpwb rpi" style="--i:3" data-rpw="save">'+LL('Save','保存')+'</button><button type="button" class="rpwb q rpi" style="--i:4" data-rpw="off">'+LL('Don\u2019t ask me again','不再询问')+'</button>'; } });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&dyRp.open) dyRpClose(); });
   function dyWedge(p,r){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; if(p>=.999) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z'; var a=p*2*Math.PI; return 'M0 0 L0 '+(-r)+' A'+r+' '+r+' 0 '+(a>Math.PI?1:0)+' 0 '+(-r*Math.sin(a)).toFixed(2)+' '+(-r*Math.cos(a)).toFixed(2)+'Z'; }
   /* the moon beside the total: one slice for every day this month that has a fast on it */

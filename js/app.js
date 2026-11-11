@@ -140,7 +140,7 @@ function shChrome(html){ if(!/^<h3[ >]/.test(html)) return html; var i=html.inde
 function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); sheetEl.classList.remove('pop'); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
   sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
 var sheetHold=false; /* true for the short pause before the import result rises: taps on the dim must not close it (a double tap on Add lands there) */
-function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop(); sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
+function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop(); if(pic||ph.classList.contains('picup')){ picDrop(); $('report').removeAttribute('inert'); setTimeout(function(){ if(!sheetOpen) ph.classList.remove('picup'); },400); } sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
 /* drag the grabber: 1:1 with the finger, then project where the flick was going and dismiss or spring back */
 (function(){ var y0=0,dy=0,vy=0,lt=0,ly=0,drag=false;
   sheetEl.addEventListener('pointerdown',function(e){ if(reduce||!e.target.closest('.grab')) return; drag=true; y0=e.clientY; ly=e.clientY; lt=performance.now(); vy=0; dy=0; sheetEl.style.transition='none'; try{ sheetEl.setPointerCapture(e.pointerId); }catch(x){} });
@@ -453,12 +453,49 @@ function endFast(){
   var done=C.isDone(f), st=curStreak(), beat=done?(reduce?300:850):(reduce?0:700); if(!done&&beat) endHold={p:Math.min(hrs/cur.goalH,1),until:now+beat}; var news=['16','18','20','23'].filter(function(i){ return planEarned(i)&&openBefore.indexOf(i)<0; }).map(function(i){ return C.planLabel(C.planById(i)); });
   var ask=!S.prefs.backupAsked&&S.fasts.filter(C.isDone).length===1&&CL&&CL.ready()&&!CL.getAuth(); if(ask){ S.prefs.backupAsked=true; save(); }
   if(done) celebrate();
-  setTimeout(function(){ openSheet('<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span><span class="of">'+(done?L('Your '+durTxt(cur.goalH)+' goal, reached','你的 '+durTxt(cur.goalH).replace(' 小时','小时')+'目标，达成了'):L('of your '+durTxt(cur.goalH)+' goal','目标是 '+durTxt(cur.goalH).replace(' 小时','小时')))+'</span>'+
-    '<div class="facts"><div><b>'+(care()?C.totals(S.fasts).n:f.plan==='ramadan'?'–':st)+'</b><span>'+(care()?L('Fasts','次断食'):L('Day streak','天连续'))+'</span></div><div><b>'+clockMs(now)+'</b><span>'+L('Ended','结束时间')+'</span></div></div>'+(f.plan==='ramadan'?'':feelSeg(f,true))+
+  setTimeout(function(){ endSummary(f,{news:news,ask:ask,count:true}); },beat);
+}
+/* the summary of a fast that just ended. It opens again, without the one-time notes, when the person comes back from the picture sheet. */
+function endSummary(f,o){
+  o=o||{}; var hrs=C.hours(f), done=C.isDone(f), st=curStreak(), news=o.news||[], ask=!!o.ask;
+  openSheet((picOn()&&f.plan!=='ramadan'?'<button type="button" class="sh-pic" data-act="picfast" data-from="end" data-id="'+f.id+'" aria-label="'+L('Share a picture','分享图片')+'">'+PIC_I+'</button>':'')+
+    '<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span><span class="of">'+(done?L('Your '+durTxt(f.goalH)+' goal, reached','你的 '+durTxt(f.goalH).replace(' 小时','小时')+'目标，达成了'):L('of your '+durTxt(f.goalH)+' goal','目标是 '+durTxt(f.goalH).replace(' 小时','小时')))+'</span>'+
+    '<div class="facts"><div><b>'+(care()?C.totals(S.fasts).n:f.plan==='ramadan'?'–':st)+'</b><span>'+(care()?L('Fasts','次断食'):L('Day streak','天连续'))+'</span></div><div><b>'+clockMs(f.end)+'</b><span>'+L('Ended','结束时间')+'</span></div></div>'+(f.plan==='ramadan'?'':feelSeg(f,true))+
     '<p class="note">'+(done?L('You reached your goal. Eat gently and drink some water.','你达成了目标。慢慢吃，先喝点水。'):LC('That still counts as a fast. Listening to your body is the point, and your streak is yours to keep going.','这也算一次断食。倾听身体才是重点，你的连续记录还可以继续。','That still counts as a fast. Listening to your body is the point.','这也算一次断食。倾听身体才是重点。'))+'</p>'+
     (news.length?'<p class="note" style="color:var(--label)"><b>'+L(news.join(' and ')+' is now open.',news.join('、')+' 现已开放。')+'</b> '+L('Choose it from the plan button on Today.','在今天页面的计划按钮里选择。')+'</p>':'')+
     (ask?'<p class="note">'+L('Want to keep these fasts if you change phones? Back them up with your email. It’s optional, and everything works without it.','想在换手机时保留这些记录吗？可以用邮箱备份。这是可选的，不备份也能正常使用。')+'</p>':'')+
-    '<div class="btns"><button class="btn" data-act="close">'+L('Start eating window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); countUp(document.querySelector('#sheet .big'),hrs); },beat);
+    '<div class="btns"><button class="btn" data-act="close">'+L('Start eating window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); if(o.count) countUp(document.querySelector('#sheet .big'),hrs);
+}
+
+/* ---------- share a picture: one finished fast, or one month, drawn on the phone by js/share.js and shown first, so the person sees exactly what goes out.
+   It leaves the phone only through Share or Save picture. It never shows weight, a streak, a name, a place or how a fast felt, and it is the same for every length of fast.
+   Not offered in Care mode or for a Ramadan fast. ---------- */
+var pic=null, PIC_I='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8M5 12.5v6A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-6"/></svg>';
+function picOn(){ return !care()&&!!window.LightlyShare; }
+function picFast(f){
+  var p=C.placeInfo(S.place,f.end), su=C.sunTimes(p,f.end), hp=C.placeHour(p,f.end), m=Math.max(0,Math.round(C.hours(f)*60)), hh=Math.floor(m/60), mm=m%60, zh=S.lang==='zh', done=C.isDone(f), parts=[], g=durTxt(f.goalH);
+  if(hh||!mm) parts.push([String(hh),zh?'小时':'h']); if(mm) parts.push([String(mm),zh?'分':'m']);
+  return {sky:C.skyAt(hp,su)[1],moon:C.moonAmt(hp,su)>=.5,fill:done?1:dayPart([f]),parts:parts,line:done?L(g+' goal, reached',g.replace(' 小时','小时')+'目标，达成了'):L('of a '+g+' goal','目标是 '+g.replace(' 小时','小时')),
+    date:dateLbl(f.end,{weekday:'long',month:'long',day:'numeric'}),brand:'Lightly 轻伴',alt:durTxt(C.hours(f))+', '+(done?L(g+' goal, reached',g+'目标，达成了'):L('of a '+g+' goal','目标是 '+g))}; }
+function picRecap(pm,r){
+  var fm=C.fastDays(S.fasts), ym=pm.y+'-'+('0'+(pm.m+1)).slice(-2)+'-', title=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(pm.y,pm.m,1)), sub=r.n+' '+L(r.n===1?'fast':'fasts','次断食')+' · '+r.daysWith+' '+L('of','/')+' '+r.dim+' '+L('days','天');
+  return {title:title,big:numTxt(r.hours),unit:L('hours fasted','小时断食'),heads:S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S'],offset:(new Date(pm.y,pm.m,1).getDay()+6)%7,
+    days:r.days.map(function(s,d){ return {s:s==='done'||s==='early'||s==='flex'||s==='off'?s:'none',p:s==='early'?dayPart(fm[ym+('0'+(d+1)).slice(-2)]):0}; }),
+    sub:sub,brand:'Lightly 轻伴',tint:getComputedStyle($('report')).getPropertyValue('--tint').trim()||'#FFCC00',alt:title+', '+numTxt(r.hours)+' '+L('hours fasted','小时断食')+', '+sub}; }
+function picDrop(){ if(pic){ try{ URL.revokeObjectURL(pic.url); }catch(e){} pic=null; } }
+function picSheet(kind,data,back){
+  var cv=document.createElement('canvas'), fail=function(){ toast(L('Couldn’t make the picture.','图片生成失败。')); };
+  try{ LightlyShare[kind==='fast'?'fastCard':'recapCard'](cv,data); }catch(e){ return fail(); }
+  cv.toBlob(function(b){ if(!b) return fail(); picDrop();
+    var name='lightly-'+kind+'-'+today()+'.png', file=null; try{ file=new File([b],name,{type:'image/png'}); }catch(e){}
+    var can=false; try{ can=!!(file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})); }catch(e){}
+    pic={kind:kind,data:data,blob:b,file:file,name:name,url:URL.createObjectURL(b),back:back||null};
+    if(rp.open){ ph.classList.add('picup'); $('report').setAttribute('inert',''); }   /* the recap is a full screen above the sheets: this one sheet opens over it */
+    openSheet('<h3>'+L('Share a picture','分享图片')+'</h3><p class="lede">'+L('Made on this phone. Nothing is sent anywhere until you share it.','图片在手机上生成。分享之前，不会发送到任何地方。')+'</p>'+
+      '<div class="picbox"><img src="'+pic.url+'" width="1080" height="1350" alt="'+esc(data.alt||'')+'"></div>'+
+      '<div class="btns">'+(can?'<button class="btn" data-act="picshare">'+L('Share','分享')+'</button>':'')+'<button class="btn'+(can?' sec':'')+'" data-act="picsave">'+L('Save picture','保存图片')+'</button></div>');
+    if(back){ var x=sheetEl.querySelector('.sh-h .x'); if(x) x.dataset.act='picback'; }
+  },'image/png');
 }
 
 /* ---------- how did it feel: one optional tap when a fast ends (easy, okay, hard). It is a note for the person: shown on the day in Days and counted in the monthly recap.
@@ -751,7 +788,7 @@ function reportHtml(pm,r){
     feelHtml(r.feel)+
     '<section class="rp-s rv" aria-labelledby="rpT6"><h3 id="rpT6" class="rpi">'+L('Highlights','亮点')+'</h3><div class="rp-tiles">'+tiles+'</div></section>'+
     (S.body&&!S.body.checkOff&&!care()?'<section class="rp-s rp-card rv" id="rpW" aria-labelledby="rpTw">'+rpWeightHtml(pm)+'</section>':'')+
-    '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?L('A steady month.','稳稳的一个月。'):L('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+L('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="btn rpi" style="--i:2" data-act="rpclose">'+L('Done','完成')+'</button></section></div><button type="button" class="rp-x" data-act="rpclose" aria-label="'+L('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>';
+    '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?L('A steady month.','稳稳的一个月。'):L('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+L('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="btn rpi" style="--i:2" data-act="rpclose">'+L('Done','完成')+'</button>'+(picOn()?'<button type="button" class="btn rp-share rpi" style="--i:3" data-act="picrecap">'+L('Share this month','分享这个月')+'</button>':'')+'</section></div><button type="button" class="rp-x" data-act="rpclose" aria-label="'+L('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>';
 }
 /* the hero disc is the same moon and sun as Today: the real 3D ball when the 3D switch is on (and WebGL works), the flat drawing otherwise.
    The lit part fills counter-clockwise like the moon on Today, then the moon turns into the sun, with the goal bloom. */
@@ -1097,7 +1134,7 @@ function fastSheet(f,addKey){
   var goal=isNew?plan().fast:f.goalH;
   openSheet('<h3>'+(isNew?L('Add a fast','补记断食'):L('Edit fast','编辑断食'))+'</h3><p class="lede">'+L('Fix a start or end time, or add one you forgot to log.','修改开始或结束时间，或补上忘记记录的一次。')+'</p>'+
    '<div class="group">'+pkField('fsS',L('Started','开始'),start,'dt')+pkField('fsE',L('Ended','结束'),end,'dt')+'<div class="field"><label for="fsG">'+L('Goal (hours)','目标（小时）')+'</label><input id="fsG" type="number" min="1" max="36" step="1" inputmode="numeric" value="'+Math.round(goal)+'"></div></div>'+(!isNew&&f.plan==='ramadan'?'':feelSeg(isNew?null:f,false))+
-   (isNew?'':'<div class="group"><button class="row red" data-act="fsdel" data-id="'+f.id+'">'+L('Delete this fast','删除这次断食')+'</button></div>')+'<div class="btns"><button class="btn" data-act="fssave" data-id="'+(isNew?'':f.id)+'">'+L('Save','保存')+'</button></div>');
+   (isNew?'':'<div class="group">'+(picOn()&&f.plan!=='ramadan'?'<button class="row" data-act="picfast" data-from="edit" data-id="'+f.id+'"><span>'+L('Share a picture','分享图片')+'</span>'+CHEV+'</button>':'')+'<button class="row red" data-act="fsdel" data-id="'+f.id+'">'+L('Delete this fast','删除这次断食')+'</button></div>')+'<div class="btns"><button class="btn" data-act="fssave" data-id="'+(isNew?'':f.id)+'">'+L('Save','保存')+'</button></div>');
 }
 function fastSave(id){
   var s=+pkVal('fsS'), e=+pkVal('fsE'), g=Math.round(+$('fsG').value), now=Date.now();
@@ -1908,6 +1945,11 @@ var A={
   pickthis:function(){ var n=new Date(), i=n.getFullYear()*12+n.getMonth(), c=calY*12+calM; closeSheet(); calGo(n.getFullYear(),n.getMonth(),i<c?-1:i>c?1:0); },
   impdays:function(){ closeSheet(); showTab('days'); },
   edit:function(b){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(f) fastSheet(f); },
+  picfast:function(b){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(!f||!picOn()||f.plan==='ramadan') return; var from=b.dataset.from; picSheet('fast',picFast(f),from==='end'?function(){ endSummary(f); }:from==='edit'?function(){ fastSheet(f); }:null); },
+  picrecap:function(){ var pm=recapMonth(); if(!pm||!picOn()) return; picSheet('recap',picRecap(pm,C.monthReport(S.fasts,pm.y,pm.m,S.flex.used,C.offKeys(S.off),S.place))); },
+  picback:function(){ var b=pic&&pic.back; picDrop(); if(b) b(); else closeSheet(); },
+  picshare:function(){ if(!pic||!pic.file) return; try{ navigator.share({files:[pic.file]}).catch(function(){}); }catch(e){ A.picsave(); } },   /* called straight from the tap, with the picture already made, so the system share sheet is allowed to open */
+  picsave:function(){ if(pic&&saveFile(pic.blob,'image/png',pic.name)) toast(L('Picture saved.','图片已保存。')); },
   /* one tap picks, the same tap again clears. On the summary it is saved at once; in the edit sheet it waits for Save. */
   feel:function(b){ var on=b.getAttribute('aria-pressed')==='true'; [].forEach.call(b.parentNode.children,function(x){ x.setAttribute('aria-pressed',String(!on&&x===b)); }); fx('select');
     if(b.dataset.id){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(f){ if(on) delete f.feel; else f.feel=b.dataset.v; save(); if(curTab==='days') renderDays(); } } },
