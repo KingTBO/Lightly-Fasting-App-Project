@@ -184,13 +184,39 @@ function phasePath(p,r){ p=Math.min(Math.max(p,0),1); if(p<=0.001) return ''; va
 
 /* Some iPhones give a Home Screen app a page about 62 pt shorter than the screen, and nothing can be drawn below it. The home indicator is then below the page, so there is no bottom inset to keep clear of. */
 function shortPage(){ var root=document.documentElement, st=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode:standalone)').matches), gap=Math.max(screen.height||0,screen.width||0)-window.innerHeight;
-  if(st&&window.innerWidth<600&&window.innerHeight>window.innerWidth&&gap>20&&gap<140) root.style.setProperty('--sab','0px'); else root.style.removeProperty('--sab'); }
+  shortPg=!!(st&&window.innerWidth<600&&window.innerHeight>window.innerWidth&&gap>20&&gap<140);
+  if(shortPg) root.style.setProperty('--sab','0px'); else root.style.removeProperty('--sab'); root.classList.toggle('short',shortPg); }
+var shortPg=false; /* true on an iPhone Home Screen app whose page iOS made shorter than the screen (WebKit bug 313800): a strip is left below the page, and the only thing the page controls there is its colour */
+/* any CSS colour as [r,g,b,a] */
+var colP=null;
+function rgbaOf(s){ s=(s||'').trim(); if(!s) return null; var m=/^rgba?\(([^()]+)\)$/.exec(s), p;
+  if(m){ p=m[1].split(/[\s,\/]+/).map(parseFloat); return [p[0],p[1],p[2],p.length>3&&!isNaN(p[3])?p[3]:1]; }
+  m=/^color\(srgb ([^()]+)\)$/.exec(s); if(m){ p=m[1].split(/[\s\/]+/).map(parseFloat); return [p[0]*255,p[1]*255,p[2]*255,p.length>3&&!isNaN(p[3])?p[3]:1]; }
+  if(!colP){ colP=document.createElement('i'); colP.hidden=true; colP.setAttribute('aria-hidden','true'); ph.appendChild(colP); }
+  colP.style.color=''; colP.style.color=s; if(!colP.style.color) return null; var c=getComputedStyle(colP).color; return c===s?null:rgbaOf(c); }
+function bgOf(el){ var s=getComputedStyle(el), g=/gradient\(/.test(s.backgroundImage)?(s.backgroundImage.match(/(?:rgba?|color)\([^()]*\)/g)||[]).pop():null; return rgbaOf(g||s.backgroundColor); }   /* a gradient counts as its last colour, the one at the bottom */
+/* the colour along the bottom edge of the page right now: the last colour of the Today sky, the page colour on the other tabs, and whatever sheet, dim or recap lies over that edge */
+function edgeColour(top){
+  var base=rgbaOf(top)||[14,20,48,1], onb=ph.classList.contains('onb'), over=[], i, col;
+  if(onb){ var bgEl=ph.querySelector('.ob-step.on .dawnbg'); if(bgEl){ col=bgOf(bgEl); if(col){ col[3]*=parseFloat(getComputedStyle(bgEl).opacity)||0; over.push(col); } } }
+  else if(curTab==='today'&&!holding) base=rgbaOf(getComputedStyle(ph).getPropertyValue('--sky2'))||base;
+  var els=document.elementsFromPoint?document.elementsFromPoint(Math.round(window.innerWidth/2),window.innerHeight-1):[], rep=$('report'), up=[];
+  for(i=0;i<els.length;i++){ var el=els[i]; if(el===ph||!ph.contains(el)) break; var lay=el; while(lay.parentNode!==ph) lay=lay.parentNode;
+    if(lay!==scrim&&lay!==sheetEl&&lay!==rep) continue; if(lay===sheetEl&&el!==sheetEl) continue;   /* a sheet counts as its own background, not the rows inside it */
+    col=bgOf(el); if(!col||!col[3]) continue; var o=parseFloat(getComputedStyle(lay).opacity); col[3]*=isNaN(o)?1:o; up.push(col); if(col[3]>=.999) break; }
+  over=up.concat(over);   /* topmost first */
+  for(i=over.length-1;i>=0;i--){ var a=over[i][3]; base=[0,1,2].map(function(k){ return over[i][k]*a+base[k]*(1-a); }); }
+  return 'rgb('+Math.round(base[0])+','+Math.round(base[1])+','+Math.round(base[2])+')'; }
+/* follow a change for a moment: the sky's last colour glides for 1.2 s, a sheet takes half a second to rise or leave */
+var chN=0, chT=0;
+function chromeFor(ms){ if(!shortPg) return; chN=Math.max(chN,Math.ceil(ms/50)); if(chT) return; (function f(){ chT=0; chrome(); if(chN-->0) chT=setTimeout(f,50); })(); }
 var holding=false; /* true while a sign-in link is being processed: a neutral screen, never Today */
 function chrome(){ /* the colour behind the app (page background, status bar, home-indicator area) always matches the screen on top of it */
   var onb=ph.classList.contains('onb'), st=onb?ph.querySelector('.ob-step.on'):null, c=(onb&&st?getComputedStyle(st).backgroundColor:(curTab==='today'&&!holding&&!onb?getComputedStyle(ph).getPropertyValue('--sky'):getComputedStyle(document.documentElement).getPropertyValue('--bg'))).trim();
   if(!c||c==='transparent'||/rgba\(.*,\s*0\)$/.test(c)) c=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#0E1430';
+  if(shortPg) c=edgeColour(c);   /* the strip iOS leaves under a short page continues the bottom of the screen, not the top of the sky */
   document.documentElement.style.backgroundColor=c; document.body.style.backgroundColor=c;
-  var m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',c); }
+  var m=document.querySelector('meta[name=theme-color]'); if(m&&m.getAttribute('content')!==c) m.setAttribute('content',c); }
 function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-sky',k); chrome(); } }
 
 /* the small moon or sun beside the stage name, drawn with the same gradients as the disc */
@@ -2016,6 +2042,8 @@ ph.dataset.ts=S.prefs.timerStyle||'b';
 applyTheme(); applyLang(); initCal(); initOrb(); fitDisc(); flexTick(); checkUnlocks();
 shortPage(); chrome();
 ['resize','orientationchange','pageshow'].forEach(function(e){ window.addEventListener(e,function(){ shortPage(); chrome(); }); });
+if(window.MutationObserver){ var edgeMo=new MutationObserver(function(){ chromeFor(1400); }); [ph,scrim,sheetEl,$('report')].forEach(function(n){ edgeMo.observe(n,{attributes:true,attributeFilter:['class','data-sky','hidden']}); }); }
+$('report').addEventListener('scroll',function(){ chromeFor(150); },true);   /* the recap scrolls through sections of different colours */
 if(window.matchMedia){ var mq=matchMedia('(prefers-color-scheme:dark)'); if(mq.addEventListener) mq.addEventListener('change',function(){ setTimeout(chrome,50); }); }
 var backTab=CL&&CL.takeTab?CL.takeTab():'', carried=CL&&CL.takeCarried&&CL.takeCarried(), returning=/access_token=|error=/.test(location.hash)&&!!(CL&&CL.ready());
 if(carried&&!S.onboarded){ applyRemote(carried); applyTheme(); applyLang(); }
