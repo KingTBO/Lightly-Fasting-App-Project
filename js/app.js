@@ -130,7 +130,7 @@ function toast(msg,undo){ var t=$('toast'); toastFn=undo||null; t.textContent=ms
   if(undo){ var b=document.createElement('button'); b.type='button'; b.className='tundo'; b.dataset.act='toastundo'; b.textContent=L('Undo','撤销'); t.appendChild(b); }
   t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); toastFn=null; },undo?5600:3400); }
 var sheetEl=$('sheet'), scrim=$('scrim'), sheetOpen=false, sheetBack=null;
-var sheetFrom=null, BEHIND=['today','days','friends','me','tabs','dayFab'];
+var sheetFrom=null, BEHIND=['today','days','friends','me','tabs'];
 function setInert(v){ BEHIND.forEach(function(id){ var e=$(id); if(v) e.setAttribute('inert',''); else e.removeAttribute('inert'); }); }
 /* one sheet pattern: the title row carries the dismiss (a round X, same as the concept page); a sheet keeps one primary button and no Cancel, Close or Done pill.
    Start a sheet with <!--keep--> to leave its buttons alone (confirmations that must be answered). */
@@ -152,7 +152,6 @@ function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop()
   sheetEl.addEventListener('pointerup',end); sheetEl.addEventListener('pointercancel',end); })();
 scrim.addEventListener('click',closeSheet);
 document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&sheetOpen) closeSheet(); });
-var IC_PLUS='<svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>', IC_MOON='<svg class="ri" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
 var CHECK='<svg class="ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 var CHEV='<svg class="chev" viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5 7 7l-5.5 5.5"/></svg>';
 
@@ -223,13 +222,15 @@ function updateToday(){
   var bar=$('offBar'); bar.hidden=!offA&&!chd; bar.dataset.act=chd&&!offA?'cheat':'timeoff'; if(chd&&!offA) put(bar,'ob',L('Cheat day today','今天是弹性日')+'<span>'+L('Take back','收回')+'</span>',1); else if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
   put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):chipHours(cur?C.planById(cur.planId,cur.goalH):p));
   var ramadan=cur&&cur.planId==='ramadan';
-  bigEl.classList.toggle('greet',!!brk); /* a break greets in words, set smaller than the numerals */
+  bigEl.classList.toggle('greet',!!brk); /* a break greets in words, set smaller than the numerals */ bigEl.classList.toggle('set',mode==='idle'&&!brk&&!chd&&!ram); /* the loaded time, not yet running: dimmed */
   if(brk){ var dn=Math.min(C.offDayNo(offA),offA.days);
       put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Safe travels','旅途平安'):L('Get well soon','早日康复'));
       tip(offA.kind==='travel'?LC('Your streak will wait.','连续记录会等你。','Enjoy your trip.','旅途愉快。'):LC('Rest up. Your streak is safe.','好好休息，连续记录不会断。','Rest up. There is nothing to catch up on.','好好休息，没有什么需要补的。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(chd){ put($('readK'),'k',L('Cheat day','弹性日')); setBigText(L('Day off','休息')); tip(L('Your streak holds. Take back the cheat day above to start a fast.','连续记录保持。想断食，请先收回上方的弹性日。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(mode==='idle'){
-    put($('readK'),'k',ram?L('Dawn to sunset','黎明到日落'):L(p.fast+'-hour plan',p.fast+' 小时计划')); setBigText(S.fasts.length?L('Ready','准备好了'):L('First fast','首次断食')); put(altEl,'alt','');
+    /* at rest the readout shows the time that is loaded, like a timer that has been set: Start lights the same digits and they begin to count. Ramadan keeps its words. */
+    if(ram){ put($('readK'),'k',L('Dawn to sunset','黎明到日落')); setBigText(S.fasts.length?L('Ready','准备好了'):L('First fast','首次断食')); put(altEl,'alt',''); }
+    else{ put($('readK'),'k',S.fasts.length?L('Ready','准备好了'):L('First fast','首次断食')); setBigTime(p.fast*3600); put(altEl,'alt',L(p.fast+'-hour plan',p.fast+' 小时计划')); }
     tip(ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。'),1); put($('actLbl'),'a',L('Start fast','开始断食'));
   }else if(mode==='fast'){
     if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(el,goal,sk[1],moonV,ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); tip(tp[S.lang==='zh'?1:0],0,Math.floor(el)); }
@@ -254,7 +255,7 @@ function updateToday(){
   $('tDone').style.strokeDasharray=(mode==='idle'?0:lenAt(tt))+' 9999';
   var q=tPt(tt); $('marker').setAttribute('cx',q.x.toFixed(1)); $('marker').setAttribute('cy',q.y.toFixed(1)); $('marker').style.opacity=mode==='idle'?0:1;
   /* where the moon turns into the sun (or back) inside this window; Ramadan runs dawn to sunset, so it has none */
-  var wl=mode==='eat'?eatLen:goal, tn=mode==='idle'||ram||ramadan?null:C.nextTurn(C.placeHour(pi,a0),sun);
+  var wl=mode==='eat'?eatLen:goal, tn=ram||ramadan?null:C.nextTurn(C.placeHour(pi,a0),sun);   /* at rest it previews the coming fast */
   if(tn&&tn.inH<wl){ var eq=tPt(tn.inH/wl), ex=Math.min(Math.max(eq.x,34),308).toFixed(1);
     $('evtL').setAttribute('x1',eq.x.toFixed(1)); $('evtL').setAttribute('x2',eq.x.toFixed(1)); $('evtL').setAttribute('y1',(eq.y-14).toFixed(1)); $('evtL').setAttribute('y2',(eq.y-6).toFixed(1));
     $('evtT').setAttribute('x',ex); $('evtT').setAttribute('y',(eq.y-18).toFixed(1)); put($('evtT'),'ev',(tn.k==='rise'?L('Sunrise ','日出 '):L('Sunset ','日落 '))+clockH(tn.at)); $('evt').setAttribute('opacity','1'); } else $('evt').setAttribute('opacity','0');
@@ -470,7 +471,7 @@ function showTab(t,instant){
   ph.style.setProperty('--ti',order.indexOf(t));
   document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('sel',b.dataset.tab===t); b.setAttribute('aria-current',b.dataset.tab===t?'page':'false'); });
   ph.classList.toggle('sys',t!=='today');
-  if(t==='days'){ avgPlay=true; numPlay=true; avgSel=null; fabOn=false; selDay=null; } if(t==='days') renderDays(); if(t==='me') renderMe(); if(t==='friends'&&FUI) FUI.show(); fabSync(); if(t==='today') updateToday();
+  if(t==='days'){ avgPlay=true; numPlay=true; avgSel=null; selDay=null; } if(t==='days') renderDays(); if(t==='me') renderMe(); if(t==='friends'&&FUI) FUI.show(); if(t==='today') updateToday();
   chrome();
   $(t).scrollTop=0;
 }
@@ -535,11 +536,12 @@ function endOff(){
   toast(LC('Welcome back. Your streak is where you left it.','欢迎回来。连续记录还在原来的位置。','Welcome back.','欢迎回来。'));
 }
 
-var calY, calM, selDay, fabOn=false;
-/* the round edit button on Days: slides in from the right once a date is tapped; pencil edits that day's fast, plus adds one */
-function fabSync(){ var f=$('dayFab'); if(!f) return; var on=curTab==='days'&&fabOn&&!!selDay&&selDay<=today(), has=!!selDay&&!!(C.fastDays(S.fasts)[selDay]||[]).length;
-  f.classList.toggle('on',on); f.setAttribute('aria-hidden',!on); f.tabIndex=on?0:-1; f.dataset.mode=has?'edit':'add';
-  f.setAttribute('aria-label',has?L('Edit this day’s fast','编辑这天的断食'):L('Add a fast for this day','为这天补记断食')); }
+var calY, calM, selDay, ddIn=false;
+/* how far a day's longest fast got toward its goal: an early day's disc is filled that far, counter-clockwise like the timer disc */
+function dayPart(list){ var p=0; (list||[]).forEach(function(f){ p=Math.max(p,C.hours(f)/(f.goalH||16)); }); return Math.min(Math.max(p,.08),.92); }
+/* bring the tapped day's detail above the tab bar: scroll the Days screen itself, and only as far as needed. This scroll is the app's, not the finger's, so it does not hide the tab bar (keepTabs). */
+var keepTabs=0;
+function ddShow(){ var dd=$('dayd'), sc=$('days'), tb=$('tabs'); if(!dd) return; var over=dd.getBoundingClientRect().bottom-(Math.min(sc.getBoundingClientRect().bottom,tb?tb.getBoundingClientRect().top:1e9)-12); if(over>0){ keepTabs=performance.now()+900; sc.scrollBy({top:over,behavior:reduce?'auto':'smooth'}); } }
 function initCal(){ var d=new Date(); calY=d.getFullYear(); calM=d.getMonth(); selDay=null; }
 /* the Days header: how long you have fasted in all, then streak, fasts and the average fast */
 function numTxt(h){ var r=h>=100; return new Intl.NumberFormat(loc(),{minimumFractionDigits:r||!h?0:1,maximumFractionDigits:r?0:1}).format(h); }
@@ -553,7 +555,7 @@ function monthDays(){ var d=new Date(); return C.monthRecap(S.fasts,d.getFullYea
 /* the moon beside the total: it fills counter-clockwise, one slice for every day this month that has a fast on it (the same way the timer disc fills) */
 function monthMoon(){
   var d=new Date(), r=C.monthRecap(S.fasts,d.getFullYear(),d.getMonth(),S.flex.used,C.offKeys(S.off)), n=r.days.filter(function(s){ return s==='done'||s==='early'; }).length, dim=r.days.length, p=n/dim;
-  return '<div class="tmoon"><svg viewBox="-18 -18 36 36" role="img" aria-label="'+L(n+' of '+dim+' days fasted this month','本月已断食 '+n+' / '+dim+' 天')+'"><defs><radialGradient id="tmG" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FFF4C8"/><stop offset=".55" stop-color="#F5DE8C"/><stop offset="1" stop-color="#E8C867"/></radialGradient></defs>'+
+  return '<div class="tmoon"><svg viewBox="-18 -18 36 36" role="img" aria-label="'+L(n+' of '+dim+' days fasted this month','本月已断食 '+n+' / '+dim+' 天')+'"><defs><radialGradient id="tmG" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient></defs>'+
     '<circle r="16" class="tm-u"/><path class="tm-l" data-p="'+p.toFixed(4)+'" d="'+wedgePath(p,16)+'" fill="url(#tmG)"/><circle cx="-5.6" cy="-4.8" r="2.6" class="tm-c"/><circle cx="4.4" cy="4.6" r="3.4" class="tm-c"/><circle cx="3.6" cy="-7.6" r="1.6" class="tm-c"/><circle r="16" class="tm-r"/></svg>'+
     '<span aria-hidden="true">'+L(n+' of '+dim+' days',n+' / '+dim+' 天')+'</span></div>';
 }
@@ -650,7 +652,8 @@ function reportHtml(pm,r){
   var off=(new Date(pm.y,pm.m,1).getDay()+6)%7, grid='', heads=S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S'];
   heads.forEach(function(x){ grid+='<span class="rp-wd" aria-hidden="true">'+x+'</span>'; });
   for(i=0;i<off;i++) grid+='<span></span>';
-  r.days.forEach(function(s,d){ grid+='<span class="rp-day '+(s==='done'?'d':s==='flex'?'f':s==='off'?'o':s==='early'?'e':'n')+'" style="--i:'+d+'">'+(d+1)+'</span>'; });
+  var fmR=C.fastDays(S.fasts), ym=pm.y+'-'+('0'+(pm.m+1)).slice(-2)+'-';
+  r.days.forEach(function(s,d){ grid+='<span class="rp-day '+(s==='done'?'d':s==='flex'?'f':s==='off'?'o':s==='early'?'e':'n')+'" style="--i:'+d+(s==='early'?';--p:'+dayPart(fmR[ym+('0'+(d+1)).slice(-2)]).toFixed(3):'')+'">'+(d+1)+'</span>'; });
   var gl=[]; if(r.daysWith) gl.push(r.daysWith+' '+L(r.daysWith===1?'day with a fast':'days with a fast','天有断食')); if(r.flex&&!care()) gl.push(r.flex+' '+L(r.flex===1?'cheat day':'cheat days','天弹性日'));
   /* weeks */
   var wk=r.weeks.filter(function(w){ return w.n; }), mx=Math.max(goal,wk.reduce(function(a,w){ return Math.max(a,w.h); },0))*1.08||1, wh='';
@@ -831,6 +834,7 @@ function pickHtml(){
 var slideEnd=null;
 /* month change: the new grid slides in beside the old one as a pager, and the card eases to the new height */
 function calGo(y,m,dir,x0){ if(slideEnd) slideEnd(); calY=y; calM=m;
+  if(selDay&&selDay.slice(0,7)!==y+'-'+('0'+(m+1)).slice(-2)){ selDay=null; var dd0=$('dayd'); if(dd0) dd0.remove(); }   /* the open day is part of the calendar card: leaving its month closes it */
   var D=$('days'), v=D.querySelector('.cal-v'), og=v&&v.querySelector('.cal-g'), mn=D.querySelector('.cal-h .mn'), r=monthRange(), cur=y*12+m;
   if(mn) mn.textContent=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(y,m,1));
   var pv=D.querySelector('[data-act=calprev]'), nx=D.querySelector('[data-act=calnext]'); if(pv) pv.disabled=cur<=r[0]; if(nx) nx.disabled=cur>=r[1];
@@ -864,30 +868,32 @@ function calGo(y,m,dir,x0){ if(slideEnd) slideEnd(); calY=y; calM=m;
 function gridInner(y,m){ var h='', t=today(), all=S.fasts;
   var wd=S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S']; wd.forEach(function(w){ h+='<span class="wd">'+w+'</span>'; });
   var lead=(new Date(y,m,1).getDay()+6)%7, dim=new Date(y,m+1,0).getDate(); for(var i=0;i<lead;i++) h+='<button class="out" tabindex="-1" aria-hidden="true"></button>';
-  var offK=C.offKeys(S.off); for(var d=1;d<=dim;d++){ var k=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2), s=C.dayStatus(k,all,S.flex.used,offK), fut=k>t;
-    h+='<button class="'+s+(k===t?' today':'')+(k===selDay?' sel':'')+(fut?' fut':'')+'" data-act="day" data-k="'+k+'" aria-label="'+dateLbl(C.keyToDate(k).getTime())+(s==='done'?', '+L('fast done','已完成'):s==='flex'?', '+L('cheat day','弹性日'):s==='off'?', '+L('time off','休息'):s==='early'?', '+L('ended early','提前结束'):'')+'"><span class="d">'+d+'</span></button>'; }
+  var offK=C.offKeys(S.off), fm=C.fastDays(all); for(var d=1;d<=dim;d++){ var k=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2), s=C.dayStatus(k,all,S.flex.used,offK), fut=k>t;
+    h+='<button class="'+s+(k===t?' today':'')+(k===selDay?' sel':'')+(fut?' fut':'')+'" data-act="day" data-k="'+k+'"'+(s==='early'?' style="--p:'+dayPart(fm[k]).toFixed(3)+'"':'')+' aria-label="'+dateLbl(C.keyToDate(k).getTime())+(s==='done'?', '+L('fast done','已完成'):s==='flex'?', '+L('cheat day','弹性日'):s==='off'?', '+L('time off','休息'):s==='early'?', '+L('ended early','提前结束'):'')+'"><span class="d">'+d+'</span></button>'; }
   return h; }
+/* before the first fast, Days shows what a week will look like: a made-up week of discs, marked "Example" (a picture, skipped by screen readers) */
+function sampleWeek(){ var wd=S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S'], k=['full','full','part','full','full','none','none'];
+  return '<div class="fu-wk" aria-hidden="true"><span class="fu-ex">'+L('Example','示例')+'</span><div class="fu-g">'+wd.map(function(w,i){ return '<span><small>'+w+'</small><i class="'+k[i]+'"></i></span>'; }).join('')+'</div></div>'; }
 function renderDays(){
   var fs=streakFasts(), all=S.fasts, t=today(), first=all.length?new Date(Math.min.apply(null,all.map(function(f){return f.start;}))):new Date();
   var canPrev=calY*12+calM>first.getFullYear()*12+first.getMonth()-0, canNext=calY*12+calM<new Date().getFullYear()*12+new Date().getMonth();
-    var first1=!C.finished(all).length, h=first1?'<div class="group firstuse"><p>'+L('Fasts you finish show up here as filled days.','完成的断食会在这里显示为实心的日子。')+'</p><button class="btn sec" data-act="gotoday">'+L('Start a fast','开始断食')+'</button></div>':recapHtml()+totalsHtml();
+    var first1=!C.finished(all).length, h=first1?'<div class="group firstuse">'+sampleWeek()+'<p>'+L('Fasts you finish show up here as filled days.','完成的断食会在这里显示为实心的日子。')+'</p><button class="btn sec" data-act="gotoday">'+L('Start a fast','开始断食')+'</button></div>':recapHtml()+totalsHtml();
   var mname=new Intl.DateTimeFormat(loc(),{month:'long',year:'numeric'}).format(new Date(calY,calM,1));
   h+='<div class="group'+(first1?' dim':'')+'"><div class="cal"><div class="cal-h"><button data-act="calprev" aria-label="'+L('Previous month','上个月')+'"'+(canPrev?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button>'+(monthRange()[0]<monthRange()[1]?'<button class="cal-t" data-act="calpick" aria-haspopup="dialog"><span class="mn">'+mname+'</span><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg></button>':'<b class="cal-t0"><span class="mn">'+mname+'</span></b>')+'<button data-act="calnext" aria-label="'+L('Next month','下个月')+'"'+(canNext?'':' disabled')+'><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>';
   h+='<div class="cal-v"><div class="cal-g">'+gridInner(calY,calM);
-  h+='</div></div></div>'+(first1?'':'<div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i style="border-color:var(--orange)"></i>'+L('Ended early','提前结束')+'</span>'+(care()?'':'<span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span>')+'<span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div>')+'</div>';
-  /* the chosen day */
-  /* the chosen day: nothing is shown until a date is tapped */
+  h+='</div></div></div>';
+  /* the chosen day sits inside the calendar card, right under the grid, so it never lands under the tab bar; nothing is shown until a date is tapped */
   if(selDay){
-  var list=C.fastDays(all)[selDay]||[], fl=S.flex.used.indexOf(selDay)>=0;
-  h+='<div class="gh">'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</div><div class="group">';
-  if(!list.length&&!fl){ if(selDay>t) h+='<div class="empty">'+L('Nothing here yet.','这天还没有记录。')+'</div>';
-    else h+='<div class="row nolog"><span>'+L('Nothing logged','没有记录')+'</span></div><button class="row" data-act="addday">'+IC_PLUS+'<span>'+L('Add a fast','补记断食')+'</span></button>'+(care()||C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur})?'':'<button class="row" data-act="cheatday" data-k="'+selDay+'">'+IC_MOON+'<span>'+L('Use a cheat day','使用弹性日')+'</span></button>'); }
-  list.sort(function(a,b){return a.end-b.end;}).forEach(function(f){ h+='<button class="row fast-row" data-act="edit" data-id="'+f.id+'"><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(C.isDone(f)?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+'</small></span>'+CHEV.replace('class="chev"','class="chev" style="margin-left:auto"')+'</button>'; });
-  if(fl) h+='<div class="row"><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
+  var list=(C.fastDays(all)[selDay]||[]).slice().sort(function(a,b){return a.end-b.end;}), fl=S.flex.used.indexOf(selDay)>=0, none=!list.length&&!fl;
+  h+='<div class="dayd'+(ddIn&&!reduce?' in':'')+'" id="dayd"><div class="dd-h"><span>'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</span>'+(none?'<span class="dd-n">'+(selDay>t?L('Nothing here yet','这天还没有记录'):L('Nothing logged','没有记录'))+'</span>':'')+'</div>';
+  if(none&&selDay<=t) h+='<div class="dd-acts"><button class="dd-e" data-act="addday">'+L('Add a fast','补记断食')+'</button>'+(care()||C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur})?'':'<button class="dd-e" data-act="cheatday" data-k="'+selDay+'">'+L('Use a cheat day','使用弹性日')+'</button>')+'</div>';
+  list.forEach(function(f){ var dn=C.isDone(f); h+='<button class="dd-row" data-act="edit" data-id="'+f.id+'"><i class="dd-m'+(dn?' full':'')+'"'+(dn?'':' style="--p:'+dayPart([f]).toFixed(3)+'"')+' aria-hidden="true"></i><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(dn?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+'</small></span><span class="dd-e">'+L('Edit','编辑')+'</span></button>'; });
+  if(fl) h+='<div class="dd-row"><i class="dd-m flex" aria-hidden="true"></i><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
   h+='</div>';
   }
+  h+=(first1?'':'<div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i class="wedge"></i>'+L('Ended early','提前结束')+'</span>'+(care()?'':'<span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span>')+'<span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div>')+'</div>';
   if(!first1) h+='<div class="gh avgh">'+L('Average fast','平均断食时长')+'</div><div id="avgBox">'+avgHtml(avgPlay)+'</div>';
-  $('days').innerHTML=h; avgPlay=false; fabSync();
+  $('days').innerHTML=h; avgPlay=false; ddIn=false;
   if(numPlay){ numPlay=false; odo($('days').querySelector('.tot .rn')); moonFill($('days').querySelector('.tot')); }
 }
 
@@ -1038,7 +1044,7 @@ function fastSave(id){
   if(clash) return toast(L('That overlaps another fast.','和另一次断食时间重叠了。'));
   if(id){ var f=S.fasts.filter(function(x){return x.id===id;})[0]; if(f){ f.start=s; f.end=e; f.goalH=g; } }
   else S.fasts.push({id:uid(),start:s,end:e,goalH:g,plan:g>=24?String(g):String(g)==='16'?'16':'custom'});
-  selDay=C.dayKey(e); fabOn=true; var d=new Date(e); calY=d.getFullYear(); calM=d.getMonth();
+  selDay=C.dayKey(e); var d=new Date(e); calY=d.getFullYear(); calM=d.getMonth();
   save(); closeSheet(); renderDays(); cache={}; toast(L('Saved.','已保存。'));
 }
 
@@ -1815,7 +1821,7 @@ var A={
   lwback:function(){ planSheet(); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
-  day:function(b){ selDay=b.dataset.k; fabOn=true; renderDays(); },
+  day:function(b){ selDay=b.dataset.k; ddIn=true; renderDays(); ddShow(); },
   gotoday:function(){ showTab('today'); },
   recap:function(b){ openReport(b); },
   rpclose:function(){ closeReport(); },
@@ -1827,7 +1833,6 @@ var A={
   avgbar:function(b){ avgSel=+b.dataset.i; avgDraw(false); var n=$('avgBox').querySelector('[data-i="'+avgSel+'"]'); if(n) n.focus({preventScroll:true}); },
   addday:function(){ fastSheet(null,selDay); },
   cheatday:function(b){ cheatSheet(b.dataset.k); },
-  fab:function(){ var l=(C.fastDays(S.fasts)[selDay]||[]).slice().sort(function(a,b){return a.end-b.end;}); if(l.length) fastSheet(l[l.length-1]); else fastSheet(null,selDay); },
   calprev:function(){ var i=calY*12+calM-1; calGo(Math.floor(i/12),((i%12)+12)%12,-1); },
   calnext:function(){ var i=calY*12+calM+1; calGo(Math.floor(i/12),((i%12)+12)%12,1); },
   calpick:function(){ pickY=calY; openSheet(pickHtml(),null,true); },
@@ -1969,7 +1974,7 @@ document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!
 /* scrolling down gives the screen to the content; scrolling up (or reaching the top) brings the tab bar back */
 (function(){ var last={}, acc={};
   ['today','days','friends','me'].forEach(function(id){ var e=$(id); last[id]=0; acc[id]=0;
-    e.addEventListener('scroll',function(){ var y=e.scrollTop, d=y-last[id]; last[id]=y; if(y<0||y>e.scrollHeight-e.clientHeight+1) return;
+    e.addEventListener('scroll',function(){ var y=e.scrollTop, d=y-last[id]; last[id]=y; if(y<0||y>e.scrollHeight-e.clientHeight+1) return; if(performance.now()<keepTabs){ acc[id]=0; return; }
       if(y<24){ ph.classList.remove('tabs-off'); acc[id]=0; return; }
       if((d>0)!==(acc[id]>0)) acc[id]=0; acc[id]+=d;
       if(acc[id]>28) ph.classList.add('tabs-off'); else if(acc[id]<-12) ph.classList.remove('tabs-off'); },{passive:true}); }); })();

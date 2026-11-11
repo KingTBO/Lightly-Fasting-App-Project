@@ -1,13 +1,20 @@
-/* Today's big word before a fast: "First fast" (首次断食) until the first fast is done, then "Ready" (准备好了).   NODE_PATH=$(npm root -g) node tests/firstfast.test.js */
+/* Today before a fast: the readout shows the loaded time, dimmed (13:00:00 for the 13-hour plan), and the line above it says "First fast" (首次断食)
+   until the first fast is done, then "Ready" (准备好了), with the plan beside it.   NODE_PATH=$(npm root -g) node tests/firstfast.test.js */
 const assert=require('assert'),http=require('http'),fs=require('fs'),path=require('path'),{chromium}=require('playwright');const root=path.join(__dirname,'..'),H=3600000;
 const srv=http.createServer((q,r)=>{ let p=path.join(root,decodeURIComponent(q.url.split('?')[0])); if(p.endsWith('/')) p+='index.html'; fs.readFile(p,(e,d)=>{ if(e){ r.writeHead(404); r.end(); } else{ r.writeHead(200,{'Content-Type':p.endsWith('.js')?'text/javascript':p.endsWith('.css')?'text/css':'text/html'}); r.end(d); } }); });
 (async()=>{ await new Promise(r=>srv.listen(0,r)); const url='http://localhost:'+srv.address().port+'/'; const b=await chromium.launch(); const now=Date.now();
   const state=(lang,fasts)=>({v:1,lang,theme:'light',onboarded:true,profile:{fastedBefore:false,safety:false,care:[],careOff:null},planId:'13',customH:16,place:{key:'shanghai'},cur:null,fasts,flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false},startedAt:now-2*24*H,mod:now-1000,del:[]});
   async function big(lang,fasts,w){ const ctx=await b.newContext({viewport:{width:w||390,height:760},timezoneId:'Asia/Shanghai'}); const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
     await p.addInitScript(s=>{ if(!sessionStorage.s){ localStorage.setItem('lightly:v1',s); sessionStorage.s=1; } },JSON.stringify(state(lang,fasts))); await p.goto(url); await p.waitForTimeout(700);
-    const t=(await p.textContent('#readBig')).trim(), box=await (await p.$('#readBig')).boundingBox(); await ctx.close(); assert.deepStrictEqual(errs,[]); return {t,box,w:w||390}; }
-  const done=[{id:'a',start:now-30*H,end:now-14*H,goal:16}];
-  let r=await big('en',[]); assert.strictEqual(r.t,'First fast'); assert(r.box.x>=0&&r.box.x+r.box.width<=r.w,'fits');
-  r=await big('zh',[]); assert.strictEqual(r.t,'首次断食'); r=await big('en',[],320); assert.strictEqual(r.t,'First fast'); assert(r.box.x+r.box.width<=320,'fits at 320');
-  r=await big('en',done); assert.strictEqual(r.t,'Ready','after the first fast it is Ready again'); r=await big('zh',done); assert.strictEqual(r.t,'准备好了');
-  console.log('ok - First fast before the first fast, Ready after, English and Chinese, fits at 320'); await b.close(); srv.close(); console.log('firstfast ok'); })().catch(e=>{ console.error(e); process.exit(1); });
+    const r=await p.evaluate(()=>{ const g=document.getElementById('readBig'), x=g.getBoundingClientRect(), ink=getComputedStyle(document.getElementById('ph')).getPropertyValue('--ink').trim();
+      return {k:document.getElementById('readK').textContent.trim(),t:g.textContent.trim(),alt:document.getElementById('readAlt').textContent.trim(),set:g.classList.contains('set'),col:getComputedStyle(g).color,kcol:getComputedStyle(document.getElementById('readK')).color,ink:ink,box:{x:x.left,width:x.width}}; });
+    /* Start lights the same digits: they stop being dimmed and begin to count down */
+    let run=null; if(!w&&lang==='en'){ await p.click('#act'); await p.waitForFunction(()=>document.getElementById('readBig').textContent.trim()!=='13:00:00',null,{timeout:6000}).catch(()=>{}); run=await p.evaluate(()=>({set:document.getElementById('readBig').classList.contains('set'),t:document.getElementById('readBig').textContent.trim()})); }
+    await ctx.close(); assert.deepStrictEqual(errs,[]); return Object.assign(r,{w:w||390,run}); }
+  const done=[{id:'a',start:now-30*H,end:now-14*H,goalH:16,plan:'16'}];
+  let r=await big('en',[]); assert.strictEqual(r.k,'First fast'); assert.strictEqual(r.t,'13:00:00','the loaded time, not a word'); assert.strictEqual(r.alt,'13-hour plan'); assert(r.set,'dimmed while it is not running'); assert.strictEqual(r.col,r.kcol,'dimmed to the small-text colour');
+  assert(r.box.x>=0&&r.box.x+r.box.width<=r.w,'fits'); assert(r.run&&!r.run.set&&/^12:59:\d\d$/.test(r.run.t),'Start lights the digits and they count: '+JSON.stringify(r.run));
+  r=await big('zh',[]); assert.strictEqual(r.k,'首次断食'); assert.strictEqual(r.t,'13:00:00'); assert.strictEqual(r.alt,'13 小时计划');
+  r=await big('en',[],320); assert.strictEqual(r.k,'First fast'); assert.strictEqual(r.t,'13:00:00'); assert(r.box.x>=0&&r.box.x+r.box.width<=320,'fits at 320');
+  r=await big('en',done); assert.strictEqual(r.k,'Ready','after the first fast it is Ready'); assert.strictEqual(r.t,'13:00:00'); r=await big('zh',done); assert.strictEqual(r.k,'准备好了');
+  console.log('ok - at rest the readout is the loaded time, dimmed; First fast before the first fast, Ready after, English and Chinese, fits at 320; Start lights it'); await b.close(); srv.close(); console.log('firstfast ok'); })().catch(e=>{ console.error(e); process.exit(1); });

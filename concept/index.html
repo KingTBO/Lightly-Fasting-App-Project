@@ -11,7 +11,7 @@
   color-scheme:light;
   --bg:#F2F2F7; --card:#FFFFFF; --label:#000000; --label-2:rgba(60,60,67,.8); --label-3:rgba(60,60,67,.3);
   --sep:rgba(60,60,67,.29); --fill:rgba(120,120,128,.12); --fill-2:rgba(120,120,128,.2);
-  --tint:#FFCC00; --bar-edge:#C99F00; --on-tint:#000000; --indigo:#5856D6; --blue:#0062D9; --red:#C70012; --orange:#C93400;
+  --tint:#FFCC00; --bar-edge:#C99F00; --on-tint:#000000; --indigo:#5856D6; --blue:#0062D9; --red:#C70012; --orange:#C93400; --disc-u:#DDDDE2;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
   --font-d:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;
   --font-r:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,'Inter','PingFang SC','Noto Sans SC',sans-serif;
@@ -19,10 +19,10 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
   --bg:#000000; --card:#1C1C1E; --label:#FFFFFF; --label-2:rgba(235,235,245,.68); --label-3:rgba(235,235,245,.3);
-  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --bar-edge:transparent; --indigo:#5E5CE6; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A}}
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --bar-edge:transparent; --indigo:#5E5CE6; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A; --disc-u:#85858B}}
 :root[data-theme="dark"]{color-scheme:dark;
   --bg:#000000; --card:#1C1C1E; --label:#FFFFFF; --label-2:rgba(235,235,245,.68); --label-3:rgba(235,235,245,.3);
-  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --bar-edge:transparent; --indigo:#5E5CE6; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A}
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32); --tint:#FFD60A; --bar-edge:transparent; --indigo:#5E5CE6; --blue:#0A84FF; --red:#FF453A; --orange:#FF9F0A; --disc-u:#85858B}
 
 /* local-time skies (screen only). Ink pairs follow HIG label / secondary label. */
 @property --sky2{syntax:'<color>';inherits:true;initial-value:#1A2250}
@@ -136,6 +136,7 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .read .big{font:300 min(58px,15vw)/1 var(--font-d);letter-spacing:-.045em}
 .read .big .co{font-style:normal;opacity:.4;display:inline-block;width:.26em;text-align:center;transform:translateY(-.08em)}
 .read .big small{font-size:.5em;font-weight:600;color:var(--ink-2);margin:0 .12em 0 .04em}
+.read .big{transition:color .5s ease}.read .big.set{color:var(--ink-2)}   /* at rest the readout is the loaded time, dimmed; Start lights it */
 .read .tip{font:400 15px/1.4 var(--font);color:var(--ink-2);margin:6px auto 0;max-width:30ch;min-height:42px;transition:opacity .7s ease}
 .read .tip.quiet{opacity:0}
 .track{margin:14px 16px 0;position:relative;touch-action:none;cursor:grab}
@@ -240,7 +241,7 @@ html:lang(zh-Hans) .ends .cap{font-size:12px;letter-spacing:.02em;text-transform
 .sheet .row b{display:block;font:600 22px var(--font-r);font-variant-numeric:tabular-nums}
 .sheet .row span{font-size:13px;color:var(--label-2)}
 .sheet p{font-size:15px;color:var(--label-2);margin:14px 0 18px;line-height:1.4}
-.sheet .done{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--label);color:var(--card);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out}
+.sheet .done{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out}
 .sheet .done:active{transform:scale(.97)}
 
 /* hour tick pop */
@@ -580,14 +581,15 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .dy-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.dy-sum div{background:var(--card);border-radius:14px;padding:12px 8px;text-align:center}.dy-sum b{display:block;font:700 28px/1.1 var(--font-r)}.dy-sum span{font-size:13px;color:var(--label-2)}
 .dy-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:var(--card);border-radius:14px;padding:10px 8px}.dy-cal i{font-style:normal;font-size:11px;color:var(--label-2);text-align:center;padding-bottom:4px}
 .dy-cal button{aspect-ratio:1;min-height:36px;border:0;background:transparent;border-radius:50%;font:500 14px var(--font);color:var(--label);display:grid;place-items:center;position:relative;cursor:default}
-.dy-cal button.done{background:var(--label);color:var(--card)}.dy-cal button.early{box-shadow:inset 0 0 0 2px var(--label-2)}.dy-cal button.flex{box-shadow:inset 0 0 0 2px var(--label-2);border-radius:50%;outline:1.5px dashed var(--label-2);outline-offset:-3px;box-shadow:none}.dy-cal button.today{box-shadow:0 0 0 2px var(--tint)}.dy-cal button.fut{color:var(--label-3)}
+.dy-cal button.done{background:var(--tint);color:var(--on-tint);font-weight:600}.dy-cal button.early{background:conic-gradient(var(--disc-u) 0 calc((1 - var(--p,.6))*1turn - .4deg),var(--tint) calc((1 - var(--p,.6))*1turn + .4deg) 1turn);color:var(--on-tint);font-weight:600}.dy-cal button.flex{box-shadow:inset 0 0 0 2px var(--label-2);border-radius:50%;outline:1.5px dashed var(--label-2);outline-offset:-3px;box-shadow:none}.dy-cal button.today{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--label)}.dy-cal button.fut{color:var(--label-3)}
 .tot{background:var(--card);border-radius:14px;margin-top:10px;overflow:hidden;padding:20px 16px 0}
 .tt{display:flex;flex-direction:column;gap:2px;padding-bottom:16px}.tk{font:500 13px var(--font);color:var(--label-2)}
 .tn{font:700 48px/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.tn small{font:600 20px var(--font-r);color:var(--label-2);margin-left:8px;letter-spacing:0}
 .ts{font:400 14px var(--font);color:var(--label-2)}
 .tmain{display:flex;align-items:center;justify-content:space-between;gap:12px}.tmain .tt{min-width:0}.tmain .tn{display:flex;flex-wrap:wrap;align-items:baseline}
 .tmoon{display:flex;flex-direction:column;align-items:center;gap:6px;flex:none;padding-bottom:16px}.tmoon svg{display:block;width:84px;height:84px;overflow:visible}.tmoon span{font:500 12px var(--font);color:var(--label-2);white-space:nowrap}
-.tm-u{fill:var(--fill-2)}.tm-c{fill:rgba(120,90,20,.1)}.tm-r{fill:none;stroke:rgba(120,100,50,.45);stroke-width:.5}
+.tmoon svg{background:#0E1430;border-radius:50%;padding:5px;box-sizing:border-box;box-shadow:0 0 0 .5px rgba(255,255,255,.16)}
+.tm-u{fill:rgba(255,255,255,.12)}.tm-c{fill:rgba(120,110,90,.28)}.tm-r{fill:none;stroke:rgba(255,255,255,.22);stroke-width:.5}
 .tstats{display:grid;grid-template-columns:repeat(3,1fr);border-top:.5px solid var(--sep);margin:0 -16px}.tstats div{padding:12px 4px 14px;text-align:center;min-width:0}.tstats div+div{border-left:.5px solid var(--sep)}
 .tstats b{display:block;font:700 20px/1.15 var(--font-r);font-variant-numeric:tabular-nums;white-space:nowrap}.tstats b small{font-size:.7em;font-weight:600}.tstats span{font:400 12px var(--font);color:var(--label-2)}
 /* the recap card on Days: a tinted card that opens into the report */
@@ -644,7 +646,7 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 .rp-day.d{background:var(--tint);color:var(--on-tint);box-shadow:0 0 0 .5px var(--bar-edge)}
 .rp-day.f{border:1.5px dashed var(--label-2);color:var(--label-2)}
 .rp-day.o{border:1.5px dotted var(--label-2);color:var(--label-2)}
-.rp-day.e{border:2px solid var(--orange);color:var(--label)}
+.rp-day.e{background:conic-gradient(var(--disc-u) 0 calc((1 - var(--p,.6))*1turn - .4deg),var(--tint) calc((1 - var(--p,.6))*1turn + .4deg) 1turn);color:var(--on-tint)}
 /* weeks */
 .rp-wk{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
 .rp-wk li{display:grid;grid-template-columns:84px 1fr 66px;align-items:center;gap:10px}
@@ -742,11 +744,23 @@ html:lang(zh-Hans) .eyebrow{text-transform:none}
 @media (prefers-reduced-motion:reduce){.avgplot.avgplay .abar{animation:none}.dy-pop{transition:opacity .2s ease,visibility 0s .2s;transform:translateY(-50%)}}
 .dy-v{position:relative;overflow:hidden;border-radius:14px}.dy-cal.in{position:absolute;top:0;left:0;right:0}
 .dy-cal button{cursor:pointer}.dy-cal button.sel{outline:2px solid var(--label);outline-offset:2px}
-.dy-fabw{position:absolute;right:0;bottom:92px;width:104px;height:88px;padding-right:16px;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;overflow:hidden;pointer-events:none;z-index:4}
-.dy-fab{position:relative;flex:none;width:56px;height:56px;border:0;border-radius:50%;background:var(--tint);color:var(--on-tint);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.22),0 1px 3px rgba(0,0,0,.18);transform:translateX(88px);opacity:0;visibility:hidden;pointer-events:none;transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .25s ease,visibility 0s .55s}
-.dy-fab.on{transform:none;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}.dy-fab:active{transform:scale(.92)}
-.dy-fab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-@media (prefers-reduced-motion:reduce){.dy-fab{transition:opacity .2s ease,visibility 0s .2s;transform:none}.dy-fab.on{transition-delay:0s}}
+.dy-card{background:var(--card);border-radius:14px}
+.dayd{margin:0 10px;padding:10px 12px 12px 14px;border-radius:14px;background:var(--fill);animation:ddin .32s cubic-bezier(.22,1,.36,1) both}
+.dayd[hidden]{display:none}.dy-card:has(.dayd:not([hidden])){padding-bottom:10px}
+@keyframes ddin{from{opacity:0;transform:translateY(-6px)}}
+.dd-h{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font:500 13px/1.35 var(--font);color:var(--label-2)}
+.dd-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;margin-top:6px;padding:0;border:0;background:transparent;color:var(--label);text-align:left;font:inherit;cursor:pointer}
+div.dd-row{cursor:default}
+.dd-row .stack{flex:1;min-width:0}
+.dd-row b{display:block;font:600 17px/1.25 var(--font-r);font-variant-numeric:tabular-nums}
+.dd-row small{display:block;font:400 13px/1.3 var(--font);color:var(--label-2)}
+.dd-m{flex:none;width:32px;height:32px;border-radius:50%;background:conic-gradient(var(--disc-u) 0 calc((1 - var(--p,.5))*1turn - .4deg),var(--tint) calc((1 - var(--p,.5))*1turn + .4deg) 1turn)}
+.dd-m.full{background:var(--tint)}
+.dd-m.flex{background:transparent;border:1.5px dashed var(--label-2);box-sizing:border-box}
+.dd-e{position:relative;flex:none;display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:var(--card);color:var(--label);font:600 15px var(--font);box-shadow:0 0 0 .5px var(--sep);cursor:pointer}
+button.dd-e{min-height:44px;padding:0 16px}
+.dd-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+@media (prefers-reduced-motion:reduce){.dayd{animation:none}}
 .thm{background:var(--bg);border-radius:14px;overflow:hidden;margin:0 0 14px}
 .thm button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:52px;padding:8px 16px;border:0;background:transparent;color:var(--label);text-align:left;font:500 17px var(--font);cursor:pointer}
 .thm button+button{border-top:.5px solid var(--sep)}
@@ -980,17 +994,17 @@ html:lang(zh-Hans) .psheet h4{letter-spacing:0}
 .fr-in{width:100%;box-sizing:border-box;min-height:52px;border:0;border-radius:16px;background:var(--card);color:var(--label);text-align:center;font:600 24px var(--font-r,var(--font));letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}
 .fr-in::placeholder{color:var(--label-3);letter-spacing:.12em}
 .fr-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:56px 8px 0}
-.fr-trio{display:flex;gap:18px;align-items:center}
-.fr-trio svg{width:46px;height:46px;display:block}
 .fr-hero h3{font:700 22px/1.2 var(--font-d);letter-spacing:-.01em;margin:26px 0 12px;max-width:16ch}
 html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
 .fr-hero p{font:400 15px/1.4 var(--font);color:var(--label-2);margin:0 0 32px;max-width:27ch}
-.fr-hero p.fr-s{margin-bottom:22px}
-.fr-pts{display:grid;gap:12px;max-width:288px;margin:0 auto 22px;text-align:left}
-.fr-pts>div{display:flex;align-items:center;gap:12px;font:500 15px/1.3 var(--font);color:var(--label)}
-.fr-pi{flex:none;width:34px;height:34px;border-radius:10px;background:var(--fill);display:grid;place-items:center}
-.fr-pi svg{width:18px;height:18px;fill:none;stroke:var(--tint);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.fr-hero p.fr-fine{font-size:13px;margin-bottom:20px}
+.fr-hero p.fr-fine{font-size:13px;margin-bottom:14px}
+/* the empty states lead with an example, say one sentence, and keep the button at the bottom */
+.fr-hero.ex{padding:0;min-height:100%;box-sizing:border-box}
+.fr-hero.ex h3{margin-top:22px}.fr-hero.ex p{margin-bottom:20px;text-wrap:balance}
+.fr-hero.ex .fr-foot{margin-top:auto;width:100%;display:flex;flex-direction:column;align-items:center}
+.fr-demo{pointer-events:none;user-select:none;-webkit-user-select:none;margin-bottom:0}
+.fr-demo .fr-st,.fr-demo .fr-seat{cursor:default}
+.fr-ex{position:absolute;right:16px;top:16px;padding:4px 9px;border-radius:999px;background:var(--flab);color:var(--fplab);font:600 11px/13px var(--font);letter-spacing:.02em}
 .fr-go{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out}
 .fr-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:0 -6px 20px}
 .fr-days button{min-height:56px;border:0;border-radius:16px;background:none;color:var(--label);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:inherit;cursor:pointer;transition:background .25s ease,color .25s ease}
@@ -1242,11 +1256,10 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
       <div class="me" id="daysScr" aria-hidden="true" aria-label="Days">
         <div id="dyHead"></div>
         <div class="dy-th"><button type="button" class="dy-ar" id="dyPrev" aria-label="Previous month"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg></button><button type="button" class="dy-t" id="dyMonth" aria-haspopup="dialog"></button><button type="button" class="dy-ar" id="dyNext" aria-label="Next month"><svg viewBox="0 0 10 18"><path d="M1.5 1.5 8.5 9l-7 7.5"/></svg></button></div>
-        <div class="dy-v" id="dyV"><div class="dy-cal" id="dyCal"></div></div>
+        <div class="dy-card"><div class="dy-v" id="dyV"><div class="dy-cal" id="dyCal"></div></div><div class="dayd" id="dyDet" hidden></div></div>
         <p class="dy-key" id="dyKey"></p>
         <div class="avgh" id="dyAvgH"></div><div id="dyAvg"></div>
       </div>
-      <div class="dy-fabw"><button type="button" class="dy-fab" id="dyFab" aria-hidden="true" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
       <div class="scrim" id="dScrim"></div>
       <div class="report" id="dyReport" role="dialog" aria-modal="true" aria-hidden="true" hidden></div>
       <div class="dy-pop" id="dyPop" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Go to a month"></div>
@@ -1860,11 +1873,11 @@ window.LightlySphere=(function(){
     put($('skyStage'),'sub',lang==='zh'?sk[3]:sk[2]);
     var evEn=b==='moon'?'Sunrise':'Sunset', evZh=b==='moon'?'日出':'日落', skyTxt=cd?L(evEn+' in '+lt,lt+'后'+evZh):L(evEn+' ',evZh+' ')+clock(turnAt);
     put($('skyTx'),'skx',skyTxt); $('sub').setAttribute('aria-label',(lang==='zh'?sk[3]:sk[2])+', '+skyTxt+'. '+L('Opens an explanation.','打开说明。')); window.LIGHTLY_SUNTXT={rise:clock(SUN.rise),set:clock(SUN.set)};
-    var off=window.LIGHTLY_OFF, chd=!off&&!!window.LIGHTLY_CHEAT.used&&mode==='idle', brk=(!!off&&mode!=='fast')||chd; if(brk||mode==='idle'||mode==='eat') put($('readAlt'),'alt','');
-    readBig.classList.toggle('greet',!chd&&brk);
+    var off=window.LIGHTLY_OFF, chd=!off&&!!window.LIGHTLY_CHEAT.used&&mode==='idle', brk=(!!off&&mode!=='fast')||chd; if(brk||mode==='eat') put($('readAlt'),'alt','');
+    readBig.classList.toggle('greet',!chd&&brk); readBig.classList.toggle('set',mode==='idle'&&!brk); /* the loaded time, not yet running: dimmed */
     if(chd){ put(readK,'k',L('Cheat day','弹性日')); put(readBig,'b',L('Day off','休息')); tip(L('Your streak holds. Take back the cheat day above to start a fast.','连续记录保持。想断食，请先收回上方的弹性日。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(brk){ put(readK,'k',L('Day 1 of '+off.days,'第 1 天，共 '+off.days+' 天')); put(readBig,'b',off.kind==='travel'?L('Safe travels','旅途平安'):L('Get well soon','早日康复')); tip(off.kind==='travel'?L('Your streak will wait.','连续记录会等你。'):L('Rest up. Your streak is safe.','好好休息，连续记录不会断。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
-    else if(mode==='idle'){ put(readK,'k',L(GOAL+'-hour plan',GOAL+' 小时计划')); put(readBig,'b',L('Ready','准备好了')); tip(L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
+    else if(mode==='idle'){ put(readK,'k',L('Ready','准备好了')); put(readBig,'b',fmtS(GOAL),1); put($('readAlt'),'alt',L(GOAL+'-hour plan',GOAL+' 小时计划')); tip(L('Start now and you finish at ','现在开始，')+clock(s+GOAL)+L('.',' 结束。'),1); put(actLbl,'a',L('Start fast','开始断食')); }
     else if(mode==='fast'||mode==='saved'){
       if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmtS(GOAL-h),1); put($('readAlt'),'alt',L('Elapsed ','已断食 ')+hmsS(h)); var tp=tipFor(h,sk[1]); tip(tp[lang==='zh'?1:0],0,Math.floor(h)); }
       else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L((oh?oh+' h':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' m':'')+' past your goal','超出目标 '+(oh?oh+' 小时':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' 分':''))); put(readBig,'b',fmt(h),1); put($('readAlt'),'alt',L('Goal ','目标 ')+GOAL+L(' h',' 小时')); tip(L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
@@ -3012,7 +3025,7 @@ function dyBloom(){
   function dyWedge(p,r){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; if(p>=.999) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z'; var a=p*2*Math.PI; return 'M0 0 L0 '+(-r)+' A'+r+' '+r+' 0 '+(a>Math.PI?1:0)+' 0 '+(-r*Math.sin(a)).toFixed(2)+' '+(-r*Math.cos(a)).toFixed(2)+'Z'; }
   /* the moon beside the total: one slice for every day this month that has a fast on it */
   function dyMoon(fd,dim){ var zh=api.lang()==='zh', p=fd/dim;
-    return '<div class="tmoon"><svg viewBox="-18 -18 36 36" role="img" aria-label="'+(zh?'本月已断食 '+fd+' / '+dim+' 天':fd+' of '+dim+' days fasted this month')+'"><defs><radialGradient id="tmG" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FFF4C8"/><stop offset=".55" stop-color="#F5DE8C"/><stop offset="1" stop-color="#E8C867"/></radialGradient></defs><circle r="16" class="tm-u"/><path class="tm-l" data-p="'+p.toFixed(4)+'" d="'+dyWedge(p,16)+'" fill="url(#tmG)"/><circle cx="-5.6" cy="-4.8" r="2.6" class="tm-c"/><circle cx="4.4" cy="4.6" r="3.4" class="tm-c"/><circle cx="3.6" cy="-7.6" r="1.6" class="tm-c"/><circle r="16" class="tm-r"/></svg><span aria-hidden="true">'+(zh?fd+' / '+dim+' 天':fd+' of '+dim+' days')+'</span></div>'; }
+    return '<div class="tmoon"><svg viewBox="-18 -18 36 36" role="img" aria-label="'+(zh?'本月已断食 '+fd+' / '+dim+' 天':fd+' of '+dim+' days fasted this month')+'"><defs><radialGradient id="tmG" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EEE8D9"/><stop offset="1" stop-color="#CFC7B2"/></radialGradient></defs><circle r="16" class="tm-u"/><path class="tm-l" data-p="'+p.toFixed(4)+'" d="'+dyWedge(p,16)+'" fill="url(#tmG)"/><circle cx="-5.6" cy="-4.8" r="2.6" class="tm-c"/><circle cx="4.4" cy="4.6" r="3.4" class="tm-c"/><circle cx="3.6" cy="-7.6" r="1.6" class="tm-c"/><circle r="16" class="tm-r"/></svg><span aria-hidden="true">'+(zh?fd+' / '+dim+' 天':fd+' of '+dim+' days')+'</span></div>'; }
   function dyMoonFill(el){ var l=el&&el.querySelector('.tm-l'); if(!l||reduce) return; var p=+l.getAttribute('data-p'); if(!p) return; var t0=performance.now();
     (function step(t){ var k=Math.min((t-t0)/1100,1), e=1-Math.pow(1-k,3); if(!document.body.contains(l)) return; l.setAttribute('d',dyWedge(p*e,16)); if(k<1) requestAnimationFrame(step); })(t0); }
   function dyTotals(st,done,fd,dim){ var zh=api.lang()==='zh', n=77+done, hrs=Math.round(1268+done*16.5), avg=hrs/n;
@@ -3042,14 +3055,14 @@ function dyBloom(){
   $('dyAvg').addEventListener('click',function(e){ var m=e.target.closest('[data-m]'), b=e.target.closest('[data-i]'); if(m){ if(dyMode===m.dataset.m) return; dyMode=m.dataset.m; dySelBar=null; dyAvgDraw(true); } else if(b){ dySelBar=+b.dataset.i; dyAvgDraw(false); } });
   function daysRender(dir){ var zh=api.lang()==='zh', now=new Date(), md=dyMonthDate(dyOff), y=md.getFullYear(), m=md.getMonth(), isNow=dyOff===0, today=isNow?now.getDate():99, first=md.getDay(), n=new Date(y,m+1,0).getDate(), h='';
     ['S','M','T','W','T','F','S'].forEach(function(w){ h+='<i>'+w+'</i>'; }); for(var k=0;k<first;k++) h+='<span></span>';
-    for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=((i+dyOff)%9===4)?'early':((i+dyOff)%11===6)?'flex':(isNow&&i===today-2&&today>3)?'off':'done'; } else if(i===today) c='today'; h+='<button type="button" class="'+c+(dySel&&dySel[0]===dyOff&&dySel[1]===i?' sel':'')+'" data-d="'+i+'" aria-label="'+i+'">'+i+'</button>'; }
+    for(var i=1;i<=n;i++){ var c='fut'; if(i<today){ c=((i+dyOff)%9===4)?'early':((i+dyOff)%11===6)?'flex':(isNow&&i===today-2&&today>3)?'off':'done'; } else if(i===today) c='today'; h+='<button type="button" class="'+c+(dySel&&dySel[0]===dyOff&&dySel[1]===i?' sel':'')+'" data-d="'+i+'"'+(c==='early'?' style="--p:'+(.45+((i*7)%4)/10).toFixed(2)+'"':'')+' aria-label="'+i+'">'+i+'</button>'; }
     /* the header always shows the sample streak for today */
     var nd=now.getDate(), st=0, done=0, fd=0; for(var j=1;j<nd;j++){ var cc=(j%9===4)?'early':(j%11===6)?'flex':(j===nd-2&&nd>3)?'off':'done'; if(cc==='done'){ st++; done++; fd++; } else if(cc==='early'){ st=0; fd++; } } st=Math.min(st,nd); var best=Math.max(st,12), total=done+31;
     $('dyHead').innerHTML=(dyOff===0&&!dyRcOff?dyRecap():'')+dyTotals(st,done,fd,new Date(now.getFullYear(),now.getMonth()+1,0).getDate()); var rx=$('dyRcX'); if(rx) rx.addEventListener('click',function(){ dyRcOff=true; daysRender(); }); dyAvgDraw(false); if(dyPlay){ dyOdo($('dyHead').querySelector('.tot .rn')); dyMoonFill($('dyHead').querySelector('.tot')); }
     $('dyCal').innerHTML=h; dyPlay=false; var mn=new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:'long',year:'numeric'}).format(md);
     $('dyMonth').innerHTML=mn+'<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5"/></svg>';
     $('dyPrev').disabled=dyOff>=DY_BACK; $('dyNext').disabled=dyOff<=0; $('dyPrev').setAttribute('aria-label',zh?'上个月':'Previous month'); $('dyNext').setAttribute('aria-label',zh?'下个月':'Next month');
-    $('dyKey').textContent=zh?'实心：完成。圆环：提前结束。虚线：弹性日。点线：休息。点一天可以编辑或补记（这是示例）。':'Filled: done. Ring: ended early. Dashed: cheat day. Dotted: time off. In the app you tap a day to edit or add a fast. This is sample data.';
+    $('dyKey').textContent=zh?'实心：完成。部分填充：提前结束，填到断食进行到的地方。虚线：弹性日。点线：休息。点一天可以查看、编辑或补记（这是示例）。':'Filled: done. Part filled: ended early, filled as far as the fast got. Dashed: cheat day. Dotted: time off. Tap a day to see it, edit it or add a fast. This is sample data.'; dyDetail();
     if(dir&&!reduce&&$('dyCal').animate) $('dyCal').animate([{transform:'translateX('+(dir*44)+'px)',opacity:0},{transform:'none',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'}); }
   function dyGo(o,dir,x0){ if(dyEnd) dyEnd(); dySelBar=null; var og=$('dyCal'), v=$('dyV'), oldHtml=og.innerHTML; dyOff=Math.max(0,Math.min(DY_BACK,o)); daysRender(); var newHtml=og.innerHTML;
     if(!dir||reduce||!og.animate) return; og.innerHTML=oldHtml; x0=x0||0;
@@ -3058,9 +3071,18 @@ function dyBloom(){
     v.style.height=h0+'px'; var a1=og.animate([{transform:'translateX('+x0+'px)',opacity:Math.max(.5,1-Math.abs(x0)/260)},{transform:'translateX('+(-dir*w*.5)+'px)',opacity:0}],op), a2=ng.animate([{transform:'translateX('+(dir*w*.5+x0)+'px)',opacity:0},{transform:'none',opacity:1}],op), a3=v.animate([{height:h0+'px'},{height:h1+'px'}],op), fin=false;
     dyEnd=function(){ if(fin) return; fin=true; dyEnd=null; [a1,a2,a3].forEach(function(a){ try{ a.cancel(); }catch(e){} }); og.innerHTML=newHtml; ng.remove(); v.style.height=''; };
     a2.finished.then(function(){ if(dyEnd) dyEnd(); }).catch(function(){}); }
-  function fabSync(){ $('dyFab').classList.toggle('on',dySel!==null); $('dyFab').setAttribute('aria-hidden',dySel===null); $('dyFab').tabIndex=dySel===null?-1:0; $('dyFab').setAttribute('aria-label',api.lang()==='zh'?'编辑这天的断食':'Edit this day’s fast'); }
-  $('dyCal').addEventListener('click',function(e){ var b=e.target.closest('button[data-d]'); if(!b||performance.now()-dyGone<350||b.classList.contains('fut')) return; dySel=[dyOff,+b.dataset.d]; [].forEach.call($('dyCal').querySelectorAll('button'),function(x){ x.classList.toggle('sel',x===b); }); fabSync(); });
-  $('dyFab').addEventListener('click',function(){ impFrom=$('dyFab'); impOpen(true,3); });
+  /* the tapped day sits under the grid, inside the calendar, with its own Edit button (sample data) */
+  function dyDetail(){ var el=$('dyDet'); if(!el) return; if(!dySel||dySel[0]!==dyOff){ el.hidden=true; el.innerHTML=''; return; }
+    var zh=api.lang()==='zh', md=dyMonthDate(dyOff), c=dySel[2], date=new Intl.DateTimeFormat(zh?'zh-CN':'en',{weekday:'long',month:'long',day:'numeric'}).format(new Date(md.getFullYear(),md.getMonth(),dySel[1])), p=dySel[3]||.6, h='';
+    var none=c==='today'||c==='off';
+    h='<div class="dd-h"><span>'+date+'</span>'+(none?'<span>'+(zh?'没有记录':'Nothing logged')+'</span>':'')+'</div>';
+    if(none) h+='<div class="dd-acts"><button type="button" class="dd-e" data-dd="1">'+(zh?'补记断食':'Add a fast')+'</button></div>';
+    else if(c==='flex') h+='<div class="dd-row"><i class="dd-m flex" aria-hidden="true"></i><span class="stack"><b>'+(zh?'弹性日':'Cheat day')+'</b><small>'+(zh?'连续记录保持不变，但不增加。':'Your streak holds, and doesn’t grow.')+'</small></span></div>';
+    else{ var hrs=c==='early'?16*p:16.2, hh=Math.floor(hrs), mm=Math.round((hrs-hh)*60), end=(20+hrs)%24, eh=Math.floor(end), em=Math.round((end-eh)*60), pad=function(n){ return String(n).padStart(2,'0'); };
+      h+='<button type="button" class="dd-row" data-dd="1"><i class="dd-m'+(c==='early'?'':' full')+'"'+(c==='early'?' style="--p:'+p+'"':'')+' aria-hidden="true"></i><span class="stack"><b>'+(zh?hh+' 小时'+(mm?' '+mm+' 分':''):hh+' h'+(mm?' '+mm+' m':''))+'</b><small>20:00 → '+pad(eh)+':'+pad(em)+' · '+(c==='early'?(zh?'提前结束':'ended early'):(zh?'达成目标':'goal reached'))+'</small></span><span class="dd-e">'+(zh?'编辑':'Edit')+'</span></button>'; }
+    el.innerHTML=h; el.hidden=false; }
+  $('dyCal').addEventListener('click',function(e){ var b=e.target.closest('button[data-d]'); if(!b||performance.now()-dyGone<350||b.classList.contains('fut')) return; dySel=[dyOff,+b.dataset.d,b.className.split(' ')[0],parseFloat(b.style.getPropertyValue('--p'))||0]; [].forEach.call($('dyCal').querySelectorAll('button'),function(x){ x.classList.toggle('sel',x===b); }); dyDetail(); var dd=$('dyDet'), sc=$('daysScr'), tb=ph.querySelector('.tabs'), over=dd.getBoundingClientRect().bottom-(Math.min(sc.getBoundingClientRect().bottom,tb?tb.getBoundingClientRect().top:1e9)-12); if(over>0) sc.scrollBy({top:over,behavior:reduce?'auto':'smooth'}); });
+  $('dyDet').addEventListener('click',function(e){ var b=e.target.closest('[data-dd]'); if(!b) return; impFrom=b; impOpen(true,3); });
   var dyGone=0;
   function dyPopRender(){ var zh=api.lang()==='zh', md=dyMonthDate(dyOff), y=md.getFullYear(), now=new Date(), h='<h3>'+(zh?'跳到某个月':'Go to a month')+'</h3><p class="yr">'+y+'</p><div class="dy-pm">';
     for(var mm=0;mm<12;mm++){ var o=(now.getFullYear()*12+now.getMonth())-(y*12+mm), ok=o>=0&&o<=DY_BACK; h+='<button type="button" data-o="'+o+'"'+(ok?'':' disabled')+(o===dyOff?' class="on"':'')+'>'+new Intl.DateTimeFormat(zh?'zh-CN':'en',{month:zh?'long':'short'}).format(new Date(y,mm,1))+(ok?'<i></i>':'')+'</button>'; }
@@ -3208,7 +3230,7 @@ function dyBloom(){
     document.getElementById('tryFin').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(1)'); if(t) t.click(); setTimeout(function(){ var b=document.querySelector('#moments [data-go=finish]'); if(b) b.click(); },500); });
     document.getElementById('tryImp').addEventListener('click',function(){ view(); var t=ph.querySelector('.tabs>span:nth-of-type(4)'); if(t) t.click(); setTimeout(function(){ var m=document.getElementById('meImp'); if(m) m.click(); },500); }); })();
   function select(i){ ph.style.setProperty('--ti',i); tabs.forEach(function(t,k){ t.classList.toggle('sel',k===i); t.setAttribute('aria-selected',k===i); });
-    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ dyPlay=true; daysRender(); dsc.scrollTop=0; if(window.LightlyDyPop) window.LightlyDyPop(); } else { dySel=null; fabSync(); } var fopen=i===2, open=i===3; if(window.LightlyFriends) window.LightlyFriends.show(fopen); me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(ph.hasAttribute('data-me')!==!!(open||dopen||fopen)){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); } if(open||dopen||fopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
+    ph.classList.remove('tabs-off'); var dsc=$('daysScr'), dopen=i===1; dsc.classList.toggle('open',dopen); dsc.setAttribute('aria-hidden',!dopen); if(dopen){ dyPlay=true; daysRender(); dsc.scrollTop=0; if(window.LightlyDyPop) window.LightlyDyPop(); } else { dySel=null; dyDetail(); } var fopen=i===2, open=i===3; if(window.LightlyFriends) window.LightlyFriends.show(fopen); me.classList.toggle('open',open); me.setAttribute('aria-hidden',!open); if(open){ render(); meRows(); me.scrollTop=0; } if(ph.hasAttribute('data-me')!==!!(open||dopen||fopen)){ ph.classList.add('snap'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ ph.classList.remove('snap'); }); }); } if(open||dopen||fopen) ph.setAttribute('data-me','1'); else ph.removeAttribute('data-me'); }
   tabs.forEach(function(t,i){ t.setAttribute('role','tab'); t.tabIndex=0;
     t.addEventListener('click',function(){ select(i); });
     t.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); t.click(); } }); });
@@ -3322,12 +3344,18 @@ function dyBloom(){
       '<div class="fr-t"><div><h3 class="lt">'+L('Morning crew','晨光小组')+'</h3><div class="fr-sub">'+L('Just you for now','现在只有你')+'</div></div><div class="fr-tools"><button type="button" class="fr-more" data-a="set" aria-label="'+L('Group settings','小组设置')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>'+
       sky(me,true)+'<div class="fr-inv2"><small>'+L('Invite code','邀请码')+'</small><b dir="ltr">K7QM 4XD9</b><div class="fr-btns"><button type="button" data-a="copy">'+L('Share link','分享链接')+'</button><button type="button" data-a="copy">'+L('Copy','复制')+'</button></div><p class="fr-note2">'+L('Valid for 7 days. Share it only with people you know.','7 天内有效，请只发给你认识的人。')+'</p></div>'; }
 
+  /* an example group for the empty states: five made-up people and two open places, marked "Example"; a picture, not a control */
+  function demo(){ var P=[[62,62,'mei',{s:'fasting',p:.8}],[150,100,'arjun',{s:'fasting',p:.45}],[102,178,'diego',{s:'fasting',p:.2}],[216,168,'lena',{s:'done',p:1}],[290,86,'sam',{s:'none',p:0}]], S=[[310,190],[240,238]], H=288;
+    return '<div class="fr-sky fr-demo" data-look="lines" aria-hidden="true" style="aspect-ratio:358/'+H+'"><div class="fr-skyi" style="height:'+H+'px"><div class="fr-tw">'+TW.filter(function(t){ return t[1]<H-20; }).map(function(t){ return '<i style="left:'+t[0]+'px;top:'+t[1]+'px;animation-duration:'+t[2]+'s"></i>'; }).join('')+'</div>'+
+      '<svg class="fr-ln" width="358" height="'+H+'" viewBox="0 0 358 '+H+'"><polyline points="'+P.map(function(p){ return p[0]+','+p[1]; }).join(' ')+'" fill="none" stroke="var(--fcl)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><polyline points="'+[P[4]].concat(S).map(function(p){ return p[0]+','+p[1]; }).join(' ')+'" fill="none" stroke="var(--fcl)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 6"/></svg>'+
+      P.map(function(p){ return '<span class="fr-st" style="left:'+(p[0]-22)+'px;top:'+(p[1]-22)+'px">'+(p[3].s==='done'?FLARE:'')+ringSvg(p[3],false)+'<span class="fr-sav'+(p[3].s==='none'?' dim':'')+'">'+av(p[2])+'</span><span class="fr-sl">'+nm(p[2])+'</span></span>'; }).join('')+
+      S.map(function(p){ return '<span class="fr-seat" style="left:'+(p[0]-22)+'px;top:'+(p[1]-22)+'px"><i><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></span>'; }).join('')+
+      '<span class="fr-ex">'+L('Example','示例')+'</span><div class="fr-skycap"><b>'+L('Morning crew','晨光小组')+'</b><span>'+L('3 fasting now','3 人断食中')+'</span></div></div></div>'; }
   function hero(out){
-    return '<div class="fr-hero"><div class="fr-trio">'+disc('none',0)+disc('fasting',.6)+disc('done',1)+'</div>'+
-      (out?'<h3>'+L('Fast with friends','和朋友一起断食')+'</h3><p class="fr-s">'+L('Make a private group and see who is fasting today.','建一个私密小组，看看今天谁在断食。')+'</p>'+
-        '<div class="fr-pts">'+[[L('Private, by invite only','私密，仅限邀请'),'<circle cx="9" cy="8.5" r="3.4"/><path d="M2.8 19.5a6.2 6.2 0 0 1 12.4 0"/><path d="M15.6 5.4a3.2 3.2 0 0 1 0 6.2M17.5 14.2a6 6 0 0 1 3.7 5.3"/>'],[L('See each other\u2019s progress','看到彼此的进度'),'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'],[L('Cheer each other on','互相加油'),'<path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/>']].map(function(r){ return '<div><span class="fr-pi" aria-hidden="true"><svg viewBox="0 0 24 24">'+r[1]+'</svg></span><span>'+r[0]+'</span></div>'; }).join('')+'</div><p class="fr-fine">'+L('Friends is the only part of Lightly that needs an account.','轻伴里只有朋友功能需要账号。')+'</p>'
+    return '<div class="fr-hero ex">'+demo()+
+      (out?'<h3>'+L('Fast with friends','和朋友一起断食')+'</h3><p>'+L('A private group, by invite only. See who is fasting today and cheer them on.','私密小组，仅限邀请。看看今天谁在断食，互相加油。')+'</p>'
        :'<h3>'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h3><p>'+L('Start a group and send one link. Your fasts stay yours.','建一个小组，发一个链接。你的断食数据仍然只属于你。')+'</p>')+
-      '<button type="button" class="fr-go" data-a="'+(out?'in':'new')+'">'+(out?L('Sign in','登录'):L('Start a group','建一个小组'))+'</button>'+(out?'':'<button type="button" class="fr-lnk" data-a="code">'+L('I have an invite code','我有邀请码')+'</button>')+'</div>'; }
+      '<div class="fr-foot">'+(out?'<p class="fr-fine">'+L('Friends is the only part of Lightly that needs an account.','轻伴里只有朋友功能需要账号。')+'</p>':'')+'<button type="button" class="fr-go" data-a="'+(out?'in':'new')+'">'+(out?L('Sign in','登录'):L('Start a group','建一个小组'))+'</button>'+(out?'':'<button type="button" class="fr-lnk" data-a="code">'+L('I have an invite code','我有邀请码')+'</button>')+'</div></div>'; }
 
   function group(){
     var b=board(day), rows=b.map(function(x){ var me=x.k==='you', ch='';
