@@ -61,6 +61,30 @@ function layout(s,up){ var L=LAYOUTS[s.k], slots=(L?L.slots:RING).map(function(p
 /* every slot at least this far from every other, so 44 px stars never overlap */
 function minGap(slots){ var m=1e9; for(var i=0;i<slots.length;i++) for(var j=i+1;j<slots.length;j++){ var dx=slots[i][0]-slots[j][0], dy=slots[i][1]-slots[j][1]; m=Math.min(m,Math.sqrt(dx*dx+dy*dy)); } return m; }
 
-var api={SIGNS:SIGNS,LAYOUTS:LAYOUTS,signAt:signAt,name:name,range:range,caption:caption,layout:layout,minGap:minGap};
+
+/* ---------- Your sky (the Days tab): one sign's season with its real dates ---------- */
+function pad(n){ return (n<10?'0':'')+n; }
+/* "2026-11-08" -> {sign, from:'2026-10-23', to:'2026-11-21'}: the season that day falls in. Capricorn runs from one year into the next. */
+function season(day){
+  var p=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(day||'')); if(!p){ var t=new Date(); p=[0,t.getFullYear(),t.getMonth()+1,t.getDate()]; }
+  var y=+p[1], m=+p[2], s=signAt(y+'-'+pad(m)+'-'+pad(+p[3])), fy=y, ty=y;
+  if(s.from[0]>s.to[0]){ if(m>=s.from[0]) ty=y+1; else fy=y-1; }
+  return {sign:s, from:fy+'-'+pad(s.from[0])+'-'+pad(s.from[1]), to:ty+'-'+pad(s.to[0])+'-'+pad(s.to[1])}; }
+/* the season before (n < 0) or after (n > 0) */
+function seasonStep(se,n){ var p=(n<0?se.from:se.to).split('-'), d=new Date(+p[0],+p[1]-1,+p[2]+(n<0?-1:1)); return season(d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())); }
+/* "Oct 23 – Nov 21, 2026": the season's dates with its year (the year it ends in) */
+function seasonText(se,lang){ var y=se.to.slice(0,4); return lang==='zh'?y+'年 '+range(se.sign,lang):range(se.sign,lang)+', '+y; }
+/* Where the small stars go once all ten stars of the figure are lit: up to 24 fixed places for each sign, the same every time,
+   clear of the ten slots, of each other, of the panel's edge and of the caption. `up` and `h` are the lift and height of the panel (24 and 360 in Your sky). */
+function extras(s,up,h){
+  up=up||0; h=h||400; var slots=layout(s,up).slots, out=[], seed=97+SIGNS.indexOf(s)*131, tries=0;
+  function rnd(){ seed=(seed*16807)%2147483647; return seed/2147483647; }
+  while(out.length<24&&tries++<6000){ var x=Math.round(24+rnd()*310), y=Math.round(24+rnd()*(h-48)), ok=!(x<176&&y>h-66);
+    for(var i=0;ok&&i<slots.length;i++) if(Math.abs(slots[i][0]-x)<34&&Math.abs(slots[i][1]-y)<34) ok=false;
+    for(var j=0;ok&&j<out.length;j++) if(Math.abs(out[j][0]-x)<30&&Math.abs(out[j][1]-y)<30) ok=false;
+    if(ok) out.push([x,y]); }
+  return out; }
+
+var api={SIGNS:SIGNS,LAYOUTS:LAYOUTS,signAt:signAt,name:name,range:range,caption:caption,layout:layout,minGap:minGap,season:season,seasonStep:seasonStep,seasonText:seasonText,extras:extras};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyZodiac=api;
 })(typeof self!=='undefined'?self:this);
