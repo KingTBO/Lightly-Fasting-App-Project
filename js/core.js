@@ -125,6 +125,13 @@ function nextTurn(hDay,sun){
 }
 /* phase of the disc: 0 new to 1 full, waning during the eating window */
 function discFill(elapsedH,goalH){ return Math.min(Math.max(elapsedH/goalH,0),1); }
+/* What is happening in the body, by hours since the fast began. A rough guide, not a measurement: the hours are the usual textbook stretches
+   (fed, post-absorptive, liver glycogen, the switch to fat and ketones, which comes somewhere between 12 and 36 hours: Anton and others, Obesity, 2018).
+   Autophagy is left out on purpose: its timing has not been measured in people. */
+var BODY=[{id:'digest',from:0,to:4},{id:'settle',from:4,to:8},{id:'sugar',from:8,to:12},{id:'switch',from:12,to:18},{id:'fat',from:18,to:24},{id:'long',from:24,to:null}];
+function bodyStage(elapsedH){ var i=0; for(var k=0;k<BODY.length;k++) if(elapsedH>=BODY[k].from) i=k; return i; }
+/* the stages a fast shows: the ones it has reached, and the ones that begin before its goal. Nothing beyond the plan is put on show, so the list never invites a longer fast */
+function bodyShown(elapsedH,goalH){ var now=bodyStage(Math.max(elapsedH,0)), n=0; BODY.forEach(function(b,i){ if(b.from<goalH||i<=now) n=i+1; }); return n; }
 
 /* ---------- plans ---------- */
 var PLANS=[
@@ -379,7 +386,7 @@ function trendBuckets(points){
     if(best) out.push({day:t,pct:best.p.pct}); });
   return out;
 }
-var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,
+var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;

@@ -163,8 +163,30 @@ var TIPS={night:['The long quiet stretch. Most of it passes while you sleep.','�
   early:['Last meal done. The first hours are the easy part.','最后一餐结束了，最初几个小时最轻松。'],mid:['Past halfway. Keep it light and keep sipping water.','已经过半了。保持轻松，记得喝水。'],
   late:['The last two hours. You have done the hard part.','最后两小时，最难的部分已经过去了。'],
   ram:['A quiet day. Nothing to count, nothing to prove.','平静的一天。无需计算，也无需证明什么。'],long:['A long fast: sip water, add a pinch of salt if you feel faint, and stop if you feel unwell.','长时间断食：多喝水，头晕时可加一点点盐，不舒服就停下。']};
+/* What is happening now: one entry per stage in C.BODY. n = name, s = the words on Today after "Your body now:", t = the explanation.
+   Plain and careful: what usually happens, no promises, nothing about weight. Sources are named at the foot of the sheet. */
+var NOWTX={
+  digest:{n:['Digesting','消化中'],s:['digesting','消化中'],t:['Your body is still running on your last meal. Blood sugar and insulin go up, then start to come down.','身体还在用上一餐的能量。血糖和胰岛素先升高，然后开始回落。']},
+  settle:{n:['Settling','回落平稳'],s:['settling','回落平稳'],t:['Digestion winds down. Blood sugar and insulin drift back to their resting levels.','消化逐渐结束，血糖和胰岛素回到平时的水平。']},
+  sugar:{n:['Stored sugar','动用储存的糖'],s:['using stored sugar','动用储存的糖'],t:['With no food coming in, your liver releases the sugar it stored (glycogen) to keep your blood sugar steady.','没有食物进来，肝脏放出储存的糖（糖原），让血糖保持平稳。']},
+  'switch':{n:['Switching fuel','切换燃料'],s:['switching fuel','切换燃料'],t:['The liver’s store runs low, so your body turns more to fat and starts making ketones. When this happens differs: usually somewhere between 12 and 36 hours, depending on your last meal and how active you are.','肝脏储存的糖变少，身体开始更多地用脂肪，并产生酮体。具体时间因人而异，通常在 12 到 36 小时之间，取决于上一餐和活动量。']},
+  fat:{n:['New fuel','新燃料'],s:['running on the new fuel','用上新燃料'],t:['Fat is now the main fuel and ketones keep rising. Hunger tends to come in waves and pass.','脂肪成为主要燃料，酮体继续上升。饥饿感往往一阵一阵，会过去。']},
+  'long':{n:['Long fast','长时间断食'],s:['a long fast','长时间断食'],t:['Ketones now supply more of your brain’s energy, and your body makes the sugar it still needs. Drink water, add a pinch of salt if you feel faint, and stop if you feel unwell.','酮体为大脑提供更多能量，身体也会自己制造仍然需要的糖。多喝水，头晕时加一点点盐，不舒服就停下。']}};
+function nowHours(b){ return b.to==null?L(b.from+' hours and beyond',b.from+' 小时以上'):L(b.from+' to '+b.to+' hours',b.from+' 至 '+b.to+' 小时'); }
+/* the line is offered during an ordinary fast only: not in Ramadan (a different fast, with its own words) and not in Care mode (nothing there talks about what the body burns) */
+function nowOn(){ var cur=S.cur; return !!cur&&cur.planId!=='ramadan'&&!care(); }
+var nowOpen=-1;
+function nowSheet(open){
+  var cur=S.cur; if(!nowOn()) return; var elH=(Date.now()-cur.start)/H, now=C.bodyStage(elH), n=C.bodyShown(elH,cur.goalH); nowOpen=open==null?now:open;
+  var h='<h3>'+L('What is happening now','身体此刻在做什么')+'</h3><p class="lede">'+L('A rough guide to a fast, stage by stage. Bodies differ, so take the hours loosely.','断食各阶段的大致情况。每个人不一样，时间仅供参考。')+'</p><div class="group bn">';
+  for(var i=0;i<n;i++){ var b=C.BODY[i], tx=NOWTX[b.id], z=S.lang==='zh'?1:0, on=i===nowOpen;
+    h+='<button type="button" class="bn-row'+(i===now?' now':i<now?' past':'')+(on?' open':'')+'" data-act="nowrow" data-i="'+i+'" aria-expanded="'+on+'"><i class="bn-dot" aria-hidden="true"></i><span class="stack"><b>'+tx.n[z]+'</b><small>'+(i===now?L('Now · ','现在 · '):'')+nowHours(b)+'</small>'+(on?'<span class="bn-t">'+tx.t[z]+'</span>':'')+'</span>'+CHEV+'</button>'; }
+  h+='</div><p class="gf bn-f">'+L('You may have read that cell clean-up (autophagy) starts at a set hour. That comes from animal studies. In people the timing has not been measured, so it is not on this list.','你可能听说过细胞自噬会在某个小时开始。这来自动物研究，在人体中还没有测出具体时间，所以这里没有列出。')+'</p>'+
+   '<p class="gf bn-f">'+L('General information, not medical advice. Sources: ','仅为一般知识，不是医疗建议。来源：')+
+   '<a href="https://doi.org/10.1002/oby.22065" target="_blank" rel="noopener">Anton et al., Obesity, 2018</a>'+L('; ','；')+'<a href="https://doi.org/10.1146/annurev.nutr.26.061505.111258" target="_blank" rel="noopener">Cahill, Annu. Rev. Nutr., 2006</a>'+L('; ','；')+'<a href="https://doi.org/10.1016/j.arr.2018.08.004" target="_blank" rel="noopener">Bagherniya et al., Ageing Res. Rev., 2018</a>'+L('.','。')+'</p>';
+  var keep=sheetOpen&&sheetEl.querySelector('.bn')?sheetEl.scrollTop:0; openSheet(h); if(keep) sheetEl.scrollTop=keep; }
 /* the hint speaks at moments (a new stage, each hour, opening the app) and then goes quiet; idle and break notes stay, since they carry facts */
-var tipEl=$('readTip'), tipUntil=0, tipTxt='', tipHr=-1;
+var tipEl=$('readTip'), nowBtn=$('nowBtn'), tipUntil=0, tipTxt='', tipHr=-1;
 function tip(txt,always,hr){ var t=Date.now(); if(txt!==tipTxt){ tipTxt=txt; tipUntil=t+6000; }
   if(hr!=null){ if(tipHr>=0&&hr>tipHr) tipUntil=t+6000; tipHr=hr; } else tipHr=-1;
   put(tipEl,'t',txt); tipEl.classList.toggle('quiet',!always&&t>tipUntil); }
@@ -263,10 +285,12 @@ function updateToday(){
     else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); setBigTime(Math.floor(el*3600)); put(altEl,'alt',L('Goal ','目标 ')+Math.round(goal)+L(' h',' 小时')); tip(ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
       if(!ramadan&&over>=2&&!cur.nudged){ cur.nudged=true; save(); toast(L('You’re well past your goal. Eat when you’re ready; extra time isn’t scored.','已经超过目标很久了。准备好就可以吃东西，超出的时间不计分。')); } }
     if(!holdOn) put($('actLbl'),'a',L('Hold to end fast','按住结束断食'));
+    if(nowOn()){ var bst=NOWTX[C.BODY[C.bodyStage(el)].id]; put(nowBtn,'now','<span>'+L('Your body now: ','身体此刻：')+'</span><b>'+bst.s[S.lang==='zh'?1:0]+'</b>'+CHEV,1); }
   }else{
     put($('readK'),'k',L('Eating window left','进食窗口还剩')); setBigTime(Math.max(0,Math.ceil((eatLen-eatEl)*3600))); put(altEl,'alt','');
     tip(L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start fast','开始断食'));
   }
+  nowBtn.hidden=!(mode==='fast'&&nowOn());
   act.setAttribute('aria-disabled',brk||chd); /* stays tappable during a break or a cheat day: a tap shakes it and says why (see restNudge) */ act.classList.toggle('end',mode==='fast'&&!brk&&!chd); /* quiet glass while a fast runs, yellow for Start */ $('track').style.visibility=brk||chd?'hidden':'';
   /* timeline */
   var a0=mode==='eat'?le.end:mode==='fast'?cur.start:now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:ram?placeMs(sun.set,now):now+p.fast*H;
@@ -1879,6 +1903,7 @@ var A={
   geo:function(){ toast(L('Finding your location…','正在定位…')); geo(function(){ placeSheet(); },function(){ if(sheetOpen) placeSheet(); }); },
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
   plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet, care:careSheet,
+  nowsheet:function(){ nowSheet(); }, nowrow:function(b){ var i=+b.dataset.i; nowSheet(i===nowOpen?-2:i); },
   carerow:careRow,
   careadd:function(b){ careAdd(b.dataset.k); careSheet(); },
   careundo:careUndoGo,
