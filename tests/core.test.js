@@ -148,4 +148,10 @@ assert.deepStrictEqual(C.feelCount([{feel:'easy'},{feel:'easy'},{feel:'hard'},{}
 {const T=(d,h)=>new Date(2026,9,d,h).getTime(),fs=[{id:'a',start:T(3,20),end:T(4,12),goalH:16,feel:'ok'},{id:'b',start:T(5,20),end:T(6,12),goalH:16,feel:'hard'},{id:'c',start:T(7,20),end:T(8,12),goalH:16},{id:'d',start:new Date(2026,10,2,20).getTime(),end:new Date(2026,10,3,12).getTime(),goalH:16,feel:'easy'}];
  const r=C.monthReport(fs,2026,9,[],[]);assert.deepStrictEqual(r.feel,{easy:0,ok:1,hard:1,n:2},'the month counts only its own marked fasts');
  const st=C.streak(fs.map(f=>Object.assign({},f,{feel:undefined})),[],new Date(2026,10,3,13).getTime()),st2=C.streak(fs,[],new Date(2026,10,3,13).getTime());assert.deepStrictEqual(st,st2,'how a fast felt never changes a streak');}
+// your sky: the days in a span that hold a finished fast. Any length counts, a day counts once, an unfinished fast and a day outside the span do not
+{const T=(m,d,h)=>new Date(2026,m,d,h).getTime(),fs=[{id:'a',start:T(9,22,18),end:T(9,23,10),goalH:16},{id:'b',start:T(9,23,12),end:T(9,23,17),goalH:16},{id:'c',start:T(10,1,20),end:T(10,2,0,30),goalH:16},
+  {id:'d',start:T(10,5,20),end:T(10,5,20),goalH:16},{id:'e',start:T(10,6,20),goalH:16},{id:'f',start:T(9,21,18),end:T(9,22,10),goalH:16},{id:'g',start:T(10,21,2),end:T(10,21,23),goalH:13},{id:'h',start:T(10,21,20),end:T(10,22,12),goalH:16}];
+ assert.deepStrictEqual(C.starDays(fs,'2026-10-23','2026-11-21'),['2026-10-23','2026-11-02','2026-11-21'],'oldest first, once a day, both ends of the span included');
+ assert.deepStrictEqual(C.starDays(fs,'2026-09-23','2026-10-22'),['2026-10-22']);assert.deepStrictEqual(C.starDays([],'2026-10-23','2026-11-21'),[]);
+ const long=fs.map(f=>f.end>f.start?Object.assign({},f,{start:f.start-20*H}):f);assert.deepStrictEqual(C.starDays(long,'2026-10-23','2026-11-21'),C.starDays(fs,'2026-10-23','2026-11-21'),'a longer fast lights the same stars, no more');}
 console.log('core ok',s);

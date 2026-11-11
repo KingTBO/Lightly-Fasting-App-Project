@@ -995,10 +995,64 @@ function renderDays(){
   h+='</div>';
   }
   h+=(first1?'':'<div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i class="wedge"></i>'+L('Ended early','提前结束')+'</span>'+(care()?'':'<span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span>')+'<span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div>')+'</div>';
+  if(!first1&&ysOn()) h+=ysCard();
   if(!first1) h+='<div class="gh avgh">'+L('Average fast','平均断食时长')+'</div><div id="avgBox">'+avgHtml(avgPlay)+'</div>';
   $('days').innerHTML=h; avgPlay=false; ddIn=false;
   if(numPlay){ numPlay=false; odo($('days').querySelector('.tot .rn')); moonFill($('days').querySelector('.tot')); }
 }
+
+/* ---------- Your sky: every day with a finished fast lights a star in the season's star sign (the signs, slots and figures of the Friends sky) ----------
+   A card on the Days tab opens it. It counts days, never hours: a star looks the same for every fast, and nothing here says how many are left.
+   Not shown in Care mode or while the plan is Ramadan, and a fast kept in Ramadan mode lights no star (the same fasts the streak leaves alone). */
+var ZD=window.LightlyZodiac, ysView=null, ysSel=null, SKY_H=400;
+var SKY_TW=[[30,26,5],[208,24,7],[318,64,6],[260,120,8],[36,210,6.5],[78,350,5.5],[330,170,9],[224,300,7.5]];
+var STAR_D='M0 -28C2 -9 9 -2 28 0C9 2 2 9 0 28C-2 9 -9 2 -28 0C-9 -2 -2 -9 0 -28Z';
+function ysOn(){ return !care()&&!!ZD&&S.planId!=='ramadan'; }
+function ysNow(){ return ZD.season(today()); }
+function ysStars(se){ return C.starDays(streakFasts(),se.from,se.to); }
+function ysFirst(){ var l=C.finished(streakFasts()); return l.length?ZD.season(C.dayKey(Math.min.apply(null,l.map(function(f){ return f.end; })))):ysNow(); }
+function starsTxt(n){ return L(n+(n===1?' star lit':' stars lit'),'已点亮 '+n+' 颗星'); }
+function ysDayLbl(k){ return dateLbl(C.keyToDate(k).getTime(),{weekday:'long',month:'long',day:'numeric'}); }
+/* the small picture on the card: the same stars, lines and open places as the sheet */
+function ysThumb(se,days){
+  var lay=ZD.layout(se.sign,0), n=Math.min(days.length,10), ex=ZD.extras(se.sign,0,SKY_H).slice(0,Math.max(0,days.length-10)), pts=lay.slots.map(function(p){ return p[0]+','+p[1]; });
+  return '<span class="skyc-th" aria-hidden="true"><svg viewBox="0 0 358 '+SKY_H+'">'+(n<10?'<polyline class="th-d" points="'+pts.slice(Math.max(n-1,0)).join(' ')+'"/>':'')+(n>1?'<polyline class="th-l" points="'+pts.slice(0,n).join(' ')+'"/>':'')+
+    lay.slots.map(function(p,i){ return i<n?'<path class="th-s" transform="translate('+p[0]+' '+p[1]+') scale(1.3)" d="'+STAR_D+'"/>':'<circle class="th-o" cx="'+p[0]+'" cy="'+p[1]+'" r="8"/>'; }).join('')+
+    ex.map(function(p){ return '<path class="th-s" transform="translate('+p[0]+' '+p[1]+') scale(.5)" d="'+STAR_D+'"/>'; }).join('')+'</svg></span>'; }
+function ysCard(){ var se=ysNow(), days=ysStars(se), n=days.length;
+  return '<button type="button" class="skyc" data-act="mysky" aria-haspopup="dialog">'+ysThumb(se,days)+'<span class="stack"><b>'+L('Your sky','你的星空')+'</b><small>'+esc(ZD.name(se.sign,S.lang))+' · '+(n?starsTxt(n):L('each fast lights a star','每次断食点亮一颗星'))+'</small></span>'+CHEV+'</button>'; }
+/* the words under the sky: the count, or the day of the star that was tapped. Never how many are left. */
+function ysLine(se,days){
+  var n=days.length, cur=se.from===ysNow().from, b, s='';
+  if(ysSel&&days.indexOf(ysSel)>=0){ b=ysDayLbl(ysSel); s=(C.fastDays(C.finished(streakFasts()))[ysSel]||[]).map(function(f){ return durTxt(C.hours(f)); }).join(L(', ','、')); }
+  else if(!n){ b=cur?L('No stars yet','还没有星星'):L('A quiet season','安静的一季'); s=cur?L('Your next fast lights the first one.','下一次断食会点亮第一颗。'):''; }
+  else{ b=starsTxt(n); s=n>=10?L('The whole figure is lit. More days add small stars.','整个星座都亮了。之后的日子会添上小星星。'):L('One for each day with a fast. Tap a star to see its day.','每个有断食的日子一颗。点一下星星，看看是哪一天。'); }
+  return '<b>'+esc(b)+'</b>'+(s?'<small>'+esc(s)+'</small>':''); }
+function ysPanel(se,days){
+  var sg=se.sign, lay=ZD.layout(sg,0), n=Math.min(days.length,10), ex=ZD.extras(sg,0,SKY_H).slice(0,Math.max(0,days.length-10)), pts=lay.slots.map(function(p){ return p[0]+','+p[1]; });
+  var lbl=L(sg.en+' sky, '+ZD.seasonText(se,'en')+'. '+starsTxt(days.length)+', one for each day with a fast.',sg.zh+'星空，'+ZD.seasonText(se,'zh')+'。'+starsTxt(days.length)+'，每个有断食的日子一颗。');
+  function st(p,k,i,small){ var on=ysSel===k; return '<button type="button" class="my-st'+(small?' sm':'')+(on?' on':'')+'" data-act="skystar" data-k="'+k+'" style="left:'+p[0]+'px;top:'+p[1]+'px;--i:'+i+'" aria-pressed="'+on+'" aria-label="'+esc(ysDayLbl(k))+'"><svg viewBox="-30 -30 60 60" aria-hidden="true"><path d="'+STAR_D+'"/></svg></button>'; }
+  return '<div class="fr-sky my-sky" role="group" aria-label="'+esc(lbl)+'" style="aspect-ratio:358/'+SKY_H+';--lit:'+(n/10)+'"><div class="fr-skyi" style="height:'+SKY_H+'px">'+
+    '<div class="fr-tw" aria-hidden="true">'+SKY_TW.map(function(t){ return '<i style="left:'+t[0]+'px;top:'+t[1]+'px;animation-duration:'+t[2]+'s"></i>'; }).join('')+'</div>'+
+    (lay.fig?'<div class="fr-art" aria-hidden="true" data-art="'+lay.art+'" style="-webkit-mask-image:url('+lay.art+');mask-image:url('+lay.art+')"></div>':'')+
+    '<svg class="fr-ln" width="358" height="'+SKY_H+'" viewBox="0 0 358 '+SKY_H+'" aria-hidden="true">'+(n<10?'<polyline points="'+pts.slice(Math.max(n-1,0)).join(' ')+'" fill="none" stroke="var(--fcl)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 6"/>':'')+
+      (n>1?'<polyline points="'+pts.slice(0,n).join(' ')+'" fill="none" stroke="var(--fcl)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>':'')+
+      lay.slots.slice(n).map(function(p){ return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.4" fill="var(--fseat)" stroke="var(--fdash)" stroke-width="1.2"/>'; }).join('')+'</svg>'+
+    days.slice(0,10).map(function(k,i){ return st(lay.slots[i],k,i); }).join('')+ex.map(function(p,i){ return st(p,days[10+i],10+i,true); }).join('')+
+    '<div class="fr-cap"><b>'+esc(ZD.name(sg,S.lang))+'</b><span>'+esc(ZD.seasonText(se,S.lang))+'</span></div></div></div>'; }
+/* the board is 358 px wide; on a narrower phone the whole of it scales down together (as the Friends sky does) */
+function ysFit(){ var k=sheetEl.querySelector('.my-sky'); if(k) k.style.setProperty('--ks',Math.min(1,k.clientWidth/358).toFixed(4)); }
+window.addEventListener('resize',ysFit);
+/* the figure is a mask: it stays hidden until its picture is decoded, so the panel never flashes a flat colour */
+function ysArt(){ var el=sheetEl.querySelector('.my-sky .fr-art:not(.rd)'); if(!el) return; var i=new Image(); i.src=el.getAttribute('data-art');
+  (i.decode?i.decode():new Promise(function(ok){ i.onload=ok; i.onerror=ok; })).catch(function(){}).then(function(){ requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(el.isConnected) el.classList.add('rd'); }); }); }); }
+function ysSheet(se){
+  if(!ysOn()) return; ysView=se||ysView||ysNow(); var days=ysStars(ysView), first=ysFirst().from, now=ysNow().from, nav=first<now;
+  if(ysView.from<first||ysView.from>now){ ysView=ysNow(); days=ysStars(ysView); }
+  function arrow(d,lbl,can){ return '<button type="button" data-act="skygo" data-d="'+d+'" aria-label="'+lbl+'"'+(can?'':' disabled')+'><svg viewBox="0 0 10 18" aria-hidden="true"><path d="'+(d<0?'M8.5 1.5 1.5 9l7 7.5':'M1.5 1.5 8.5 9l-7 7.5')+'"/></svg></button>'; }
+  openSheet('<h3>'+L('Your sky','你的星空')+'</h3><p class="lede">'+L('Every day you finish a fast lights a star. Any fast counts, whatever its length.','每个完成断食的日子，都会点亮一颗星。断食长短都算。')+'</p>'+ysPanel(ysView,days)+
+    '<div class="sky-nav">'+(nav?arrow(-1,L('Earlier sky','更早的星空'),ysView.from>first):'')+'<div class="sky-ln" id="skyLn" aria-live="polite">'+ysLine(ysView,days)+'</div>'+(nav?arrow(1,L('Later sky','更近的星空'),ysView.from<now):'')+'</div>');
+  ysFit(); ysArt(); }
 
 /* ---------- in-app wheel pickers: they replace the browser's date, time and select controls ----------
    A row shows the value in a capsule and opens a wheel inline. The wheel has its own physics, like the Apple Clock picker, so it feels the same on
@@ -1965,6 +2019,9 @@ var A={
   geo:function(){ toast(L('Finding your location…','正在定位…')); geo(function(){ placeSheet(); },function(){ if(sheetOpen) placeSheet(); }); },
   city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
   plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet, care:careSheet,
+  mysky:function(){ ysSel=null; ysSheet(ysNow()); },
+  skygo:function(b){ var d=+b.dataset.d; ysSel=null; ysSheet(ZD.seasonStep(ysView,d)); fx('select'); var nb=sheetEl.querySelector('.sky-nav [data-d="'+d+'"]:not(:disabled)')||sheetEl.querySelector('.sky-nav button:not(:disabled)'); if(nb) nb.focus({preventScroll:true}); },
+  skystar:function(b){ var k=b.dataset.k; ysSel=ysSel===k?null:k; fx('select'); [].forEach.call(sheetEl.querySelectorAll('.my-st'),function(s){ var on=s.dataset.k===ysSel; s.classList.toggle('on',on); s.setAttribute('aria-pressed',on); }); var ln=$('skyLn'); if(ln&&ysView) ln.innerHTML=ysLine(ysView,ysStars(ysView)); },
   nowsheet:function(){ nowSheet(); }, nowrow:function(b){ var i=+b.dataset.i; nowSheet(i===nowOpen?-2:i); },
   carerow:careRow,
   careadd:function(b){ careAdd(b.dataset.k); careSheet(); },
