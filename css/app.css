@@ -85,7 +85,7 @@ html:lang(zh-Hans) .lt{letter-spacing:0}
 .read .k{display:block}
 .read .big{font:600 3.5rem/1.05 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:block}
 .read .big small{font-size:.5em;font-weight:600;color:var(--ink-2);margin:0 .12em 0 .04em}
-.read .tip{font:400 0.9375rem/1.4 var(--font);color:var(--ink-2);margin:6px auto 0;max-width:30ch;min-height:42px;transition:opacity .7s ease}
+.read .tip{font:400 0.9375rem/1.4 var(--font);color:var(--ink-2);margin:6px auto 0;max-width:30ch;min-height:42px;transition:opacity .7s ease;text-wrap:balance}   /* balanced lines, so a last line is never a single character */
 .read .tip.quiet{opacity:0}
 .track{margin:var(--s3) var(--m) 0;position:relative;flex:none}
 .track svg{display:block;width:100%;height:auto;overflow:visible}
@@ -109,7 +109,7 @@ html:lang(zh-Hans) .lt{letter-spacing:0}
 .track.tls .ends{margin-top:8px}
 .ph.tight .track.tls .strip{display:none}
 .ph.tight .track.tls .ends{margin-top:0}
-.ends .cap{font:600 .65625rem/1.2 var(--font);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+.ends .cap{font:600 .6875rem/1.2 var(--font);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
 html:lang(zh-Hans) .ends .cap{font-size:.75rem;letter-spacing:.02em;text-transform:none}
 .ends .trow{display:flex;align-items:center;gap:7px}
 .ends .eg{width:14px;height:14px;flex:none;display:block}.ends .eg svg{display:block;width:100%;height:100%}
@@ -129,6 +129,10 @@ html:lang(zh-Hans) .ends .cap{font-size:.75rem;letter-spacing:.02em;text-transfo
 .act.pressed{transform:scale(.97)}
 .act::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.16);transform-origin:left;transform:scaleX(var(--hold,0));z-index:-1;transition:transform .35s var(--spring)}
 .act.holding::before{transition:none}
+/* while a fast runs the button goes quiet: the same glass as the tab bar, so the moon or sun stays the loudest thing on Today. Yellow is kept for Start. */
+.act{transition:transform .1s ease-out,background-color .5s ease,color .5s ease}
+.act.end{background:var(--glass);color:var(--ink);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--ink) 14%,transparent),inset 0 .5px 0 rgba(255,255,255,.45)}
+.act.end::before{background:color-mix(in srgb,var(--ink) 16%,transparent)}
 .scr#today{padding-bottom:calc(88px + var(--sab))}
 .sp{flex:1 1 0;min-height:0}
 .sp.mid{flex-grow:.5}
@@ -173,7 +177,7 @@ a.row{text-decoration:none;color:var(--label)}
 .row .seg{margin-left:auto;width:min(60%,220px)}
 .sw{position:relative;flex:none;width:51px;height:31px;border-radius:999px;border:0;background:var(--fill-2);margin-left:auto;transition:background .2s ease;padding:0}
 .sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16);transition:transform .3s var(--spring)}
-.sw[aria-checked="true"]{background:var(--green)}.sw[aria-checked="true"]::after{transform:translateX(20px)}
+.sw[aria-checked="true"]{background:var(--tint)}.sw[aria-checked="true"]::after{transform:translateX(20px)}
 .sw:disabled{opacity:.4}
 .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 1.0625rem var(--font);transition:transform .1s ease-out}
 .btn:active{transform:scale(.97);transition-duration:.1s}
@@ -182,7 +186,6 @@ a.row{text-decoration:none;color:var(--label)}
 .tabs>button:active{background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .chip,.streak,.skypill{transition:transform .35s var(--spring)}
 .btn.sec{background:var(--fill);color:var(--label);font-weight:500}
-.btn.dark{background:var(--label);color:var(--card)}
 .btn.red{background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--red)}
 .btn:disabled{opacity:.4}
 .btns{display:grid;gap:10px}
@@ -205,8 +208,7 @@ a.row{text-decoration:none;color:var(--label)}
 .mi svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .mi.gold{background:#FFE48A;color:#4A3A00}.mi.navy{background:#0E1430;color:#F4EFE2}.mi.grey{background:var(--fill-2);color:var(--label-2)}.mi.red{background:rgba(199,0,18,.12);color:var(--red)}
 #me .group .row+.row::before,#me .pk+.row::before,#me .row+.pk::before,#me .pk+.pk::before{left:58px}
-#me .row>span:not(.v):not(.mi)+.chev{margin-left:auto}
-#me .sw[aria-checked="true"]{background:var(--tint)}
+.row>span:not(.v):not(.mi)+.chev{margin-left:auto}
 .me-card .av{width:72px;height:72px}.me-card .avw{width:72px;height:72px}.me-card .av svg.def{width:40px;height:40px}
 .me-card b{font-size:1.5rem;font-weight:700;letter-spacing:-.02em}
 .me-card .me-id .bk{display:flex;align-items:center;gap:6px;font-style:normal;font-weight:600;font-size:0.8125rem;color:#1D7A33}
@@ -224,13 +226,15 @@ a.row{text-decoration:none;color:var(--label)}
 .cal-g button{position:relative;min-width:0;height:44px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;border-radius:50%;font:500 0.9375rem var(--font-r);color:var(--label);font-variant-numeric:tabular-nums}
 .cal-g button.out{visibility:hidden}
 .cal-g button.fut{color:var(--label-2)}
-.cal-g button .d{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid transparent}
+.cal-g button .d{width:36px;height:36px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid transparent}
 .cal-g button.done .d{background:var(--tint);color:var(--on-tint);font-weight:600}
 .cal-g button.early .d{border-color:var(--orange)}
 .cal-g button.flex .d{border:1.5px dashed var(--label-2)}
 .cal-g button.today .d{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--label)}
 .cal-g button.sel .d{background:var(--fill-2)}
 .cal-g button.done.sel .d{background:var(--tint)}
+/* narrow phones: the day discs stay round (they used to be squeezed into ovals) and the rings round today and the chosen day keep clear of their neighbours */
+@media (max-width:350px){.cal{padding-left:8px;padding-right:8px}.cal-g button .d{width:34px;height:34px}}
 .legend{display:flex;gap:14px;flex-wrap:wrap;padding:6px 16px 14px;font:400 0.75rem var(--font);color:var(--label-2)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:1.5px solid transparent}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:14px 8px}
@@ -290,6 +294,11 @@ a.row{text-decoration:none;color:var(--label)}
 .plan:disabled{opacity:.55}
 .plan .bar{height:4px;border-radius:2px;background:var(--fill-2);overflow:hidden;margin-top:6px}
 .plan .bar i{display:block;height:100%;background:var(--tint);border-radius:2px}
+/* share of the day on a daily plan: fasting hours filled, eating hours empty. Two pieces with a gap, so it never reads as the unlock progress bar above */
+.plan .day{display:flex;gap:3px;height:6px;margin:7px 0 2px;max-width:232px}
+.plan .day i{display:block;height:100%;min-width:5px;border-radius:3px;background:var(--fill-2)}
+.plan .day i:first-child{background:var(--tint)}
+@media (prefers-contrast:more){.plan .day i{box-shadow:inset 0 0 0 1px var(--label-2)}.plan .day i:first-child{background:var(--label)}}
 .pill{font:500 0.75rem var(--font);padding:3px 9px;border-radius:999px;background:var(--fill);color:var(--label-2);align-self:flex-start;margin-bottom:2px}
 .pill.tint{background:var(--tint);color:var(--on-tint);font-weight:600}
 .field{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 16px;position:relative}
@@ -328,6 +337,7 @@ a.row{text-decoration:none;color:var(--label)}
 .ob-bslot{width:236px;height:236px;margin:0 auto 20px;flex:none}
 .ob-mslot{display:block;width:56px;height:56px}
 @media (max-height:720px){.ob-bslot{width:188px;height:188px;margin-bottom:14px}}
+@media (max-height:600px){.ob-bslot{width:160px;height:160px;margin-bottom:12px}}   /* the shortest phones (320 by 568): the last setup screen fits without scrolling */
 /* the one moon, parked above the steps; it moves between the slots each step keeps for it */
 .ob-moonlayer{position:absolute;left:0;top:0;width:236px;height:236px;z-index:8;transform-origin:0 0;pointer-events:none;will-change:transform;transition:transform .95s cubic-bezier(.32,.72,0,1)}
 .ob-moonlayer[hidden]{display:none}
@@ -391,7 +401,7 @@ a.row{text-decoration:none;color:var(--label)}
   .sheet,.ob-step{transition:opacity .25s ease;transform:none}.sheet{opacity:0}.sheet.open{opacity:1}.ob-step:not(.on){opacity:0;pointer-events:none}
   .act,.btn{transition:none}
 }
-@media (prefers-reduced-transparency:reduce){.tabs,.chip,.streak,.skypill{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--sky) 86%,var(--ink) 14%)}.ph.sys .tabs,.ph.sys .chip{background:var(--card)}}
+@media (prefers-reduced-transparency:reduce){.tabs,.chip,.streak,.skypill,.act.end{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--sky) 86%,var(--ink) 14%)}.ph.sys .tabs,.ph.sys .chip{background:var(--card)}}
 @media (max-height:700px){.read .big{font-size:3rem}.read .tip{min-height:0;margin-top:2px}}
 
 .ph.onb .tabs{display:none}
@@ -414,7 +424,7 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 @media (prefers-reduced-motion:reduce){#days.on,#me.on,#friends.on{animation:fade .25s ease}}
 @media (prefers-contrast:more){
   .group,.facts div,.seg{box-shadow:inset 0 0 0 1px var(--label-2)}
-  .tabs,.chip,.streak,.skypill{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--sky) 94%,var(--ink) 6%);box-shadow:inset 0 0 0 1.5px var(--ink)}
+  .tabs,.chip,.streak,.skypill,.act.end{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--sky) 94%,var(--ink) 6%);box-shadow:inset 0 0 0 1.5px var(--ink)}
   .ph.sys .tabs,.ph.sys .chip{background:var(--card)}
   :root,:root[data-theme]{--label-2:color-mix(in srgb,var(--label) 88%,transparent)}
 }
@@ -444,11 +454,11 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 /* time off greeting ("Safe travels", "Get well soon"): words, not numerals, so smaller and the same in every timer style */
 .ph[data-ts] .read .big.greet{font:600 min(2.5rem,10.5vw)/1.15 var(--font-r);letter-spacing:-.01em;padding-top:.2em}
 @media (max-height:700px){.ph[data-ts] .read .big.greet{font-size:min(2.25rem,10vw)}}
-/* ---------- tab bar: a selection pill that glides between tabs, accent-coloured selection ---------- */
-.ph{--tabsel:var(--tint);--tabfill:color-mix(in srgb,var(--tint) 24%,transparent);--spr:cubic-bezier(.2,1,.3,1)}
-.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:color-mix(in srgb,var(--tint) 72%,#fff);--tabfill:color-mix(in srgb,var(--tint) 12%,transparent)}   /* a paler yellow label on a fainter pill keeps 4.5:1 on the dusk skies */
+/* ---------- tab bar: a selection pill that glides between tabs. The pill is neutral on every tab and under every sky: the icon and the pill carry the state, and yellow is kept for actions ---------- */
+.ph{--tabsel:var(--ink);--tabfill:color-mix(in srgb,var(--ink) 14%,transparent);--spr:cubic-bezier(.2,1,.3,1)}
+.ph[data-sky="night"],.ph[data-sky="first"],.ph[data-sky="evening"]{--tabsel:#fff;--tabfill:rgba(255,255,255,.16)}
 .ph[data-sky="dawn"],.ph[data-sky="morning"],.ph[data-sky="day"],.ph[data-sky="sunset"]{--tabsel:#1C1C1E;--tabfill:rgba(255,255,255,.55)}
-.ph.sys{--tabsel:var(--label);--tabfill:color-mix(in srgb,var(--tint) 40%,transparent)}
+.ph.sys{--tabsel:var(--label);--tabfill:var(--fill-2)}
 .tab-ind{position:absolute;left:6px;top:6px;height:52px;width:calc((100% - 12px)/var(--nt,3));border-radius:999px;background:var(--tabfill);transform:translateX(calc(var(--ti,0)*100%));transition:transform .55s var(--spr),background .3s ease;will-change:transform;pointer-events:none}
 @supports (transition-timing-function:linear(0,1)){.tab-ind{transition-timing-function:linear(0,.18 6%,.52 13%,.82 21%,1.03 30%,1.07 38%,1.04 46%,1.01 56%,.995 70%,1),ease}}
 .tabs>button.sel svg{transform:scale(1.06)}.tabs svg{transition:transform .4s var(--spr),stroke-width .25s}

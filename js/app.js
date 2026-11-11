@@ -197,7 +197,7 @@ function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-s
 /* the small moon or sun beside the stage name, drawn with the same gradients as the disc */
 function skyGlyph(moon){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="url(#'+(moon?'gMoon':'gSun')+')" stroke="var(--rim)" stroke-width=".8"/>'+(moon?'<circle cx="8.6" cy="9.4" r="2.1" fill="rgba(60,50,30,.10)"/><circle cx="14.6" cy="14.6" r="2.8" fill="rgba(60,50,30,.09)"/><circle cx="14" cy="7.4" r="1.2" fill="rgba(60,50,30,.08)"/>':'')+'</svg>'; }
 function updateToday(){
-  careTick(); nowMs=Date.now(); var now=nowMs; refreshSun(now);
+  careTick(); nowMs=Date.now(); var now=nowMs; refreshSun(now); planTimes();
   var hp=C.placeHour(pi,now), sk=C.skyAt(hp,sun), p=plan(), cur=S.cur, le=lastFast();
   moonV=C.moonAmt(hp,sun);
   mode=cur?'fast':(le&&now-le.end<eatH(le)*H?'eat':'idle');
@@ -240,7 +240,7 @@ function updateToday(){
     put($('readK'),'k',L('Eating window left','进食窗口还剩')); setBigTime(Math.max(0,Math.ceil((eatLen-eatEl)*3600))); put(altEl,'alt','');
     tip(L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start fast','开始断食'));
   }
-  act.setAttribute('aria-disabled',brk||chd); /* stays tappable during a break or a cheat day: a tap shakes it and says why (see restNudge) */ $('track').style.visibility=brk||chd?'hidden':'';
+  act.setAttribute('aria-disabled',brk||chd); /* stays tappable during a break or a cheat day: a tap shakes it and says why (see restNudge) */ act.classList.toggle('end',mode==='fast'&&!brk&&!chd); /* quiet glass while a fast runs, yellow for Start */ $('track').style.visibility=brk||chd?'hidden':'';
   /* timeline */
   var a0=mode==='eat'?le.end:mode==='fast'?cur.start:now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:ram?placeMs(sun.set,now):now+p.fast*H;
   var n=Math.min(Math.round(mode==='eat'?eatLen:ram?13:goal),36)||1; buildTicks(n);
@@ -407,7 +407,7 @@ function endFast(){
     '<p class="note">'+(done?L('You reached your goal. Eat gently and drink some water.','你达成了目标。慢慢吃，先喝点水。'):LC('That still counts as a fast. Listening to your body is the point, and your streak is yours to keep going.','这也算一次断食。倾听身体才是重点，你的连续记录还可以继续。','That still counts as a fast. Listening to your body is the point.','这也算一次断食。倾听身体才是重点。'))+'</p>'+
     (news.length?'<p class="note" style="color:var(--label)"><b>'+L(news.join(' and ')+' is now open.',news.join('、')+' 现已开放。')+'</b> '+L('Choose it from the plan button on Today.','在今天页面的计划按钮里选择。')+'</p>':'')+
     (ask?'<p class="note">'+L('Want to keep these fasts if you change phones? Back them up with your email. It’s optional, and everything works without it.','想在换手机时保留这些记录吗？可以用邮箱备份。这是可选的，不备份也能正常使用。')+'</p>':'')+
-    '<div class="btns"><button class="btn dark" data-act="close">'+L('Start eating window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); countUp(document.querySelector('#sheet .big'),hrs); },beat);
+    '<div class="btns"><button class="btn" data-act="close">'+L('Start eating window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); countUp(document.querySelector('#sheet .big'),hrs); },beat);
 }
 
 /* the hours on the summary count up to their value, so the number lands instead of just appearing */
@@ -1098,7 +1098,7 @@ function importDo(){
   var html='<div class="imp-res"><div class="badge">'+IMPCK+'</div><div class="center" role="status"><span class="k stg">'+(onb?L('Welcome. Your fasts came with you.','欢迎。你的断食记录都带来了。'):L('Import complete','导入完成'))+'</span><span class="big stg">'+(onb?numTxt(hrs):n)+'</span><span class="of stg">'+(onb?L('hours already fasted','小时已断食'):L(n===1?'fast added to Days':'fasts added to Days','次断食已添加到“日子”'))+'</span>'+
     '<div class="facts stg">'+(onb?'<div><b>'+n+'</b><span>'+L(n===1?'Fast':'Fasts','次断食')+'</span></div>':'<div><b class="rn">'+numTxt(hrs)+'</b><span>'+L('Hours fasted','小时断食')+'</span></div>')+'<div><b>'+ok+'</b><span>'+L('Reached the goal','达成目标')+'</span></div><div><b>'+skipped+'</b><span>'+L('Skipped','已跳过')+'</span></div></div>'+
     '<p class="note stg">'+L('Covers '+rng+'. Skipped fasts were already in Lightly, overlapped one you have, or had unusable times.','时间范围：'+rng+'。已跳过的记录要么已在轻伴里，要么与已有记录重叠，要么时间无效。')+'</p>'+
-    '<div class="btns stg lock"><button class="btn dark" data-act="close">'+L('Done','完成')+'</button>'+(onb?'':'<button class="btn sec" data-act="impdays">'+L('See in Days','在“日子”里查看')+'</button>')+'</div></div></div>';
+    '<div class="btns stg lock"><button class="btn" data-act="close">'+L('Done','完成')+'</button>'+(onb?'':'<button class="btn sec" data-act="impdays">'+L('See in Days','在“日子”里查看')+'</button>')+'</div></div></div>';
   /* the preview sheet slides away (the dim stays), then a pause, then the result rises */
   sheetEl.classList.remove('open'); sheetHold=true;
   setTimeout(function(){
@@ -1180,7 +1180,7 @@ function careConfirm(k){
   if(k==='ed') what+=L(' Friends is hidden.','朋友标签页会隐藏。');
   var lab=was?['Add this answer','加入这个回答']:['Turn on Care mode','开启关怀模式'], ready=was?['Hold to add','按住加入']:['Hold to turn on','按住开启'];
   openSheet('<!--keep--><div class="warn-ico care">'+WARN+'</div><h3 class="ctr">'+(was?L('Add this answer?','加入这个回答？'):L('Turn on Care mode?','开启关怀模式？'))+'</h3><p class="lede ctr">'+what+L(' ','')+L('You can undo it for 24 hours.','24 小时内可以撤销。')+'</p>'+
-    '<div class="btns"><button class="btn dark" data-act="care">'+L('Cancel','取消')+'</button>'+lockedHold('careOnGo','careadd',lab,' data-k="'+k+'" data-buzz="1"','warm solid')+'</div>');
+    '<div class="btns"><button class="btn sec" data-act="care">'+L('Cancel','取消')+'</button>'+lockedHold('careOnGo','careadd',lab,' data-k="'+k+'" data-buzz="1"','warm solid')+'</div>');
   fx('warn'); unlockHold('careOnGo',lab,ready);
 }
 function careSheet(){
@@ -1218,7 +1218,7 @@ function careRow(b){
 /* ---------- plan sheet ---------- */
 var moreOpen=false;
 function planSheet(){
-  var cur=S.cur, h='<h3>'+L('Your plan','你的计划')+'</h3><p class="lede">'+(cur?L('Switching now keeps your start time. The disc refills to the new goal.','现在切换会保留开始时间，圆盘按新目标重新计算。'):L('This is the plan your next fast uses.','下一次断食会用这个计划。'))+'</p>';
+  var cur=S.cur, h='<h3>'+L('Your plan','你的计划')+'</h3><p class="lede">'+(cur?L('Switching now keeps your start time. The disc refills to the new goal.','现在切换会保留开始时间，圆盘按新目标重新计算。'):L('This is the plan your next fast uses. Times are if you start now.','下一次断食会用这个计划。时间按现在开始计算。'))+'</p>';
   var selId=cur?cur.planId:S.planId;
   if(inRamadan()) h+='<div class="group"><button class="plan'+(selId==='ramadan'?' sel':'')+'" data-act="pickplan" data-id="ramadan"><span class="pn"><span class="pt"><b>'+L('Ramadan','斋月')+'</b><span class="pill tint">'+L('In season','当季')+'</span></span><small>'+L('Dawn to sunset, this month','黎明到日落，本月')+'</small></span>'+CHECK+'</button></div>';
   h+='<div class="group">'; C.PLANS.filter(function(p){return p.top;}).forEach(function(p){ h+=planRow(p,selId); }); h+='</div>';
@@ -1242,13 +1242,17 @@ function planRow(p,selId){
     var ps=pst(p.id);
     if(ps.st==='hidden') return ''; /* Care mode stops at 16:8 */
     if(ps.st==='locked'){ dis=true; pill='<span class="pill">'+L('Locked','未解锁')+'</span>'; sub=S.lang==='zh'?zhProgress(C.planStatusLabel(ps)):C.planStatusLabel(ps); bar='<div class="bar"><i style="width:'+Math.round(ps.pct*100)+'%"></i></div>'; }
-    else{ sub=p.custom?L('Choose 12 to '+C.customMax(S.profile)+' hours','12 到 '+C.customMax(S.profile)+' 小时之间'):fastSub(p); if(ps.st==='soft') pill='<span class="pill">'+L('Advanced','进阶')+'</span>'; }
+    else{ sub=p.custom?L('Choose 12 to '+C.customMax(S.profile)+' hours','12 到 '+C.customMax(S.profile)+' 小时之间'):fastSub(p)+planUntil(p.fast); bar=dayBar(pl); if(ps.st==='soft') pill='<span class="pill">'+L('Advanced','进阶')+'</span>'; }
   }
   var extra=p.custom&&!dis?'<span class="pr" style="min-width:0"></span>':'';
   var row='<button class="plan'+(selId===p.id?' sel':'')+'" data-act="pickplan" data-id="'+p.id+'"'+(dis?' disabled':'')+(pill&&!dis&&!p.long?' data-soft="1"':'')+'><span class="pn"><b>'+esc(pName(p))+'</b><small>'+sub+'</small>'+bar+'</span>'+pill+'<span class="pr">'+lab+'</span>'+CHECK+'</button>';
   if(p.custom&&selId==='custom') row+='<div class="field"><label for="cH">'+L('Fasting hours','断食小时数')+'</label><input id="cH" type="number" min="12" max="'+C.customMax(S.profile)+'" step="1" inputmode="numeric" value="'+S.customH+'" data-chg="custom"></div>';
   return row;
 }
+/* a daily plan row says when that fast would end (from now, or from the running fast's start) and draws its share of the day: fasting hours filled, eating hours empty */
+function planUntil(h){ var now=Date.now(), end=(S.cur?S.cur.start:now)+h*H; return end<=now?L(', reached','，已达成'):L(', until ','，到 ')+'<span class="pu" data-h="'+h+'">'+clockMs(end)+'</span>'; }
+function dayBar(p){ return '<span class="day" aria-hidden="true"><i style="flex:'+p.fast+'"></i><i style="flex:'+Math.max(p.eat,0)+'"></i></span>'; }
+function planTimes(){ if(!sheetOpen) return; var q=sheetEl.querySelectorAll('.pu'), now=Date.now(); for(var i=0;i<q.length;i++){ var t=clockMs((S.cur?S.cur.start:now)+q[i].dataset.h*H); if(q[i].textContent!==t) q[i].textContent=t; } } /* an open sheet keeps its end times current */
 function zhProgress(l){ return l.replace(/(\d+) of (\d+) fasts of (\d+) h or more/,'$3 小时以上 $1/$2 次').replace(/(\d+) of (\d+) of 18 h or more/,'18 小时以上 $1/$2 次').replace(/week (\d+) of (\d+)/,'第 $1/$2 周').replace(/(\d+) of (\d+) fast of 24 h/,'24 小时断食 $1/$2 次').replace('First finish a 24 h fast, ','先完成一次 24 小时断食，').replace('24 h done, ','24 小时已完成，'); }
 function pickPlan(id){
   var p=C.planById(id,S.customH);
@@ -1790,7 +1794,7 @@ function delAcctSheet(err){
   var au=CL.getAuth(); if(!au) return closeSheet();
   openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Delete your account?','删除账号？')+'</h3><p class="lede ctr">'+L('Your account, backup and profile picture are deleted for good. This can’t be undone.','账号、云端备份和头像将被永久删除，无法撤销。')+'</p>'+
     (err?'<p class="note err ctr" role="alert" style="color:var(--red)">'+esc(err)+'</p>':'')+
-    '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button>'+lockedHold('delGo','delacctok',['Delete account','删除账号'])+'<button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
+    '<div class="btns"><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button>'+lockedHold('delGo','delacctok',['Delete account','删除账号'])+'<button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
   unlockHold('delGo',['Delete account','删除账号'],['Hold to delete account','按住删除账号']);
 }
 /* the account is gone and this phone is signed out: ask what happens to the fasts that are still here */
@@ -1864,7 +1868,7 @@ var A={
     CL.verify(e,c).then(function(){ closeSheet(); toast(L('Signed in.','已登录。')); renderMe(); syncNow(true); }).catch(function(x){ emailSheet('sent',e,L('That code didn’t work. ','验证码不对：')+x.message); }); },
   namesheet:nameSheet,
   namesave:function(){ var v=($('nmIn').value||'').trim().slice(0,24); S.name=v||null; save(); closeSheet(); renderMe(); },
-  signout:function(){ openSheet('<!--keep--><h3>'+L('Sign out?','退出登录？')+'</h3><p class="lede">'+L('Your fasts stay on this phone and in your account. You can sign back in any time.','记录会保留在这台手机和你的账号里，随时可以重新登录。')+'</p><div class="btns"><button class="btn dark" data-act="signoutok">'+L('Sign out','退出登录')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
+  signout:function(){ openSheet('<!--keep--><h3>'+L('Sign out?','退出登录？')+'</h3><p class="lede">'+L('Your fasts stay on this phone and in your account. You can sign back in any time.','记录会保留在这台手机和你的账号里，随时可以重新登录。')+'</p><div class="btns"><button class="btn" data-act="signoutok">'+L('Sign out','退出登录')+'</button><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button></div>'); },
   signoutok:function(){ CL.signOut(); try{ localStorage.removeItem(AVG); }catch(e){} S.name=null; save(); sync.at=0; sync.err=''; closeSheet(); renderMe(); },
   avatar:function(){ avatarSheet(); },
   avicon:function(b){ var a=AV.find(b.dataset.id); if(!a) return; if(AV.locked(a,S.fasts.length)) return toast(L(a.en+' unlocks after '+a.unlock+' fasts.','完成 '+a.unlock+' 次断食后解锁'+a.zh+'。')); fx('select'); avSet({t:'icon',id:a.id}); },
@@ -1903,7 +1907,7 @@ var A={
      is locked for 3 seconds (counting down), then must be held for 2 seconds. An export is one tap away. */
   erase:function(){
     openSheet('<!--keep--><div class="warn-ico">'+WARN+'</div><h3 class="ctr">'+L('Are you sure?','你确定吗？')+'</h3><p class="lede ctr">'+eraseLine(S.fasts.length,care()?0:curStreak())+(cloudOn()?' '+L('Your backup is erased too.','云端备份也会一并清除。'):'')+'</p>'+
-      '<div class="btns"><button class="btn dark" data-act="close">'+L('Cancel','取消')+'</button>'+lockedHold('eraseGo','eraseok',['Erase everything','清除所有数据'],['Hold to erase everything','按住清除所有数据'])+'<button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
+      '<div class="btns"><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button>'+lockedHold('eraseGo','eraseok',['Erase everything','清除所有数据'],['Hold to erase everything','按住清除所有数据'])+'<button class="btn quiet" data-act="export">'+L('Export my fasts first','先导出我的记录')+'</button></div>');
     unlockHold('eraseGo',['Erase everything','清除所有数据'],['Hold to erase everything','按住清除所有数据']);
   },
   /* Delete account: same care as Erase everything, because it can't be undone either. Only reachable when signed in. The server does the deleting (supabase/functions/delete-account). */
