@@ -139,6 +139,28 @@ html:lang(zh-Hans) .ph .lt{letter-spacing:0}
 .read .big{transition:color .5s ease}.read .big.set{color:var(--ink-2)}   /* at rest the readout is the loaded time, dimmed; Start lights it */
 .read .tip{font:400 15px/1.4 var(--font);color:var(--ink-2);margin:6px auto 0;max-width:30ch;min-height:42px;transition:opacity .7s ease}
 .read .tip.quiet{opacity:0}
+/* What is happening now (mirrors the app): a quiet line that takes the hint's place once the hint has gone quiet */
+.read .tipbox{position:relative}
+.read .now{position:absolute;left:50%;top:-6px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:.35em;min-height:44px;padding:0 12px;border:0;background:none;white-space:nowrap;font:400 15px/1.4 var(--font);color:var(--ink-2);opacity:0;pointer-events:none;transition:opacity .7s ease;cursor:pointer}
+.read .now[hidden]{display:none}
+.read .now b{font-weight:600;color:var(--ink)}
+.read .now svg{width:7px;height:12px;flex:none;margin-left:.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.read .tip.quiet+.now{opacity:1;pointer-events:auto}
+.bn{background:var(--card);border-radius:14px;overflow:hidden}
+.bn-row{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:56px;padding:10px 16px;border:0;background:transparent;text-align:left;color:var(--label);font:400 17px/1.3 var(--font);position:relative;cursor:pointer}
+.bn-row+.bn-row::before{content:"";position:absolute;left:44px;right:0;top:0;height:.5px;background:var(--sep)}
+.bn-row .stack{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.bn-row b{font-weight:600}
+.bn-row small{font:400 13px/1.35 var(--font);color:var(--label-2)}
+.bn-row .bn-t{font:400 15px/1.45 var(--font);color:var(--label);padding:6px 0 4px}
+.bn-row>svg{flex:none;width:7px;height:12px;margin:5px 2px 0 0;fill:none;stroke:var(--label-3,rgba(60,60,67,.3));stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform:rotate(90deg);transition:transform .25s ease}
+.bn-row.open>svg{transform:rotate(-90deg)}
+.bn-dot{flex:none;width:16px;height:16px;margin-top:3px;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--label-3,rgba(60,60,67,.3))}
+.bn-row.past .bn-dot{border-color:var(--tint);background:var(--tint)}
+.bn-row.now .bn-dot{border-color:var(--tint);background:var(--tint);box-shadow:0 0 0 4px color-mix(in srgb,var(--tint) 28%,transparent)}
+.bn-row:not(.now):not(.past) b{color:var(--label-2)}
+#nowSheet .ps-foot a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+#nScrim{transition:opacity .3s ease,visibility 0s .3s,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease}#nScrim.on{visibility:visible;transition-delay:0s;opacity:1;pointer-events:auto}
 .track{margin:14px 16px 0;position:relative;touch-action:none;cursor:grab}
 .track svg{display:block;width:100%;height:auto;overflow:visible}
 .track .ends #endA,.ends #endB{cursor:pointer}
@@ -1209,7 +1231,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
       <div class="read">
         <div class="kline"><span class="k" id="readK"></span><span class="alt" id="readAlt"></span></div>
         <span class="big" id="readBig" aria-live="polite"></span>
-        <p class="tip" id="readTip"></p>
+        <div class="tipbox"><p class="tip" id="readTip"></p><button type="button" class="now" id="nowBtn" aria-haspopup="dialog" hidden></button></div>
       </div>
       <div class="track" id="track" role="slider" tabindex="0" aria-label="Fast timeline" aria-valuemin="0" aria-valuemax="16">
         <svg viewBox="0 0 342 64" id="trackSvg" aria-hidden="true">
@@ -1226,6 +1248,13 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
       <button class="act" type="button" id="act"><span id="actLbl">Start fast</span></button>
       <div class="scrim" id="pScrim"></div>
       <div class="scrim" id="cScrim"></div>
+      <div class="scrim" id="nScrim"></div>
+      <div class="sheet psheet" id="nowSheet" role="dialog" aria-modal="true" aria-labelledby="nsTitle" aria-hidden="true">
+        <div class="grab"></div>
+        <div class="ps-h"><h4 id="nsTitle"></h4><button type="button" class="x" id="nsClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>
+        <p class="ps-note" id="nsNote"></p>
+        <div class="ps-scroll"><div class="ps-list bn" id="nsList"></div><p class="ps-foot" id="nsFoot"></p><p class="ps-foot" id="nsSrc"></p></div>
+      </div>
       <div class="sheet psheet" id="cheatSheet" role="dialog" aria-modal="true" aria-labelledby="chTitle" aria-hidden="true">
         <div class="grab"></div>
         <div class="ps-h"><h4 id="chTitle"></h4><button type="button" class="x" id="chClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>
@@ -1830,6 +1859,17 @@ window.LightlySphere=(function(){
     var f=wane?(1-p):0, t=wane?1:p, a0=f*2*Math.PI, a1=t*2*Math.PI, sx=-r*Math.sin(a0), sy=-r*Math.cos(a0), ex=-r*Math.sin(a1), ey=-r*Math.cos(a1);
     return 'M0 0 L'+sx.toFixed(2)+' '+sy.toFixed(2)+' A'+r+' '+r+' 0 '+((a1-a0)>Math.PI?1:0)+' 0 '+ex.toFixed(2)+' '+ey.toFixed(2)+'Z'; }
   function fmtS(hrs){ var t=Math.max(0,Math.ceil(hrs*3600-1e-6)), a=Math.floor(t/3600), b=Math.floor(t%3600/60), c=t%60, p=function(n){return String(n).padStart(2,'0');}; return a+'<i class="co">:</i>'+p(b)+'<i class="co">:</i>'+p(c); }
+  /* What is happening now: the same stages and words as the app (js/core.js C.BODY, js/app.js NOWTX) */
+  window.LIGHTLY_NOW={CHEV:'<svg viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5 7 7l-5.5 5.5"/></svg>',
+    BODY:[{id:'digest',from:0,to:4},{id:'settle',from:4,to:8},{id:'sugar',from:8,to:12},{id:'switch',from:12,to:18},{id:'fat',from:18,to:24},{id:'long',from:24,to:null}],
+    stage:function(h){ var i=0; this.BODY.forEach(function(b,k){ if(h>=b.from) i=k; }); return i; },
+    shown:function(h,goal){ var now=this.stage(Math.max(h,0)), n=0; this.BODY.forEach(function(b,i){ if(b.from<goal||i<=now) n=i+1; }); return n; },
+    TX:{digest:{n:['Digesting','消化中'],s:['digesting','消化中'],t:['Your body is still running on your last meal. Blood sugar and insulin go up, then start to come down.','身体还在用上一餐的能量。血糖和胰岛素先升高，然后开始回落。']},
+      settle:{n:['Settling','回落平稳'],s:['settling','回落平稳'],t:['Digestion winds down. Blood sugar and insulin drift back to their resting levels.','消化逐渐结束，血糖和胰岛素回到平时的水平。']},
+      sugar:{n:['Stored sugar','动用储存的糖'],s:['using stored sugar','动用储存的糖'],t:['With no food coming in, your liver releases the sugar it stored (glycogen) to keep your blood sugar steady.','没有食物进来，肝脏放出储存的糖（糖原），让血糖保持平稳。']},
+      'switch':{n:['Switching fuel','切换燃料'],s:['switching fuel','切换燃料'],t:['The liver’s store runs low, so your body turns more to fat and starts making ketones. When this happens differs: usually somewhere between 12 and 36 hours, depending on your last meal and how active you are.','肝脏储存的糖变少，身体开始更多地用脂肪，并产生酮体。具体时间因人而异，通常在 12 到 36 小时之间，取决于上一餐和活动量。']},
+      fat:{n:['New fuel','新燃料'],s:['running on the new fuel','用上新燃料'],t:['Fat is now the main fuel and ketones keep rising. Hunger tends to come in waves and pass.','脂肪成为主要燃料，酮体继续上升。饥饿感往往一阵一阵，会过去。']},
+      'long':{n:['Long fast','长时间断食'],s:['a long fast','长时间断食'],t:['Ketones now supply more of your brain’s energy, and your body makes the sugar it still needs. Drink water, add a pinch of salt if you feel faint, and stop if you feel unwell.','酮体为大脑提供更多能量，身体也会自己制造仍然需要的糖。多喝水，头晕时加一点点盐，不舒服就停下。']}}};
   var TIPS={night:['The long quiet stretch. Most of it passes while you sleep.','最安静的一段，大部分在睡梦中度过。'],
     first:['Hunger often comes in waves and passes. Water helps.','饥饿感常常一阵一阵，会过去的。喝点水会好些。'],
     early:['Last meal done. The first hours are the easy part.','最后一餐结束了，最初几个小时最轻松。'],
@@ -1881,8 +1921,10 @@ window.LightlySphere=(function(){
     else if(mode==='fast'||mode==='saved'){
       if(h<GOAL){ put(readK,'k',L('Time left','剩余时间')); put(readBig,'b',fmtS(GOAL-h),1); put($('readAlt'),'alt',L('Elapsed ','已断食 ')+hmsS(h)); var tp=tipFor(h,sk[1]); tip(tp[lang==='zh'?1:0],0,Math.floor(h)); }
       else { var ov=h-GOAL, om=Math.round(ov*60), oh=Math.floor(om/60), omm=om%60; put(readK,'k',ov<1/60?L('Goal reached','目标达成'):L((oh?oh+' h':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' m':'')+' past your goal','超出目标 '+(oh?oh+' 小时':'')+(oh&&omm?' ':'')+(omm||!oh?omm+' 分':''))); put(readBig,'b',fmt(h),1); put($('readAlt'),'alt',L('Goal ','目标 ')+GOAL+L(' h',' 小时')); tip(L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。')); }
-      if(!holding) put(actLbl,'a',L('Hold to end fast','按住结束断食')); }
+      if(!holding) put(actLbl,'a',L('Hold to end fast','按住结束断食'));
+      var bn=window.LIGHTLY_NOW; put($('nowBtn'),'now','<span>'+L('Your body now: ','身体此刻：')+'</span><b>'+bn.TX[bn.BODY[bn.stage(h)].id].s[lang==='zh'?1:0]+'</b>'+bn.CHEV,1); }
     else if(mode==='eat'){ put(readK,'k',L('Eating window left','进食窗口还剩')); put(readBig,'b',fmtS(EAT-e),1); tip(L('Your next fast can start at ','下一次断食可以在 ')+clock(s+24)+L(', or whenever you’re ready.',' 开始，也可以随时提前。')); put(actLbl,'a',L('Start next fast','开始下一次断食')); }
+    $('nowBtn').hidden=!((mode==='fast'||mode==='saved')&&!chd&&!brk);
     act.classList.toggle('end',(mode==='fast'||mode==='saved')&&!chd&&!brk); /* quiet while a fast runs, yellow for Start */
     var a0=mode==='eat'?s+GOAL:s, a1=mode==='eat'?s+GOAL+EAT:s+GOAL;
     var egl=function(hd){ hd=((hd%24)+24)%24; var mn=!(hd>=SUN.rise&&hd<SUN.set); return '<span class="eg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="url(#'+(mn?'gMoon':'gSun')+')" stroke="var(--rim)" stroke-width=".8"/>'+(mn?'<circle cx="8.6" cy="9.4" r="2.1" fill="rgba(60,50,30,.10)"/><circle cx="14.6" cy="14.6" r="2.8" fill="rgba(60,50,30,.09)"/><circle cx="14" cy="7.4" r="1.2" fill="rgba(60,50,30,.08)"/>':'')+'</svg></span>'; };
@@ -2764,6 +2806,28 @@ window.LightlySphere=(function(){
   $('psClose').addEventListener('click',function(){ open(false); }); sc.addEventListener('click',function(){ open(false); });
   sh.addEventListener('keydown',function(e){ if(e.key==='Escape') open(false); });
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ $('planBtn').setAttribute('aria-label',L('Change plan','更换计划')); if(sh.classList.contains('open')) render(); },0); }); });
+})();
+</script>
+<script>
+/* ---------- What is happening now: the stages of a fast, the current one open (mirrors the app's sheet) ---------- */
+(function(){
+  var api=window.LightlyAPI, N=window.LIGHTLY_NOW; if(!api||!N) return;
+  var $=function(i){ return document.getElementById(i); }, sh=$('nowSheet'), sc=$('nScrim'), openI=-1;
+  function L(en,zh){ return api.lang()==='zh'?zh:en; }
+  function hours(b){ return b.to==null?L(b.from+' hours and beyond',b.from+' 小时以上'):L(b.from+' to '+b.to+' hours',b.from+' 至 '+b.to+' 小时'); }
+  function render(){ var s=api.state(), now=N.stage(s.h), n=N.shown(s.h,s.goal), z=api.lang()==='zh'?1:0, h='';
+    $('nsTitle').textContent=L('What is happening now','身体此刻在做什么'); $('nsNote').textContent=L('A rough guide to a fast, stage by stage. Bodies differ, so take the hours loosely.','断食各阶段的大致情况。每个人不一样，时间仅供参考。');
+    for(var i=0;i<n;i++){ var b=N.BODY[i], tx=N.TX[b.id], on=i===openI;
+      h+='<button type="button" class="bn-row'+(i===now?' now':i<now?' past':'')+(on?' open':'')+'" data-i="'+i+'" aria-expanded="'+on+'"><i class="bn-dot" aria-hidden="true"></i><span class="stack"><b>'+tx.n[z]+'</b><small>'+(i===now?L('Now \u00b7 ','现在 \u00b7 '):'')+hours(b)+'</small>'+(on?'<span class="bn-t">'+tx.t[z]+'</span>':'')+'</span>'+N.CHEV+'</button>'; }
+    $('nsList').innerHTML=h;
+    $('nsFoot').textContent=L('You may have read that cell clean-up (autophagy) starts at a set hour. That comes from animal studies. In people the timing has not been measured, so it is not on this list.','你可能听说过细胞自噬会在某个小时开始。这来自动物研究，在人体中还没有测出具体时间，所以这里没有列出。');
+    $('nsSrc').innerHTML=L('General information, not medical advice. Sources: ','仅为一般知识，不是医疗建议。来源：')+'<a href="https://doi.org/10.1002/oby.22065" target="_blank" rel="noopener">Anton et al., Obesity, 2018</a>'+L('; ','；')+'<a href="https://doi.org/10.1146/annurev.nutr.26.061505.111258" target="_blank" rel="noopener">Cahill, Annu. Rev. Nutr., 2006</a>'+L('; ','；')+'<a href="https://doi.org/10.1016/j.arr.2018.08.004" target="_blank" rel="noopener">Bagherniya et al., Ageing Res. Rev., 2018</a>'+L('.','。');
+    [].forEach.call(sh.querySelectorAll('.bn-row'),function(r){ r.addEventListener('click',function(){ var i=+r.dataset.i; openI=i===openI?-2:i; render(); }); }); }
+  function open(v){ if(v){ openI=N.stage(api.state().h); render(); } sh.classList.toggle('open',v); sh.setAttribute('aria-hidden',!v); sc.classList.toggle('on',v); if(v) $('nsClose').focus({preventScroll:true}); else if(!$('nowBtn').hidden) $('nowBtn').focus({preventScroll:true}); }
+  $('nowBtn').addEventListener('click',function(){ open(true); });
+  $('nsClose').addEventListener('click',function(){ open(false); }); sc.addEventListener('click',function(){ open(false); });
+  sh.addEventListener('keydown',function(e){ if(e.key==='Escape') open(false); });
+  ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ if(sh.classList.contains('open')) render(); },0); }); });
 })();
 </script>
 <script>

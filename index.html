@@ -57,7 +57,7 @@ try{ var h=document.documentElement; if(/access_token=|error=/.test(location.has
     <div class="read">
       <div class="kline"><span class="k" id="readK"></span><span class="alt" id="readAlt"></span></div>
       <span class="big" id="readBig" role="timer" aria-live="off"></span>
-      <p class="tip" id="readTip"></p>
+      <div class="tipbox"><p class="tip" id="readTip"></p><button type="button" class="now" id="nowBtn" data-act="nowsheet" aria-haspopup="dialog" hidden></button></div>
     </div>
     <div class="track" id="track">
       <svg viewBox="0 0 342 64" aria-hidden="true">

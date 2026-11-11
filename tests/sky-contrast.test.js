@@ -22,7 +22,7 @@ async function layout(b,port){ const H=3600000,D=86400000;
  await p.clock.setFixedTime(new Date(at)); await p.goto('http://localhost:'+port+'/'); await p.waitForTimeout(500); await p.click('#tabs button[data-tab=days]'); await p.waitForTimeout(700);
  const st=await p.evaluate(()=>[...document.querySelectorAll('.tstats b')].map(b=>({h:Math.round(b.getBoundingClientRect().height),t:b.textContent})));
  assert.strictEqual(st.length,3); st.forEach(x=>assert.ok(x.h<=26,'the Days stat "'+x.t+'" stays on one line ('+x.h+' px)')); await ctx.close(); console.log('ok  320 px, 中文: plan button, sky pill and Days stats hold together'); }
-const SELS={end:'#actLbl',elapsed:'#readK',alt:'#readAlt',tip:'#readTip',pillText:'#skyTx',pillStage:'#skyStage',tabOn:'#tabs>button.sel span',evt:'#evtT',sev:'.strip .sev',cap:'.ends .cap',streak:'.streak .tx small'};
+const SELS={end:'#actLbl',elapsed:'#readK',alt:'#readAlt',tip:'#readTip',pillText:'#skyTx',pillStage:'#skyStage',tabOn:'#tabs>button.sel span',evt:'#evtT',sev:'.strip .sev',cap:'.ends .cap',streak:'.streak .tx small',now:'#nowBtn span',nowB:'#nowBtn b'};
 (async()=>{ await new Promise(r=>srv.listen(0,r)); const port=srv.address().port; const b=await chromium.launch(); const out=[];
  const now=Date.now();
  const TIMES=['02:00','05:50','06:25','08:30','12:00','16:40','17:45'];
@@ -32,7 +32,9 @@ const SELS={end:'#actLbl',elapsed:'#readK',alt:'#readAlt',tip:'#readTip',pillTex
   await p.addInitScript(s=>localStorage.setItem('lightly:v1',JSON.stringify(s)),seed);
   await p.clock.setFixedTime(new Date(at)); await p.goto('http://localhost:'+port+'/'); await p.waitForTimeout(1800); const sky=await p.evaluate(()=>document.getElementById('ph').getAttribute('data-sky')); await p.evaluate(()=>{const st=document.createElement('style'); st.textContent='*{transition:none!important;animation:none!important}'; document.head.appendChild(st);}); await p.waitForTimeout(300);
 
+  await p.addStyleTag({content:'.__now #readTip{opacity:0!important}.__now #nowBtn{opacity:1!important}'});   /* the "Your body now" line shows once the hint is quiet: show it for its own measurement */
   for(const [name,sel] of Object.entries(SELS)){
+   await p.evaluate(on=>document.getElementById('ph').classList.toggle('__now',on),name.startsWith('now'));
    const info=await p.evaluate(sel=>{ const e=document.querySelector(sel); if(!e) return null; const r=e.getBoundingClientRect(); if(r.width<2||r.height<2) return null; const cs=getComputedStyle(e); let o=1; for(let q=e;q;q=q.parentElement){o*=+getComputedStyle(q).opacity;} return {x:r.x,y:r.y,w:r.width,h:r.height,color:(e instanceof SVGElement?cs.fill:cs.color),o,fill:cs.fill,text:e.textContent.trim().slice(0,20)}; },sel);
    if(!info||!info.text) continue;
    await p.addStyleTag({content:'.__hide *{color:transparent!important;fill:transparent!important;stroke:transparent!important}'}); await p.evaluate(()=>document.getElementById('ph').classList.add('__hide'));

@@ -137,4 +137,9 @@ const mid=[{id:'m1',start:new Date(2026,9,3,22,0).getTime(),end:new Date(2026,9,
 const mr=C.monthReport(mid,2026,9,[],[],{key:'shanghai'});assert.ok(Math.abs(mr.start-22)<1e-6,'usual start across midnight, got '+mr.start);assert.ok(Math.abs(mr.finish-14)<1e-6);
 const wrap=C.monthReport([{id:'w1',start:new Date(2026,9,3,23,30).getTime(),end:new Date(2026,9,4,15,30).getTime(),goalH:16},{id:'w2',start:new Date(2026,9,5,0,30).getTime(),end:new Date(2026,9,5,16,30).getTime(),goalH:16},{id:'w3',start:new Date(2026,9,6,0,0).getTime(),end:new Date(2026,9,6,16,0).getTime(),goalH:16}],2026,9,[],[],{key:'shanghai'});
 assert.ok(Math.abs(wrap.start-0)<.01||Math.abs(wrap.start-24)<.01,'23:30, 00:30 and 00:00 average near midnight, got '+wrap.start);}
+/* what is happening now: the stage by hours fasted, and the stages a fast lists (never beyond its plan until it gets there) */
+assert.deepStrictEqual([0,3.99,4,7.9,8,12,17.9,18,23.9,24,60].map(C.bodyStage),[0,0,1,1,2,3,3,4,4,5,5]);assert.strictEqual(C.bodyStage(-1),0);
+assert.deepStrictEqual(C.BODY.map(b=>b.id),['digest','settle','sugar','switch','fat','long']);C.BODY.forEach((b,i)=>{if(i)assert.strictEqual(b.from,C.BODY[i-1].to);});
+assert.strictEqual(C.bodyShown(1,13),4);assert.strictEqual(C.bodyShown(1,16),4);assert.strictEqual(C.bodyShown(1,18),4);assert.strictEqual(C.bodyShown(1,20),5);assert.strictEqual(C.bodyShown(1,24),5);assert.strictEqual(C.bodyShown(1,36),6);
+assert.strictEqual(C.bodyShown(19,16),5,'a fast that runs past its goal lists the stage it has reached');assert.strictEqual(C.bodyShown(25,24),6);assert.strictEqual(C.bodyShown(0,12),3);
 console.log('core ok',s);
