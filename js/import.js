@@ -32,11 +32,12 @@ function fromZero(j){
 /* Lightly's own export, so a backup file can be restored on another phone. */
 function fromLightly(j){
   if(!j||!Array.isArray(j.fasts)||!j.fasts.length||typeof j.fasts[0].start!=='number') return null;
-  return {source:'Lightly',items:j.fasts.map(function(f){ return {id:f.id,start:f.start,end:f.end,goalH:f.goalH}; }),open:0};
+  return {source:'Lightly',items:j.fasts.map(function(f){ return {id:f.id,start:f.start,end:f.end,goalH:f.goalH,feel:f.feel}; }),open:0};
 }
 
 /* Any other app: a JSON list or CSV with start and end columns. */
-var KS=/^(start|started|startedat|starttime|startdate|starttimestamp|begin|from|faststart|startdtm)$/, KE=/^(end|ended|endedat|endtime|enddate|endtimestamp|stop|stopped|finish|finished|to|fastend|enddtm)$/, KG=/^(goal|goalhours|goalh|target|targethours|hours|plan|durationgoal)$/, KID=/^(id|fastid|uuid)$/;
+var KS=/^(start|started|startedat|starttime|startdate|starttimestamp|begin|from|faststart|startdtm)$/, KE=/^(end|ended|endedat|endtime|enddate|endtimestamp|stop|stopped|finish|finished|to|fastend|enddtm)$/, KG=/^(goal|goalhours|goalh|target|targethours|hours|plan|durationgoal)$/, KID=/^(id|fastid|uuid)$/, KF=/^(felt|feel|feeling)$/;
+function feelIn(v){ v=String(v==null?'':v).trim().toLowerCase(); return v==='easy'?'easy':v==='ok'||v==='okay'?'ok':v==='hard'?'hard':null; }
 function norm(k){ return String(k).toLowerCase().replace(/[^a-z0-9]/g,''); }
 function pick(o,re){ for(var k in o) if(re.test(norm(k))) return o[k]; }
 function fromRows(rows,source){
@@ -44,7 +45,7 @@ function fromRows(rows,source){
   rows.forEach(function(o){ if(!o||typeof o!=='object') return; var sv=pick(o,KS), ev=pick(o,KE); if(sv==null) return; seen++;
     var s=ts(sv), e=ts(ev); if(!isFinite(e)){ open++; return; }
     var g=pick(o,KG); g=typeof g==='string'?parseFloat(g):g; var id=pick(o,KID);
-    items.push({id:id!=null&&id!==''?String(source)+':'+id:null,start:s,end:e,goalH:g}); });
+    items.push({id:id!=null&&id!==''?String(source)+':'+id:null,start:s,end:e,goalH:g,feel:feelIn(pick(o,KF))}); });
   return seen?{source:source,items:items,open:open}:null;
 }
 function csv(text){
@@ -180,7 +181,8 @@ function plan(res,have,cur,gone,now){
       if(Math.abs(s-taken[i][0])<30*60000) out.dup++; else out.overlap++; return; } }
     taken.push([s,e]);
     var g=Math.round(+it.goalH); if(!(g>=1&&g<=36)) g=Math.max(1,Math.min(36,Math.round((e-s)/H)));
-    out.add.push({id:it.id||('imp:'+s),start:s,end:e,goalH:g,plan:g>=24?String(g):g===16?'16':'custom'});
+    var nf={id:it.id||('imp:'+s),start:s,end:e,goalH:g,plan:g>=24?String(g):g===16?'16':'custom'}, fl=feelIn(it.feel); if(fl) nf.feel=fl;
+    out.add.push(nf);
     if(out.first==null||s<out.first) out.first=s; if(out.last==null||e>out.last) out.last=e;
   });
   return out;
@@ -192,10 +194,10 @@ function pad(n){ return (n<10?'0':'')+n; }
 function stamp(ms){ var d=new Date(ms); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes()); }
 function cell(v){ v=String(v); return /[",\r\n;]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
 function toCsv(fasts){
-  var rows=['start,end,duration_hours,goal_hours,reached_goal,plan_name'];
+  var rows=['start,end,duration_hours,goal_hours,reached_goal,plan_name,felt'];
   arr(fasts).filter(function(f){ return f&&isFinite(f.start)&&isFinite(f.end)&&f.end>f.start; }).sort(function(a,b){ return a.start-b.start; }).forEach(function(f){
     var h=(f.end-f.start)/H, g=+f.goalH||0;
-    rows.push([stamp(f.start),stamp(f.end),(Math.round(h*100)/100).toFixed(2),g?String(g):'',g?(h+1e-6>=g-0.0167?'yes':'no'):'',f.plan||''].map(cell).join(',')); });
+    rows.push([stamp(f.start),stamp(f.end),(Math.round(h*100)/100).toFixed(2),g?String(g):'',g?(h+1e-6>=g-0.0167?'yes':'no'):'',f.plan||'',{easy:'easy',ok:'okay',hard:'hard'}[f.feel]||''].map(cell).join(',')); });
   return '\uFEFF'+rows.join('\r\n')+'\r\n';
 }
 var api={parse:parse,plan:plan,ts:ts,csv:csv,toCsv:toCsv,unzip:unzip,fromZip:fromZip};

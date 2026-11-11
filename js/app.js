@@ -454,12 +454,20 @@ function endFast(){
   var ask=!S.prefs.backupAsked&&S.fasts.filter(C.isDone).length===1&&CL&&CL.ready()&&!CL.getAuth(); if(ask){ S.prefs.backupAsked=true; save(); }
   if(done) celebrate();
   setTimeout(function(){ openSheet('<span class="k">'+(done?L('Fast saved','断食已保存'):L('Ended early','提前结束'))+'</span><span class="big">'+fmtH(hrs)+'</span><span class="of">'+(done?L('Your '+durTxt(cur.goalH)+' goal, reached','你的 '+durTxt(cur.goalH).replace(' 小时','小时')+'目标，达成了'):L('of your '+durTxt(cur.goalH)+' goal','目标是 '+durTxt(cur.goalH).replace(' 小时','小时')))+'</span>'+
-    '<div class="facts"><div><b>'+(care()?C.totals(S.fasts).n:f.plan==='ramadan'?'–':st)+'</b><span>'+(care()?L('Fasts','次断食'):L('Day streak','天连续'))+'</span></div><div><b>'+clockMs(now)+'</b><span>'+L('Ended','结束时间')+'</span></div></div>'+
+    '<div class="facts"><div><b>'+(care()?C.totals(S.fasts).n:f.plan==='ramadan'?'–':st)+'</b><span>'+(care()?L('Fasts','次断食'):L('Day streak','天连续'))+'</span></div><div><b>'+clockMs(now)+'</b><span>'+L('Ended','结束时间')+'</span></div></div>'+(f.plan==='ramadan'?'':feelSeg(f,true))+
     '<p class="note">'+(done?L('You reached your goal. Eat gently and drink some water.','你达成了目标。慢慢吃，先喝点水。'):LC('That still counts as a fast. Listening to your body is the point, and your streak is yours to keep going.','这也算一次断食。倾听身体才是重点，你的连续记录还可以继续。','That still counts as a fast. Listening to your body is the point.','这也算一次断食。倾听身体才是重点。'))+'</p>'+
     (news.length?'<p class="note" style="color:var(--label)"><b>'+L(news.join(' and ')+' is now open.',news.join('、')+' 现已开放。')+'</b> '+L('Choose it from the plan button on Today.','在今天页面的计划按钮里选择。')+'</p>':'')+
     (ask?'<p class="note">'+L('Want to keep these fasts if you change phones? Back them up with your email. It’s optional, and everything works without it.','想在换手机时保留这些记录吗？可以用邮箱备份。这是可选的，不备份也能正常使用。')+'</p>':'')+
     '<div class="btns"><button class="btn" data-act="close">'+L('Start eating window','开始进食窗口')+'</button>'+(ask?'<button class="btn sec" data-act="emailsheet">'+L('Back up my fasts','备份我的记录')+'</button>':'')+'<button class="btn sec" data-act="edit" data-id="'+f.id+'">'+L('Edit times','修改时间')+'</button></div>'); countUp(document.querySelector('#sheet .big'),hrs); },beat);
 }
+
+/* ---------- how did it feel: one optional tap when a fast ends (easy, okay, hard). It is a note for the person: shown on the day in Days and counted in the monthly recap.
+   Nothing reads it for a streak, an unlock or a reward, nothing is said back about the answer, and it is never shared. Not asked after a Ramadan fast. ---------- */
+var FEELTX={easy:['Easy','轻松'],ok:['Okay','还行'],hard:['Hard','有点难']};
+function nb(s){ return s.replace(/ /g,'\u00a0'); }   /* keeps a short piece of a line together when the line wraps */
+function feelLbl(k){ return FEELTX[k][S.lang==='zh'?1:0]; }
+function feltTxt(f){ var k=C.feelOf(f); return k?L('felt '+FEELTX[k][0].toLowerCase(),'感觉'+FEELTX[k][1]):''; }
+function feelSeg(f,live){ var cur=C.feelOf(f); return '<div class="feel"><span class="feel-q" id="feelQ">'+L('How did it feel?','感觉怎么样？')+'</span><div class="seg" role="group" aria-labelledby="feelQ">'+C.FEELS.map(function(k){ return '<button type="button" data-act="feel" data-v="'+k+'"'+(live&&f?' data-id="'+f.id+'"':'')+' aria-pressed="'+(cur===k)+'">'+feelLbl(k)+'</button>'; }).join('')+'</div></div>'; }
 
 /* the hours on the summary count up to their value, so the number lands instead of just appearing */
 function countUp(node,hrs){ if(!node||reduce) return; var t0=performance.now(); (function step(){ var k=Math.min((performance.now()-t0)/700,1); node.innerHTML=fmtH(hrs*(1-Math.pow(1-k,3))); if(k<1&&node.isConnected) requestAnimationFrame(step); })(); }
@@ -695,6 +703,13 @@ function rpWeightHtml(pm){
   rp.wkg=prev.kg;
   return '<h3 id="rpTw" class="rpi">'+L('A quick check-in','简单记一下')+'</h3><p class="rp-cap rpi" style="--i:1">'+L('Optional. Only you see this.','可选，只有你能看到。')+'</p><div class="group rpi" style="--i:2">'+pkField('rpWt',L('Weight now','现在的体重'),Math.round(C.kgTo(prev.kg,u)),'sel',wtOpts(u))+'</div><button type="button" class="btn rpi" style="--i:3" data-act="rpwsave">'+L('Save','保存')+'</button><button type="button" class="btn quiet rpi" style="--i:4" data-act="rpwoff">'+L('Don’t ask me again','不再询问')+'</button>'+trendBlock(false);
 }
+/* how the month felt: a count of the fasts that were marked, as one bar in three calm tones. No verdict, and nothing when no fast was marked. */
+function feelHtml(fc){
+  if(!fc||!fc.n) return ''; var ks=C.FEELS.filter(function(k){ return fc[k]; }), say=ks.map(function(k){ return fc[k]+' '+feelLbl(k).toLowerCase(); }).join(S.lang==='zh'?'，':', ');
+  return '<section class="rp-s rp-card rv" aria-labelledby="rpT7"><h3 id="rpT7" class="rpi">'+L('How it felt','感觉如何')+'</h3><p class="rp-cap rpi" style="--i:1">'+L(fc.n===1?'From the one fast you marked':'From the '+fc.n+' fasts you marked','来自你标记的 '+fc.n+' 次断食')+'</p>'+
+    '<div class="rp-sky rp-feel" role="img" aria-label="'+esc(say)+'">'+ks.map(function(k){ return '<i class="f-'+k+'" style="width:'+(100*fc[k]/fc.n).toFixed(1)+'%"></i>'; }).join('')+'</div>'+
+    '<div class="rp-skyl rp-feell rpi" style="--i:3">'+C.FEELS.map(function(k){ return '<div><b><span class="rn">'+fc[k]+'</span></b><span><i class="f-'+k+'"></i>'+feelLbl(k)+'</span></div>'; }).join('')+'</div></section>';
+}
 function reportHtml(pm,r){
   var name=monthName(pm,true), nxt=monthName({y:pm.m===11?pm.y+1:pm.y,m:(pm.m+1)%12},true), goal=S.planId==='ramadan'?0:plan().fast, i;
   var steady=r.n&&r.reached/r.n>=.8;
@@ -733,6 +748,7 @@ function reportHtml(pm,r){
     '<div class="rp-skyl rpi" style="--i:3"><div><b><span class="rn">'+numTxt(r.moonH)+'</span><small> '+L('h','小时')+'</small></b><span><i class="m"></i>'+L('under the moon','月下')+'</span></div><div><b><span class="rn">'+numTxt(r.sunH)+'</span><small> '+L('h','小时')+'</small></b><span><i class="s"></i>'+L('under the sun','日下')+'</span></div></div></section>'+
     (bands?'<section class="rp-s rv" aria-labelledby="rpT5"><h3 id="rpT5" class="rpi">'+L('Your rhythm','你的节奏')+'</h3><p class="rp-line rpi" style="--i:1">'+L('You usually start around <b>'+clockH(s0)+'</b> and finish around <b>'+clockH(f0)+'</b>.','你通常在 <b>'+clockH(s0)+'</b> 左右开始，<b>'+clockH(f0)+'</b> 左右结束。')+'</p>'+
       '<div class="rp-24" aria-hidden="true"><div class="trk">'+bands+'</div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div></section>':'')+
+    feelHtml(r.feel)+
     '<section class="rp-s rv" aria-labelledby="rpT6"><h3 id="rpT6" class="rpi">'+L('Highlights','亮点')+'</h3><div class="rp-tiles">'+tiles+'</div></section>'+
     (S.body&&!S.body.checkOff&&!care()?'<section class="rp-s rp-card rv" id="rpW" aria-labelledby="rpTw">'+rpWeightHtml(pm)+'</section>':'')+
     '<section class="rp-s rp-end rv"><p class="rp-bye rpi">'+(steady?L('A steady month.','稳稳的一个月。'):L('Every fast counted.','每一次断食都算数。'))+'</p><p class="rp-line rpi" style="--i:1">'+L('See you in '+nxt+'.','我们'+nxt+'见。')+'</p><button type="button" class="btn rpi" style="--i:2" data-act="rpclose">'+L('Done','完成')+'</button></section></div><button type="button" class="rp-x" data-act="rpclose" aria-label="'+L('Close recap','关闭回顾')+'"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>';
@@ -937,7 +953,7 @@ function renderDays(){
   var list=(C.fastDays(all)[selDay]||[]).slice().sort(function(a,b){return a.end-b.end;}), fl=S.flex.used.indexOf(selDay)>=0, none=!list.length&&!fl;
   h+='<div class="dayd'+(ddIn&&!reduce?' in':'')+'" id="dayd"><div class="dd-h"><span>'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</span>'+(none?'<span class="dd-n">'+(selDay>t?L('Nothing here yet','这天还没有记录'):L('Nothing logged','没有记录'))+'</span>':'')+'</div>';
   if(none&&selDay<=t) h+='<div class="dd-acts"><button class="dd-e" data-act="addday">'+L('Add a fast','补记断食')+'</button>'+(care()||C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur})?'':'<button class="dd-e" data-act="cheatday" data-k="'+selDay+'">'+L('Use a cheat day','使用弹性日')+'</button>')+'</div>';
-  list.forEach(function(f){ var dn=C.isDone(f); h+='<button class="dd-row" data-act="edit" data-id="'+f.id+'"><i class="dd-m'+(dn?' full':'')+'"'+(dn?'':' style="--p:'+dayPart([f]).toFixed(3)+'"')+' aria-hidden="true"></i><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(dn?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+'</small></span><span class="dd-e">'+L('Edit','编辑')+'</span></button>'; });
+  list.forEach(function(f){ var dn=C.isDone(f); h+='<button class="dd-row" data-act="edit" data-id="'+f.id+'"><i class="dd-m'+(dn?' full':'')+'"'+(dn?'':' style="--p:'+dayPart([f]).toFixed(3)+'"')+' aria-hidden="true"></i><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(dn?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+nb(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+(C.feelOf(f)?' · '+nb(feltTxt(f)):'')+'</small></span><span class="dd-e">'+L('Edit','编辑')+'</span></button>'; });
   if(fl) h+='<div class="dd-row"><i class="dd-m flex" aria-hidden="true"></i><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
   h+='</div>';
   }
@@ -1080,7 +1096,7 @@ function fastSheet(f,addKey){
   else{ start=f.start; end=f.end; }
   var goal=isNew?plan().fast:f.goalH;
   openSheet('<h3>'+(isNew?L('Add a fast','补记断食'):L('Edit fast','编辑断食'))+'</h3><p class="lede">'+L('Fix a start or end time, or add one you forgot to log.','修改开始或结束时间，或补上忘记记录的一次。')+'</p>'+
-   '<div class="group">'+pkField('fsS',L('Started','开始'),start,'dt')+pkField('fsE',L('Ended','结束'),end,'dt')+'<div class="field"><label for="fsG">'+L('Goal (hours)','目标（小时）')+'</label><input id="fsG" type="number" min="1" max="36" step="1" inputmode="numeric" value="'+Math.round(goal)+'"></div></div>'+
+   '<div class="group">'+pkField('fsS',L('Started','开始'),start,'dt')+pkField('fsE',L('Ended','结束'),end,'dt')+'<div class="field"><label for="fsG">'+L('Goal (hours)','目标（小时）')+'</label><input id="fsG" type="number" min="1" max="36" step="1" inputmode="numeric" value="'+Math.round(goal)+'"></div></div>'+(!isNew&&f.plan==='ramadan'?'':feelSeg(isNew?null:f,false))+
    (isNew?'':'<div class="group"><button class="row red" data-act="fsdel" data-id="'+f.id+'">'+L('Delete this fast','删除这次断食')+'</button></div>')+'<div class="btns"><button class="btn" data-act="fssave" data-id="'+(isNew?'':f.id)+'">'+L('Save','保存')+'</button></div>');
 }
 function fastSave(id){
@@ -1092,8 +1108,9 @@ function fastSave(id){
   if(!(g>=1&&g<=36)) return toast(L('Goal must be between 1 and 36 hours.','目标需在 1 到 36 小时之间。'));
   var clash=S.fasts.some(function(f){ return f.id!==id&&s<f.end&&e>f.start; })||(S.cur&&e>S.cur.start);
   if(clash) return toast(L('That overlaps another fast.','和另一次断食时间重叠了。'));
-  if(id){ var f=S.fasts.filter(function(x){return x.id===id;})[0]; if(f){ f.start=s; f.end=e; f.goalH=g; } }
-  else S.fasts.push({id:uid(),start:s,end:e,goalH:g,plan:g>=24?String(g):String(g)==='16'?'16':'custom'});
+  var fq=sheetEl.querySelector('.feel'), fp=fq&&fq.querySelector('button[aria-pressed="true"]'), feel=fp?fp.dataset.v:null;
+  if(id){ var f=S.fasts.filter(function(x){return x.id===id;})[0]; if(f){ f.start=s; f.end=e; f.goalH=g; if(fq){ if(feel) f.feel=feel; else delete f.feel; } } }
+  else{ var nf={id:uid(),start:s,end:e,goalH:g,plan:g>=24?String(g):String(g)==='16'?'16':'custom'}; if(feel) nf.feel=feel; S.fasts.push(nf); }
   selDay=C.dayKey(e); var d=new Date(e); calY=d.getFullYear(); calM=d.getMonth();
   save(); closeSheet(); renderDays(); cache={}; toast(L('Saved.','已保存。'));
 }
@@ -1891,6 +1908,9 @@ var A={
   pickthis:function(){ var n=new Date(), i=n.getFullYear()*12+n.getMonth(), c=calY*12+calM; closeSheet(); calGo(n.getFullYear(),n.getMonth(),i<c?-1:i>c?1:0); },
   impdays:function(){ closeSheet(); showTab('days'); },
   edit:function(b){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(f) fastSheet(f); },
+  /* one tap picks, the same tap again clears. On the summary it is saved at once; in the edit sheet it waits for Save. */
+  feel:function(b){ var on=b.getAttribute('aria-pressed')==='true'; [].forEach.call(b.parentNode.children,function(x){ x.setAttribute('aria-pressed',String(!on&&x===b)); }); fx('select');
+    if(b.dataset.id){ var f=S.fasts.filter(function(x){return x.id===b.dataset.id;})[0]; if(f){ if(on) delete f.feel; else f.feel=b.dataset.v; save(); if(curTab==='days') renderDays(); } } },
   add:function(b){ fastSheet(null,b.dataset.k); },
   fssave:function(b){ fastSave(b.dataset.id); },
   fsdel:function(b){ var id=b.dataset.id, gone=S.fasts.filter(function(x){return x.id===id;})[0]; S.fasts=S.fasts.filter(function(x){return x.id!==id;}); (S.del=S.del||[]).push(id); save(); closeSheet(); renderDays(); cache={}; updateToday();

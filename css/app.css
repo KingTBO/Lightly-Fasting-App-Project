@@ -305,6 +305,11 @@ a.row{text-decoration:none;color:var(--label)}
 .facts b{display:block;font:600 1.375rem var(--font-r);font-variant-numeric:tabular-nums}
 .facts span{font-size:0.8125rem;color:var(--label-2)}
 .sheet .note{font:400 0.9375rem/1.4 var(--font);color:var(--label-2);padding:0 var(--m) 16px}
+/* how did it feel: a caption and three choices in one segmented control, the look of every other choice in the app */
+.feel{padding:0 var(--m) 16px}
+.feel-q{display:block;font:500 0.8125rem/1.3 var(--font);color:var(--label-2);padding:0 0 6px 2px}
+.feel .seg button{padding:0 4px}
+.facts+.feel{margin-top:-2px}
 .plan{display:flex;align-items:center;gap:12px;min-height:64px;width:100%;border:0;background:transparent;text-align:left;padding:var(--row-pad) 16px;position:relative;color:var(--label)}
 .plan+.plan::before{content:"";position:absolute;left:16px;right:0;top:0;border-top:.5px solid var(--sep)}
 .plan .pn{display:flex;flex-direction:column;min-width:0;flex:1}
@@ -678,6 +683,12 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .rp-skyl span:not(.rn){display:flex;align-items:center;gap:8px;font:500 0.9375rem var(--font);color:var(--label-2);margin-top:2px}
 .rp-skyl span i{width:10px;height:10px;border-radius:50%}
 .rp-skyl .rn{display:inline-block}
+/* how it felt: one bar, three calm tones of the same gold and a quiet grey; hard is never red */
+.rp-feel{background:transparent}
+.rp-feel .f-easy,.rp-feell .f-easy{background:var(--tint)}
+.rp-feel .f-ok,.rp-feell .f-ok{background:color-mix(in srgb,var(--tint) 45%,var(--card))}
+.rp-feel .f-hard,.rp-feell .f-hard{background:var(--label-3)}
+.rp-feell{grid-template-columns:repeat(3,1fr);gap:10px}
 /* rhythm */
 .rp-24{margin-top:26px}
 .rp-24 .trk{position:relative;height:30px;border-radius:10px;background:var(--fill);overflow:hidden}

@@ -166,6 +166,10 @@ function mondayOf(ms){ var d=new Date(ms); d.setHours(0,0,0,0); d.setDate(d.getD
    fast = {id,start,end,goalH,plan}   done = lasted at least its goal */
 function hours(f){ return (f.end-f.start)/H; }
 function isDone(f){ return hours(f)+1e-6>=f.goalH-0.0167; } /* one minute of grace */
+/* how a fast felt: one optional tap at its end (fast.feel = easy, ok or hard). It only describes. No streak, unlock or reward ever reads it, and it is never shared. */
+var FEELS=['easy','ok','hard'];
+function feelOf(f){ return f&&FEELS.indexOf(f.feel)>=0?f.feel:null; }
+function feelCount(list){ var o={easy:0,ok:0,hard:0,n:0}; (list||[]).forEach(function(f){ var k=feelOf(f); if(k){ o[k]++; o.n++; } }); return o; }
 
 /* ---------- Care mode ----------
    Ticking any of the three health answers (pregnant or breastfeeding, diabetes medication, eating disorder) turns Care mode on, and profile.safety is true while it is on.
@@ -369,7 +373,7 @@ function monthReport(fasts,y,m,flexUsed,offKeys,place){
   var sp=skySplit(l,place);
   r.dim=dim; r.daysWith=withFast; r.run=best; r.moonH=sp.moon; r.sunH=sp.sun;
   r.start=circMean(l.map(function(f){ return clockHour(f.start); })); r.finish=circMean(l.map(function(f){ return clockHour(f.end); }));
-  r.flex=r.days.filter(function(s){ return s==='flex'; }).length; r.weeks=weekAvgs(fasts,y,m);
+  r.flex=r.days.filter(function(s){ return s==='flex'; }).length; r.weeks=weekAvgs(fasts,y,m); r.feel=feelCount(l);
   return r;
 }
 /* ---------- weight comparison ----------
@@ -388,6 +392,6 @@ function trendBuckets(points){
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
-  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit};
+  OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);
