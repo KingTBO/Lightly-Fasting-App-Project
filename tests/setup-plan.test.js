@@ -22,12 +22,12 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  // 2. fasted before: custom hours, start time and the reminder on one screen, saved at the end
  {const q=await fresh();await next(q);await q.click('[data-act=obopt][data-v=before]');await next(q);
   await q.click('.ob-step.on .plan[data-id=custom]');await q.waitForTimeout(900);assert(await q.$('#obCustom'),'the hours wheel appears');await pick(q,'obCustom',19);
-  assert.strictEqual(await big(q),'19','the big number follows the wheel');assert.match(await q.textContent('.ob-step.on .ob-win'),/Fast 20:00 to 15:00, eat 5 hours/);
+  assert.strictEqual(await big(q),'19','the big number follows the wheel');assert.match(await q.textContent('.ob-step.on .ob-win'),/Your own rhythm\. Eat 15:00 to 20:00\./);
   await pick(q,'obCustom',21);assert.strictEqual(await big(q),'21');
   await q.click('.ob-step.on .plan[data-id="18"]');await q.waitForTimeout(500);assert(!(await q.$('#obCustom')),'the wheel goes when another plan is picked');assert.strictEqual(await big(q),'18');
   await q.click('.ob-step.on .plan[data-id=custom]');await q.waitForTimeout(900);assert.strictEqual(await big(q),'21','the custom hours are remembered');
   await next(q);assert(await q.waitForSelector('.ob-step.on #obImpFile',{state:'attached',timeout:8000}).catch(()=>null));await next(q);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(800);await next(q);await q.click('[data-act=obsafe][data-v=none]');await next(q);await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(800);
-  assert.match(await q.textContent('.ob-step.on'),/Plan/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
+  assert.match(await q.textContent('.ob-step.on .ob-firsts'),/^21:3 · /,'the last screen names the custom plan');await q.click('[data-act=obdone]');await q.waitForTimeout(800);
   const s=await S(q);assert.strictEqual(s.planId,'custom');assert.strictEqual(s.customH,21,'the custom hours are saved');
   ok('fasted before: custom hours and start time on the plan step are saved');await q.context().close();}
 
@@ -36,9 +36,9 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   {const gaps=await q.evaluate(()=>{const k=[...document.querySelectorAll('.ob-step.on > .group')].map(e=>e.getBoundingClientRect());return k.slice(1).map((r,i)=>Math.round(r.top-k[i].bottom));});assert(gaps.length>=2&&gaps.every(g=>g>=12),'cards on the plan step keep a gap between them: '+gaps);}assert(await q.$('.ob-step.on [data-act=sw][data-k=notify]'),'the reminder switch is on the plan step');
   await q.click('#obStart .pk-row');await q.waitForTimeout(500);
   await q.evaluate(()=>{const pk=document.getElementById('obStart'),h=pk.querySelector('[data-c=h]');h.scrollTo({top:(7+ +h.dataset.loop*3)*36});});await q.waitForTimeout(700);
-  assert.match(await q.textContent('.ob-step.on .ob-win'),/Fast 07:00 to 20:00/,'the strip follows the start time');
+  assert.match(await q.textContent('.ob-step.on .ob-win'),/Eat 20:00 to 07:00/,'the line follows the start time');
   await next(q);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(800);await next(q);await q.click('[data-act=obsafe][data-v=none]');await next(q);await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(800);
-  assert.match(await q.textContent('.ob-step.on'),/07:00/,'You’re set shows the first fast at the chosen time');await q.click('[data-act=obdone]');await q.waitForTimeout(800);
+  assert.match(await q.textContent('.ob-step.on'),/07:00/,'the last screen names the chosen start time');await q.click('[data-act=obdone]');await q.waitForTimeout(800);
   assert.strictEqual((await S(q)).prefs.usualStart,'07:00','a first-timer’s start time is saved too');
   ok('first-timer: start time and reminder on the plan step');await q.context().close();}
 

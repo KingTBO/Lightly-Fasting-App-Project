@@ -1,6 +1,6 @@
 /* What is happening now (v0.103.0).
    1. While an ordinary fast runs, a quiet line under the timer says what the body is doing ("Your body now: switching fuel").
-      It takes the hint's place once the hint has gone quiet, and nothing on Today moves when it appears.
+      Since v0.109.0 no hint comes before it during an ordinary fast: it stands under the timer from the start. Only a long fast still speaks first (its safety line), then goes quiet.
    2. A tap opens a sheet with the stages of a fast: the current one open, the others a tap away, with the sources at the foot.
    3. The stage follows the hours fasted. Stages beyond the plan are never listed, so the sheet does not invite a longer fast.
    4. The line is not offered at rest, in the eating window, in Care mode or during a Ramadan fast.
@@ -27,9 +27,10 @@ const fasting=(elH,goal,plan,o)=>seed(Object.assign({cur:{start:AT-elH*H,goalH:g
 
  /* 1. the line, and that nothing moves */
  let p=await open(fasting(13.2),{quiet:false}); let a=await line(p);
- assert(!a.hidden&&!a.tipQuiet&&a.op===0&&a.pe==='none','while the hint speaks the line waits, unseen and untappable: '+JSON.stringify(a));
+ assert(!a.hidden&&a.tipQuiet&&a.pe==='auto','no hint comes first during an ordinary fast (v0.109.0): the line is there when the app opens: '+JSON.stringify(a));
+ assert.strictEqual(await p.textContent('#readTip'),'','and the hint itself has no words');
  await p.clock.setFixedTime(new Date(AT+8000)); await p.waitForTimeout(2300); let q=await line(p);
- assert(q.tipQuiet&&q.op===1&&q.pe==='auto','once the hint is quiet the line shows: '+JSON.stringify(q));
+ assert(q.tipQuiet&&q.op===1&&q.pe==='auto','and it stays: '+JSON.stringify(q));
  assert.strictEqual(q.text,'Your body now: switching fuel'); assert(q.h>=44,'a 44 px tap target: '+q.h);
  assert.strictEqual(q.track,a.track,'the progress line does not move'); assert.strictEqual(q.act,a.act,'the button does not move');
  assert.match(await p.getAttribute('#nowBtn','aria-haspopup'),/dialog/);
@@ -81,7 +82,7 @@ const fasting=(elH,goal,plan,o)=>seed(Object.assign({cur:{start:AT-elH*H,goalH:g
  { const ctx=await b.newContext({viewport:{width:1280,height:1000}}); const c=await ctx.newPage(); c.on('pageerror',e=>errs.push('concept: '+e.message));
   await c.goto('http://localhost:'+port+'/concept/'); await c.waitForTimeout(1200); await c.click('#moments [data-go="f50"]'); await c.waitForTimeout(7600);
   const cl=await c.evaluate(()=>{ const n=document.getElementById('nowBtn'); return {hidden:n.hidden,text:n.textContent,op:+getComputedStyle(n).opacity}; });
-  assert(!cl.hidden&&cl.op===1,'concept: the line shows once the hint is quiet: '+JSON.stringify(cl)); assert.strictEqual(cl.text,'Your body now: using stored sugar');
+  assert(!cl.hidden&&cl.op===1,'concept: the line shows, with no hint before it: '+JSON.stringify(cl)); assert.strictEqual(cl.text,'Your body now: using stored sugar');
   await c.click('#nowBtn'); await c.waitForTimeout(700);
   const cs=await c.evaluate(()=>({open:document.getElementById('nowSheet').classList.contains('open'),title:document.getElementById('nsTitle').textContent,rows:[...document.querySelectorAll('#nowSheet .bn-row')].map(r=>r.querySelector('b').textContent),cur:(document.querySelector('#nowSheet .bn-row.now.open b')||{}).textContent,links:document.querySelectorAll('#nsSrc a').length}));
   assert(cs.open&&cs.title==='What is happening now'&&cs.rows.length===4&&cs.cur==='Stored sugar'&&cs.links===3,'concept sheet: '+JSON.stringify(cs));

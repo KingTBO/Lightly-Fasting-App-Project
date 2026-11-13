@@ -45,6 +45,8 @@ Android phones do not show third-party widgets on the lock screen (some tablets 
 
 Moon or sun follows the user's local sunrise and sunset, exactly as in the app. Ramadan mode shows "Dawn to sunset" and "Sunset has come" (the same strings as the app), no streak, no plan chip. Copy comes from the app's own strings so English and 中文 stay identical (`L(en, zh)`).
 
+**One line that changes with the moment (added 2026-11-13, an idea for the designer).** Since v0.109.0 the web app shows no everyday hint under the timer during a fast, because people open the app for the time left and do not stop to read. The home screen is where they are during a fast, so the few words worth saying can live on the widget instead: the line under the big number (today "Started 18:30 · ends 10:30") may change with the moment. Five words at most, one line, never two. Examples: just started, "Started 20:04"; on waking, "You slept through most of it"; later, "Your body: switching fuel" (the same stage names as the app's `NOWTX`, never a stage beyond the plan); after the goal, "End when you are ready". Rules: no line praises or pushes a longer fast, nothing about weight, fat or calories, not shown in Care mode or Ramadan mode, and the long-fast safety line stays in the app. The widget may also wear the app's sky for the hour (night, dawn, day), which was already listed as a later style. Nothing here is decided; the designer decides how widgets work.
+
 After the goal the widget stays quiet: the disc stays full, the number keeps counting, and there is no colour change, no "stop now" wording and no widget notification. Extra time is not scored.
 
 ## 4. What the widget reads (the snapshot)

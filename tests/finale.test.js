@@ -70,7 +70,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
    else if(await q.$(last+'[data-next][disabled]')) await q.click(last+'.ob-opt');
    await q.waitForTimeout(300);await q.click(last+'[data-next]');await q.waitForTimeout(900);}
   await q.waitForTimeout(6500);const r=await q.evaluate(()=>({dawn:document.getElementById('obph').classList.contains('dawn'),fin:document.getElementById('obph').classList.contains('fin'),fs:document.getElementById('obph').dataset.fs}));
-  assert(r.fin,'reached You’re set');assert.strictEqual(r.dawn,sun,'concept '+h+': '+JSON.stringify(r));await c.close();}
+  assert(r.fin,'reached the last screen');assert.strictEqual(r.dawn,sun,'concept '+h+': '+JSON.stringify(r));await c.close();}
  ok('concept page: full, then the sun or the moon by the real time');
 
  assert.deepStrictEqual(errs,[],'no page errors');await b.close();srv.close();console.log('done');})().catch(e=>{console.error(e);process.exit(1);});
