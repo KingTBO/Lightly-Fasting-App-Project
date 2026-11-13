@@ -28,7 +28,7 @@ function seed(kind,lang){const now=Date.now();const s={v:1,lang,theme:'auto',onb
      if(Math.abs(L-16)>.6||Math.abs(R-16)>.6)out.push(['margin-16',(e.className||e.tagName)+' "'+(e.textContent||'').trim().slice(0,18)+'"',L.toFixed(1)+'/'+R.toFixed(1)]);});return out;};
  /* icons: drawing must stay inside its svg box, and heroes must be centred on the screen */
  const icons=()=>{const out=[],ph=document.getElementById('ph').getBoundingClientRect();
-   document.querySelectorAll('#ph svg').forEach(sv=>{const r=sv.getBoundingClientRect();if(r.width<2||sv.closest('.stars,.birds')||getComputedStyle(sv).overflow==='visible')return;
+   document.querySelectorAll('#ph svg').forEach(sv=>{const r=sv.getBoundingClientRect();if(r.width<2||sv.closest('.stars')||getComputedStyle(sv).overflow==='visible')return;
      const vb=sv.viewBox&&sv.viewBox.baseVal;sv.querySelectorAll('circle,path,rect,ellipse,line,g').forEach(e=>{if(e.closest('defs')||e.closest('mask'))return;const q=e.getBoundingClientRect();if(q.width<1)return;
        if(q.left<r.left-1.5||q.right>r.right+1.5||q.top<r.top-1.5||q.bottom>r.bottom+1.5)out.push(['svg-clipped',(sv.parentElement.className||sv.parentElement.id||'svg')+' > '+e.tagName,Math.max(r.left-q.left,q.right-r.right,r.top-q.top,q.bottom-r.bottom).toFixed(1)+'px']);});});
    document.querySelectorAll('#ph .ob-step.on .ob-bslot').forEach(sv=>{const r=sv.getBoundingClientRect(),d=(r.left+r.right)/2-(ph.left+ph.right)/2;if(Math.abs(d)>1)out.push(['hero-centre','ob-bslot',d.toFixed(1)+'px']);});
