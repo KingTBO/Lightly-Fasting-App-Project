@@ -181,8 +181,8 @@ const H=3600000,D=24*H;
  // overtime: the disc stays full, the label says how far past the goal, one calm nudge, the timer keeps counting
  q=await fresh(seed({cur:{start:Date.now()-5*H,goalH:13,planId:'13',reached:false}}));await q.waitForTimeout(500);
  assert.match(await q.textContent('.kline'),/Time left\s*Elapsed 5:00:\d\d/,'the other value sits on the label line');
- assert(!(await q.$eval('#readTip',e=>e.classList.contains('quiet'))),'the hint shows when the app opens');await q.waitForTimeout(6600);
- assert(await q.$eval('#readTip',e=>e.classList.contains('quiet')),'the hint goes quiet after a few seconds');ok('readout: elapsed on the label line, hint at moments only');
+ assert(await q.$eval('#readTip',e=>e.classList.contains('quiet')&&!e.textContent),'no hint under the timer during an ordinary fast');assert.match(await q.textContent('#nowBtn'),/Your body now/,'the body line stands there from the start');
+ ok('readout: elapsed on the label line, no hint, the body line');
  q=await fresh(seed({cur:{start:Date.now()-(13*H+80*60000),goalH:13,planId:'13',reached:true}}));
  assert.match(await q.textContent('#readK'),/1 h 20 m past your goal/);assert.match(await q.textContent('#readBig'),/14/);ok('overtime label and running timer');
  q=await fresh(seed({cur:{start:Date.now()-(16*H),goalH:13,planId:'13',reached:true}}));await q.waitForTimeout(400);assert.match(await q.textContent('#toast'),/past your goal/);assert((await q.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')))).cur.nudged);ok('one calm nudge after two hours over');

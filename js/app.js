@@ -159,10 +159,9 @@ var CHEV='<svg class="chev" viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 
 var ph=$('ph'), cache={}, mode='idle', el=0, tgtP=0, endHold=null, shownP=-1, moonV=1, fullS=0, boost=0, tiltX=0, tiltY=0, tgtX=0, tgtY=0, lastHour=-1, firstTick=true, nowMs=Date.now();
 function put(node,key,val,html){ if(cache[key]===val) return; var had=cache[key]!=null; cache[key]=val; if(html) node.innerHTML=val; else node.textContent=val;
   if(had&&(key==='sub'||key==='k'||key==='t')){ node.classList.remove('swap'); void node.offsetWidth; node.classList.add('swap'); } }
-var TIPS={night:['The long quiet stretch. Most of it passes while you sleep.','最安静的一段，大部分在睡梦中度过。'],first:['Hunger often comes in waves and passes. Water helps.','饥饿感常常一阵一阵，会过去的。喝点水会好些。'],
-  early:['Last meal done. The first hours are the easy part.','最后一餐结束了，最初几个小时最轻松。'],mid:['Past halfway. Keep it light and keep sipping water.','已经过半了。保持轻松，记得喝水。'],
-  late:['The last two hours. You have done the hard part.','最后两小时，最难的部分已经过去了。'],
-  ram:['A quiet day. Nothing to count, nothing to prove.','平静的一天。无需计算，也无需证明什么。'],long:['A long fast: sip water, add a pinch of salt if you feel faint, and stop if you feel unwell.','长时间断食：多喝水，头晕时可加一点点盐，不舒服就停下。']};
+/* During a fast the place under the timer is quiet: people open the app for the time left, a two-second glance, so the everyday hints (a sentence for each part of a fast) were taken out in v0.109.0.
+   Two lines are left because they carry something: the Ramadan line, and the safety line of a long fast. */
+var TIPS={ram:['A quiet day. Nothing to count, nothing to prove.','平静的一天。无需计算，也无需证明什么。'],long:['A long fast: sip water, add a pinch of salt if you feel faint, and stop if you feel unwell.','长时间断食：多喝水，头晕时可加一点点盐，不舒服就停下。']};
 /* What is happening now: one entry per stage in C.BODY. n = name, s = the words on Today after "Your body now:", t = the explanation.
    Plain and careful: what usually happens, no promises, nothing about weight. Sources are named at the foot of the sheet. */
 var NOWTX={
@@ -185,12 +184,12 @@ function nowSheet(open){
    '<p class="gf bn-f">'+L('General information, not medical advice. Sources: ','仅为一般知识，不是医疗建议。来源：')+
    '<a href="https://doi.org/10.1002/oby.22065" target="_blank" rel="noopener">Anton et al., Obesity, 2018</a>'+L('; ','；')+'<a href="https://doi.org/10.1146/annurev.nutr.26.061505.111258" target="_blank" rel="noopener">Cahill, Annu. Rev. Nutr., 2006</a>'+L('; ','；')+'<a href="https://doi.org/10.1016/j.arr.2018.08.004" target="_blank" rel="noopener">Bagherniya et al., Ageing Res. Rev., 2018</a>'+L('.','。')+'</p>';
   var keep=sheetOpen&&sheetEl.querySelector('.bn')?sheetEl.scrollTop:0; openSheet(h); if(keep) sheetEl.scrollTop=keep; }
-/* the hint speaks at moments (a new stage, each hour, opening the app) and then goes quiet; idle and break notes stay, since they carry facts */
+/* a line under the timer. At rest, in the eating window and on a break it stays, since it carries a fact. During a fast only the two lines of TIPS speak, at moments (each hour, opening the app), and then go quiet; with no text the place is quiet at once */
 var tipEl=$('readTip'), nowBtn=$('nowBtn'), tipUntil=0, tipTxt='', tipHr=-1;
 function tip(txt,always,hr){ var t=Date.now(); if(txt!==tipTxt){ tipTxt=txt; tipUntil=t+6000; }
   if(hr!=null){ if(tipHr>=0&&hr>tipHr) tipUntil=t+6000; tipHr=hr; } else tipHr=-1;
-  put(tipEl,'t',txt); tipEl.classList.toggle('quiet',!always&&t>tipUntil); }
-function tipFor(el,goal,sk,moon,p){ if(p.id==='ramadan') return TIPS.ram; if(goal-el<=2) return TIPS.late; if(p.long) return TIPS.long; if(sk==='night'&&moon>=.5) return TIPS.night; if(sk==='first') return TIPS.first; return el<4?TIPS.early:TIPS.mid; }
+  put(tipEl,'t',txt); tipEl.classList.toggle('quiet',!txt||(!always&&t>tipUntil)); }
+function tipFor(p){ return p.id==='ramadan'?TIPS.ram:p.long?TIPS.long:null; }
 
 /* the quadratic timeline track */
 function tPt(t){ return {x:8+326*t,y:52-96*t*(1-t)}; }
@@ -281,7 +280,7 @@ function updateToday(){
     else{ put($('readK'),'k',S.fasts.length?L('Ready','准备好了'):L('First fast','首次断食')); setBigTime(p.fast*3600); put(altEl,'alt',L(p.fast+'-hour plan',p.fast+' 小时计划')); }
     tip(ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。'),1); put($('actLbl'),'a',L('Start fast','开始断食'));
   }else if(mode==='fast'){
-    if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(el,goal,sk[1],moonV,ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); tip(tp[S.lang==='zh'?1:0],0,Math.floor(el)); }
+    if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); tip(tp?tp[S.lang==='zh'?1:0]:'',0,tp?Math.floor(el):null); }
     else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); setBigTime(Math.floor(el*3600)); put(altEl,'alt',L('Goal ','目标 ')+Math.round(goal)+L(' h',' 小时')); tip(ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
       if(!ramadan&&over>=2&&!cur.nudged){ cur.nudged=true; save(); toast(L('You’re well past your goal. Eat when you’re ready; extra time isn’t scored.','已经超过目标很久了。准备好就可以吃东西，超出的时间不计分。')); } }
     if(!holdOn) put($('actLbl'),'a',L('Hold to end fast','按住结束断食'));
@@ -1581,20 +1580,37 @@ function obBigUpdate(){
   var nt=t.querySelector('#obBigN').textContent; if(n.hasAttribute('data-rolling')) n._to=nt; else n.textContent=nt;   /* a number still rolling lands on the newest value */
   var st=document.querySelector('.ob-step.on'); if(!st) return;
   var o=st.querySelectorAll('.ob-day .trk i'), nw=t.querySelectorAll('.ob-day .trk i'), i; for(i=0;i<o.length&&i<nw.length;i++) o[i].setAttribute('style',nw[i].getAttribute('style'));
-  var w=st.querySelector('.ob-win'); if(w) w.textContent=t.querySelector('.ob-win').textContent;
+  var w=st.querySelector('.ob-win span'), w2=t.querySelector('.ob-win span'); if(w&&w2&&w.textContent!==w2.textContent) w.textContent=w2.textContent;
 }
 /* gender is asked on the health step, so a man is never offered the pregnancy answer; "prefer not to say" saves nothing */
 function obSexHtml(){ return '<div class="seg" role="group" aria-label="'+L('Gender','性别')+'">'+[['m',L('Male','男')],['f',L('Female','女')],['x',L('Non-binary','非二元')],['n',L('Prefer not to say','不透露')]].map(function(g){ return '<button type="button" data-act="obsex" data-v="'+g[0]+'" aria-pressed="'+(ob.sex===g[0])+'">'+g[1]+'</button>'; }).join('')+'</div>'; }
+/* ---------- setup answers back (v0.109.0) ----------
+   One short line from the moon after an answer, so each tap gets something back. One line at a time, never a second sentence about the same thing.
+   The element is always in the step (empty and hidden until there is something to say), so a refresh in place never changes the number of children. */
+function obSayHtml(t,cls){ return '<p class="ob-say'+(cls?' '+cls:'')+(t?' on':'')+'" aria-live="polite"><i aria-hidden="true"></i><span>'+t+'</span></p>'; }
+function obSwap(n){ if(reduce||!n) return; n.classList.remove('swap'); void n.offsetWidth; n.classList.add('swap'); }
+/* welcome: the line asks for the drag; once the moon has been dragged full it says what that means, and keeps saying it */
+function obWelLine(){ return ob.filled?L('A full moon is a finished fast.','月亮圆了，就是一次断食完成。'):reduce?L('Fasting that follows the sky.','跟着天空走的断食。'):L('Drag the moon.','拖一拖月亮。'); }
+function obFilled(){ if(ob.filled) return; ob.filled=true; var l=document.querySelector('#ob .ob-step.on .ob-wline'); if(l){ l.textContent=obWelLine(); obSwap(l); } }
+function obFastedSay(){ return ob.fasted==='first'?L('Welcome. We start easy, with 13 hours.','欢迎。我们从轻松的 13 小时开始。'):ob.fasted==='before'?L('Welcome back. Your past fasts can come too.','欢迎回来。以前的断食记录也可以带来。'):''; }
+/* plan: what the plan is like, and when you eat (from the end of the fast to the usual start) */
+function obPlanSay(pid,uh,eh){ var nick={'13':L('The gentle one.','最温和。'),'16':L('The classic.','经典之选。'),'18':L('A longer stretch.','更长的一段。'),'20':L('One main meal.','一天一顿。')}[pid]||L('Your own rhythm.','你自己的节奏。');
+  return nick+L(' Eat '+clockH(eh)+' to '+clockH(uh)+'.','进食 '+clockH(eh)+' 至 '+clockH(uh)+'。'); }
+/* the last screen is one sentence: when the first moon (or sun, by the local sunrise and sunset) starts to fill. A start time that has passed today, or none, waits for the person */
+function obFirst(uh){ refreshSun(Date.now()); var hp=C.placeHour(pi,Date.now()), moon=uh!=null?C.moonAmt(uh,sun)>=.5:C.moonAmt(hp,sun)>=.5;
+  var cl=function(a,b){ return '<span class="cl">'+a+'</span><span class="cl">'+b+'</span>'; };   /* 中文 has no spaces: the two halves wrap as wholes, so a line never breaks inside 第一轮 */
+  if(uh==null||uh<=hp) return moon?L('Your first moon is waiting. Start when you’re ready.',cl('你的第一轮月亮在等你，','准备好就开始。')):L('Your first sun is waiting. Start when you’re ready.',cl('你的第一个太阳在等你，','准备好就开始。'));
+  return L((uh>=17?'Tonight at ':'Today at ')+clockH(uh)+(moon?', your first moon starts to fill.':', your first sun starts to fill.'),cl((uh>=17?'今晚 ':'今天 ')+clockH(uh)+'，',moon?'第一轮月亮开始亮起来。':'第一个太阳开始亮起来。')); }
 function obHtml(i){
   var back=i>0?'<button class="ob-back" data-act="obback"><svg viewBox="0 0 10 18"><path d="M8.5 1.5 1.5 9l7 7.5"/></svg>'+L('Back','返回')+'</button>':'<span></span>';
   var flow=obFlow(), key=flow[i]; var dots=i>0&&i<flow.length-1?'<span class="ob-mslot"></span>':'<span></span>';   /* the one moon parks here as the progress bar */
   var top='<div class="ob-top"><span class="ob-l">'+back+'</span>'+dots+(key==='welcome'?'<button class="ob-lang" data-act="lang" data-v="'+(S.lang==='zh'?'en':'zh')+'" lang="'+(S.lang==='zh'?'en':'zh-Hans')+'">'+(S.lang==='zh'?'English':'中文')+'</button>':'<span></span>')+'</div>', body='', cta='';
   function opt(v,label,sub,on){ return '<button class="plan'+(on?' sel':'')+'" data-act="obopt" data-v="'+v+'"><span class="pn"><b>'+label+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+CHECK+'</button>'; }
   if(key==='welcome'){
-    body='<div class="grow" style="flex:.3"></div><div class="ob-bslot" data-p="0" role="img" aria-label="'+L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。')+'"></div><div class="grow"></div><h1 class="ob-wel">'+L('Lightly','轻伴')+'</h1><p class="lede" style="text-align:center;margin-top:6px">'+L('Fasting that follows the sky.','跟着天空走的断食。')+'</p><div class="grow" style="flex:.35"></div>';
+    body='<div class="grow" style="flex:.3"></div><div class="ob-bslot" data-p="0" role="img" aria-label="'+L('The moon. Drag it to change the phase.','月亮。拖动可以改变月相。')+'"></div><div class="grow"></div><h1 class="ob-wel">'+L('Lightly','轻伴')+'</h1><p class="lede ob-wline" style="text-align:center;margin-top:6px" aria-live="polite">'+obWelLine()+'</p><div class="grow" style="flex:.35"></div>';
     cta='<button class="btn" data-act="obnext">'+L('Get started','开始')+'</button>';
   }else if(key==='fasted'){
-    body='<h1>'+L('Have you fasted before?','你以前断食过吗？')+'</h1><div class="group cards">'+opt('first',L('This is my first time','这是第一次'),'',ob.fasted==='first')+opt('before',L('I’ve fasted before','我以前断食过'),'',ob.fasted==='before')+'</div><div class="grow"></div>';
+    body='<h1>'+L('Have you fasted before?','你以前断食过吗？')+'</h1><div class="group cards">'+opt('first',L('This is my first time','这是第一次'),'',ob.fasted==='first')+opt('before',L('I’ve fasted before','我以前断食过'),'',ob.fasted==='before')+'</div>'+obSayHtml(obFastedSay())+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obnext"'+(ob.fasted?'':' disabled')+'>'+L('Continue','继续')+'</button>';
   }else if(key==='safety'){
     function ck(v,label){ var on=ob.safe.indexOf(v)>=0; return '<button class="check" role="checkbox" aria-checked="'+on+'" data-act="obsafe" data-v="'+v+'"><span class="bx"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span>'+label+'</span></button>'; }
@@ -1634,9 +1650,9 @@ function obHtml(i){
     cta='<button class="btn" data-act="obbody">'+L('Continue','继续')+'</button><button class="btn quiet" data-act="obbodyskip">'+L('Skip','跳过')+'</button>';
   }else if(key==='summary'){
     var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.start||'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
-    body='<div class="ob-bslot" data-p="'+(C.planById(pid,obCh()).fast/24).toFixed(4)+'"></div><h1 style="text-align:center">'+L('You’re set','准备好了')+'</h1>'+
-      '<div class="group"><div class="row"><span>'+L('Plan','计划')+'</span><b>'+esc(C.planLabel(C.planById(pid,obCh())))+'</b></div><div class="row"><span>'+L('Sunrise and sunset','日出日落')+'</span><b>'+esc(placeName())+'</b></div><div class="row"><span>'+L('First fast','第一次断食')+'</span><b>'+(uh!=null?L('Tonight, ','今晚 ')+clockH(uh):L('When you’re ready','准备好时'))+'</b></div></div>'+
-      '<p class="gf" style="padding:0 4px">'+(rk?L('Care mode is on. You start at 13:11.','关怀模式已开启，从 13:11 开始。'):L('Change anything later in Me.','之后可以在“我的”里修改。'))+'</p><div class="grow"></div>';
+    body='<div class="ob-bslot" data-p="'+(C.planById(pid,obCh()).fast/24).toFixed(4)+'"></div><h1 class="ob-first">'+obFirst(uh)+'</h1>'+
+      '<p class="lede ob-firsts">'+esc(C.planLabel(C.planById(pid,obCh())))+' · '+(uh!=null&&uh<=C.placeHour(pi,Date.now())?L('usual start ','通常 ')+clockH(uh)+L(' · ',' 开始 · '):'')+(S.place.key==='here'?L('sunrise and sunset where you are','你所在地的日出日落'):esc(L(placeName()+' sunrise and sunset',placeName()+'的日出日落')))+'</p>'+
+      (rk?'<p class="gf ob-firstc">'+L('Care mode is on. You start at 13:11.','关怀模式已开启，从 13:11 开始。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obdone">'+L('Open Lightly','打开 Lightly')+'</button>';
   }
   var nt=key==='welcome'||key==='summary', sky=nt?obStars()+(key==='summary'?'<i class="dawnbg"></i>':''):'';
@@ -1709,7 +1725,8 @@ function obSwipe(){
   box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up);
 }
 obSwipe();
-function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement; morph(c,n); }
+function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement, was=[].map.call(c.querySelectorAll('.ob-say'),function(e){ return e.textContent; }); morph(c,n);
+  [].forEach.call(c.querySelectorAll('.ob-say'),function(e,j){ if(e.textContent&&e.textContent!==was[j]) obSwap(e); }); }
 function obStart(){ ph.classList.add('onb'); chrome(); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),sex:'n',skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
@@ -1753,7 +1770,7 @@ function obLoop(t){
   if(OL.mode==='wel'){   /* rests dark, follows a drag, pulses when full */
     var target=OL.drag?Math.min(1,Math.max(0,OL.pull*1.6)):0;   /* rests completely dark: the progress starts from nothing once it moves up */
     OL.p+=(target-OL.p)*(1-Math.exp(-dt*(OL.drag?18:5)));
-    var full=OL.p>.93; if(full&&!OL.full){ OL.pulse=1; fx('success'); } OL.full=full; }
+    var full=OL.p>.93; if(full&&!OL.full){ OL.pulse=1; fx('success'); obFilled(); } OL.full=full; }
   OL.pulse=Math.max(0,OL.pulse-dt/1.4);
   if(OL.tw){ var k=Math.min((t-OL.tw.t0)/OL.tw.ms,1), e=1-Math.pow(1-k,3); OL.p=OL.tw.from+(OL.tw.to-OL.tw.from)*e; if(k>=1) OL.tw=null; }
   if(OL.fin) obFinStep(t);
@@ -1835,7 +1852,7 @@ function obBigHtml(pid){
   var b1='left:'+(100*uh/24).toFixed(2)+'%;width:'+(100*(wrap?24-uh:p.fast)/24).toFixed(2)+'%', b2='left:0;width:'+(wrap?(100*eh/24).toFixed(2):0)+'%';
   return '<div class="ob-big"><span class="rn" id="obBigN">'+p.fast+'</span><small>'+L('hours fasting','小时断食')+'</small></div>'+
     '<div class="ob-day" aria-hidden="true"><div class="trk"><i style="'+b1+'"></i><i style="'+b2+'"></i></div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div>'+
-    '<p class="ob-win">'+L('Fast '+clockH(uh)+' to '+clockH(eh)+', eat '+(24-p.fast)+' hours.','断食 '+clockH(uh)+' 到 '+clockH(eh)+'，进食 '+(24-p.fast)+' 小时。')+'</p>';
+    obSayHtml(obPlanSay(pid||'13',uh,eh),'ob-win');
 }
 function obRoll(delay){ setTimeout(function(){ var st=$('ob').lastElementChild; if(st) [].forEach.call(st.querySelectorAll('.rn[data-roll]'),function(n,j){ setTimeout(function(){ odo(n); },j*90); }); },delay||0); }
 /* everything that moves when a step arrives */

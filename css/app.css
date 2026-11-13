@@ -89,6 +89,9 @@ html:lang(zh-Hans) .lt{letter-spacing:0}
 .read .now b{font-weight:600;color:var(--ink)}
 .read .now .chev{width:7px;height:12px;flex:none;margin-left:.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .read .tip.quiet+.now{opacity:1;pointer-events:auto}
+/* during a fast the hint has no words (v0.109.0). On short screens the hint's place may shrink to nothing, so an empty one keeps a line of room for "Your body now", whose tap target would otherwise sit on the timeline */
+@media (max-height:700px){.read .tip:empty{min-height:1.4em}}
+.ph.tight .read .tip:empty{min-height:1.4em}
 .read .now:active{opacity:.6;transition:none}
 /* its sheet: the stages as one list, the current one open, the others a tap away */
 .bn-row{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:56px;padding:10px 16px;border:0;background:transparent;text-align:left;color:var(--label);font:400 1.0625rem/1.3 var(--font);position:relative}
@@ -401,7 +404,21 @@ a.row{text-decoration:none;color:var(--label)}
 .ob-big{display:flex;align-items:baseline;gap:8px;margin:2px 0 4px}
 .ob-big .rn{font:700 4.5rem/1.05 var(--font-r);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .ob-big small{font:600 1.375rem var(--font-r);color:var(--label-2)}
-.ob-win{font-size:.9375rem;color:var(--label-2);margin:10px 0 16px}
+/* setup answers back (v0.109.0): a small moon and one short line after an answer. Always in the step, shown once it has words, and it fades up when the words change */
+.ob-say{display:flex;align-items:center;gap:10px;margin:14px 4px 0;min-height:24px;font:500 0.9375rem/1.35 var(--font);color:var(--label);text-align:left}
+.ob-say:not(.on){visibility:hidden}
+.ob-say>i{flex:none;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 36% 32%,#FFFDF4,#E9E0C6 58%,#BDB294);box-shadow:inset 0 0 0 .5px rgba(60,50,20,.28),0 1px 2px rgba(60,50,20,.18)}
+.ob-win{margin:10px 4px 16px}
+.ob-say>span{text-wrap:balance}
+@media (max-width:350px){.ob-win{min-height:2.7em}}   /* room for two lines on a narrow phone, so the tiles stay put when the plan changes */
+.ob-step.on>.ob-say.swap,.ob-step.on>.ob-wline.swap{animation:obsay .5s var(--spr)}
+@keyframes obsay{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.ob-step.on>.ob-say.swap,.ob-step.on>.ob-wline.swap{animation:none}}
+/* the last screen: one sentence under the moon, then the plan and the place in one quiet line */
+.ob .ob-first{text-align:center;text-wrap:balance;margin:18px 8px 0}
+.ob-first .cl{display:inline-block}
+.ob .ob-firsts{text-align:center;text-wrap:balance;margin:12px 8px 0;font-size:.9375rem}
+.ob .ob-firstc{text-align:center;padding:0 4px;margin-top:10px}
 .ob-times{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 14px}
 .ob-times>div{background:var(--card);border-radius:16px;padding:14px 16px}
 .ob-times b{display:block;font:700 1.875rem/1.1 var(--font-r);letter-spacing:-.02em;font-variant-numeric:tabular-nums}

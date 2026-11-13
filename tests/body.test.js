@@ -16,7 +16,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  // the full path: about you (with the privacy line and the monthly check-in promise), then the summary
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);
   let t=await txt(q);assert.match(t,/A little about you/);assert.match(t,/see your weight trend, with a check-in every month/);assert.match(t,/Private to you: it stays on this phone, and in your backup only if you sign in/);assert(!/estimate/i.test(t),'no estimate any more');
-  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);t=await txt(q);assert(!/How do you usually eat|Your first 30 days/.test(t),'the eating and estimate steps are gone');assert.match(t,/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
+  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);t=await txt(q);assert(!/How do you usually eat|Your first 30 days/.test(t),'the eating and estimate steps are gone');assert.match(t,/Open Lightly/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
   const s=await S(q);assert.strictEqual(s.body.age,30);assert.strictEqual(s.body.kg,70);assert.strictEqual(s.body.cm,170);assert(!('dinner' in s.body),'no eating answers saved');assert(!('sex' in s.body),'Prefer not to say (the default) saves nothing');
   await q.reload();await q.waitForTimeout(700);assert.strictEqual((await S(q)).body.kg,70,'the weight survives a reload');
   await q.click('#tabs [data-tab=me]');await q.waitForTimeout(400);assert.match(await q.textContent('#me'),/About you/);await q.click('#me [data-act=bodyinfo]');await q.waitForTimeout(500);assert.match(await q.textContent("#sheet"),/Private unless you turn on Compare with others/);await q.click('#sheet [data-act=bodyrm]');await q.waitForTimeout(500);
@@ -54,7 +54,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   ok('units kg, lb and 斤 convert');await q.context().close();}
 
  // skip: nothing saved, straight to the summary
- {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
+ {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(600);assert.match(await txt(q),/Open Lightly/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);
   assert(!(await S(q)).body);ok('skip: no weight saved');await q.context().close();}
 
  // the weight wheel stays short enough to draw everywhere, and the setup content keeps no lingering animation
@@ -80,15 +80,15 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  // adults keep a weight whatever it is (no BMI cut-off: BMI is too biased to decide anything); nothing is saved under 18
  {const q=await toSafety('zh');await q.click('[data-act=obsafe][data-v=none]');await nx(q);assert.match(await txt(q),/关于你/);assert.match(await txt(q),/每月回顾会带你看体重变化的趋势/);assert.match(await txt(q),/登录后才会存入你的备份/);
   await pick(q,'obWt',30);   // zh defaults to 斤: 90 斤 is 45 kg, which used to be dropped for its BMI
-  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/你的断食|准备好了/,'straight to the summary');await q.click('[data-act=obdone]');await q.waitForTimeout(800);{const bd=(await S(q)).body;assert(bd&&bd.kg<=50,'a low weight (a BMI under 18.5) is saved like any other: no BMI cut-off, got '+JSON.stringify(bd));}
+  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/第一轮月亮|第一个太阳/,'straight to the last screen');await q.click('[data-act=obdone]');await q.waitForTimeout(800);{const bd=(await S(q)).body;assert(bd&&bd.kg<=50,'a low weight (a BMI under 18.5) is saved like any other: no BMI cut-off, got '+JSON.stringify(bd));}
   ok('no BMI cut-off: a low weight is saved too');await q.context().close();}
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await pick(q,'obWt',30);   // 60 kg at 170 cm = BMI 20.8
-  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert.strictEqual((await S(q)).body.kg,60,'saved for the check-in');ok('an adult weight is saved');await q.context().close();}
+  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/Open Lightly/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert.strictEqual((await S(q)).body.kg,60,'saved for the check-in');ok('an adult weight is saved');await q.context().close();}
  {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=none]');await nx(q);await pick(q,'obAge',4);   // age 17
-  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/You’re set/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert(!(await S(q)).body,'under 18: nothing saved');ok('under 18: nothing saved');await q.context().close();}
+  await q.click('.ob-step.on [data-act=obbody]');await q.waitForTimeout(600);assert.match(await txt(q),/Open Lightly/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert(!(await S(q)).body,'under 18: nothing saved');ok('under 18: nothing saved');await q.context().close();}
 
  // Care mode never sees the weight questions
- {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=ed]');await nx(q);assert.match(await txt(q),/You’re set/);assert.match(await txt(q),/Care mode is on/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert(!(await S(q)).body);ok('Care mode: no weight questions');await q.context().close();}
+ {const q=await toSafety('en');await q.click('[data-act=obsafe][data-v=ed]');await nx(q);assert.match(await txt(q),/Open Lightly/);assert.match(await txt(q),/Care mode is on/);await q.click('[data-act=obdone]');await q.waitForTimeout(800);assert(!(await S(q)).body);ok('Care mode: no weight questions');await q.context().close();}
 
  // the monthly check-in sits in the recap report: optional, one weight, no judgement; never in Care mode, never without a weight from setup
  {const H=3600000,D=24*H,oct=[3,6,9,12].map(d=>{const e=new Date('2026-10-'+String(d).padStart(2,'0')+'T12:00:00+08:00').getTime();return{id:'rc'+d,start:e-17*H,end:e,goalH:16,plan:'16'};});
