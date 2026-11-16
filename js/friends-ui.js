@@ -7,7 +7,7 @@ var F=root.LightlyFriends, QR=root.LightlyQR, Z=root.LightlyZodiac, KEY='lightly
 function init(h){
   var L=h.L, esc=h.esc, $=h.$, CL=h.CL, AV=h.AV, CHEV=h.CHEV, A=h.A;
   /* Friends keeps its own small copy on the phone, apart from the app state: it stays out of the backup, the sign-in link and the export file */
-  var st={groups:[],profile:null,at:0,err:'',joinCode:'',uid:'',stack:{}}, loading=false, tmp={av:null}, view=null, pub={last:null,at:0,busy:false,t:0};
+  var st={groups:[],profile:null,at:0,err:'',joinCode:'',uid:'',wk:{},tip:0}, loading=false, tmp={av:null}, view=null, pub={last:null,at:0,busy:false,t:0}, tipOn=false;
   try{ var raw=JSON.parse(localStorage.getItem(KEY)||'null'); if(raw&&typeof raw==='object') Object.keys(st).forEach(function(k){ if(raw[k]!==undefined) st[k]=raw[k]; }); }catch(e){}
   function save(){ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} }
   /* an invite link (?join=CODE): keep the code (it survives a sign-in in this browser, and the sign-in link carries it to another one) and take it out of the address bar */
@@ -38,7 +38,7 @@ function init(h){
 
   /* ---------- the tab ---------- */
   /* the sky is drawn on a 358 px wide board; on a narrower phone the whole board scales down together */
-  function fitSky(){ var k=document.querySelector('#friends .fr-sky'); if(k) k.style.setProperty('--ks',Math.min(1,k.clientWidth/358).toFixed(4)); }
+  function fitSky(){ [].forEach.call(document.querySelectorAll('#friends .fr-sky'),function(k){ k.style.setProperty('--ks',Math.min(1,k.clientWidth/358).toFixed(4)); }); }
   window.addEventListener('resize',fitSky);
   /* The figure is a CSS mask. Until its image has loaded some browsers paint the whole panel unmasked, which shows as a flash of blue when the screen is rebuilt
      (switching light and dark, coming back to the tab). So a new figure stays hidden until its image is decoded and a frame or two have passed. */
@@ -52,10 +52,33 @@ function init(h){
   if(Z){ try{ var a0=Z.layout(Z.signAt(h.today()),0).art; if(a0) decodeArt(a0); }catch(e){} }
   function reduceMotion(){ return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches); }
   function personCount(n){ return L(n+(n===1?' person':' people'),n+' 人'); }
-  /* a group card: the app's card colour, the name, one line, and a stack of the people (read from today's board, kept on the phone) */
-  function groupCard(g){ var n=g.member_count, sub=personCount(n)+' · '+(g.fasting?L(g.fasting+' fasting now',g.fasting+' 人断食中'):L('Quiet today','今天安静')),
-      stk=(st.stack[g.group_id]||[]).map(function(x){ return '<span class="fr-gav">'+(AV.html(x[1])||AV.html(AV.defaultIcon(x[0]||'')))+'</span>'; }).join('');
-    return '<button type="button" class="fr-gc" data-act="frgroup" data-id="'+esc(g.group_id)+'" aria-label="'+esc(g.name+', '+sub)+'"><span class="fr-gt"><b>'+esc(g.name)+'</b><small>'+esc(sub)+'</small></span><span class="fr-gs" aria-hidden="true">'+stk+'</span></button>'; }
+  /* One group: the tab IS that group (no list, no back button); New group and Join live in its ••• sheet. Two or more: one card per group with everyone's week. */
+  function single(){ return signedIn()&&st.groups.length===1; }
+  function sheetOpen(){ return !!document.querySelector('#sheet.open'); }
+  /* a group card (two or more groups): the group's own sky of the month, small. Its people are the stars (you first, then as they joined) with today's ring,
+     the open places are dashed, and the name and one line sit at the bottom. The whole card is one button that opens the group; nothing inside it is a control.
+     Today's board of each group is kept on the phone in st.wk, so the cards draw at once. */
+  function meFirst(rows){ return rows.filter(function(r){ return r.is_me; }).concat(rows.filter(function(r){ return !r.is_me; })); }
+  /* places on the card, in order along one line: six for a small group, ten (a taller card) from six people up */
+  var KC6=[[70,82],[160,124],[252,78],[318,142],[268,196],[190,200]],
+      KC10=[[48,76],[118,116],[188,76],[258,116],[318,76],[314,176],[244,212],[174,176],[104,212],[40,176]];
+  function skyCard(g){
+    var n=g.member_count, sub=personCount(n)+' · '+(g.fasting?L(g.fasting+' fasting now',g.fasting+' 人断食中'):L('Quiet today','今天安静')),
+        w=st.wk[g.group_id], rows=w&&w.b[6]?meFirst(w.b[6]):[], big=Math.max(rows.length,n)>5, pts=big?KC10:KC6, H=big?330:262, N=Math.min(rows.length,pts.length), seats=pts.slice(Math.max(N,1),big?10:6),
+        sg=Z.signAt(h.today()), on=pts.slice(0,N), pl=on.map(function(q){ return q.join(','); }).join(' '), ds=(N?[pts[N-1]]:[]).concat(seats).map(function(q){ return q.join(','); }).join(' ');
+    var stars=rows.slice(0,N).map(function(x,i){ var d=F.disc(x), q=pts[i]; return '<span class="fr-st" style="left:'+(q[0]-22)+'px;top:'+(q[1]-22)+'px">'+(d.kind==='full'?FLARE:'')+ringSvg(d,false)+'<span class="fr-sav'+(d.kind==='rest'||d.kind==='empty'?' dim':'')+'">'+(AV.html(x.avatar)||AV.html(AV.defaultIcon(x.user_id||'')))+'</span><span class="fr-sl">'+esc(x.display_name)+'</span></span>'; }).join('');
+    var seatsH=seats.map(function(q){ return '<span class="fr-seat" style="left:'+(q[0]-22)+'px;top:'+(q[1]-22)+'px"><i><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></span>'; }).join('');
+    return '<button type="button" class="fr-kc" data-act="frgroup" data-id="'+esc(g.group_id)+'" aria-label="'+esc(g.name+', '+sub)+'"><span class="fr-sky" data-look="lines" style="aspect-ratio:358/'+H+'"><span class="fr-skyi" style="height:'+H+'px">'+
+      '<span class="fr-tw">'+TW.filter(function(t){ return t[1]<H-20; }).map(function(t){ return '<i style="left:'+t[0]+'px;top:'+t[1]+'px;animation-duration:'+t[2]+'s"></i>'; }).join('')+'</span>'+
+      '<svg class="fr-ln" width="358" height="'+H+'" viewBox="0 0 358 '+H+'">'+(N>1?'<polyline points="'+pl+'" fill="none" stroke="var(--fcl)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>':'')+(seats.length?'<polyline points="'+ds+'" fill="none" stroke="var(--fcl)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 6"/>':'')+'</svg>'+
+      stars+seatsH+'<span class="fr-cap"><b>'+esc(g.name)+'</b><span>'+esc(sub)+'</span></span></span><span class="fr-kc-sg">'+esc(L(sg.en+' sky',sg.zh+'星空'))+'</span><span class="fr-kc-go">'+CHEV+'</span></span></button>'; }
+  /* today's board of every group, for the cards: one small read per group (a failed read keeps what was there) */
+  function loadToday(){
+    if(st.groups.length<2) return Promise.resolve();
+    var t=h.today(), days=F.weekDays(t), keep={};
+    return Promise.all(st.groups.map(function(g){ var old=st.wk[g.group_id], w=old&&old.today===t?{today:t,days:days,b:old.b.slice()}:{today:t,days:days,b:[]};
+      return CL.rpc('group_board',{p_gid:g.group_id,p_today:t,p_day:t}).then(function(r){ w.b[6]=r||[]; keep[g.group_id]=w; },function(){ if(old) keep[g.group_id]=old; });
+    })).then(function(){ st.wk=keep; save(); }); }
   function render(){
     var el=$('friends'), x=''; if(!el) return; defs();
     if(!signedIn()){ view=null; var iv=st.joinCode&&tmp.prev&&tmp.prev.code===st.joinCode?tmp.prev.row:null;
@@ -68,8 +91,9 @@ function init(h){
       x='<div class="fr-empty">'+demoSky()+'<h2 class="fr-h">'+L('Fast together, when you want company','想要人陪时，一起断食')+'</h2>'+(st.at||st.err?'<p class="fr-p">'+L('Start a group and send one link.','建一个小组，发一个链接。')+'</p>':'')+
         (st.err&&!st.at?'<p class="fr-p fr-err" role="status">'+esc(F.errorText(st.err,lang()))+'</p>':'')+
         (st.at||st.err?'<div class="fr-cta"><button class="btn" data-act="frnew">'+L('Start a group','建一个小组')+'</button><button class="btn quiet" data-act="frcode">'+L('I have an invite code','我有邀请码')+'</button></div>':'')+'</div>';
+    }else if(st.groups.length===1){ enter(st.groups[0].group_id); x=groupHtml(); setTimeout(function(){ loadBoard(true); },0);
     }else{
-      x='<div class="gh">'+L('Your groups','你的小组')+'</div><div class="fr-gcs">'+st.groups.map(groupCard).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
+      x='<div class="fr-kcs">'+st.groups.map(skyCard).join('')+'</div>'+(st.groups.length<F.MAX_GROUPS?'<div class="group"><button class="row" data-act="frnew"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>'+L('New group','新建小组')+'</span></button><button class="row" data-act="frcode"><span class="mi gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg></span><span>'+L('Join with a code','用邀请码加入')+'</span></button></div>':'')+
         (st.err?'<div class="gf" role="status">'+esc(F.errorText(st.err,lang()))+'</div>':'');
     }
     var keep=el.querySelector('.fr-art'), keepOp=keep?parseFloat(getComputedStyle(keep).opacity)||0:0;   /* the figure already on screen is put back after the rebuild, at the right moment of the cycle */
@@ -84,18 +108,14 @@ function init(h){
   /* read the groups (and whether this person already has a name for groups). The last good answer stays on screen if it fails. */
   function refresh(){
     if(!signedIn()||loading){ render(); return Promise.resolve(); } loading=true;
-    var uid=(CL.getAuth()||{}).uid||''; if(st.uid!==uid){ st.uid=uid; st.groups=[]; st.profile=null; st.at=0; view=null; }
+    var uid=(CL.getAuth()||{}).uid||''; if(st.uid!==uid){ st.uid=uid; st.groups=[]; st.profile=null; st.at=0; st.wk={}; view=null; }
     return Promise.all([CL.rpc('my_groups',{p_today:h.today()}),CL.rest('profiles?select=display_name,avatar')]).then(function(r){
       st.groups=r[0]||[]; st.profile=(r[1]&&r[1][0])||null; st.at=Date.now(); st.err=''; save();
       if(view&&!st.groups.some(function(g){ return g.group_id===view.id; })) view=null; /* removed or left on another phone */
-      return stacks();
+      return view?null:loadToday();
     }).catch(function(e){ st.err=F.errorKey(e); if(e&&e.status===401) st.err='failed'; }).then(function(){ loading=false; if(h.tab()==='friends') render(); publish(false); });
   }
-  /* the first few people of each group, for the avatar stack on its card (at most MAX_GROUPS small reads); a failed read leaves the old stack */
-  function stacks(){ var keep={};
-    return Promise.all(st.groups.map(function(g){ return CL.rpc('group_roster',{p_gid:g.group_id}).then(function(rows){ rows=(rows||[]).slice().sort(function(x,y){ return (y.is_me?1:0)-(x.is_me?1:0); }); keep[g.group_id]=rows.slice(0,5).map(function(x){ return [x.user_id,x.avatar]; }); }).catch(function(){ if(st.stack[g.group_id]) keep[g.group_id]=st.stack[g.group_id]; }); }))
-      .then(function(){ st.stack=keep; save(); }); }
-  function show(){ skyT0=Date.now(); render(); if(view) loadBoard(false); refresh().then(function(){ if(st.joinCode&&signedIn()&&!view) startJoin(st.joinCode); }); if(st.joinCode&&!signedIn()) previewFor(st.joinCode); }
+  function show(){ skyT0=Date.now(); tipOn=false; render(); if(view) loadBoard(false); refresh().then(function(){ if(st.joinCode&&signedIn()&&!view) startJoin(st.joinCode); }); if(st.joinCode&&!signedIn()) previewFor(st.joinCode); }
 
   /* ---------- a group: the day strip, one row per person ---------- */
   var DOW=[['S','日'],['M','一'],['T','二'],['W','三'],['T','四'],['F','五'],['S','六']], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -174,8 +194,12 @@ function init(h){
     else if(w.err) body='<p class="fr-wait" role="status">'+esc(F.errorText(w.err,lang()))+'</p><div class="fr-cta"><button class="btn sec" data-act="frretry">'+L('Try again','重试')+'</button></div>';
     else body='<p class="fr-wait" role="status">'+L('Loading…','加载中…')+'</p>';
     var sub=created?L('Just you for now','现在只有你'):personCount(n), fasting=b?F.counts(b).fasting+F.counts(b).reached:0;
-    return '<div class="fr-top"><button type="button" class="fr-back" data-act="frback">'+BACK+'<span>'+L('Friends','朋友')+'</span></button></div>'+
-      '<div class="fr-t"><div><h1 class="lt fr-name">'+esc(view.name)+'</h1><div class="fr-sub">'+sub+(!created&&b&&w.day===6?' · '+(fasting?L(fasting+' fasting now',fasting+' 人断食中'):L('Quiet today','今天安静')):'')+'</div></div><div class="fr-tools">'+(created?'':'<button type="button" class="fr-inv" data-act="frinvite">'+L('Invite','邀请')+'</button>')+'<button type="button" class="fr-more" data-act="frset" aria-label="'+L('Group settings','小组设置')+'">'+MORE+'</button></div></div>'+
+    var one=st.groups.length<2, tip='';
+    /* the one-time tip: shown once, the first time a one-group person sees the group, pointing at •••; it stays for that visit until closed or ••• is tapped */
+    if(one&&b&&(tipOn||(!st.tip&&!sheetOpen()))){ var first=!tipOn; tipOn=true; if(!st.tip){ st.tip=1; save(); }
+      tip='<div class="fr-tip'+(first?' in':'')+'" role="note"><div><b>'+L('More groups','更多小组')+'</b><span>'+L('Start or join another group from here.','在这里新建或加入其他小组。')+'</span></div><button type="button" class="fr-tipx" data-act="frtipx" aria-label="'+L('Close','关闭')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>'; }
+    return (one?'':'<div class="fr-top"><button type="button" class="fr-back" data-act="frback">'+BACK+'<span>'+L('Friends','朋友')+'</span></button></div>')+
+      '<div class="fr-t'+(one?' top':'')+'"><div><h1 class="lt fr-name">'+esc(view.name)+'</h1><div class="fr-sub">'+sub+(!created&&b&&w.day===6?' · '+(fasting?L(fasting+' fasting now',fasting+' 人断食中'):L('Quiet today','今天安静')):'')+'</div></div><div class="fr-tools">'+(created?'':'<button type="button" class="fr-inv" data-act="frinvite">'+L('Invite','邀请')+'</button>')+'<button type="button" class="fr-more" data-act="frset" aria-label="'+L('Group settings','小组设置')+'">'+MORE+'</button></div>'+tip+'</div>'+
       (created?'':'<div class="fr-days" role="group" aria-label="'+L('Days','日子')+'">'+strip+'</div>')+body;
   }
   /* a group that is just you shows its invite on the page: read it once */
@@ -183,10 +207,54 @@ function init(h){
     var v=view, b=v&&v.wk.b[v.wk.day]; if(!v||v.inv||v.invBusy||!b||b.length!==1) return; v.invBusy=true;
     CL.rpc('current_invite',{p_gid:v.id}).then(function(r){ var inv=r&&r[0]; v.invBusy=false; if(!inv) return; v.inv=inv; tmp.link=link(inv.code); tmp.name=v.name; if(view===v&&h.tab()==='friends') render(); }).catch(function(){ v.invBusy=false; });
   }
-  function openGroup(id){
-    var g=st.groups.filter(function(x){ return x.group_id===id; })[0]; if(!g) return;
-    var t=h.today(); view={id:id,name:g.name,role:g.role,n:g.member_count,wk:{days:F.weekDays(t),today:t,b:[],day:6,err:'',at:0},busy:false,sel:null,look:'auto',order:[],inv:null};
-    skyT0=Date.now(); render(); var el=$('friends'); if(el) el.scrollTop=0; loadBoard(true);
+  /* set up a group's screen (the week the cards already hold shows at once, then all seven days are read again) */
+  function enter(id){
+    var g=st.groups.filter(function(x){ return x.group_id===id; })[0]; if(!g) return false;
+    var t=h.today(), c=st.wk[id]; view={id:id,name:g.name,role:g.role,n:g.member_count,wk:{days:F.weekDays(t),today:t,b:c&&c.today===t?c.b.slice():[],day:6,err:'',at:0},busy:false,sel:null,look:'auto',order:[],inv:null};
+    skyT0=Date.now(); return true;
+  }
+  function openGroup(id){ if(!enter(id)) return; render(); var el=$('friends'); if(el) el.scrollTop=0; loadBoard(true); }
+  /* the group's week goes back into the card's copy when the group is left for the list */
+  function keepWeek(){ var v=view; if(v&&v.wk.today===h.today()&&v.wk.b[6]){ st.wk[v.id]={today:v.wk.today,days:v.wk.days.slice(),b:v.wk.b.slice()}; save(); } }
+
+  /* ---------- the card opens into the group, and the group closes back into its card ----------
+     The page grows out of the card's frame (position, size and corners on one spring) while the card's face fades; Back does the reverse onto the same card.
+     The list or page underneath is a still copy that cannot be tapped. With Reduce Motion it is a short cross-fade. */
+  var SPRING='cubic-bezier(.32,.72,0,1)';
+  function still(el,above){ var c=el.cloneNode(true); c.removeAttribute('id'); c.setAttribute('aria-hidden','true'); c.inert=true; c.classList.add('fr-still'); c.style.paddingTop=getComputedStyle(el).paddingTop; c.style.zIndex=above?3:0;
+    [].forEach.call(c.querySelectorAll('[id]'),function(x){ x.removeAttribute('id'); }); el.parentNode.insertBefore(c,above?null:el); c.scrollTop=el.scrollTop; return c; }
+  function pageBg(el){ return getComputedStyle(el).getPropertyValue('--bg').trim()||getComputedStyle(document.body).backgroundColor; }
+  function frame(fr,c){ var R=fr.getBoundingClientRect(), r=c.getBoundingClientRect(), s=r.width/R.width, rad=parseFloat(getComputedStyle(c.querySelector('.fr-sky')||c).borderTopLeftRadius)||22;
+    return {t:'translate('+(r.left-R.left)+'px,'+(r.top-R.top)+'px) scale('+s+')',clip:'inset(0px 0px '+Math.max(0,R.height-r.height/s)+'px 0px round '+(rad/s).toFixed(1)+'px)'}; }
+  /* a card's own colour, for the first frame: the top of its sky (a gradient) */
+  function cardColour(c,bg){ var k=c.querySelector('.fr-sky'), m=k&&/#[0-9a-f]{6}|rgba?\([^)]*\)/i.exec(getComputedStyle(k).getPropertyValue('--fsky')); return m?m[0]:bg; }
+  function expand(card,id){
+    var fr=$('friends'); if(!fr||!card||!fr.animate){ openGroup(id); return; }
+    if(reduceMotion()){ openGroup(id); fr.animate([{opacity:0},{opacity:1}],{duration:200,easing:'ease-out'}); return; }
+    var f=frame(fr,card), under=still(fr,false), face=card.cloneNode(true), R=fr.getBoundingClientRect(), r=card.getBoundingClientRect();
+    face.classList.add('fr-face'); face.setAttribute('aria-hidden','true'); face.style.cssText='position:absolute;left:'+(r.left-R.left)+'px;top:'+(r.top-R.top)+'px;width:'+r.width+'px;height:'+r.height+'px;margin:0;z-index:3';
+    fr.parentNode.appendChild(face); card.style.visibility='hidden';
+    var bg=pageBg(fr), cardBg=cardColour(card,bg);
+    openGroup(id); fr.style.transformOrigin='0 0'; fr.style.backgroundColor=bg;
+    var D=540, a=fr.animate([{transform:f.t,clipPath:f.clip,backgroundColor:cardBg},{transform:'none',clipPath:'inset(0px 0px 0px 0px round 0px)',backgroundColor:bg}],{duration:D,easing:SPRING});
+    face.animate([{opacity:1},{opacity:0}],{duration:200,easing:'ease-out',fill:'forwards'});
+    under.animate([{opacity:1,transform:'scale(1)'},{opacity:.35,transform:'scale(.96)'}],{duration:D,easing:SPRING,fill:'forwards'});
+    function done(){ fr.style.transformOrigin=''; fr.style.backgroundColor=''; [under,face].forEach(function(x){ if(x.parentNode) x.parentNode.removeChild(x); }); }
+    a.finished.then(done,done);
+  }
+  function collapse(){
+    var fr=$('friends'), id=view&&view.id; keepWeek(); view=null;
+    if(!fr||!fr.animate||!id){ render(); refresh(); return; }
+    if(reduceMotion()){ render(); fr.animate([{opacity:0},{opacity:1}],{duration:200,easing:'ease-out'}); refresh(); return; }
+    var over=still(fr,true); render(); fr.scrollTop=0;
+    var card=fr.querySelector('.fr-kc[data-id="'+id+'"]');
+    if(!card){ over.animate([{opacity:1},{opacity:0}],{duration:200,fill:'forwards'}).finished.then(function(){ over.remove(); }); refresh(); return; }
+    var f=frame(fr,card), D=440, bg=pageBg(fr), cardBg=cardColour(card,bg); over.style.transformOrigin='0 0'; over.style.backgroundColor=bg;
+    var a=over.animate([{transform:'none',clipPath:'inset(0px 0px 0px 0px round 0px)',backgroundColor:bg,opacity:1,offset:0},{opacity:1,offset:.6},{transform:f.t,clipPath:f.clip,backgroundColor:cardBg,opacity:0,offset:1}],{duration:D,easing:SPRING,fill:'forwards'});
+    card.animate([{opacity:0},{opacity:0,offset:.45},{opacity:1}],{duration:D,easing:'ease-out'});
+    fr.animate([{opacity:.4,transform:'scale(.97)'},{opacity:1,transform:'none'}],{duration:D,easing:SPRING});
+    function done(){ if(over.parentNode) over.parentNode.removeChild(over); refresh(); }
+    a.finished.then(done,done);
   }
   /* the group's boards: all seven days when it opens (so a person's week is ready), then just today every minute */
   function loadBoard(all){
@@ -287,7 +355,7 @@ function init(h){
     h.openSheet('<!--keep--><h3 class="ctr">'+titleT+'</h3><p class="lede ctr">'+lede+'</p><div class="btns"><button class="btn sec" data-act="close">'+L('Cancel','取消')+'</button><button class="btn red solid" data-act="'+go+'">'+goLabel+'</button></div>');
   }
   function mi(d,tone){ return '<span class="mi '+tone+'" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="'+d+'"/></svg></span>'; }
-  var ICON_PLUS='M12 5v14M5 12h14', ICON_PEN='M4 20h4L19 9l-4-4L4 16zM13 7l4 4', ICON_FLAG='M5 21V4M5 4h11l-2 4 2 4H5', ICON_EXIT='M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10';
+  var ICON_PLUS='M12 5v14M5 12h14', ICON_PEN='M4 20h4L19 9l-4-4L4 16zM13 7l4 4', ICON_FLAG='M5 21V4M5 4h11l-2 4 2 4H5', ICON_EXIT='M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10', ICON_LINK='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1';
   function memRow(m){ var tag=[m.is_me?L('You','我'):'',m.role==='owner'?L('Owner','群主'):''].filter(Boolean).join(' · ');
     return '<div class="fr-mem">'+av(m.avatar,m.user_id)+'<span class="fr-nm"><b>'+esc(m.display_name)+'</b></span><em>'+esc(tag)+'</em></div>'; }
   function settingsSheet(){
@@ -296,20 +364,26 @@ function init(h){
       h.openSheet('<h3 class="fr-sh">'+esc(v.name)+'</h3><div class="group">'+r.map(memRow).join('')+'</div>'+
         '<div class="group"><div class="row"><span>'+L('Share my status','分享我的状态')+'</span><button class="sw" role="switch" aria-checked="'+tmp.sharing+'" aria-label="'+L('Share my status','分享我的状态')+'" data-act="frsharing"></button></div></div><div class="gf">'+L('When it’s off, this group sees you as resting.','关闭后，这个小组会看到你在休息。')+'</div>'+
         '<div class="group"><button class="row" data-act="frinvite">'+mi(ICON_PLUS,'gold')+'<span>'+L('Invite friends','邀请朋友')+'</span>'+CHEV+'</button>'+(v.role==='owner'?'<button class="row" data-act="frrename">'+mi(ICON_PEN,'grey')+'<span>'+L('Rename group','重命名小组')+'</span>'+CHEV+'</button>':'')+'</div>'+
+        (st.groups.length===1?'<div class="group fr-more-g"><button class="row" data-act="frnew">'+mi(ICON_PLUS,'gold')+'<span>'+L('New group','新建小组')+'</span>'+CHEV+'</button><button class="row" data-act="frcode">'+mi(ICON_LINK,'gold')+'<span>'+L('Join with a code','用邀请码加入')+'</span>'+CHEV+'</button></div>':'')+
         '<div class="group"><button class="row red" data-act="frleave">'+mi(ICON_EXIT,'red')+'<span>'+L('Leave group','退出小组')+'</span></button></div>');
     }).catch(function(e){ h.closeSheet(); fail(e); });
   }
   function afterChange(){ loading=false; refresh(); return loadBoard(true); }
 
-  A.frgroup=function(b){ h.fx('light'); openGroup(b.dataset.id); };
-  A.frback=function(){ view=null; h.fx('light'); render(); refresh(); };
+  A.frgroup=function(b){ h.fx('light'); expand(b,b.dataset.id); };
+  A.frback=function(){ h.fx('light'); collapse(); };
+  function tipAway(){ tipOn=false; st.tip=1; save(); var t=document.querySelector('#friends .fr-tip'); if(t){ t.style.pointerEvents='none'; if(t.animate&&!reduceMotion()) t.animate([{opacity:1,transform:'none'},{opacity:0,transform:'scale(.92)'}],{duration:180,easing:'ease-in'}).finished.then(function(){ t.remove(); },function(){ t.remove(); }); else t.remove(); } }
+  A.frtipx=function(){ h.fx('light'); tipAway(); };
+  /* like any popover, a touch anywhere else puts the tip away, and that touch still does what it was for */
+  document.addEventListener('pointerdown',function(e){ if(tipOn&&!(e.target.closest&&e.target.closest('#friends .fr-tip'))) tipAway(); },true);
+
   A.frretry=function(){ view.wk.err=''; render(); loadBoard(true); };
   A.frday=function(b){ var i=+b.dataset.i; if(!(i>=0&&i<=6)) return; view.wk.day=i; h.fx('select'); render(); var on=document.querySelector('#friends .fr-days [aria-pressed="true"]'); if(on) on.focus({preventScroll:true}); if(!view.wk.b[i]) loadBoard(false); };
   A.frstar=function(b){ var u=b.dataset.u; view.sel=view.sel===u?null:u; h.fx('select'); render(); var on=document.querySelector('#friends .fr-st.on'); if(on) on.focus({preventScroll:true}); };
   A.frlook=function(){ var sky=document.querySelector('#friends .fr-sky'), cur=view.look==='auto'?(reduceMotion()?'lines':'auto'):view.look; view.look=cur==='art'?'lines':'art'; h.fx('light'); if(sky) sky.setAttribute('data-look',view.look); };
   A.frinvite=function(){ if(view) inviteSheet(view.id,view.name); };
   A.frwho=function(b){ whoSheet(b.dataset.u); };
-  A.frset=function(){ if(view) settingsSheet(); };
+  A.frset=function(){ if(tipOn) tipAway(); if(view) settingsSheet(); };
   A.frcheer=function(b){
     var uid=b.dataset.u, x=rowOf(uid,6), v=view; if(!x||x.cheered_by_me||b.disabled) return; x.cheered_by_me=true; h.fx('light'); render();
     var who=$('frWho'); if(who&&who.dataset.u===uid) whoSheet(uid);
@@ -325,7 +399,7 @@ function init(h){
   A.frleave=function(){ var many=view.role==='owner'&&view.n>1;
     confirmSheet(L('Leave “','退出“')+esc(view.name)+L('”?','”？'),many?L('Someone else becomes the owner. You can join again with a new invite.','小组会交给另一位成员。你可以用新的邀请再次加入。'):L('You can join again with a new invite.','你可以用新的邀请再次加入。'),'frleaveok',L('Leave group','退出小组')); };
   A.frleaveok=function(b){ var v=view; if(b.disabled) return; b.disabled=true;
-    CL.rpc('leave_group',{p_gid:v.id}).then(function(){ h.closeSheet(); view=null; st.groups=st.groups.filter(function(g){ return g.group_id!==v.id; }); save(); render(); loading=false; refresh(); h.toast(L('You left “','你已退出“')+v.name+L('”','”')); }).catch(function(e){ b.disabled=false; fail(e); }); };
+    CL.rpc('leave_group',{p_gid:v.id}).then(function(){ h.closeSheet(); view=null; st.groups=st.groups.filter(function(g){ return g.group_id!==v.id; }); delete st.wk[v.id]; save(); render(); loading=false; refresh(); h.toast(L('You left “','你已退出“')+v.name+L('”','”')); }).catch(function(e){ b.disabled=false; fail(e); }); };
   A.frremove=function(b){ var x=rowOf(b.dataset.u,6)||rowOf(b.dataset.u,view.wk.day); if(!x) return; tmp.who=x;
     confirmSheet(L('Remove ','移出')+esc(x.display_name)+L('?','？'),L('They leave this group. They can join again only with a new invite from you.','对方会离开这个小组，只有你再发新的邀请才能重新加入。'),'frremoveok',L('Remove','移出')); };
   A.frremoveok=function(b){ var x=tmp.who, v=view; if(!x||b.disabled) return; b.disabled=true;

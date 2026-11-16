@@ -1086,6 +1086,30 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
 .fr-gs{position:absolute;left:16px;bottom:16px;display:flex}
 .fr-gs .fr-av{width:32px;height:32px;margin-left:-9px;border-radius:50%;box-shadow:0 0 0 2px var(--card)}
 .fr-gs .fr-av:first-child{margin-left:0}
+.fr-kcs{display:grid;gap:14px;margin:0 0 16px}
+.fr-kc{position:relative;display:block;width:100%;padding:0;border:0;border-radius:32px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:transform .12s ease-out}
+.fr-kc:active{transform:scale(.98)}
+.fr-kc .fr-sky{display:block;width:100%;margin:0}
+.fr-kc .fr-st,.fr-kc .fr-seat{pointer-events:none;cursor:inherit}
+.fr-kc .fr-skycap b{font-size:20px}.fr-kc .fr-skycap span{font-size:13px}
+.fr-kc-sg{position:absolute;right:16px;top:16px;padding:4px 10px;border-radius:999px;background:var(--flab);color:var(--fplab);font:600 12px/14px var(--font)}
+.fr-kc-go{position:absolute;right:16px;bottom:16px;width:32px;height:32px;border-radius:50%;background:var(--flab);color:var(--fplab);display:grid;place-items:center}
+.fr-kc-go .chev{width:8px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;margin-left:2px}
+.fr-t{position:relative}.fr-t.top{padding-top:8px}
+.fr-tip{position:absolute;z-index:5;right:0;top:calc(100% - 10px);width:min(290px,100%);display:flex;align-items:flex-start;gap:4px;padding:12px 4px 12px 14px;border-radius:14px;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.14),0 1px 3px rgba(0,0,0,.08);transform-origin:calc(100% - 22px) 0}
+.fr-tip::before{content:"";position:absolute;right:15px;top:-7px;width:14px;height:14px;background:inherit;border-radius:3px 0 0 0;transform:rotate(45deg)}
+.fr-tip>div{flex:1;min-width:0;position:relative}
+.fr-tip b{display:block;font:600 15px/1.3 var(--font)}
+.fr-tip span{display:block;font:400 13px/1.35 var(--font);color:var(--label-2);margin-top:2px}
+.fr-tipx{flex:none;position:relative;width:44px;height:44px;margin:-12px 0;border:0;background:none;color:var(--label-2);display:grid;place-items:center;cursor:pointer}
+.fr-tipx svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.fr-tip.in{animation:frTip .45s cubic-bezier(.16,1,.3,1) both}
+@keyframes frTip{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+.fr-still{pointer-events:none;transition:none!important}
+.fr-face{pointer-events:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fr-tip{background:#2C2C2E;box-shadow:0 10px 30px rgba(0,0,0,.5)}}
+:root[data-theme="dark"] .fr-tip{background:#2C2C2E;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+@media (prefers-reduced-motion:reduce){.fr-tip.in{animation:none}.fr-kc{transition:none}}
 .fr-sky{--fsky:linear-gradient(180deg,#E3EDFB 0%,#EEEAFA 55%,#F7EBDD 100%);--fseat:#F3F5FC;--flab:rgba(255,255,255,.78);--fcl:rgba(50,62,120,.38);--ftrk:rgba(50,50,90,.16);--fdash:rgba(50,50,90,.42);--fplab:#2B2F4A;--fstars:0;--fglow:none;--fflare:.55;--fart:#5B6FD6;--fart-o:.42}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fr-sky{--fsky:linear-gradient(180deg,#0E1535 0%,#18244F 60%,#26224F 100%);--fseat:#141B40;--flab:rgba(14,21,53,.78);--fcl:rgba(190,205,255,.42);--ftrk:rgba(255,255,255,.2);--fdash:rgba(255,255,255,.5);--fplab:#FFFFFF;--fstars:1;--fglow:drop-shadow(0 0 6px rgba(255,201,60,.55));--fflare:.4;--fart:#9DB4FF;--fart-o:.55}}
 :root[data-theme="dark"] .fr-sky{--fsky:linear-gradient(180deg,#0E1535 0%,#18244F 60%,#26224F 100%);--fseat:#141B40;--flab:rgba(14,21,53,.78);--fcl:rgba(190,205,255,.42);--ftrk:rgba(255,255,255,.2);--fdash:rgba(255,255,255,.5);--fplab:#FFFFFF;--fstars:1;--fglow:drop-shadow(0 0 6px rgba(255,201,60,.55));--fflare:.4;--fart:#9DB4FF;--fart-o:.55}
@@ -3343,7 +3367,7 @@ function dyBloom(){
   var $=function(i){ return document.getElementById(i); }, ph=$('ph'), fr=$('frScr'), sh=$('frSheet'), sc=$('frScrim'); if(!fr||!sh) return;
   function L(en,zh){ return api.lang()==='zh'?zh:en; }
   function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
-  var shown=false, has=false, day=6, cheered={}, from=null, sheetFn=null;
+  var shown=false, has=false, day=6, cheered={}, from=null, sheetFn=null, mine=['crew','family'], gk='crew', tipSeen=false, tipOn=false;
   function signedIn(){ return $('meOut').hidden===true; }
 
   /* the disc is the same counter-clockwise wedge as on Today; every friend is a sun (see the Friends brief) */
@@ -3367,6 +3391,9 @@ function dyBloom(){
   var NAME={you:['Alex','Alex'],mei:['Mei','美琪'],arjun:['Arjun','阿杰'],lena:['Lena','乐乐'],sam:['Sam','小山'],diego:['Diego','大卫']};
   var ORDER=['you','mei','arjun','lena','sam','diego'];
   var PLAN={you:16,mei:18,arjun:16,lena:13,sam:16,diego:20};
+  /* two groups, as most people have at most (friends and family) */
+  var G={crew:{en:'Morning crew',zh:'晨光小组',keys:ORDER},family:{en:'Family',zh:'一家人',keys:['you','lena','sam']}};
+  function gname(k){ return L(G[k].en,G[k].zh); }
   /* the last seven days, today last: [status, share of their own plan] */
   var WEEK={you:[['done',1],['done',1],['part',.7],['done',1],['done',1],['done',1],['fasting',.62]],
     mei:[['done',1],['done',1],['done',1],['done',1],['part',.8],['done',1],['fasting',.85]],
@@ -3382,7 +3409,7 @@ function dyBloom(){
   function nm(k){ return NAME[k][api.lang()==='zh'?1:0]; }
   function hrs(k){ return PLAN[k]+L('h','小时'); }
   function word(x){ var w=WORD[x.s][api.lang()==='zh'?1:0]; return (x.s==='fasting'||x.s==='done'||x.s==='part')?w+' · '+hrs(x.k):w; }
-  function board(i){ return ORDER.map(function(k){ var w=WEEK[k][i]; return {k:k,s:w[0],p:w[1]}; }); }
+  function board(i){ return G[gk].keys.map(function(k){ var w=WEEK[k][i]; return {k:k,s:w[0],p:w[1]}; }); }
   function summary(b){ var c={fasting:0,done:0,part:0,rest:0}, o=[]; b.forEach(function(x){ if(c[x.s]!==undefined) c[x.s]++; });
     if(c.fasting) o.push(c.fasting+L(' fasting',' 人断食中')); if(c.done) o.push(c.done+L(' reached goal',' 人达成目标')); if(c.part) o.push(c.part+L(' fasted',' 人断食过')); if(c.rest) o.push(c.rest+L(' resting',' 人休息中'));
     return o.join(' · ')||L('Nobody fasted','没有人断食'); }
@@ -3426,14 +3453,42 @@ function dyBloom(){
   function decodeArt(u){ if(artDecoded[u]) return artDecoded[u]; var i=new Image(); i.src=u; return artDecoded[u]=(i.decode?i.decode():new Promise(function(ok){ i.onload=ok; i.onerror=ok; })).catch(function(){}); }
   /* a new figure stays hidden until its mask image is decoded, so a rebuilt screen never flashes an unmasked panel */
   function revealArt(){ [].forEach.call(fr.querySelectorAll('.fr-art:not(.rd)'),function(el){ decodeArt(el.getAttribute('data-art')).then(function(){ requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(el.isConnected) el.classList.add('rd'); }); }); }); }); }
-  function fitSky(){ var k=fr.querySelector('.fr-sky'); if(k) k.style.setProperty('--ks',Math.min(1,k.clientWidth/358).toFixed(4)); }
+  function fitSky(){ [].forEach.call(fr.querySelectorAll('.fr-sky'),function(k){ k.style.setProperty('--ks',Math.min(1,k.clientWidth/358).toFixed(4)); }); }
   var BK='<svg viewBox="0 0 10 17" aria-hidden="true"><path d="M8.5 1.5 1.5 8.5l7 7"/></svg>';
+  /* one card per group (two or more groups): the group's own sky of the month, small, with its people as stars and the open places dashed; the whole card opens the group */
+  var KC6=[[70,82],[160,124],[252,78],[318,142],[268,196],[190,200]], KC10=[[48,76],[118,116],[188,76],[258,116],[318,76],[314,176],[244,212],[174,176],[104,212],[40,176]];
+  function skyCard(k){ var ks=G[k].keys, nf=ks.filter(function(x){ return /fasting|done/.test(WEEK[x][6][0]); }).length, sub=L(ks.length+' people',ks.length+' 人')+' · '+(nf?nf+L(' fasting now',' 人断食中'):L('Quiet today','今天安静')),
+      big=ks.length>5, pts=big?KC10:KC6, H=big?330:262, N=ks.length, seats=pts.slice(N), sg=signNow(), pl=pts.slice(0,N).map(function(q){ return q.join(','); }).join(' '), ds=[pts[N-1]].concat(seats).map(function(q){ return q.join(','); }).join(' ');
+    var stars=ks.map(function(x,i){ var w=WEEK[x][6], q=pts[i], it={k:x,s:w[0],p:w[1]}; return '<span class="fr-st" style="left:'+(q[0]-22)+'px;top:'+(q[1]-22)+'px">'+(it.s==='done'?FLARE:'')+ringSvg(it,false)+'<span class="fr-sav'+(it.s==='rest'||it.s==='none'?' dim':'')+'">'+av(x)+'</span><span class="fr-sl">'+nm(x)+'</span></span>'; }).join('');
+    var st=seats.map(function(q){ return '<span class="fr-seat" style="left:'+(q[0]-22)+'px;top:'+(q[1]-22)+'px"><i><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></span>'; }).join('');
+    return '<button type="button" class="fr-kc" data-a="open" data-g="'+k+'" aria-label="'+gname(k)+', '+sub+'"><span class="fr-sky" data-look="lines" style="aspect-ratio:358/'+H+'"><span class="fr-skyi" style="height:'+H+'px"><span class="fr-tw">'+TW.filter(function(t){ return t[1]<H-20; }).map(function(t){ return '<i style="left:'+t[0]+'px;top:'+t[1]+'px;animation-duration:'+t[2]+'s"></i>'; }).join('')+'</span>'+
+      '<svg class="fr-ln" width="358" height="'+H+'" viewBox="0 0 358 '+H+'"><polyline points="'+pl+'" fill="none" stroke="var(--fcl)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>'+(seats.length?'<polyline points="'+ds+'" fill="none" stroke="var(--fcl)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 6"/>':'')+'</svg>'+stars+st+
+      '<span class="fr-skycap"><b>'+gname(k)+'</b><span>'+sub+'</span></span></span><span class="fr-kc-sg">'+(api.lang()==='zh'?sg[2]+'星空':sg[1]+' sky')+'</span><span class="fr-kc-go">'+CH+'</span></span></button>'; }
   function list(){
-    var nf=board(6).filter(function(x){ return x.s==='fasting'||x.s==='done'; }).length, stk=function(ks){ return ks.map(av).join(''); };
-    return '<div class="fr-gl">'+L('Your groups','你的小组')+'</div><div class="fr-gcs">'+
-      '<button type="button" class="fr-gc" data-a="open" aria-label="'+L('Morning crew, 6 people, ','晨光小组，6 人，')+nf+L(' fasting now',' 人断食中')+'"><span class="fr-gt"><b>'+L('Morning crew','晨光小组')+'</b><small>'+L('6 people','6 人')+' · '+nf+L(' fasting now',' 人断食中')+'</small></span><span class="fr-gs" aria-hidden="true">'+stk(['you','mei','arjun','lena','sam'])+'</span></button>'+
-      '<button type="button" class="fr-gc" data-a="open" aria-label="'+L('Family, 3 people, quiet today','一家人，3 人，今天安静')+'"><span class="fr-gt"><b>'+L('Family','一家人')+'</b><small>'+L('3 people','3 人')+' · '+L('Quiet today','今天安静')+'</small></span><span class="fr-gs" aria-hidden="true">'+stk(['lena','sam','you'])+'</span></button></div>'+
+    return '<div class="fr-kcs">'+mine.map(skyCard).join('')+'</div>'+
       '<div class="fr-list"><button type="button" class="fr-li" data-a="new">'+mi('M12 5v14M5 12h14','gold')+'<span>'+L('New group','新建小组')+'</span></button><button type="button" class="fr-li" data-a="code">'+mi('M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1','gold')+'<span>'+L('Join with a code','用邀请码加入')+'</span></button></div>'; }
+  /* the card opens into its group and Back closes the group into its card (the same motion as the app; a cross-fade with Reduce Motion) */
+  var SPRING='cubic-bezier(.32,.72,0,1)';
+  function rm(){ return matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  function still(above){ var c=fr.cloneNode(true); c.removeAttribute('id'); c.setAttribute('aria-hidden','true'); c.inert=true; c.classList.add('fr-still'); c.style.zIndex=above?4:1; [].forEach.call(c.querySelectorAll('[id]'),function(x){ x.removeAttribute('id'); }); fr.parentNode.insertBefore(c,above?null:fr); c.scrollTop=fr.scrollTop; return c; }
+  function frame(c){ var R=fr.getBoundingClientRect(), r=c.getBoundingClientRect(), s=r.width/R.width, rad=parseFloat(getComputedStyle(c.querySelector('.fr-sky')||c).borderTopLeftRadius)||22; return {t:'translate('+(r.left-R.left)+'px,'+(r.top-R.top)+'px) scale('+s+')',clip:'inset(0px 0px '+Math.max(0,R.height-r.height/s)+'px 0px round '+(rad/s).toFixed(1)+'px)'}; }
+  function cardColour(c,bg){ var k=c.querySelector('.fr-sky'), m=k&&/#[0-9a-f]{6}|rgba?\([^)]*\)/i.exec(getComputedStyle(k).getPropertyValue('--fsky')); return m?m[0]:bg; }
+  function bgOf(){ return getComputedStyle(fr).backgroundColor; }
+  function expand(card,k){ var go=function(){ gk=k; skyT0=Date.now(); day=6; view='group'; sel=null; render(); fr.scrollTop=0; };
+    if(!card||!fr.animate||rm()){ go(); if(fr.animate) fr.animate([{opacity:0},{opacity:1}],{duration:200}); return; }
+    var bg=bgOf(), f=frame(card), cardBg=cardColour(card,bg), under=still(false), R=fr.getBoundingClientRect(), r=card.getBoundingClientRect(), face=card.cloneNode(true);
+    face.setAttribute('aria-hidden','true'); face.classList.add('fr-face'); face.style.cssText='position:absolute;left:'+(r.left-R.left+fr.offsetLeft)+'px;top:'+(r.top-R.top+fr.offsetTop)+'px;width:'+r.width+'px;height:'+r.height+'px;margin:0;z-index:4'; fr.parentNode.appendChild(face);
+    go(); fr.style.transformOrigin='0 0';
+    var a=fr.animate([{transform:f.t,clipPath:f.clip,backgroundColor:cardBg},{transform:'none',clipPath:'inset(0px 0px 0px 0px round 0px)',backgroundColor:bg}],{duration:540,easing:SPRING});
+    face.animate([{opacity:1},{opacity:0}],{duration:200,easing:'ease-out',fill:'forwards'}); under.animate([{opacity:1,transform:'scale(1)'},{opacity:.35,transform:'scale(.96)'}],{duration:540,easing:SPRING,fill:'forwards'});
+    var done=function(){ fr.style.transformOrigin=''; [under,face].forEach(function(x){ if(x.parentNode) x.parentNode.removeChild(x); }); }; a.finished.then(done,done); }
+  function collapse(){ var k=gk, go=function(){ view='list'; sel=null; render(); fr.scrollTop=0; };
+    if(!fr.animate||rm()){ go(); if(fr.animate) fr.animate([{opacity:0},{opacity:1}],{duration:200}); return; }
+    var over=still(true), bg=bgOf(); go(); var card=fr.querySelector('.fr-kc[data-g="'+k+'"]'); if(!card){ over.remove(); return; }
+    var f=frame(card), cardBg=cardColour(card,bg); over.style.transformOrigin='0 0'; over.style.backgroundColor=bg;
+    var a=over.animate([{transform:'none',clipPath:'inset(0px 0px 0px 0px round 0px)',backgroundColor:bg,opacity:1,offset:0},{opacity:1,offset:.6},{transform:f.t,clipPath:f.clip,backgroundColor:cardBg,opacity:0,offset:1}],{duration:440,easing:SPRING,fill:'forwards'});
+    card.animate([{opacity:0},{opacity:0,offset:.45},{opacity:1}],{duration:440,easing:'ease-out'}); fr.animate([{opacity:.4,transform:'scale(.97)'},{opacity:1,transform:'none'}],{duration:440,easing:SPRING});
+    var done=function(){ if(over.parentNode) over.parentNode.removeChild(over); }; a.finished.then(done,done); }
   function created(){
     var me=[{k:'you',s:'fasting',p:.4}];
     return '<div class="fr-top"><button type="button" class="fr-back" data-a="back">'+BK+'<span>'+L('Friends','朋友')+'</span></button></div>'+
@@ -3458,7 +3513,8 @@ function dyBloom(){
       if(canCheer(x,day)) ch='<button type="button" class="fr-ch" data-a="cheer" data-k="'+x.k+'" aria-pressed="'+!!cheered[x.k]+'" aria-label="'+(cheered[x.k]?L('Cheered ','已给')+nm(x.k)+L('','加油'):L('Cheer ','给')+nm(x.k)+L('','加油'))+'"><span>'+(cheered[x.k]?L('Cheered','已加油'):L('Cheer','加油'))+'</span></button>';
       return '<div class="fr-row"><button type="button" class="fr-tap" data-a="who" data-k="'+x.k+'" aria-label="'+nm(x.k)+', '+word(x)+'">'+av(x.k)+'<span class="fr-nm"><b>'+nm(x.k)+(me?'<i>'+L('You','我')+'</i>':'')+'</b><small>'+word(x)+'</small></span></button>'+ch+disc(x.s,x.p)+'</div>'; }).join('');
     var strip=DOW.map(function(_,i){ return '<button type="button" data-a="day" data-i="'+i+'" aria-pressed="'+(i===day)+'" aria-label="'+dayLong(i)+'"><span>'+dow(i)+'</span><b>'+dateOf(i).getDate()+'</b></button>'; }).join('');
-    return '<div class="fr-top"><button type="button" class="fr-back" data-a="back">'+BK+'<span>'+L('Friends','朋友')+'</span></button></div><div class="fr-t"><div><h3 class="lt">'+L('Morning crew','晨光小组')+'</h3><div class="fr-sub">'+L('6 people','6 人')+'</div></div><div class="fr-tools"><button type="button" class="fr-inv" data-a="invite">'+L('Invite','邀请')+'</button><button type="button" class="fr-more" data-a="set" aria-label="'+L('Group settings','小组设置')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>'+
+    var one=mine.length<2, n=G[gk].keys.length, tip=one&&tipOn?'<div class="fr-tip in" role="note"><div><b>'+L('More groups','更多小组')+'</b><span>'+L('Start or join another group from here.','在这里新建或加入其他小组。')+'</span></div><button type="button" class="fr-tipx" data-a="tipx" aria-label="'+L('Close','关闭')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>':'';
+    return (one?'':'<div class="fr-top"><button type="button" class="fr-back" data-a="back">'+BK+'<span>'+L('Friends','朋友')+'</span></button></div>')+'<div class="fr-t'+(one?' top':'')+'"><div><h3 class="lt">'+gname(gk)+'</h3><div class="fr-sub">'+L(n+' people',n+' 人')+'</div></div><div class="fr-tools"><button type="button" class="fr-inv" data-a="invite">'+L('Invite','邀请')+'</button><button type="button" class="fr-more" data-a="set" aria-label="'+L('Group settings','小组设置')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div>'+tip+'</div>'+
       '<div class="fr-days" role="group" aria-label="'+L('Days','日子')+'">'+strip+'</div>'+sky(b,false)+selCard(b)+'<p class="fr-sum">'+dayLong(day)+' · '+summary(b)+'</p><div class="fr-card">'+rows+'</div>'; }
 
   function render(){ var keep=fr.querySelector('.fr-art'); fr.innerHTML=!signedIn()?hero(true):!has?hero(false):view==='created'?created():view==='group'?group():list(); fitSky();
@@ -3479,9 +3535,10 @@ function dyBloom(){
   function consentSheet(){ var faces=['mei','arjun','lena','sam'].map(function(k,i){ return '<span style="display:inline-block;margin-left:'+(i?'-8px':'0')+'">'+av(k)+'</span>'; }).join('');
     return [L('Join “Morning crew”?','加入“晨光小组”？'),L('Invited by Mei · 4 of 10 people','邀请人 美琪 · 4 / 10 人'),'<div style="text-align:center;margin-bottom:12px">'+faces+'</div><div class="fr-see"><div><b>'+L('The group sees','小组能看到')+'</b><span>'+L('Your name and sky picture, whether you are fasting, resting or not, and your plan in hours.','你的名字和头像、你是否在断食或休息，以及你的计划小时数。')+'</span></div><div><b>'+L('The group never sees','小组看不到')+'</b><span>'+L('Hours fasted, times, where you are, your weight, or a streak.','已断食的时长、时间、你的位置、体重或连续天数。')+'</span></div></div><p class="fr-cap" style="margin:0 0 14px">'+L('You can stop sharing or leave any time.','你可以随时停止分享或退出。')+'</p><div class="fr-btns" style="grid-template-columns:1fr"><button type="button" data-a="joinok">'+L('Join group','加入小组')+'</button></div><button type="button" class="fr-lnk" data-a="closeS">'+L('Not now','暂不加入')+'</button>']; }
   var sharing=true;
-  function setSheet2(){ var rows=ORDER.map(function(k){ return '<div class="fr-mem">'+av(k)+'<b>'+nm(k)+'</b><em>'+(k==='you'?L('You · Owner','我 · 群主'):'')+'</em></div>'; }).join('');
-    return [L('Morning crew','晨光小组'),L('6 people','6 人'),'<div class="fr-card">'+rows+'</div><div class="fr-share"><span>'+L('Share my status','分享我的状态')+'</span><button type="button" class="sw" role="switch" aria-checked="'+sharing+'" aria-label="'+L('Share my status','分享我的状态')+'" data-a="share"></button></div><p class="fr-cap" style="margin:8px 4px 14px;text-align:left">'+L('When it’s off, this group sees you as resting.','关闭后，这个小组会看到你在休息。')+'</p>'+
-      '<div class="fr-list"><button type="button" class="fr-li" data-a="invite">'+mi('M12 5v14M5 12h14','gold')+'<span>'+L('Invite friends','邀请朋友')+'</span>'+CH+'</button></div><div class="fr-list"><button type="button" class="fr-li red" data-a="leave">'+mi('M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10','red')+'<span>'+L('Leave group','退出小组')+'</span></button></div>']; }
+  function setSheet2(){ var rows=G[gk].keys.map(function(k){ return '<div class="fr-mem">'+av(k)+'<b>'+nm(k)+'</b><em>'+(k==='you'?L('You · Owner','我 · 群主'):'')+'</em></div>'; }).join('');
+    var n=G[gk].keys.length, more=mine.length<2?'<div class="fr-list fr-more-g"><button type="button" class="fr-li" data-a="new">'+mi('M12 5v14M5 12h14','gold')+'<span>'+L('New group','新建小组')+'</span>'+CH+'</button><button type="button" class="fr-li" data-a="code">'+mi('M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1','gold')+'<span>'+L('Join with a code','用邀请码加入')+'</span>'+CH+'</button></div>':'';
+    return [gname(gk),L(n+' people',n+' 人'),'<div class="fr-card">'+rows+'</div><div class="fr-share"><span>'+L('Share my status','分享我的状态')+'</span><button type="button" class="sw" role="switch" aria-checked="'+sharing+'" aria-label="'+L('Share my status','分享我的状态')+'" data-a="share"></button></div><p class="fr-cap" style="margin:8px 4px 14px;text-align:left">'+L('When it’s off, this group sees you as resting.','关闭后，这个小组会看到你在休息。')+'</p>'+
+      '<div class="fr-list"><button type="button" class="fr-li" data-a="invite">'+mi('M12 5v14M5 12h14','gold')+'<span>'+L('Invite friends','邀请朋友')+'</span>'+CH+'</button></div>'+more+'<div class="fr-list"><button type="button" class="fr-li red" data-a="leave">'+mi('M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10','red')+'<span>'+L('Leave group','退出小组')+'</span></button></div>']; }
   function whoSheet(k){ var x=board(day)[ORDER.indexOf(k)], wk=DOW.map(function(_,i){ var w=WEEK[k][i]; return '<div>'+disc(w[0],w[1])+'<span>'+dow(i)+'</span></div>'; }).join('');
     var cheer=canCheer(x,day)?'<button type="button" class="fr-sbtn" data-a="cheer" data-k="'+k+'" aria-pressed="'+!!cheered[k]+'">'+(cheered[k]?L('Cheered','已加油'):L('Cheer ','给')+nm(k)+L('','加油'))+'</button>':'';
     var links=k==='you'?'':'<div class="fr-list"><button type="button" class="fr-li" data-a="closeS">'+mi('M5 21V4M5 4h11l-2 4 2 4H5','grey')+'<span>'+L('Report','举报')+'</span></button><button type="button" class="fr-li red" data-a="closeS">'+mi('M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10','red')+'<span>'+L('Remove from group','移出小组')+'</span></button></div>';
@@ -3492,38 +3549,43 @@ function dyBloom(){
 
   function act(el){ var a=el.dataset.a, k=el.dataset.k;
     if(a==='in'){ $('meLogin').click(); render(); }
-    else if(a==='new'){ skyT0=Date.now(); has=true; day=6; view='created'; sel=null; render(); fr.scrollTop=0; }
-    else if(a==='open'){ skyT0=Date.now(); day=6; view='group'; sel=null; render(); fr.scrollTop=0; }
-    else if(a==='back'){ view='list'; sel=null; render(); }
+    else if(a==='new'){ closeSheet(); skyT0=Date.now(); if(has&&mine.indexOf('crew')<0) mine.unshift('crew'); has=true; gk='crew'; day=6; view='created'; sel=null; tipOn=false; render(); fr.scrollTop=0; }
+    else if(a==='open'){ buzz(6); expand(el,el.dataset.g); }
+    else if(a==='back'){ buzz(6); collapse(); }
+    else if(a==='tipx'){ tipOn=false; var tp=fr.querySelector('.fr-tip'); if(tp) tp.remove(); }
     else if(a==='star'){ sel=sel===k?null:k; buzz(6); render(); var on=fr.querySelector('.fr-st.on'); if(on) on.focus({preventScroll:true}); }
     else if(a==='look'){ var cur=look==='auto'?(matchMedia('(prefers-reduced-motion: reduce)').matches?'lines':'auto'):look; look=cur==='art'?'lines':'art'; var sk=fr.querySelector('.fr-sky'); if(sk) sk.setAttribute('data-look',look); }
     else if(a==='day'){ day=+el.dataset.i; render(); var b=fr.querySelector('.fr-days [aria-pressed="true"]'); if(b) b.focus({preventScroll:true}); }
     else if(a==='invite') openSheet(inviteSheet,el);
-    else if(a==='set') openSheet(setSheet2,el);
-    else if(a==='code') openSheet(codeSheet,el);
+    else if(a==='set'){ if(tipOn){ tipOn=false; var tq=fr.querySelector('.fr-tip'); if(tq) tq.remove(); } openSheet(setSheet2,el); }
+    else if(a==='code'){ if(sheetFn) closeSheet(); openSheet(codeSheet,el); }
     else if(a==='codego') openSheet(consentSheet,null);
-    else if(a==='joinok'){ has=true; day=6; view='group'; sel=null; closeSheet(); render(); }
+    else if(a==='joinok'){ has=true; if(mine.indexOf('crew')<0) mine.unshift('crew'); gk='crew'; day=6; view='group'; sel=null; closeSheet(); render(); }
     else if(a==='share'){ sharing=!sharing; el.setAttribute('aria-checked',sharing); buzz(10); }
-    else if(a==='leave'){ has=false; view='list'; sel=null; cheered={}; closeSheet(); render(); }
+    else if(a==='leave'){ mine=mine.filter(function(x){ return x!==gk; }); sel=null; closeSheet();
+      if(!mine.length){ has=false; mine=['crew','family']; gk='crew'; view='list'; cheered={}; }
+      else{ gk=mine[0]; view='group'; day=6; if(mine.length===1&&!tipSeen){ tipSeen=true; tipOn=true; } }   /* one group left: the tab is that group, with the one-time tip */
+      render(); fr.scrollTop=0; }
     else if(a==='closeS') closeSheet();
     else if(a==='who') openSheet(function(){ return whoSheet(k); },el);
     else if(a==='cheer'){ if(cheered[k]) return; cheered[k]=true; buzz(10); var fn=sheetFn; render(); if(fn) setSheet(fn); }
     else if(a==='copy'){ buzz(10); [].forEach.call($('frBody').querySelectorAll('[data-a="copy"]'),function(b){ if(!b.dataset.t) b.dataset.t=b.textContent; b.textContent=L('Copied','已复制'); setTimeout(function(){ b.textContent=b.dataset.t; delete b.dataset.t; },1600); }); } }
+  fr.addEventListener('pointerdown',function(e){ if(tipOn&&!e.target.closest('.fr-tip')){ tipOn=false; var tp=fr.querySelector('.fr-tip'); if(tp) tp.remove(); } },true);   /* a touch anywhere else puts the tip away */
   fr.addEventListener('click',function(e){ var el=e.target.closest('[data-a]'); if(el) act(el); });
   $('frBody').addEventListener('click',function(e){ var el=e.target.closest('[data-a]'); if(el) act(el); });
   $('frClose').addEventListener('click',closeSheet); sc.addEventListener('click',closeSheet);
   sh.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSheet(); });
   ['l-en','l-zh'].forEach(function(id){ $(id).addEventListener('click',function(){ setTimeout(function(){ if(shown) render(); if(sheetFn) setSheet(sheetFn); },0); }); });
-  $('meSignOut').addEventListener('click',function(){ has=false; cheered={}; });
+  $('meSignOut').addEventListener('click',function(){ has=false; cheered={}; mine=['crew','family']; gk='crew'; });
 
   /* the sky follows the date: another sign after midnight, or when the page comes back to the front */
   function checkSign(){ if(shown&&(view==='group'||view==='created')&&lastSign&&signNow()[0]!==lastSign){ skyT0=Date.now(); render(); } }
   setInterval(checkSign,20000); document.addEventListener('visibilitychange',function(){ if(!document.hidden) checkSign(); });
-  window.LightlyFriends={ show:function(v){ if(v){ if(!signedIn()) has=false; day=6; skyT0=Date.now(); if(!has) view='list'; render(); fr.scrollTop=0; } else closeSheet(); shown=v; fr.classList.toggle('open',v); fr.setAttribute('aria-hidden',!v); } };
+  window.LightlyFriends={ show:function(v){ if(v){ if(!signedIn()) has=false; day=6; skyT0=Date.now(); tipOn=false; if(!has) view='list'; else if(mine.length===1){ gk=mine[0]; if(view==='list') view='group'; } render(); fr.scrollTop=0; } else closeSheet(); shown=v; fr.classList.toggle('open',v); fr.setAttribute('aria-hidden',!v); } };
 
   /* "Try it" in the Friends section: sign in as a demo, jump to the phone, open Friends on the sample group */
   var tryB=$('tryFr'); if(tryB) tryB.addEventListener('click',function(){
-    if(!signedIn()) $('meLogin').click(); has=true; view='group'; sel=null;
+    if(!signedIn()) $('meLogin').click(); has=true; if(mine.indexOf('crew')<0) mine.unshift('crew'); gk='crew'; view='group'; sel=null;
     if(ph.scrollIntoView) ph.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
     var t=ph.querySelector('.tabs>span:nth-of-type(3)'); if(t) t.click(); });
 })();
