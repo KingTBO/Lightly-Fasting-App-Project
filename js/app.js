@@ -983,7 +983,7 @@ function pkCol(key,label,items,sel,flex,loop){
     var on=i===sel+base, hid=loop&&(i<base||i>=base+n);
     return '<div class="pk-i'+(on?' sel':'')+'" role="option" aria-selected="'+on+'"'+(hid?' aria-hidden="true"':'')+' data-i="'+i+'">'+t+'</div>'; }).join('')+'</div>'; }
 /* kind: 'dt' (ms), 't' ('HH:MM') or 'sel' (a key from opts: [[key,label],...]) */
-function pkField(id,label,val,kind,opts){
+function pkField(id,label,val,kind,opts,unit){
   var cols='', d, hh, mm, a, hrs=[], mins=[], i;
   if(kind==='sel'){ cols=pkCol('s',label,opts.map(function(o){ return esc(o[1]); }),Math.max(0,opts.map(function(o){ return o[0]; }).indexOf(val)),1); }
   else{
@@ -996,8 +996,13 @@ function pkField(id,label,val,kind,opts){
   }
   return '<div class="pk" id="'+id+'" data-kind="'+kind+'" data-val="'+esc(String(val))+'"'+(kind==='dt'?' data-d0="'+Math.min(pkDayStart(+val),pkDayStart(Date.now()-365*D))+'"':'')+(kind==='sel'?' data-opts="'+esc(JSON.stringify(opts.map(function(o){return o[0];})))+'" data-labels="'+esc(JSON.stringify(opts.map(function(o){return o[1];})))+'"':'')+'>'+
     '<button type="button" class="row pk-row" data-act="pktog" data-id="'+id+'" aria-expanded="false" aria-controls="'+id+'-w"><span>'+label+'</span><span class="pk-v">'+esc(kind==='sel'?(opts.filter(function(o){return o[0]===val;})[0]||opts[0])[1]:pkText(kind,val))+'</span></button>'+
-    '<div class="pk-w" id="'+id+'-w" role="group" aria-label="'+esc(label)+'"><i class="pk-band" aria-hidden="true"></i>'+cols+'</div></div>';
+    '<div class="pk-w'+(unit?' pk-un':'')+'" id="'+id+'-w" role="group" aria-label="'+esc(label)+'"><i class="pk-band" aria-hidden="true"></i>'+cols+(unit?'<span class="pk-u" aria-hidden="true">'+unit+'</span>':'')+'</div></div>';
 }
+/* the fasting goal as a wheel of whole hours, like the hours of the iPhone timer: plain numbers that turn past a fixed "hours" beside the band */
+function goalField(id,val,lo,hi){ var v=pkClamp(Math.round(+val)||16,lo,hi), o=[], h; for(h=lo;h<=hi;h++) o.push([h,String(h)]);
+  return pkField(id,L('Fasting goal (hours)','断食目标（小时）'),v,'sel',o,L('hours','小时')); }
+/* the total between two times in the edit sheet: what the fast adds up to, kept current while either wheel turns */
+function spanTxt(s,e){ return e>s?durTxt((e-s)/H):'–'; }
 function pkVal(id){ return $(id).dataset.val; }
 function pkRead(pk){
   var kind=pk.dataset.kind, c=function(k){ var e=pk.querySelector('[data-c="'+k+'"]'); return e?+e.dataset.sel:0; };
@@ -1048,7 +1053,9 @@ function pkTune(col){
   pk.querySelector('.pk-v').textContent=kind==='sel'?JSON.parse(pk.dataset.labels)[col.dataset.sel]:pkText(kind,v);
   pkChange(pk.id,v); }
 function pkChange(id,v){
-  if(id==='obStart'){ ob.start=v; obBigUpdate(); }
+  if(id==='fsS'||id==='fsE'){ var t=$('fsT'); if(t) t.textContent=spanTxt(+pkVal('fsS'),+pkVal('fsE')); }
+  else if(id==='cH'){ clearTimeout(pkTimer); pkTimer=setTimeout(function(){ customSet(+v); },300); }
+  else if(id==='obStart'){ ob.start=v; obBigUpdate(); }
   else if(id==='obCustom'){ ob.customH=+v; ob.plan='custom'; ob.planAuto=false; obBigUpdate(); }
   else if(id==='obCity') setPlace({key:v});
   else if(id==='rpWt') rp.wkg=C.toKg(+v,S.body.unit||'kg');
@@ -1088,18 +1095,18 @@ function pkToggle(id){
   Array.prototype.forEach.call(pk.querySelectorAll('.pk-c'),function(c){
     pkSet(c,pkBase(c)+(+c.dataset.sel),false); pkDrum(c);
     if(c._on) return; c._on=true; pkBind(c); });
-  setTimeout(function(){ try{ pk.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'}); }catch(x){} },60); }
+  [60,440].forEach(function(t){ setTimeout(function(){ if(pk.classList.contains('open')) try{ pk.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'}); }catch(x){} },t); }); }   /* again once the wheel has finished opening, so all of it is in view */
 function fastSheet(f,addKey){
   var isNew=!f, now=Date.now(), end, start;
   if(isNew){ var base=C.keyToDate(addKey); end=addKey===today()?now:base.getTime()+12*H; if(end>now) end=now; start=end-plan().fast*H; }
   else{ start=f.start; end=f.end; }
   var goal=isNew?plan().fast:f.goalH;
   openSheet('<h3>'+(isNew?L('Add a fast','补记断食'):L('Edit fast','编辑断食'))+'</h3><p class="lede">'+L('Fix a start or end time, or add one you forgot to log.','修改开始或结束时间，或补上忘记记录的一次。')+'</p>'+
-   '<div class="group">'+pkField('fsS',L('Started','开始'),start,'dt')+pkField('fsE',L('Ended','结束'),end,'dt')+'<div class="field"><label for="fsG">'+L('Goal (hours)','目标（小时）')+'</label><input id="fsG" type="number" min="1" max="36" step="1" inputmode="numeric" value="'+Math.round(goal)+'"></div></div>'+(!isNew&&f.plan==='ramadan'?'':feelSeg(isNew?null:f,false))+
+   '<div class="group">'+pkField('fsS',L('Started','开始'),start,'dt')+pkField('fsE',L('Ended','结束'),end,'dt')+'<div class="row tot-r"><span id="fsTl">'+L('Total','总时长')+'</span><span class="v tot-v" id="fsT" role="status" aria-labelledby="fsTl fsT">'+spanTxt(start,end)+'</span></div>'+goalField('fsG',goal,1,36)+'</div>'+(!isNew&&f.plan==='ramadan'?'':feelSeg(isNew?null:f,false))+
    (isNew?'':'<div class="group"><button class="row red" data-act="fsdel" data-id="'+f.id+'">'+L('Delete this fast','删除这次断食')+'</button></div>')+'<div class="btns"><button class="btn" data-act="fssave" data-id="'+(isNew?'':f.id)+'">'+L('Save','保存')+'</button></div>');
 }
 function fastSave(id){
-  var s=+pkVal('fsS'), e=+pkVal('fsE'), g=Math.round(+$('fsG').value), now=Date.now();
+  var s=+pkVal('fsS'), e=+pkVal('fsE'), g=Math.round(+pkVal('fsG')), now=Date.now();
   if(!isFinite(s)||!isFinite(e)) return toast(L('Pick a start and an end.','请选择开始和结束时间。'));
   if(e<=s) return toast(L('The end has to be after the start.','结束时间必须晚于开始时间。'));
   if(e>now+60000) return toast(L('The end can’t be in the future.','结束时间不能在未来。'));
@@ -1318,9 +1325,12 @@ function planRow(p,selId){
   }
   var extra=p.custom&&!dis?'<span class="pr" style="min-width:0"></span>':'';
   var row='<button class="plan'+(selId===p.id?' sel':'')+'" data-act="pickplan" data-id="'+p.id+'"'+(dis?' disabled':'')+(pill&&!dis&&!p.long?' data-soft="1"':'')+'><span class="pn"><b>'+esc(pName(p))+'</b><small>'+sub+'</small>'+bar+'</span>'+pill+'<span class="pr">'+lab+'</span>'+CHECK+'</button>';
-  if(p.custom&&selId==='custom') row+='<div class="field"><label for="cH">'+L('Fasting hours','断食小时数')+'</label><input id="cH" type="number" min="12" max="'+C.customMax(S.profile)+'" step="1" inputmode="numeric" value="'+S.customH+'" data-chg="custom"></div>';
+  if(p.custom&&selId==='custom') row+=goalField('cH',S.customH,12,C.customMax(S.profile));
   return row;
 }
+/* the custom plan's wheel in the plan sheet: the new goal applies once the wheel rests, and only the custom row's label changes, so the open wheel stays put */
+function customSet(v){ v=Math.min(C.customMax(S.profile),Math.max(12,Math.round(v)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; }
+  save(); cache={}; ticksKey=''; updateToday(); var r=sheetOpen&&sheetEl.querySelector('.plan[data-id="custom"] .pr'); if(r) r.textContent=C.planLabel(C.planById('custom',v)); }
 /* a daily plan row says when that fast would end (from now, or from the running fast's start) and draws its share of the day: fasting hours filled, eating hours empty */
 function planUntil(h){ var now=Date.now(), end=(S.cur?S.cur.start:now)+h*H; return end<=now?L(', reached','，已达成'):L(', until ','，到 ')+'<span class="pu" data-h="'+h+'">'+clockMs(end)+'</span>'; }
 function dayBar(p){ return '<span class="day" aria-hidden="true"><i style="flex:'+p.fast+'"></i><i style="flex:'+Math.max(p.eat,0)+'"></i></span>'; }
@@ -1624,9 +1634,8 @@ function obHtml(i){
         var lk=s==='locked', soft=s==='soft';
         return '<button class="plan'+(ob.plan===id?' sel':'')+(lk?' lk':'')+'" data-act="obplan" data-id="'+id+'"'+(lk?' disabled':'')+(soft?' data-soft="1"':'')+' aria-label="'+esc(pName(p)+', '+C.planLabel(p)+(soft?', '+L('advanced','进阶'):''))+'"><span class="pn"><b>'+C.planLabel(p)+'</b>'+(lk?'<small>'+L('After 3 fasts','完成 3 次后')+'</small>':soft?'<small>'+L('Advanced','进阶')+'</small>':'')+'</span>'+CHECK+'</button>'; }).join('');
     if(before&&!risky) tiles+='<button class="plan'+(ob.plan==='custom'?' sel':'')+'" data-act="obplan" data-id="custom"><span class="pn"><b>'+L('Custom','自定义')+'</b></span>'+CHECK+'</button>';
-    var hrs=[],hh; for(hh=12;hh<=23;hh++) hrs.push([hh,L(hh+' h',hh+' 小时')]);
     body='<h1>'+L('Pick your plan','选择你的计划')+'</h1>'+obBigHtml(ob.plan)+'<div class="group tiles">'+tiles+'</div>'+
-      (ob.plan==='custom'?'<div class="group">'+pkField('obCustom',L('Fasting hours','断食小时数'),obCh(),'sel',hrs)+'</div>':'')+
+      (ob.plan==='custom'?'<div class="group">'+goalField('obCustom',obCh(),12,23)+'</div>':'')+
       (stOf(ob.plan).st==='soft'?'<p class="gf obnote" style="padding:0 4px;color:var(--label)">'+softNote()+'</p>':'')+
       (risky?'<p class="gf" style="padding:0 4px">'+L('Longer fasts stay off for you.','长时间断食对你保持关闭。')+'</p>':'')+
       '<div class="group">'+pkField('obStart',before?L('Usual start time','通常开始时间'):L('When will you start?','你打算几点开始？'),ob.start||'20:00','t')+'</div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
@@ -2052,9 +2061,6 @@ var A={
 document.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){ e.preventDefault(); A.namesave(); } });
 FUI=window.LightlyFriendsUI.init({S:function(){ return S; },L:L,esc:esc,$:$,CL:CL,AV:AV,CHEV:CHEV,A:A,ph:ph,tab:function(){ return curTab; },showTab:showTab,today:today,toast:toast,openSheet:openSheet,closeSheet:closeSheet,fx:fx,sw:sw,GICON:GICON});
 document.addEventListener('click',function(e){ var b=e.target.closest('[data-act]'); if(!b||!ph.contains(b)) return; var f=A[b.dataset.act]; if(f){ if(b.tagName==='BUTTON'&&b.disabled) return; f(b); } });
-document.addEventListener('change',function(e){ var t=e.target; if(!t.dataset||!t.dataset.chg) return;
-  if(t.dataset.chg==='custom'){ var v=Math.min(C.customMax(S.profile),Math.max(12,Math.round(+t.value)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; } save(); cache={}; ticksKey=''; updateToday(); planSheet(); }
-  });
 /* the real viewport height, so a Home Screen launch fills the glass edge to edge on every phone (ignored while the keyboard is up) */
 (function(){ var sa=document.createElement('div'); sa.setAttribute('aria-hidden','true'); sa.style.cssText='position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding:var(--sat) 0 var(--sab)'; ph.appendChild(sa); function fit(){ var a=document.activeElement; if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
     ph.style.setProperty('--app-h',Math.round(window.innerHeight)+'px'); ph.classList.toggle('tight',window.innerHeight-sa.offsetHeight<=600); }

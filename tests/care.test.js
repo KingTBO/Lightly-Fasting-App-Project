@@ -19,7 +19,7 @@ const H=3600000,D=24*H;
   await q.click('#planBtn');await q.click('[data-act=more]');
   assert(!(await q.$('.plan[data-id="18"]'))&&!(await q.$('.plan[data-id="20"]'))&&!(await q.$('.plan[data-id="23"]')),'18:6, 20:4 and 23:1 are not offered');
   assert(await q.$('.plan[data-id="24"][disabled]')&&await q.$('.plan[data-id="36"][disabled]'),'24 h and 36 h show, closed');assert.match(await q.textContent('.plan[data-id="24"]'),/Not offered/);assert(!(await q.$('.plan[data-id="24"] .bar')),'no progress bar to climb');
-  assert(!(await q.$('#cH')),'custom is not selected');await q.click('.plan[data-id="custom"]');await q.waitForTimeout(200);assert.strictEqual(await q.getAttribute('#cH','max'),'16','custom stops at 16 h');
+  assert(!(await q.$('#cH')),'custom is not selected');await q.click('.plan[data-id="custom"]');await q.waitForTimeout(200);assert.strictEqual(await q.$eval('#cH',e=>Math.max(...JSON.parse(e.dataset.opts))),16,'custom stops at 16 h');
   await q.click('#sheet [data-act=close]');await q.waitForTimeout(400);
   await q.click('#tabs [data-tab=me]');const me=await q.textContent('#me');assert(!/Cheat days/.test(me),'no cheat days row');assert(!/Ramadan/.test(me),'no Ramadan preview switch');assert.match(me,/Care mode on/);
   await q.click('#tabs [data-tab=days]');assert(!/day streak/i.test(await q.textContent('#days')),'Days has no streak');assert.match(await q.textContent('#days'),/Days this month/);
