@@ -833,6 +833,11 @@ button.dd-e:active,.dd-row:active .dd-e{opacity:.6}
 .pk-i{height:36px;display:flex;align-items:center;justify-content:center;font:400 1.1875rem var(--font);font-variant-numeric:tabular-nums;color:var(--label);opacity:.3;transform:perspective(260px) rotateX(0) scale(.86);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
 .pk-i.sel{color:var(--label)}
 @media (prefers-reduced-motion:reduce){.pk-w,.pk.open .pk-w{transition:none}.pk-i{transform:none}}
+/* a wheel with a unit (the fasting goal): the numbers end just left of the middle and a fixed "hours" sits beside them on the band, like the iPhone timer */
+.pk-un .pk-i{justify-content:flex-end;padding-right:calc(50% + 16px);box-sizing:border-box}
+.pk-u{position:absolute;top:72px;left:calc(50% - 8px);height:36px;display:flex;align-items:center;font:400 1.1875rem var(--font);color:var(--label);pointer-events:none}
+/* the edit sheet's total: what the fast adds up to, updated as the times turn */
+.row .tot-v{color:var(--label);font-weight:600;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 
 /* hold-to-confirm button in a sheet */
 .btn.hold{position:relative;overflow:hidden;isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}

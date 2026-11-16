@@ -45,7 +45,7 @@ const H=3600000,D=24*H;
  assert.match(await p.textContent('#readK'),/Eating window/);ok('eating window after a fast');
  // days: edit fast
  await p.click('#tabs [data-tab=days]');await p.click('.cal-g button.today');await p.click('[data-act=edit]');
- const e1=await p.evaluate(()=>document.getElementById('fsE').dataset.val);await p.fill('#fsG','3');await p.click('[data-act=fssave]');await p.waitForTimeout(300);
+ const e1=await p.evaluate(()=>document.getElementById('fsE').dataset.val);await pick(p,'#fsG',3);await p.click('[data-act=fssave]');await p.waitForTimeout(300);
  s=await S();assert.strictEqual(s.fasts[0].goalH,3);ok('past fast editable');
  // delete it, add a missed one (overlaps are refused), delete again
  await p.click('#days [data-act=edit]');await p.click('[data-act=fsdel]');await p.waitForTimeout(200);assert.strictEqual((await S()).fasts.length,0);

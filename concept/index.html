@@ -360,6 +360,9 @@ html:lang(zh-Hans) .ob-step h4{letter-spacing:0}
 .pk-i{height:36px;display:flex;align-items:center;justify-content:center;font:400 19px var(--font);font-variant-numeric:tabular-nums;color:var(--label);opacity:.3;transform:perspective(260px) rotateX(0) scale(.86);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
 .pk-i.sel{color:var(--label)}
 @media (prefers-reduced-motion:reduce){.pk-w,.pk.open .pk-w{transition:none}.pk-i{transform:none}}
+/* a wheel with a unit (the fasting goal): numbers end just left of the middle, a fixed "hours" beside them on the band, like the iPhone timer */
+.pk-un .pk-i{justify-content:flex-end;padding-right:calc(50% + 16px);box-sizing:border-box}
+.pk-u{position:absolute;top:72px;left:calc(50% - 8px);height:36px;display:flex;align-items:center;font:400 19px var(--font);color:var(--label);pointer-events:none}
 .ob-opt .tag{font:600 11px var(--font);color:var(--on-tint);background:var(--tint);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;display:inline-flex;align-items:center;height:20px;line-height:1}
 .ob-opt .lk{font:600 11px var(--font);color:var(--label-2);background:var(--fill);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
 .ob-cta{margin-top:auto;width:100%;min-height:54px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:600 17px var(--font);cursor:pointer;transition:transform .1s ease-out,opacity .2s}
@@ -2408,7 +2411,7 @@ window.LightlySphere=(function(){
     return '<div class="ob-big"><span class="rn" id="obBigN">'+pl.fast+'</span><small>'+L('hours fasting','小时断食')+'</small></div>'+
       '<div class="ob-day" aria-hidden="true"><div class="trk"><i style="'+b1+'"></i><i style="'+b2+'"></i></div><div class="lbl"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div>'+
       sayHtml(planSay(pid,uh,eh),'ob-win'); }
-  function hoursOpts(){ var a=[],h; for(h=12;h<=23;h++) a.push([h,L(h+' h',h+' 小时')]); return a; }
+  function hoursOpts(){ var a=[],h; for(h=12;h<=23;h++) a.push([h,String(h)]); return a; }
   /* the big number, the strip and the window line follow the start time and custom hours without redrawing an open wheel */
   function bigUpdate(el){ var t=document.createElement('div'); t.innerHTML=bigHtml(st.plan), n=el.querySelector('#obBigN'); if(!n) return; var nt=t.querySelector('#obBigN').textContent; if(n.querySelector('.rlo')) n._to=nt; else n.textContent=nt;
     var o=el.querySelectorAll('.ob-day .trk i'), nw=t.querySelectorAll('.ob-day .trk i'), i; for(i=0;i<o.length&&i<nw.length;i++) o[i].setAttribute('style',nw[i].getAttribute('style')); var w=el.querySelector('.ob-win span'), w2=t.querySelector('.ob-win span'); if(w&&w2&&w.textContent!==w2.textContent) w.textContent=w2.textContent; }
@@ -2443,10 +2446,10 @@ window.LightlySphere=(function(){
       '</div>'+(risky()?'<div class="ob-doc">'+L('Care mode keeps Lightly gentle: shorter fasts, no streaks, no long fasts. Please talk to your doctor first.','关怀模式让轻伴更温和：较短的断食，没有连续天数，没有长时间断食。请先咨询医生。')+'</div>':'')+
       '<button type="button" class="ob-cta" data-next'+(st.safety.length?'':' disabled')+'>'+L('Continue','继续')+'</button>';
     if(i===3){ var rec=risky()?'13':RULES.recommend[st.exp||'first'], before=st.exp==='some'; if(!st.plan||st.planAuto||!allowed(st.plan)&&st.plan!=='custom'||(st.plan==='custom'&&(!before||risky()))){ st.plan=rec; st.planAuto=true; }
-      var ids=before&&!risky()?['16','13','18','20']:risky()?['13','16']:['13','16','18','20'], hrs=[]; for(var hh=12;hh<=23;hh++) hrs.push([hh,L(hh+' h',hh+' 小时')]);
+      var ids=before&&!risky()?['16','13','18','20']:risky()?['13','16']:['13','16','18','20'], hrs=hoursOpts();
       return '<h4>'+L('Pick your plan','选一个计划')+'</h4>'+bigHtml(st.plan)+'<div class="ob-list tiles" data-q="plan">'+ids.map(function(id){ var ok=allowed(id), pl=api.plans.filter(function(x){return x.id===id;})[0]||{fast:+id,eat:24-id};
         return opt(id,pl.fast+':'+pl.eat,ok?(soft(id)?L('Advanced','进阶'):''):L('After 3 fasts','完成 3 次后'),st.plan===id,null,!ok); }).join('')+(before&&!risky()?opt('custom',L('Custom','自定义'),'',st.plan==='custom'):'')+'</div>'+
-        (st.plan==='custom'?'<div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField('chours',L('Fasting hours','断食小时数'),st.customH||16,'sel',hrs)+'</div></div>':'')+
+        (st.plan==='custom'?'<div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField('chours',L('Fasting goal (hours)','断食目标（小时）'),st.customH||16,'sel',hrs,L('hours','小时'))+'</div></div>':'')+
         (soft(st.plan)?'<p class="ob-note">'+softNote()+'</p>':'')+(risky()?'<p class="ob-note">'+L('Longer fasts stay off for you.','长时间断食对你保持关闭。')+'</p>':'')+
         '<div class="ob-list" data-q="custom" style="margin-top:14px"><div class="ob-opt" style="cursor:default;display:block;padding-top:0;padding-bottom:0">'+pkField('start',before?L('Usual start time','通常开始时间'):L('When will you start?','你打算几点开始？'),st.start||'20:30','t')+'</div></div>'+
         '<div class="ob-list" data-q="custom"><div class="ob-opt" style="cursor:default"><span>'+L('Remind me when I reach my goal','达成目标时提醒我')+'</span><span class="ck"></span></div></div><div class="grow"></div><button type="button" class="ob-cta" data-next>'+L('Continue','继续')+'</button>'; }
@@ -2521,11 +2524,11 @@ window.LightlySphere=(function(){
     if(loop){ rows=[]; for(r=0;r<PK_REPS;r++) rows=rows.concat(items); }
     return '<div class="pk-c" role="listbox" tabindex="0" data-c="'+key+'" data-sel="'+sel+'"'+(loop?' data-loop="'+n+'"':'')+' aria-label="'+label+'" style="flex:'+flex+'">'+rows.map(function(t,i){ var on=i===sel+base, hid=loop&&(i<base||i>=base+n); return '<div class="pk-i'+(on?' sel':'')+'" role="option" aria-selected="'+on+'"'+(hid?' aria-hidden="true"':'')+' data-i="'+i+'">'+t+'</div>'; }).join('')+'</div>'; }
   function pkClock(v){ var a=v.split(':'); return pad2(+a[0])+':'+pad2(+a[1]); }
-  function pkField(id,label,val,kind,opts){ var cols, i, hrs=[], mins=[], hh, mm;
+  function pkField(id,label,val,kind,opts,unit){ var cols, i, hrs=[], mins=[], hh, mm;
     if(kind==='sel') cols=pkCol('s',label,opts.map(function(o){return o[1];}),Math.max(0,opts.map(function(o){return o[0];}).indexOf(val)),1);
     else{ var a=val.split(':'); hh=+a[0]; mm=+a[1]; for(i=0;i<24;i++) hrs.push(pad2(i)); for(i=0;i<60;i++) mins.push(pad2(i));
       cols=pkCol('h',L('Hour','小时'),hrs,hh,1,true)+pkCol('m',L('Minute','分钟'),mins,mm,1,true); }
-    return '<div class="pk" data-id="'+id+'" data-kind="'+kind+'" data-val="'+val+'"><button type="button" class="pk-row" aria-expanded="false"><span>'+label+'</span><span class="pk-v">'+(kind==='sel'?(opts.filter(function(o){return o[0]===val;})[0]||opts[0])[1]:pkClock(val))+'</span></button><div class="pk-w" role="group" aria-label="'+label+'"><i class="pk-band" aria-hidden="true"></i>'+cols+'</div></div>'; }
+    return '<div class="pk" data-id="'+id+'" data-kind="'+kind+'" data-val="'+val+'"><button type="button" class="pk-row" aria-expanded="false"><span>'+label+'</span><span class="pk-v">'+(kind==='sel'?(opts.filter(function(o){return o[0]===val;})[0]||opts[0])[1]:pkClock(val))+'</span></button><div class="pk-w'+(unit?' pk-un':'')+'" role="group" aria-label="'+label+'"><i class="pk-band" aria-hidden="true"></i>'+cols+(unit?'<span class="pk-u" aria-hidden="true">'+unit+'</span>':'')+'</div></div>'; }
   function pkWheel(c,tune){
     var rows=function(){ return c.children.length; }, maxY=function(){ return (rows()-1)*PKH; }, loopN=function(){ return +c.dataset.loop||0; };
     function put(y){ y=clamp(y,0,maxY()); c._y=y; c.scrollTop=y; }
@@ -3229,7 +3232,7 @@ function dyBloom(){
     function end(){ if(!on) return; on=false; if(!live) return; live=false; dyGone=performance.now(); var tgt=dyOff+(dx>0?1:-1), go=(Math.abs(dx)>60||Math.abs(vx)>.45)&&tgt>=0&&tgt<=DY_BACK; cal.style.transition=''; cal.style.transform=''; cal.style.opacity=''; if(go) dyGo(tgt,dx>0?-1:1,dx); else if(!reduce&&cal.animate) cal.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.3,1)'}); }
     cal.addEventListener('pointerup',end); cal.addEventListener('pointercancel',end); })();
   /* a shared sheet for Import and Edit times */
-  function editHtml(){ var zh=api.lang()==='zh'; return '<div class="imp-sum"><div><span>'+(zh?'开始':'Started')+'</span><small>20:30</small></div><div><span>'+(zh?'结束':'Ended')+'</span><small>12:30</small></div><div><span>'+(zh?'目标（小时）':'Goal (hours)')+'</span><small>16</small></div></div><button type="button" class="imp-go" id="edSave">'+(zh?'保存':'Save')+'</button>'; }
+  function editHtml(){ var zh=api.lang()==='zh'; return '<div class="imp-sum"><div><span>'+(zh?'开始':'Started')+'</span><small>20:30</small></div><div><span>'+(zh?'结束':'Ended')+'</span><small>12:30</small></div><div><span>'+(zh?'总时长':'Total')+'</span><small style="color:var(--label);font-weight:600">'+(zh?'16 小时':'16 h')+'</small></div><div><span>'+(zh?'断食目标（小时）':'Fasting goal (hours)')+'</span><small>16</small></div></div><button type="button" class="imp-go" id="edSave">'+(zh?'保存':'Save')+'</button>'; }
   /* ---------- import from another app: the real app reads the file on the phone; here the preview is a sample ---------- */
   var imp=$('impSheet'), isc=$('iScrim'), impStep=0;
   function offSync(){ var zh=api.lang()==='zh', picks=[3,7,10,14], i=picks.indexOf(offDays), th=document.querySelector('#offChips .thumb'), x=new Date(); x.setDate(x.getDate()+offDays);
