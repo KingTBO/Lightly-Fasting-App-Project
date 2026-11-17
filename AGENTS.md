@@ -33,6 +33,7 @@ NODE_PATH=$(npm root -g) node tests/launch.test.js         # opens from the save
 node tests/friends.test.js                                    # Friends rules (what a phone shares, words, discs, invite codes)
 scripts/test-friends-db.sh                                    # Friends database privacy tests, on a throwaway local Postgres (psql and a running server)
 NODE_PATH=$(npm root -g) node tests/friends-ui.test.js        # Friends tab in the browser against a mock Supabase (about 30 seconds)
+NODE_PATH=$(npm root -g) node tests/friends-swipe.test.js     # swipe between days on a group: follows the finger, gives at the ends, vertical scroll and edge swipes left alone, no stray taps, arrow keys, Reduce Motion, concept page (about 40 seconds)
 node tests/qr.test.js                                         # QR encoder
 node tests/avatars.test.js                                    # profile pictures (NODE_PATH set or --e2e also runs the browser flow)
 NODE_PATH=$(npm root -g) node tests/location.test.js          # "Use my location" in setup: working state, one request, 8 s fallback, late fix, refusal (about 40 seconds)

@@ -7,7 +7,7 @@ var F=root.LightlyFriends, QR=root.LightlyQR, Z=root.LightlyZodiac, KEY='lightly
 function init(h){
   var L=h.L, esc=h.esc, $=h.$, CL=h.CL, AV=h.AV, CHEV=h.CHEV, A=h.A;
   /* Friends keeps its own small copy on the phone, apart from the app state: it stays out of the backup, the sign-in link and the export file */
-  var st={groups:[],profile:null,at:0,err:'',joinCode:'',uid:'',wk:{},tip:0}, loading=false, tmp={av:null}, view=null, pub={last:null,at:0,busy:false,t:0}, tipOn=false;
+  var st={groups:[],profile:null,at:0,err:'',joinCode:'',uid:'',wk:{},tip:0}, loading=false, tmp={av:null}, view=null, pub={last:null,at:0,busy:false,t:0}, tipOn=false, sw={on:false,live:false,later:false,id:null,x0:0,y0:0,lx:0,lt:0,vx:0,dx:0,el:null,gone:0};   /* sw: a swipe between days, see slideDay */
   try{ var raw=JSON.parse(localStorage.getItem(KEY)||'null'); if(raw&&typeof raw==='object') Object.keys(st).forEach(function(k){ if(raw[k]!==undefined) st[k]=raw[k]; }); }catch(e){}
   function save(){ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} }
   /* an invite link (?join=CODE): keep the code (it survives a sign-in in this browser, and the sign-in link carries it to another one) and take it out of the address bar */
@@ -81,6 +81,7 @@ function init(h){
     })).then(function(){ st.wk=keep; save(); }); }
   function render(){
     var el=$('friends'), x=''; if(!el) return; defs();
+    if(sw.live){ sw.later=true; return; }   /* never rebuild the page under a finger: it is drawn again as soon as the swipe ends */
     if(!signedIn()){ view=null; var iv=st.joinCode&&tmp.prev&&tmp.prev.code===st.joinCode?tmp.prev.row:null;
       /* an invite keeps its own words; otherwise the tab leads with an example group, says what Friends is in one sentence, and the button sits at the bottom */
       x='<div class="fr-empty">'+(iv?hero()+'<h2 class="fr-h">'+L('You’re invited to “','你受邀加入“')+esc(iv.group_name)+L('”','”')+'</h2><p class="fr-p">'+L('Sign in to join. Only Friends needs an account.','登录后即可加入。只有朋友功能需要账号。')+'</p>'
@@ -200,7 +201,7 @@ function init(h){
       tip='<div class="fr-tip'+(first?' in':'')+'" role="note"><div><b>'+L('More groups','更多小组')+'</b><span>'+L('Start or join another group from here.','在这里新建或加入其他小组。')+'</span></div><button type="button" class="fr-tipx" data-act="frtipx" aria-label="'+L('Close','关闭')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>'; }
     return (one?'':'<div class="fr-top"><button type="button" class="fr-back" data-act="frback">'+BACK+'<span>'+L('Friends','朋友')+'</span></button></div>')+
       '<div class="fr-t'+(one?' top':'')+'"><div><h1 class="lt fr-name">'+esc(view.name)+'</h1><div class="fr-sub">'+sub+(!created&&b&&w.day===6?' · '+(fasting?L(fasting+' fasting now',fasting+' 人断食中'):L('Quiet today','今天安静')):'')+'</div></div><div class="fr-tools">'+(created?'':'<button type="button" class="fr-inv" data-act="frinvite">'+L('Invite','邀请')+'</button>')+'<button type="button" class="fr-more" data-act="frset" aria-label="'+L('Group settings','小组设置')+'">'+MORE+'</button></div>'+tip+'</div>'+
-      (created?'':'<div class="fr-days" role="group" aria-label="'+L('Days','日子')+'">'+strip+'</div>')+body;
+      (created?'':'<div class="fr-days" role="group" aria-label="'+L('Days','日子')+'">'+strip+'</div>')+'<div class="fr-pv"><div class="fr-pg">'+body+'</div></div>';
   }
   /* a group that is just you shows its invite on the page: read it once */
   function ensureInvite(){
@@ -271,6 +272,61 @@ function init(h){
       ensureInvite();
     });
   }
+
+  /* ---------- swipe between days ----------
+     Left and right anywhere on the group page under its name (the days, the sky, the people) moves one day: left to the next day, right to the day before,
+     the same directions as the months in Days. The page follows the finger like a page being turned, gives a little at today and at the first day like any
+     iPhone list at its end, and on release the day being left and the new day move side by side on one spring; a tap on a day does the same slide. Up and down
+     still scroll the page, and a touch that starts at the very edge of the screen is left to the phone (the iPhone's swipe back).
+     With Reduce Motion nothing follows the finger: a clear swipe changes the day with a short fade. */
+  var slideEnd=null, SLIDE='cubic-bezier(.22,1,.36,1)';
+  function pager(){ return document.querySelector('#friends .fr-pg'); }
+  function band(x,d){ var a=Math.abs(x); return (x<0?-1:1)*(1-1/(a*.55/d+1))*d; }   /* the iOS rubber band: easy at first, then firmer */
+  function slideDay(i,dx){
+    var w=view&&view.wk; if(!w||i<0||i>6||i===w.day) return; if(slideEnd) slideEnd();
+    var old=pager(), ghost=old&&old.cloneNode(true), dir=i>w.day?1:-1;
+    w.day=i; h.fx('select'); render(); if(!w.b[i]) loadBoard(false);
+    var nw=pager(); if(!nw||!nw.animate) return;
+    if(reduceMotion()||!ghost){ nw.animate([{opacity:0},{opacity:1}],{duration:180,easing:'ease-out'}); return; }
+    ghost.classList.add('fr-ghost'); ghost.setAttribute('aria-hidden','true'); ghost.inert=true; ghost.style.cssText='';
+    [].forEach.call(ghost.querySelectorAll('[id]'),function(x){ x.removeAttribute('id'); });
+    var ga=ghost.querySelector('.fr-art'); if(ga) ga.style.animationDelay=skyPhase();
+    nw.parentNode.appendChild(ghost);   /* after the new day, so every lookup on the page finds the real one first */
+    var W=nw.offsetWidth||360, o={duration:520,easing:SLIDE,fill:'both'}; dx=dx||0;
+    var a1=ghost.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'translateX('+(-dir*W).toFixed(1)+'px)'}],o);
+    var a2=nw.animate([{transform:'translateX('+(dir*W+dx).toFixed(1)+'px)'},{transform:'none'}],o), done=false;
+    slideEnd=function(){ if(done) return; done=true; slideEnd=null; [a1,a2].forEach(function(a){ try{ a.cancel(); }catch(e){} }); if(ghost.parentNode) ghost.parentNode.removeChild(ghost); };
+    a2.finished.then(function(){ if(slideEnd) slideEnd(); }).catch(function(){});
+  }
+  (function(){ var fr=$('friends'); if(!fr) return;
+    fr.addEventListener('pointerdown',function(e){
+      if(sw.on||!view||!e.isPrimary||(e.pointerType==='mouse'&&e.button)||!e.target.closest) return;
+      if(!e.target.closest('#friends .fr-pv,#friends .fr-days')||e.target.closest('.fr-tip')||!fr.querySelector('.fr-days')) return;
+      var R=fr.getBoundingClientRect(); if(e.pointerType!=='mouse'&&(e.clientX<R.left+20||e.clientX>R.right-20)) return;   /* the edge belongs to the phone's own back swipe */
+      if(slideEnd) slideEnd(); var el=pager(); if(!el) return;
+      sw.on=true; sw.live=false; sw.id=e.pointerId; sw.el=el; sw.x0=sw.lx=e.clientX; sw.y0=e.clientY; sw.lt=e.timeStamp; sw.vx=0; sw.dx=0; });
+    fr.addEventListener('pointermove',function(e){
+      if(!sw.on||e.pointerId!==sw.id) return; var mx=e.clientX-sw.x0, my=e.clientY-sw.y0;
+      if(!sw.live){ if(Math.abs(mx)<10||Math.abs(mx)<Math.abs(my)*1.2){ if(Math.abs(my)>10) sw.on=false; return; }
+        sw.live=true; sw.x0+=mx>0?8:-8; mx=e.clientX-sw.x0; try{ fr.setPointerCapture(e.pointerId); }catch(x){} sw.el.style.transition='none'; }
+      var dt=e.timeStamp-sw.lt; if(dt>0) sw.vx=.6*sw.vx+.4*((e.clientX-sw.lx)/dt); sw.lx=e.clientX; sw.lt=e.timeStamp;
+      var d=view?view.wk.day:6, end=(mx>0&&d<=0)||(mx<0&&d>=6); sw.dx=end?band(mx,sw.el.offsetWidth||360):mx;
+      if(!reduceMotion()){ sw.el.style.transform='translateX('+sw.dx.toFixed(1)+'px)'; } });
+    function end(e){
+      if(!sw.on||e.pointerId!==sw.id) return; sw.on=false; if(!sw.live) return; sw.live=false; sw.gone=performance.now();
+      var el=sw.el, dx=sw.dx, dir=dx>0?-1:1, d=view?view.wk.day:-9, tgt=d+dir, fast=Math.abs(sw.vx)>.45&&sw.vx*dx>0&&Math.abs(dx)>12;
+      var go=e.type==='pointerup'&&!!view&&el.isConnected&&tgt>=0&&tgt<=6&&(Math.abs(dx)>60||fast);
+      el.style.transition=''; el.style.transform=''; sw.el=null;
+      if(go){ sw.later=false; slideDay(tgt,reduceMotion()?0:dx); return; }
+      if(sw.later){ sw.later=false; render(); return; }
+      if(!reduceMotion()&&el.animate&&dx) el.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'none'}],{duration:520,easing:SLIDE}); }
+    fr.addEventListener('pointerup',end); fr.addEventListener('pointercancel',end);
+    /* the lift that ends a swipe is not a tap on whatever star or name it ended over */
+    fr.addEventListener('click',function(e){ if(performance.now()-sw.gone<350){ e.stopPropagation(); e.preventDefault(); sw.gone=0; } },true);
+    /* on a keyboard, the left and right arrows on the days do the same */
+    fr.addEventListener('keydown',function(e){ var b=e.target.closest&&e.target.closest('#friends .fr-days button'); if(!b||!view||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')) return;
+      var i=view.wk.day+(e.key==='ArrowRight'?1:-1); e.preventDefault(); if(i<0||i>6) return; slideDay(i,0); var on=document.querySelector('#friends .fr-days [aria-pressed="true"]'); if(on) on.focus({preventScroll:true}); });
+  })();
 
   /* ---------- sharing my own day ----------
      What goes out is exactly F.payload (a state, a plan in hours and seven small day rows). It goes when it changes, and now and then as a heartbeat. */
@@ -378,7 +434,7 @@ function init(h){
   document.addEventListener('pointerdown',function(e){ if(tipOn&&!(e.target.closest&&e.target.closest('#friends .fr-tip'))) tipAway(); },true);
 
   A.frretry=function(){ view.wk.err=''; render(); loadBoard(true); };
-  A.frday=function(b){ var i=+b.dataset.i; if(!(i>=0&&i<=6)) return; view.wk.day=i; h.fx('select'); render(); var on=document.querySelector('#friends .fr-days [aria-pressed="true"]'); if(on) on.focus({preventScroll:true}); if(!view.wk.b[i]) loadBoard(false); };
+  A.frday=function(b){ var i=+b.dataset.i; if(!(i>=0&&i<=6)||!view||i===view.wk.day) return; slideDay(i,0); var on=document.querySelector('#friends .fr-days [aria-pressed="true"]'); if(on) on.focus({preventScroll:true}); };
   A.frstar=function(b){ var u=b.dataset.u; view.sel=view.sel===u?null:u; h.fx('select'); render(); var on=document.querySelector('#friends .fr-st.on'); if(on) on.focus({preventScroll:true}); };
   A.frlook=function(){ var sky=document.querySelector('#friends .fr-sky'), cur=view.look==='auto'?(reduceMotion()?'lines':'auto'):view.look; view.look=cur==='art'?'lines':'art'; h.fx('light'); if(sky) sky.setAttribute('data-look',view.look); };
   A.frinvite=function(){ if(view) inviteSheet(view.id,view.name); };

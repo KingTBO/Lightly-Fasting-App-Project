@@ -1056,6 +1056,9 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
 .fr-days button b{font:600 17px/1 var(--font-r,var(--font));font-variant-numeric:tabular-nums}
 .fr-days button[aria-pressed="true"]{background:var(--tint);color:var(--on-tint)}
 .fr-days button[aria-pressed="true"] span{color:inherit;opacity:.72}
+.fr-days,.fr-pv,.fr-pg{touch-action:pan-y}
+.fr-pv{position:relative}
+.fr-ghost{position:absolute;top:0;left:0;right:0;pointer-events:none}
 .fr-sum{font:500 13px/1.35 var(--font);color:var(--label-2);margin:0 4px 10px}
 .fr-card{background:var(--card);border-radius:16px;overflow:hidden}
 .fr-row{display:flex;align-items:center;gap:8px;padding-right:16px}
@@ -3371,6 +3374,7 @@ function dyBloom(){
   function L(en,zh){ return api.lang()==='zh'?zh:en; }
   function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
   var shown=false, has=false, day=6, cheered={}, from=null, sheetFn=null, mine=['crew','family'], gk='crew', tipSeen=false, tipOn=false;
+  var sw={on:false,live:false,later:false,id:null,x0:0,y0:0,lx:0,lt:0,vx:0,dx:0,el:null,gone:0}, slideEnd=null;   /* a swipe between days, see slideDay */
   function signedIn(){ return $('meOut').hidden===true; }
 
   /* the disc is the same counter-clockwise wedge as on Today; every friend is a sun (see the Friends brief) */
@@ -3518,9 +3522,9 @@ function dyBloom(){
     var strip=DOW.map(function(_,i){ return '<button type="button" data-a="day" data-i="'+i+'" aria-pressed="'+(i===day)+'" aria-label="'+dayLong(i)+'"><span>'+dow(i)+'</span><b>'+dateOf(i).getDate()+'</b></button>'; }).join('');
     var one=mine.length<2, n=G[gk].keys.length, tip=one&&tipOn?'<div class="fr-tip in" role="note"><div><b>'+L('More groups','更多小组')+'</b><span>'+L('Start or join another group from here.','在这里新建或加入其他小组。')+'</span></div><button type="button" class="fr-tipx" data-a="tipx" aria-label="'+L('Close','关闭')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>':'';
     return (one?'':'<div class="fr-top"><button type="button" class="fr-back" data-a="back">'+BK+'<span>'+L('Friends','朋友')+'</span></button></div>')+'<div class="fr-t'+(one?' top':'')+'"><div><h3 class="lt">'+gname(gk)+'</h3><div class="fr-sub">'+L(n+' people',n+' 人')+'</div></div><div class="fr-tools"><button type="button" class="fr-inv" data-a="invite">'+L('Invite','邀请')+'</button><button type="button" class="fr-more" data-a="set" aria-label="'+L('Group settings','小组设置')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div>'+tip+'</div>'+
-      '<div class="fr-days" role="group" aria-label="'+L('Days','日子')+'">'+strip+'</div>'+sky(b,false)+selCard(b)+'<p class="fr-sum">'+dayLong(day)+' · '+summary(b)+'</p><div class="fr-card">'+rows+'</div>'; }
+      '<div class="fr-days" role="group" aria-label="'+L('Days','日子')+'">'+strip+'</div><div class="fr-pv"><div class="fr-pg">'+sky(b,false)+selCard(b)+'<p class="fr-sum">'+dayLong(day)+' · '+summary(b)+'</p><div class="fr-card">'+rows+'</div></div></div>'; }
 
-  function render(){ var keep=fr.querySelector('.fr-art'); fr.innerHTML=!signedIn()?hero(true):!has?hero(false):view==='created'?created():view==='group'?group():list(); fitSky();
+  function render(){ if(sw.live){ sw.later=true; return; } var keep=fr.querySelector('.fr-art'); fr.innerHTML=!signedIn()?hero(true):!has?hero(false):view==='created'?created():view==='group'?group():list(); fitSky();
     var na=fr.querySelector('.fr-art'); if(keep&&na&&keep.getAttribute('data-art')===na.getAttribute('data-art')&&keep.getAttribute('data-up')===na.getAttribute('data-up')){ keep.style.animationDelay=skyPhase(); na.replaceWith(keep); }
     revealArt(); }
 
@@ -3558,7 +3562,7 @@ function dyBloom(){
     else if(a==='tipx'){ tipOn=false; var tp=fr.querySelector('.fr-tip'); if(tp) tp.remove(); }
     else if(a==='star'){ sel=sel===k?null:k; buzz(6); render(); var on=fr.querySelector('.fr-st.on'); if(on) on.focus({preventScroll:true}); }
     else if(a==='look'){ var cur=look==='auto'?(matchMedia('(prefers-reduced-motion: reduce)').matches?'lines':'auto'):look; look=cur==='art'?'lines':'art'; var sk=fr.querySelector('.fr-sky'); if(sk) sk.setAttribute('data-look',look); }
-    else if(a==='day'){ day=+el.dataset.i; render(); var b=fr.querySelector('.fr-days [aria-pressed="true"]'); if(b) b.focus({preventScroll:true}); }
+    else if(a==='day'){ var i=+el.dataset.i; if(i===day) return; slideDay(i,0); var b=fr.querySelector('.fr-days [aria-pressed="true"]'); if(b) b.focus({preventScroll:true}); }
     else if(a==='invite') openSheet(inviteSheet,el);
     else if(a==='set'){ if(tipOn){ tipOn=false; var tq=fr.querySelector('.fr-tip'); if(tq) tq.remove(); } openSheet(setSheet2,el); }
     else if(a==='code'){ if(sheetFn) closeSheet(); openSheet(codeSheet,el); }
@@ -3574,6 +3578,45 @@ function dyBloom(){
     else if(a==='cheer'){ if(cheered[k]) return; cheered[k]=true; buzz(10); var fn=sheetFn; render(); if(fn) setSheet(fn); }
     else if(a==='copy'){ buzz(10); [].forEach.call($('frBody').querySelectorAll('[data-a="copy"]'),function(b){ if(!b.dataset.t) b.dataset.t=b.textContent; b.textContent=L('Copied','已复制'); setTimeout(function(){ b.textContent=b.dataset.t; delete b.dataset.t; },1600); }); } }
   fr.addEventListener('pointerdown',function(e){ if(tipOn&&!e.target.closest('.fr-tip')){ tipOn=false; var tp=fr.querySelector('.fr-tip'); if(tp) tp.remove(); } },true);   /* a touch anywhere else puts the tip away */
+  /* swipe between days, as in the app: left is the next day, right the day before; the page follows the finger, gives a little at the ends, and the old and new day move
+     side by side (a tap on a day slides the same way). Up and down still scroll; the very edge is left to the phone. Reduce Motion: no following, a short fade. */
+  function rm(){ return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  function pager(){ return fr.querySelector('.fr-pg'); }
+  function band(x,d){ var a=Math.abs(x); return (x<0?-1:1)*(1-1/(a*.55/d+1))*d; }
+  function slideDay(i,dx){
+    if(i<0||i>6||i===day) return; if(slideEnd) slideEnd();
+    var old=pager(), ghost=old&&old.cloneNode(true), dir=i>day?1:-1; day=i; buzz(6); render();
+    var nw=pager(); if(!nw||!nw.animate) return;
+    if(rm()||!ghost){ nw.animate([{opacity:0},{opacity:1}],{duration:180,easing:'ease-out'}); return; }
+    ghost.classList.add('fr-ghost'); ghost.setAttribute('aria-hidden','true'); ghost.inert=true; ghost.style.cssText=''; [].forEach.call(ghost.querySelectorAll('[id]'),function(x){ x.removeAttribute('id'); });
+    var ga=ghost.querySelector('.fr-art'); if(ga) ga.style.animationDelay=skyPhase(); nw.parentNode.appendChild(ghost);   /* after the new day, so every lookup on the page finds the real one first */
+    var W=nw.offsetWidth||360, o={duration:520,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'}; dx=dx||0;
+    var a1=ghost.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'translateX('+(-dir*W).toFixed(1)+'px)'}],o);
+    var a2=nw.animate([{transform:'translateX('+(dir*W+dx).toFixed(1)+'px)'},{transform:'none'}],o), done=false;
+    slideEnd=function(){ if(done) return; done=true; slideEnd=null; [a1,a2].forEach(function(a){ try{ a.cancel(); }catch(e){} }); if(ghost.parentNode) ghost.parentNode.removeChild(ghost); };
+    a2.finished.then(function(){ if(slideEnd) slideEnd(); }).catch(function(){}); }
+  fr.addEventListener('pointerdown',function(e){
+    if(sw.on||view!=='group'||!e.isPrimary||(e.pointerType==='mouse'&&e.button)||!e.target.closest('.fr-pv,.fr-days')||e.target.closest('.fr-tip')) return;
+    var R=fr.getBoundingClientRect(); if(e.pointerType!=='mouse'&&(e.clientX<R.left+20||e.clientX>R.right-20)) return;
+    if(slideEnd) slideEnd(); var el=pager(); if(!el) return;
+    sw.on=true; sw.live=false; sw.id=e.pointerId; sw.el=el; sw.x0=sw.lx=e.clientX; sw.y0=e.clientY; sw.lt=e.timeStamp; sw.vx=0; sw.dx=0; });
+  fr.addEventListener('pointermove',function(e){
+    if(!sw.on||e.pointerId!==sw.id) return; var mx=e.clientX-sw.x0, my=e.clientY-sw.y0;
+    if(!sw.live){ if(Math.abs(mx)<10||Math.abs(mx)<Math.abs(my)*1.2){ if(Math.abs(my)>10) sw.on=false; return; }
+      sw.live=true; sw.x0+=mx>0?8:-8; mx=e.clientX-sw.x0; try{ fr.setPointerCapture(e.pointerId); }catch(x){} sw.el.style.transition='none'; }
+    var dt=e.timeStamp-sw.lt; if(dt>0) sw.vx=.6*sw.vx+.4*((e.clientX-sw.lx)/dt); sw.lx=e.clientX; sw.lt=e.timeStamp;
+    sw.dx=(mx>0&&day<=0)||(mx<0&&day>=6)?band(mx,sw.el.offsetWidth||360):mx;
+    if(!rm()){ sw.el.style.transform='translateX('+sw.dx.toFixed(1)+'px)'; } });
+  function swEnd(e){
+    if(!sw.on||e.pointerId!==sw.id) return; sw.on=false; if(!sw.live) return; sw.live=false; sw.gone=performance.now();
+    var el=sw.el, dx=sw.dx, tgt=day+(dx>0?-1:1), fast=Math.abs(sw.vx)>.45&&sw.vx*dx>0&&Math.abs(dx)>12, go=e.type==='pointerup'&&view==='group'&&el.isConnected&&tgt>=0&&tgt<=6&&(Math.abs(dx)>60||fast);
+    el.style.transition=''; el.style.transform=''; sw.el=null;
+    if(go){ sw.later=false; slideDay(tgt,rm()?0:dx); return; }
+    if(sw.later){ sw.later=false; render(); return; }
+    if(!rm()&&el.animate&&dx) el.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'none'}],{duration:520,easing:'cubic-bezier(.22,1,.36,1)'}); }
+  fr.addEventListener('pointerup',swEnd); fr.addEventListener('pointercancel',swEnd);
+  fr.addEventListener('click',function(e){ if(performance.now()-sw.gone<350){ e.stopPropagation(); e.preventDefault(); sw.gone=0; } },true);
+  fr.addEventListener('keydown',function(e){ if(!e.target.closest('.fr-days button')||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')) return; e.preventDefault(); slideDay(day+(e.key==='ArrowRight'?1:-1),0); var b=fr.querySelector('.fr-days [aria-pressed="true"]'); if(b) b.focus({preventScroll:true}); });
   fr.addEventListener('click',function(e){ var el=e.target.closest('[data-a]'); if(el) act(el); });
   $('frBody').addEventListener('click',function(e){ var el=e.target.closest('[data-a]'); if(el) act(el); });
   $('frClose').addEventListener('click',closeSheet); sc.addEventListener('click',closeSheet);
