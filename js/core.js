@@ -144,9 +144,10 @@ var PLANS=[
   {id:'36',name:'36 hours',zh:'36 小时',fast:36,eat:0,long:true},
   {id:'custom',name:'Custom',zh:'自定义',fast:16,eat:8,custom:true}
 ];
+var CUSTOM_MIN=10;   /* Custom goes down to 10 hours for everyone, so a beginner can start gentler than 13:11 */
 function planById(id,custom){
   for(var i=0;i<PLANS.length;i++) if(PLANS[i].id===id){
-    var p=PLANS[i]; if(p.custom){ var f=Math.min(Math.max(Math.round(custom||16),12),23); return {id:'custom',name:p.name,zh:p.zh,fast:f,eat:24-f,custom:true}; } return p; }
+    var p=PLANS[i]; if(p.custom){ var f=Math.min(Math.max(Math.round(custom||16),CUSTOM_MIN),23); return {id:'custom',name:p.name,zh:p.zh,fast:f,eat:24-f,custom:true}; } return p; }
   return PLANS[1];
 }
 function planLabel(p){ return p.long?p.fast+'h':p.fast+':'+p.eat; }
@@ -178,7 +179,16 @@ function feelCount(list){ var o={easy:0,ok:0,hard:0,n:0}; (list||[]).forEach(fun
    needs a health professional's OK and a 14 day wait you can cancel, and an eating-disorder history cannot be eased in the app. */
 var CARE_KEYS=['preg','diab','ed'], CARE_WAIT=14*D, CARE_UNDO=D; /* a newly added health answer can be undone for 24 hours */
 function careOn(profile){ return !!(profile&&profile.safety); }
-function customMax(profile){ return careOn(profile)?16:23; }
+/* Custom is open to everyone from 10 hours. How long it can go:
+   people who have fasted before 23 h; first-timers 16 h until 3 fasts of 13 h or more, then 23 h;
+   Care mode 13 h until 3 fasts of 13 h or more, then 16 h (the same step as 16:8 in Care mode). */
+function customMax(profile,state){
+  var care=careOn(profile);
+  if(!care&&profile&&profile.fastedBefore) return 23;
+  var done=((state&&state.fasts)||[]).filter(function(f){return f.end&&isDone(f);}),
+      earned=done.filter(function(f){return f.goalH>=13&&hours(f)>=13-0.02;}).length>=3;
+  return care?(earned?16:13):(earned?23:16);
+}
 function careEase(key){ return key==='preg'?'now':key==='ed'?'never':'wait'; }
 
 /* weight units: kg, lb, and 斤 (jin, half a kilo) */
@@ -252,12 +262,13 @@ function longStatus(kind,profile,state,now){
 /* ---------- unlock ladder for the everyday plans ----------
    People who have fasted before (and gave no safety flag) can use every everyday plan.
    Everyone else starts at 13:11 and climbs one rung after 3 completed fasts at the rung below:
-   16:8 after 3 fasts of 13 h or more, 18:6 after 3 of 16 h, 20:4 after 3 of 18 h, 23:1 and custom after 3 of 20 h (custom after 3 of 13 h).
+   16:8 after 3 fasts of 13 h or more, 18:6 after 3 of 16 h, 20:4 after 3 of 18 h, 23:1 after 3 of 20 h.
+   Custom is open to everyone (Care mode too), from 10 hours; customMax says how long it can go.
    One completed fast at a plan's length or longer also opens it, so nobody loses a plan they have already done.
    First-timers (no safety flag) also start with 16:8 open, and 18:6 and 20:4 can be picked with a gentle warning ('soft'): they are never blocked, the app only says to start lower and step up.
-   Care mode (a safety flag) keeps the ladder and hides 18:6, 20:4 and 23:1. 23:1 and custom stay locked for first-timers.
+   Care mode (a safety flag) keeps the ladder and hides 18:6, 20:4 and 23:1. 23:1 stays locked for first-timers.
    returns {st:'ok'|'soft'|'locked'|'hidden', n, need, from, pct} */
-var LADDER={'13':0,'16':13,'18':16,'20':18,'23':20,'custom':13};
+var LADDER={'13':0,'16':13,'18':16,'20':18,'23':20,'custom':0};
 function planStatus(id,profile,state){
   if(id==='ramadan'||id==='24'||id==='36'||id==='24L'||id==='36L') return {st:'ok'};
   var from=LADDER[id]; if(from==null||from===0) return {st:'ok'};
@@ -391,7 +402,7 @@ function trendBuckets(points){
   return out;
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);
