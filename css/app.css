@@ -928,6 +928,8 @@ html.signing .holdscr{display:flex;position:absolute;inset:0;align-items:center;
 @keyframes holdspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.holdscr i{animation:none;border-top-color:color-mix(in srgb,var(--label) 16%,transparent);opacity:.7}}
 .ph.boot .tab-ind{transition:none}
+/* the iPhone's swipe back has already shown what is underneath: whatever it closes goes at once (goBack in js/app.js) */
+html.bk-snap .sheet,html.bk-snap .scrim,html.bk-snap .ob-step{transition:none!important}
 /* setup uses the design page's parts: separate answer cards with a yellow check, square boxes, a 2x2 plan grid, a quiet language link */
 .ob-step .group.cards,.ob-step .group.tiles{background:transparent;border-radius:0;overflow:visible;margin:12px 0 0;display:flex;flex-direction:column;gap:8px}
 .ob-step .cards .plan,.ob-step .cards .check,.ob-step .tiles .plan{background:var(--card);border-radius:14px}
