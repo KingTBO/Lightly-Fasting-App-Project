@@ -12,7 +12,7 @@ function init(h){
   function save(){ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} }
   /* an invite link (?join=CODE): keep the code (it survives a sign-in in this browser, and the sign-in link carries it to another one) and take it out of the address bar */
   (function(){ var c=F.codeFromSearch(location.search); if(!c) return; st.joinCode=c; save();
-    try{ var q=location.search.replace(/^\?/,'').split('&').filter(function(x){ return x&&!/^join=/.test(x); }).join('&'); history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash); }catch(e){} })();
+    try{ var q=location.search.replace(/^\?/,'').split('&').filter(function(x){ return x&&!/^join=/.test(x); }).join('&'); history.replaceState(history.state,'',location.pathname+(q?'?'+q:'')+location.hash); }catch(e){} })();
   function S(){ return h.S(); }
   function lang(){ return S().lang; }
   function signedIn(){ return !!(CL&&CL.ready()&&CL.getAuth()); }
@@ -81,6 +81,7 @@ function init(h){
     })).then(function(){ st.wk=keep; save(); }); }
   function render(){
     var el=$('friends'), x=''; if(!el) return; defs();
+    if(h.backSync) h.backSync();   /* an open group is one step for the phone's Back (see goBack in app.js) */
     if(sw.live){ sw.later=true; return; }   /* never rebuild the page under a finger: it is drawn again as soon as the swipe ends */
     if(!signedIn()){ view=null; var iv=st.joinCode&&tmp.prev&&tmp.prev.code===st.joinCode?tmp.prev.row:null;
       /* an invite keeps its own words; otherwise the tab leads with an example group, says what Friends is in one sentence, and the button sits at the bottom */
@@ -428,6 +429,9 @@ function init(h){
 
   A.frgroup=function(b){ h.fx('light'); expand(b,b.dataset.id); };
   A.frback=function(){ h.fx('light'); collapse(); };
+  /* the phone's Back: with two or more groups an open group closes into its card, like the Back button at its top. With one group there is nothing under it */
+  function depth(){ return h.tab()==='friends'&&view&&signedIn()&&st.groups.length>1?1:0; }
+  function back(now){ if(!depth()) return false; if(now){ keepWeek(); view=null; render(); refresh(); } else collapse(); return true; }
   function tipAway(){ tipOn=false; st.tip=1; save(); var t=document.querySelector('#friends .fr-tip'); if(t){ t.style.pointerEvents='none'; if(t.animate&&!reduceMotion()) t.animate([{opacity:1,transform:'none'},{opacity:0,transform:'scale(.92)'}],{duration:180,easing:'ease-in'}).finished.then(function(){ t.remove(); },function(){ t.remove(); }); else t.remove(); } }
   A.frtipx=function(){ h.fx('light'); tipAway(); };
   /* like any popover, a touch anywhere else puts the tip away, and that touch still does what it was for */
@@ -553,7 +557,7 @@ function init(h){
   }
 
   sync();
-  return {pending:pending,joinCode:function(){ return st.joinCode||''; },enabled:enabled,order:order,sync:sync,changed:changed,publish:publish,show:show,render:render,ICON:ICON_PEOPLE,state:function(){ return st; }};
+  return {depth:depth,back:back,pending:pending,joinCode:function(){ return st.joinCode||''; },enabled:enabled,order:order,sync:sync,changed:changed,publish:publish,show:show,render:render,ICON:ICON_PEOPLE,state:function(){ return st; }};
 }
 root.LightlyFriendsUI={init:init};
 })(typeof self!=='undefined'?self:this);

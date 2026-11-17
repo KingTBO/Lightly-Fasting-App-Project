@@ -44,9 +44,9 @@ function scrub(S){ var c=JSON.parse(JSON.stringify(S)); if(c.place&&c.place.key=
 function pack(S){ if(!S||!S.onboarded) return ''; var c=scrub(S); delete c.cloudUid; delete c.del; delete c.avatar; delete c.body; /* weight stays out of the link */ /* a picked photo is far too big for a link */ var f=(c.fasts||[]).slice(); var out='';
   for(;;){ c.fasts=f; out=b64(JSON.stringify(c)); if(out.length<=1800||!f.length) break; f.shift(); } return out.length<=1800?out:''; }
 function unpack(x){ try{ var o=JSON.parse(unb64(x)); return o&&o.onboarded?o:null; }catch(e){ return null; } }
-function takeCarried(){ var m=/[?&]r=([\w-]+)/.exec(location.search); if(!m) return null; try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){} return unpack(m[1]); }
+function takeCarried(){ var m=/[?&]r=([\w-]+)/.exec(location.search); if(!m) return null; try{ history.replaceState(history.state,'',location.pathname+location.hash); }catch(e){} return unpack(m[1]); }
 /* the tab a sign-in started from (?tab=friends): read it once and take only that part off the address, so the rest of the link (r=, join=) is still there for the others */
-function takeTab(){ var m=/[?&]tab=(\w+)/.exec(location.search); if(!m) return ''; try{ var q=location.search.replace(/^\?/,'').split('&').filter(function(x){ return x&&!/^tab=/.test(x); }).join('&'); history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash); }catch(e){} return m[1]==='friends'?'friends':''; }
+function takeTab(){ var m=/[?&]tab=(\w+)/.exec(location.search); if(!m) return ''; try{ var q=location.search.replace(/^\?/,'').split('&').filter(function(x){ return x&&!/^tab=/.test(x); }).join('&'); history.replaceState(history.state,'',location.pathname+(q?'?'+q:'')+location.hash); }catch(e){} return m[1]==='friends'?'friends':''; }
 function codeOn(){ return !!cfg().code; }
 /* where a sign-in comes back to: this page, with the packed state (?r=) and, if the person came from a Friends invite, its code (join=), so neither is lost in another browser; and tab=friends when the sign-in started on the Friends tab (from Me it comes back to Me) */
 function landing(state,join,tab){ var r=pack(state), j=/^[2-9A-HJKMNP-Z]{8}$/.test(String(join||'').toUpperCase())?String(join).toUpperCase():'', q=[]; if(r) q.push('r='+r); if(j) q.push('join='+j); if(tab==='friends') q.push('tab=friends'); return location.origin+location.pathname+(q.length?'?'+q.join('&'):''); }
@@ -62,7 +62,7 @@ function jwtUser(t){ try{ var o=JSON.parse(unb64(String(t).split('.')[1])); retu
 function fromHash(){
   var h=location.hash.replace(/^#/,''); if(h.indexOf('access_token=')<0&&h.indexOf('error=')<0) return Promise.resolve(null);
   var p={}; h.split('&').forEach(function(x){ var i=x.indexOf('='); if(i>0) p[x.slice(0,i)]=decodeURIComponent(x.slice(i+1).replace(/\+/g,' ')); });
-  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+  try{ history.replaceState(history.state,'',location.pathname+location.search); }catch(e){}
   if(p.error||!p.access_token){ var er=new Error(p.error_description||p.error||'link failed'); er.linkError=p.error_code||p.error||'error'; return Promise.reject(er); }
   return call('/auth/v1/user',{token:p.access_token}).catch(function(e){ var u=!e.status&&jwtUser(p.access_token); if(u) return u; throw e; }).then(function(u){ var a=toAuth({access_token:p.access_token,refresh_token:p.refresh_token,expires_in:+p.expires_in||3600,user:u}); setAuth(a); return a; });
 }

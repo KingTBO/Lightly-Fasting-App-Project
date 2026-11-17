@@ -138,9 +138,9 @@ var SHX='<button type="button" class="x" data-act="close" aria-label="Close"><sv
 function shChrome(html){ if(!/^<h3[ >]/.test(html)) return html; var i=html.indexOf('</h3>')+5;
   return ('<div class="sh-h">'+html.slice(0,i)+SHX.replace('aria-label="Close"','aria-label="'+L('Close','关闭')+'"')+'</div>'+html.slice(i)).replace(/<button class="btn sec" data-act="close">[^<]*<\/button>/g,'').replace('<div class="btns"></div>',''); }
 function openSheet(html,back,float){ if(!float) html=shChrome(html); if(!sheetOpen) sheetFrom=document.activeElement; var again=sheetOpen; sheetEl.classList.toggle('float',!!float); sheetEl.classList.remove('pop'); scrim.classList.remove('peek'); sheetEl.innerHTML='<div class="grab"></div>'+html; sheetEl.scrollTop=0; sheetEl.classList.add('open'); scrim.classList.add('on'); sheetOpen=true; sheetBack=back||null; setInert(true);
-  sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); }
+  sheetEl.setAttribute('aria-label',(sheetEl.querySelector('h3')||{}).textContent||''); sheetEl.tabIndex=-1; if(!again) sheetEl.focus({preventScroll:true}); backSync(); }
 var sheetHold=false; /* true for the short pause before the import result rises: taps on the dim must not close it (a double tap on Add lands there) */
-function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop(); sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} }
+function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop(); sheetEl.classList.remove('open'); scrim.classList.remove('on'); sheetOpen=false; sheetBack=null; setInert(false); var f=sheetFrom; sheetFrom=null; if(f&&document.contains(f)&&f.offsetParent!==null) try{ f.focus({preventScroll:true}); }catch(e){} backSync(); }
 /* drag the grabber: 1:1 with the finger, then project where the flick was going and dismiss or spring back */
 (function(){ var y0=0,dy=0,vy=0,lt=0,ly=0,drag=false;
   sheetEl.addEventListener('pointerdown',function(e){ if(reduce||!e.target.closest('.grab')) return; drag=true; y0=e.clientY; ly=e.clientY; lt=performance.now(); vy=0; dy=0; sheetEl.style.transition='none'; try{ sheetEl.setPointerCapture(e.pointerId); }catch(x){} });
@@ -152,6 +152,47 @@ function closeSheet(){ if(!sheetOpen||sheetHold) return; impZip=null; dropCrop()
   sheetEl.addEventListener('pointerup',end); sheetEl.addEventListener('pointercancel',end); })();
 scrim.addEventListener('click',closeSheet);
 document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&sheetOpen) closeSheet(); });
+/* ---------- the phone's Back ----------
+   Android's back button or gesture, and the iPhone's swipe from the left edge, step back through the app instead of leaving it.
+   Each layer that is open (another tab than Today, an open Friends group, the recap, a sheet, a step of setup) is one entry in the browser's history,
+   so Back closes the top one: a sheet first, then the recap or the group, then the tab goes back to Today. Only Back on Today (or on the first step of setup) leaves the app.
+   The app never has more entries than open layers: closing something with its own button takes its entry away again, so no Back press is ever spent on nothing.
+   On iPhone the swipe has already shown the screen underneath while the finger moved, so the layer goes at once, without its own animation. */
+var BK={d:0,q:false,skip:false,busy:false,t:0};
+function bkDepth(){ var s=history.state; return s&&typeof s==='object'&&typeof s.lightly==='number'?s.lightly:0; }
+function bkWant(){
+  if(holding) return BK.d;
+  var sh=sheetOpen?1:0;
+  if(!$('ob').hidden) return (ob&&ob.step>0?ob.step:0)+sh;
+  return (curTab!=='today'?1:0)+(FUI&&FUI.depth?FUI.depth():0)+(rp.open?1:0)+sh;
+}
+function bkRun(){ BK.q=false; if(BK.skip||BK.busy) return; var w=bkWant(); if(w===BK.d) return;
+  try{
+    if(w>BK.d){ while(BK.d<w){ BK.d++; history.pushState({lightly:BK.d},''); } }
+    else{ BK.skip=true; clearTimeout(BK.t); BK.t=setTimeout(function(){ BK.skip=false; BK.d=bkDepth(); backSync(); },800); history.go(w-BK.d); }
+  }catch(e){ BK.skip=false; }
+}
+function backSync(){ if(BK.q) return; BK.q=true; Promise.resolve().then(bkRun); }
+var bkSnap=false; /* true while a Back from the iPhone's edge swipe is closing something: no animation */
+function goBack(){
+  if(sheetOpen){ if(sheetHold) return; if(sheetBack){ sheetBack(); return; }
+    var bb=sheetEl.querySelector('[data-act=lwback],[data-act=emback]'); if(bb&&!bb.disabled){ bb.click(); return; }   /* a sheet with its own way back goes there, like its Back button */
+    closeSheet(); return; }
+  if(rp.open){ closeReport(false,bkSnap); return; }
+  if(!$('ob').hidden){ if(ob.step>0) obBackTo(); return; }
+  if(FUI&&FUI.depth&&FUI.depth()){ FUI.back(bkSnap); return; }
+  if(curTab!=='today') showTab('today',bkSnap);
+}
+try{ var s0=history.state; history.replaceState(Object.assign({},s0&&typeof s0==='object'?s0:{},{lightly:0}),''); }catch(e){}
+window.addEventListener('popstate',function(e){
+  var d=e.state&&typeof e.state.lightly==='number'?e.state.lightly:0;
+  if(BK.skip){ BK.skip=false; clearTimeout(BK.t); BK.d=d; backSync(); return; }
+  var n=BK.d-d; BK.d=d;
+  if(n>0&&bkWant()>d){ BK.busy=true; bkSnap=IOS; var R=document.documentElement; if(IOS) R.classList.add('bk-snap');
+    try{ for(var i=0;i<n&&bkWant()>d;i++) goBack(); }finally{ BK.busy=false; bkSnap=false; }
+    if(IOS) setTimeout(function(){ R.classList.remove('bk-snap'); },120); }
+  backSync();
+});
 var CHECK='<svg class="ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 var CHEV='<svg class="chev" viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5 7 7l-5.5 5.5"/></svg>';
 
@@ -529,7 +570,7 @@ function showTab(t,instant){
   document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('sel',b.dataset.tab===t); b.setAttribute('aria-current',b.dataset.tab===t?'page':'false'); });
   ph.classList.toggle('sys',t!=='today');
   if(t==='days'){ avgPlay=true; numPlay=true; avgSel=null; selDay=null; } if(t==='days') renderDays(); if(t==='me') renderMe(); if(t==='friends'&&FUI) FUI.show(); if(t==='today') updateToday();
-  chrome();
+  chrome(); backSync();
   $(t).scrollTop=0;
 }
 function tabLabels(){ $('tabF').textContent=L('Friends','朋友'); $('tabT').textContent=L('Today','今天'); $('tabD').textContent=L('Days','日子'); $('tabM').textContent=L('Me','我的'); }
@@ -826,7 +867,7 @@ function openReport(btn){
   if(rp.open||rp.busy) return; var pm=recapMonth(); if(!pm) return;
   var r=C.monthReport(S.fasts,pm.y,pm.m,S.flex.used,C.offKeys(S.off),S.place); if(r.n<3) return;
   var R=$('report'), D=$('days'); rp.src=btn.closest('.rcard')||btn; R.getAnimations({subtree:true}).forEach(function(x){ x.cancel(); }); R.innerHTML=reportHtml(pm,r); trendPaint(); R.hidden=false; R.style.transform=''; R.style.borderRadius='';
-  rp.open=true; rpWatch(R,r); fx('light');
+  rp.open=true; backSync(); rpWatch(R,r); fx('light');
   var sc=$('rpScroll'); sc.scrollTop=0;
   if(reduce||!R.animate){ R.animate&&R.animate([{opacity:0},{opacity:1}],{duration:220,fill:'none'}); if(rp.heroGo) rp.heroGo(); sc.focus({preventScroll:true}); return; }
   rp.busy=true;
@@ -836,9 +877,10 @@ function openReport(btn){
   setTimeout(function(){ if(rp.heroGo) rp.heroGo(); },300);
   a.onfinish=function(){ rp.busy=false; a.cancel(); $('rpIn').getAnimations().forEach(function(x){ x.cancel(); }); R.style.clipPath='none'; sc.focus({preventScroll:true}); };
 }
-function closeReport(fromDrag){
-  if(!rp.open||rp.busy) return; var R=$('report'), D=$('days'), sc=$('rpScroll'); rp.busy=true; fx('light');
-  function done(){ R.getAnimations({subtree:true}).forEach(function(x){ x.cancel(); }); rp.busy=false; rp.open=false; R.hidden=true; R.innerHTML=''; R.style.cssText=''; D.getAnimations().forEach(function(x){ x.cancel(); }); if(rp.io) rp.io.disconnect(); rp.heroGo=null; if(rp.src&&document.body.contains(rp.src)){ var b=rp.src.querySelector('.rcmain'); if(b) b.focus({preventScroll:true}); } }
+function closeReport(fromDrag,now){
+  if(!rp.open||rp.busy) return; var R=$('report'), D=$('days'), sc=$('rpScroll'); rp.busy=true; if(!now) fx('light');
+  function done(){ R.getAnimations({subtree:true}).forEach(function(x){ x.cancel(); }); rp.busy=false; rp.open=false; backSync(); R.hidden=true; R.innerHTML=''; R.style.cssText=''; D.getAnimations().forEach(function(x){ x.cancel(); }); if(rp.io) rp.io.disconnect(); rp.heroGo=null; if(rp.src&&document.body.contains(rp.src)){ var b=rp.src.querySelector('.rcmain'); if(b) b.focus({preventScroll:true}); } }
+  if(now){ done(); return; }   /* the iPhone's edge swipe has already shown Days underneath */
   if(reduce||!R.animate){ var f=R.animate([{opacity:1},{opacity:0}],{duration:180,fill:'both'}); f.onfinish=done; return; }
   var from=getComputedStyle(R).transform, rad=R.style.borderRadius||'0px'; R.getAnimations().forEach(function(x){ x.cancel(); }); R.style.clipPath='inset(0px 0px 0px 0px round 0px)';
   var bg1=getComputedStyle(R).backgroundColor, a=R.animate([{clipPath:'inset(0px 0px 0px 0px round 0px)',transform:from==='none'?'none':from,backgroundColor:'#0E1430'},{clipPath:rpRect(),transform:'none',backgroundColor:bg1}],{duration:440,easing:RP_EASE,fill:'both'});
@@ -1670,6 +1712,7 @@ function obHtml(i){
 function obRender(dir,pre){
   /* forward pushes from the right; back reverses the same path (spatial symmetry). `pre` is the step a swipe already pulled in from behind (see obSwipe) */
   var box=$('ob'); box.hidden=false; dir=dir||1;
+  backSync();
   var n=pre;
   if(!n){ var html=obHtml(ob.step), tmp=document.createElement('div'); tmp.innerHTML=html; n=tmp.firstChild; if(dir<0&&box.children.length) n.classList.add('back'); box.appendChild(n); }
   var old=[].slice.call(box.children).filter(function(c){return c!==n;});
@@ -2059,7 +2102,7 @@ var A={
   obdone:obFinish
 };
 document.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){ e.preventDefault(); A.namesave(); } });
-FUI=window.LightlyFriendsUI.init({S:function(){ return S; },L:L,esc:esc,$:$,CL:CL,AV:AV,CHEV:CHEV,A:A,ph:ph,tab:function(){ return curTab; },showTab:showTab,today:today,toast:toast,openSheet:openSheet,closeSheet:closeSheet,fx:fx,sw:sw,GICON:GICON});
+FUI=window.LightlyFriendsUI.init({S:function(){ return S; },L:L,esc:esc,$:$,CL:CL,AV:AV,CHEV:CHEV,A:A,ph:ph,tab:function(){ return curTab; },showTab:showTab,backSync:backSync,today:today,toast:toast,openSheet:openSheet,closeSheet:closeSheet,fx:fx,sw:sw,GICON:GICON});
 document.addEventListener('click',function(e){ var b=e.target.closest('[data-act]'); if(!b||!ph.contains(b)) return; var f=A[b.dataset.act]; if(f){ if(b.tagName==='BUTTON'&&b.disabled) return; f(b); } });
 /* the real viewport height, so a Home Screen launch fills the glass edge to edge on every phone (ignored while the keyboard is up) */
 (function(){ var sa=document.createElement('div'); sa.setAttribute('aria-hidden','true'); sa.style.cssText='position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding:var(--sat) 0 var(--sab)'; ph.appendChild(sa); function fit(){ var a=document.activeElement; if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
