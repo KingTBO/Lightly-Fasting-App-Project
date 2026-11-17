@@ -54,12 +54,12 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{
  p=await open(seed()); await p.click('#planBtn'); await p.waitForTimeout(500); if(!(await p.$('#sheet .plan[data-id=custom]'))){ await p.click('#sheet [data-act=more]'); await p.waitForTimeout(400); }
  await p.click('#sheet .plan[data-id=custom]'); await p.waitForTimeout(500);
  assert(await p.$('#cH.pk'),'the custom hours are a wheel'); assert.strictEqual((await p.textContent('#cH .pk-row span:first-child')).trim(),'Fasting goal (hours)');
- assert.deepStrictEqual(await p.$eval('#cH',e=>{ const o=JSON.parse(e.dataset.opts); return [o[0],o[o.length-1]]; }),[12,23]);
+ assert.deepStrictEqual(await p.$eval('#cH',e=>{ const o=JSON.parse(e.dataset.opts); return [o[0],o[o.length-1]]; }),[10,23]);
  await turn(p,'cH','s',19); await p.waitForTimeout(400); const inView=await p.evaluate(()=>{ const w=document.getElementById('cH-w').getBoundingClientRect(), sh=document.getElementById('sheet').getBoundingClientRect(); return w.bottom<=Math.min(sh.bottom,innerHeight)+1; }); assert(inView,'the open wheel scrolls fully into view'); s=await S(p);
  assert.strictEqual(s.customH,19); assert.strictEqual(s.planId,'custom'); assert(await p.$('#cH.open'),'the wheel stays open while the plan changes');
  assert.match(await p.textContent('#sheet .plan[data-id=custom] .pr'),/19/,'the custom row shows the new plan');
  await shot(p,'3-plan-custom_light_en');
- ok('Custom in the plan sheet: the same wheel, 12 to 23, applied when it rests, without closing');
+ ok('Custom in the plan sheet: the same wheel, 10 to 23, applied when it rests, without closing');
 
  /* 4. 中文, dark, 320 px, and the setup step */
  p=await open(seed({lang:'zh'}),{dark:true}); await editSheet(p);

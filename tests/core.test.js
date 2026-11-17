@@ -91,20 +91,28 @@ assert.strictEqual(C.guessCity('Europe/Paris'),'paris');assert.strictEqual(C.gue
 // everyday plan ladder
 {const f=(h,g)=>({id:String(Math.random()),start:0,end:h*H,goalH:g==null?h:g}),first={fastedBefore:false,safety:false},exp={fastedBefore:true,safety:false},st=(id,pr,fs)=>C.planStatus(id,pr,{fasts:fs});
 assert.strictEqual(st('13',first,[]).st,'ok');assert.strictEqual(st('16',first,[]).st,'ok','16:8 is open for first-timers');assert.strictEqual(st('16',exp,[]).st,'ok');
-assert.strictEqual(st('18',first,[]).st,'soft','18:6 can be picked with a warning');assert.strictEqual(st('20',first,[]).st,'soft','20:4 can be picked with a warning');assert.strictEqual(st('23',first,[]).st,'locked','23:1 stays locked for first-timers');assert.strictEqual(st('custom',first,[]).st,'locked','custom stays locked for first-timers');assert.strictEqual(st('18',exp,[]).st,'ok');
+assert.strictEqual(st('18',first,[]).st,'soft','18:6 can be picked with a warning');assert.strictEqual(st('20',first,[]).st,'soft','20:4 can be picked with a warning');assert.strictEqual(st('23',first,[]).st,'locked','23:1 stays locked for first-timers');assert.strictEqual(st('custom',first,[]).st,'ok','custom is open to first-timers from day one');assert.strictEqual(st('18',exp,[]).st,'ok');
 assert.strictEqual(st('16',{fastedBefore:true,safety:true},[]).st,'locked','a safety flag keeps the ladder on');assert.strictEqual(st('18',{fastedBefore:false,safety:true},[]).st,'hidden','Care mode never gets the soft 18:6');
 assert.strictEqual(st('16',first,[f(13),f(13),f(13)]).st,'ok');assert.strictEqual(st('16',first,[f(13),f(13),f(13,16)]).n,2,'a fast short of its own goal is not counted');
 assert.strictEqual(st('16',first,[f(13),f(13),f(10,13)]).n,2,'a fast that missed its goal does not count');
 assert.strictEqual(st('18',first,[f(13),f(13),f(13)]).st,'soft','18:6 still carries the warning until three 16 h fasts');assert.strictEqual(st('18',first,[f(13),f(13),f(13)]).n,0);assert.strictEqual(st('18',first,[f(16),f(16),f(16)]).st,'ok');
 assert.strictEqual(st('20',first,[f(18),f(18),f(18)]).st,'ok');assert.strictEqual(st('23',first,[f(20),f(20),f(20)]).st,'ok');
 assert.strictEqual(st('16',first,[f(16)]).st,'ok','one completed 16 h fast opens 16:8');assert.strictEqual(st('ramadan',first,[]).st,'ok');
-assert.strictEqual(C.planStatusLabel(st('16',first,[f(13)])),'1 of 3 fasts of 13 h or more');}
-// Care mode: plans stop at 16:8, custom at 16 h, long fasts never open, and the way back depends on the answer
+assert.strictEqual(C.planStatusLabel(st('16',first,[f(13)])),'1 of 3 fasts of 13 h or more');
+// Custom: open to everyone from 10 hours; how long it can go depends on the person
+assert.strictEqual(C.CUSTOM_MIN,10);assert.strictEqual(C.planById('custom',10).fast,10,'a 10 hour custom plan');assert.strictEqual(C.planById('custom',10).eat,14);assert.strictEqual(C.planById('custom',8).fast,10,'nothing under 10 hours');assert.strictEqual(C.planById('custom',30).fast,23);
+assert.strictEqual(C.planLabel(C.planById('custom',10)),'10:14');
+const cm=(pr,fs)=>C.customMax(pr,{fasts:fs});
+assert.strictEqual(cm(first,[]),16,'a first-timer can go up to 16 h at first');assert.strictEqual(cm(first,[f(13),f(13)]),16);assert.strictEqual(cm(first,[f(13),f(13),f(13)]),23,'three fasts of 13 h open the whole wheel');
+assert.strictEqual(cm(first,[f(10),f(10),f(10)]),16,'short custom fasts do not open longer ones');assert.strictEqual(cm(first,[f(13),f(13),f(10,13)]),16,'a fast that missed its goal does not count');
+assert.strictEqual(cm(exp,[]),23,'people who have fasted before get the whole wheel');assert.strictEqual(C.customMax(first),16,'no fasts given: 16 h');
+assert.strictEqual(st('custom',{fastedBefore:false,safety:true},[]).st,'ok','Care mode gets Custom too');}
+// Care mode: plans stop at 16:8, custom at 13 h and then 16 h, long fasts never open, and the way back depends on the answer
 {const care={fastedBefore:true,safety:true},f=(h)=>({id:String(Math.random()),start:0,end:h*H,goalH:h}),st=(id,pr,fs)=>C.planStatus(id,pr,{fasts:fs});
 assert.strictEqual(st('18',care,[f(16),f(16),f(16)]).st,'hidden');assert.strictEqual(st('20',care,[f(18),f(18),f(18)]).st,'hidden');assert.strictEqual(st('23',care,[f(20),f(20),f(20)]).st,'hidden');
 assert.strictEqual(st('16',care,[f(13),f(13),f(13)]).st,'ok','16:8 still opens by the ladder');assert.strictEqual(st('13',care,[]).st,'ok');
 assert.strictEqual(C.longStatus(24,care,{fasts:[f(16),f(16),f(16),f(24)],unwell:null,unlocked:{24:1}},now).st,'hidden','even with a 24 h fast on record');assert.strictEqual(C.longStatus(36,care,{fasts:[],unwell:null,unlocked:{}},now).st,'hidden');
-assert.strictEqual(C.customMax(care),16);assert.strictEqual(C.customMax({safety:false}),23);assert.strictEqual(C.careOn({safety:true}),true);assert.strictEqual(C.careOn({safety:false}),false);assert.strictEqual(C.careOn(null),false);
+assert.strictEqual(C.customMax(care),13,'Care mode: up to 13 h at first');assert.strictEqual(C.customMax(care,{fasts:[f(13),f(13),f(13)]}),16,'then 16 h, like 16:8');assert.strictEqual(C.customMax({fastedBefore:true,safety:false}),23);assert.strictEqual(C.careOn({safety:true}),true);assert.strictEqual(C.careOn({safety:false}),false);assert.strictEqual(C.careOn(null),false);
 assert.strictEqual(C.careEase('preg'),'now');assert.strictEqual(C.careEase('diab'),'wait');assert.strictEqual(C.careEase('earlier'),'wait');assert.strictEqual(C.careEase('ed'),'never');assert.strictEqual(C.CARE_WAIT,14*D);}
 // who keeps a weight: adults with numbers that can be right; there is no BMI cut-off (BMI is too biased)
 {const wf=C.weightFit,base={age:35,kg:82,cm:170};

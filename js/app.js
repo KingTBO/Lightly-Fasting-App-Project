@@ -79,7 +79,8 @@ function usualTxt(){ var t=(S.prefs.usualStart||'20:00').split(':'); var d=new D
 function pst(id){ return C.planStatus(id,S.profile,{fasts:S.fasts}); }
 function planOk(id){ var s=pst(id).st; return s==='ok'||s==='soft'; }   /* can be picked (a soft plan carries a warning) */
 function planEarned(id){ return pst(id).st==='ok'; }   /* open without a warning */
-function normalisePlan(){ if(S.planId==='ramadan') return; if(planOk(S.planId)) return; var best=['20','18','16','13'].filter(planEarned)[0]||'13'; S.planId=best; save(); }
+function cMax(){ return C.customMax(S.profile,{fasts:S.fasts}); }   /* how long Custom can go for this person now */
+function normalisePlan(){ if(S.planId==='ramadan') return; if(S.customH>cMax()){ S.customH=cMax(); if(S.cur&&S.cur.planId==='custom'&&S.cur.goalH>S.customH) S.cur.goalH=S.customH; save(); } if(planOk(S.planId)) return; var best=['20','18','16','13'].filter(planEarned)[0]||'13'; S.planId=best; save(); }
 function overTxt(h){ var m=Math.max(0,Math.round(h*60)); return S.lang==='zh'?'超出目标 '+hmTxt(m):hmTxt(m)+' past your goal'; }
 function longSt(k){ checkUnlocks(); return C.longStatus(k,S.profile,{fasts:S.fasts,unwell:S.unwell,unlocked:S.unlocked}); }
 
@@ -1363,15 +1364,15 @@ function planRow(p,selId){
     var ps=pst(p.id);
     if(ps.st==='hidden') return ''; /* Care mode stops at 16:8 */
     if(ps.st==='locked'){ dis=true; pill='<span class="pill">'+L('Locked','未解锁')+'</span>'; sub=S.lang==='zh'?zhProgress(C.planStatusLabel(ps)):C.planStatusLabel(ps); bar='<div class="bar"><i style="width:'+Math.round(ps.pct*100)+'%"></i></div>'; }
-    else{ sub=p.custom?L('Choose 12 to '+C.customMax(S.profile)+' hours','12 到 '+C.customMax(S.profile)+' 小时之间'):fastSub(p)+planUntil(p.fast); bar=dayBar(pl); if(ps.st==='soft') pill='<span class="pill">'+L('Advanced','进阶')+'</span>'; }
+    else{ sub=p.custom?L('Choose '+C.CUSTOM_MIN+' to '+cMax()+' hours',C.CUSTOM_MIN+' 到 '+cMax()+' 小时之间'):fastSub(p)+planUntil(p.fast); bar=dayBar(pl); if(ps.st==='soft') pill='<span class="pill">'+L('Advanced','进阶')+'</span>'; }
   }
   var extra=p.custom&&!dis?'<span class="pr" style="min-width:0"></span>':'';
   var row='<button class="plan'+(selId===p.id?' sel':'')+'" data-act="pickplan" data-id="'+p.id+'"'+(dis?' disabled':'')+(pill&&!dis&&!p.long?' data-soft="1"':'')+'><span class="pn"><b>'+esc(pName(p))+'</b><small>'+sub+'</small>'+bar+'</span>'+pill+'<span class="pr">'+lab+'</span>'+CHECK+'</button>';
-  if(p.custom&&selId==='custom') row+=goalField('cH',S.customH,12,C.customMax(S.profile));
+  if(p.custom&&selId==='custom') row+=goalField('cH',S.customH,C.CUSTOM_MIN,cMax());
   return row;
 }
 /* the custom plan's wheel in the plan sheet: the new goal applies once the wheel rests, and only the custom row's label changes, so the open wheel stays put */
-function customSet(v){ v=Math.min(C.customMax(S.profile),Math.max(12,Math.round(v)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; }
+function customSet(v){ v=Math.min(cMax(),Math.max(C.CUSTOM_MIN,Math.round(v)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; }
   save(); cache={}; ticksKey=''; updateToday(); var r=sheetOpen&&sheetEl.querySelector('.plan[data-id="custom"] .pr'); if(r) r.textContent=C.planLabel(C.planById('custom',v)); }
 /* a daily plan row says when that fast would end (from now, or from the running fast's start) and draws its share of the day: fasting hours filled, eating hours empty */
 function planUntil(h){ var now=Date.now(), end=(S.cur?S.cur.start:now)+h*H; return end<=now?L(', reached','，已达成'):L(', until ','，到 ')+'<span class="pu" data-h="'+h+'">'+clockMs(end)+'</span>'; }
@@ -1607,7 +1608,8 @@ function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'
 var ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',city:false};
 /* a small ladder of everyday plans: lit where you start, outlined where it opens later */
 function softNote(){ return L('New to fasting? Start at 13:11 or 16:8 and step up after a few fasts.','第一次断食？先从 13:11 或 16:8 开始，几次之后再往上加。'); }
-function obCh(){ return ob.customH||S.customH; }   /* the custom fasting hours chosen in setup, kept until Open Lightly */
+function obCMax(){ return C.customMax({fastedBefore:ob.fasted==='before',safety:obRisky()}); }   /* setup has no fasts yet: 23 h for people who have fasted before, 16 h for first-timers, 13 h in Care mode */
+function obCh(){ return Math.min(ob.customH||S.customH,obCMax()); }   /* the custom fasting hours chosen in setup, kept until Open Lightly */
 function obRisky(){ return !!(ob.safe.length&&ob.safe.indexOf('none')<0); }
 /* everyone: welcome, fasted before, plan (with the start time and the reminder), where you are, safety. People who have fasted before also get the import step. */
 /* safety comes last, just before the summary; a flag then lowers the plan to 13:11 */
@@ -1675,9 +1677,9 @@ function obHtml(i){
     var ids=before&&!risky?['16','13','18','20']:['13','16','18','20'], tiles=ids.map(function(id){ var p=C.planById(id), s=stOf(id).st; if(s==='hidden') return '';
         var lk=s==='locked', soft=s==='soft';
         return '<button class="plan'+(ob.plan===id?' sel':'')+(lk?' lk':'')+'" data-act="obplan" data-id="'+id+'"'+(lk?' disabled':'')+(soft?' data-soft="1"':'')+' aria-label="'+esc(pName(p)+', '+C.planLabel(p)+(soft?', '+L('advanced','进阶'):''))+'"><span class="pn"><b>'+C.planLabel(p)+'</b>'+(lk?'<small>'+L('After 3 fasts','完成 3 次后')+'</small>':soft?'<small>'+L('Advanced','进阶')+'</small>':'')+'</span>'+CHECK+'</button>'; }).join('');
-    if(before&&!risky) tiles+='<button class="plan'+(ob.plan==='custom'?' sel':'')+'" data-act="obplan" data-id="custom"><span class="pn"><b>'+L('Custom','自定义')+'</b></span>'+CHECK+'</button>';
+    tiles+='<button class="plan'+(ob.plan==='custom'?' sel':'')+'" data-act="obplan" data-id="custom"><span class="pn"><b>'+L('Custom','自定义')+'</b></span>'+CHECK+'</button>';
     body='<h1>'+L('Pick your plan','选择你的计划')+'</h1>'+obBigHtml(ob.plan)+'<div class="group tiles">'+tiles+'</div>'+
-      (ob.plan==='custom'?'<div class="group">'+goalField('obCustom',obCh(),12,23)+'</div>':'')+
+      (ob.plan==='custom'?'<div class="group">'+goalField('obCustom',obCh(),C.CUSTOM_MIN,obCMax())+'</div>':'')+
       (stOf(ob.plan).st==='soft'?'<p class="gf obnote" style="padding:0 4px;color:var(--label)">'+softNote()+'</p>':'')+
       (risky?'<p class="gf" style="padding:0 4px">'+L('Longer fasts stay off for you.','长时间断食对你保持关闭。')+'</p>':'')+
       '<div class="group">'+pkField('obStart',before?L('Usual start time','通常开始时间'):L('When will you start?','你打算几点开始？'),ob.start||'20:00','t')+'</div><div class="group">'+sw('notify',L('Remind me when I reach my goal','达成目标时提醒我'),S.prefs.notify&&('Notification' in window)&&Notification.permission==='granted',!('Notification' in window))+'</div><div class="grow"></div>';
@@ -1700,10 +1702,10 @@ function obHtml(i){
       '<p class="gf obnote" style="padding:0 4px">'+L('Private to you: it stays on this phone, and in your backup only if you sign in.','仅你可见：数据留在这部手机上，登录后才会存入你的备份。')+'</p><div class="grow"></div>';
     cta='<button class="btn" data-act="obbody">'+L('Continue','继续')+'</button><button class="btn quiet" data-act="obbodyskip">'+L('Skip','跳过')+'</button>';
   }else if(key==='summary'){
-    var rk=obRisky(), pid=rk?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.start||'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
+    var rk=obRisky(), pid=rk&&ob.plan!=='custom'?'13':(ob.plan||(ob.fasted==='before'?'16':'13')), usual=ob.start||'', uh=usual?(+usual.split(':')[0]+ +usual.split(':')[1]/60):null;
     body='<div class="ob-bslot" data-p="'+(C.planById(pid,obCh()).fast/24).toFixed(4)+'"></div><h1 class="ob-first">'+obFirst(uh)+'</h1>'+
       '<p class="lede ob-firsts">'+esc(C.planLabel(C.planById(pid,obCh())))+' · '+(uh!=null&&uh<=C.placeHour(pi,Date.now())?L('usual start ','通常 ')+clockH(uh)+L(' · ',' 开始 · '):'')+(S.place.key==='here'?L('sunrise and sunset where you are','你所在地的日出日落'):esc(L(placeName()+' sunrise and sunset',placeName()+'的日出日落')))+'</p>'+
-      (rk?'<p class="gf ob-firstc">'+L('Care mode is on. You start at 13:11.','关怀模式已开启，从 13:11 开始。')+'</p>':'')+'<div class="grow"></div>';
+      (rk?'<p class="gf ob-firstc">'+L('Care mode is on. You start at '+C.planLabel(C.planById(pid,obCh()))+'.','关怀模式已开启，从 '+C.planLabel(C.planById(pid,obCh()))+' 开始。')+'</p>':'')+'<div class="grow"></div>';
     cta='<button class="btn" data-act="obdone">'+L('Open Lightly','打开 Lightly')+'</button>';
   }
   var nt=key==='welcome'||key==='summary', sky=nt?obStars()+(key==='summary'?'<i class="dawnbg"></i>':''):'';
@@ -1782,7 +1784,7 @@ function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.l
 function obStart(){ ph.classList.add('onb'); chrome(); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),sex:'n',skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
 function obFinish(){
   var risky=ob.safe.length&&ob.safe.indexOf('none')<0;
-  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky?'13':(ob.plan||(ob.fasted==='before'?'16':'13')); if(ob.start) S.prefs.usualStart=ob.start; if(S.planId==='custom'&&ob.customH) S.customH=ob.customH; if(!risky&&ob.bodyDone&&!ob.skip&&C.weightFit({age:ob.age,kg:ob.kg,cm:ob.cm})){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,at:Date.now()}; if(ob.sex==='m'||ob.sex==='f'||ob.sex==='x') S.body.sex=ob.sex; } else S.body=null;   /* gender is only kept when it was chosen: "prefer not to say" saves nothing */
+  var keys=ob.safe.filter(function(x){ return x!=='none'; }); S.profile={fastedBefore:ob.fasted==='before',safety:keys.length>0,care:keys,careOff:null}; if(risky){ S.customH=Math.min(S.customH,16); S.ramadanPreview=false; } S.planId=risky&&ob.plan!=='custom'?'13':(ob.plan||(ob.fasted==='before'?'16':'13'));   /* Care mode lowers the plan to 13:11, but a Custom plan stays (capped at 16 h): never push past the person's own choice */ if(ob.start) S.prefs.usualStart=ob.start; if(S.planId==='custom'&&ob.customH) S.customH=obCh(); if(!risky&&ob.bodyDone&&!ob.skip&&C.weightFit({age:ob.age,kg:ob.kg,cm:ob.cm})){ S.body={age:ob.age,kg:Math.round(ob.kg*10)/10,cm:Math.round(ob.cm),unit:ob.unit,at:Date.now()}; if(ob.sex==='m'||ob.sex==='f'||ob.sex==='x') S.body.sex=ob.sex; } else S.body=null;   /* gender is only kept when it was chosen: "prefer not to say" saves nothing */
   S.onboarded=true; S.startedAt=S.startedAt||Date.now(); S.flex.mon=S.flex.mon||C.mondayOf(S.startedAt);
   save(); ph.classList.remove('onb'); $('ob').hidden=true; $('ob').innerHTML=''; applyLang(); cache={}; ticksKey=''; shownP=-1; showTab('today'); obFly(); if(FUI) setTimeout(function(){ FUI.pending(true); },1500);
 }

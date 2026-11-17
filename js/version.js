@@ -1,1 +1,1 @@
-window.LIGHTLY_VERSION='0.112.1';
+window.LIGHTLY_VERSION='0.113.0';
