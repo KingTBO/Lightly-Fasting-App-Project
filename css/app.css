@@ -1024,6 +1024,10 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 .fr-days button b{font:600 1.0625rem/1 var(--font-r,var(--font));font-variant-numeric:tabular-nums}
 .fr-days button[aria-pressed="true"]{background:var(--tint);color:var(--on-tint)}
 .fr-days button[aria-pressed="true"] span{color:inherit;opacity:.72}
+/* swipe between days: horizontal moves reach the page, vertical ones still scroll; the day being left is a still copy that slides away beside the new one */
+.fr-days,.fr-pv,.fr-pg{touch-action:pan-y}
+.fr-pv{position:relative}
+.fr-ghost{position:absolute;top:0;left:0;right:0;pointer-events:none}
 .fr-sum{font:500 0.8125rem/1.35 var(--font);color:var(--label-2);margin:0 calc(var(--m) + 4px) 10px}
 .fr-card{background:var(--card);border-radius:14px;margin:0 var(--m) var(--group-gap);overflow:hidden}
 .fr-row{display:flex;align-items:center;gap:8px;padding-right:16px}
