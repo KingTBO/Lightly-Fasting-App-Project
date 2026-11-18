@@ -46,7 +46,7 @@ const H=3600000,D=24*H;
 
  // 5. setup, first-timer: a Custom tile, 10 to 16 hours, saved at the end
  const next=async q=>{await q.click('.ob-step.on [data-act=obnext]');await q.waitForTimeout(900);};
- const toEnd=async(q,safe)=>{await next(q);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(800);await next(q);await q.click('[data-act=obsafe][data-v='+safe+']');await next(q);if(await q.$('.ob-step.on [data-act=obbodyskip]')){await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(800);}};
+ const toEnd=async(q,safe)=>{await next(q);await q.waitForTimeout(800);await next(q);await q.click('[data-act=obsafe][data-v='+safe+']');await next(q);if(await q.$('.ob-step.on [data-act=obbodyskip]')){await q.click('.ob-step.on [data-act=obbodyskip]');await q.waitForTimeout(800);}};
  {const q=await open({v:1,lang:'en',theme:'light',onboarded:false,prefs:{sound:false,haptics:false,d3:false}});await next(q);await q.click('[data-act=obopt][data-v=first]');await next(q);
   assert(await q.$('.ob-step.on .plan[data-id=custom]'),'a Custom tile for a first-timer');await q.click('.ob-step.on .plan[data-id=custom]');await q.waitForTimeout(900);
   assert.deepStrictEqual(await range(q,'obCustom'),[10,16]);await pick(q,'obCustom',10);

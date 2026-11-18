@@ -10,7 +10,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
  const txt=q=>q.textContent('.ob-step.on');
  async function toSafety(lang,scheme){   /* also checks the phone shell never scrolls: a picker overflowing it once shifted every later step up */const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Shanghai',locale:lang==='zh'?'zh-CN':'en-GB',colorScheme:scheme||'light'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));await q.goto(url);await q.waitForTimeout(500);
   if(lang==='zh'&&await q.$('[data-act=lang][data-v=zh]')){await q.click('[data-act=lang][data-v=zh]');await q.waitForTimeout(200);}   /* the welcome shows a link to the other language only */
-  await q.click('[data-act=obnext]');await q.waitForTimeout(550);await q.click('[data-act=obopt][data-v=first]');await q.waitForTimeout(300);await nx(q);await nx(q);await q.click('.ob-step.on [data-act=obcityshow]');await q.waitForTimeout(300);await nx(q);assert.strictEqual(await q.evaluate(()=>document.getElementById('ph').scrollTop),0,'the phone shell has not scrolled');return q;}
+  await q.click('[data-act=obnext]');await q.waitForTimeout(550);await q.click('[data-act=obopt][data-v=first]');await q.waitForTimeout(300);await nx(q);await nx(q);await q.waitForTimeout(300);await nx(q);assert.strictEqual(await q.evaluate(()=>document.getElementById('ph').scrollTop),0,'the phone shell has not scrolled');return q;}
  async function pick(q,id,i){await q.click('[data-act=pktog][data-id='+id+']');await q.waitForTimeout(300);await q.click('#'+id+' .pk-i[data-i="'+i+'"]');await q.waitForTimeout(500);}
 
  // the full path: about you (with the privacy line and the monthly check-in promise), then the summary
