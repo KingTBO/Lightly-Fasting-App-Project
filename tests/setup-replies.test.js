@@ -26,7 +26,7 @@ const AFTERNOON='2026-11-13T15:40:00+08:00', LATE='2026-11-13T21:40:00+08:00', M
  /* from the plan step to the last screen, with the answers that keep everything ordinary */
  const toEnd=async(p,safe)=>{ for(let i=0;i<7;i++){ const k=await p.evaluate(()=>[...document.querySelectorAll('#ob .ob-step.on [data-act]')].map(x=>x.dataset.act+':'+(x.dataset.v||'')).join(',')); if(/obdone/.test(k)) return;
    if(/obsafe/.test(k)){ const e=await p.$(on+'[data-act=obsafe][data-v='+(safe||'none')+']'); await e.scrollIntoViewIfNeeded(); await e.click(); await p.waitForTimeout(200); await p.click(on+'[data-act=obnext]'); }
-   else if(/obcityshow/.test(k)){ await p.click(on+'[data-act=obcityshow]'); await p.waitForTimeout(300); await p.click(on+'[data-act=obnext]'); }
+   else if(/obcityshow/.test(k)){  await p.waitForTimeout(300); await p.click(on+'[data-act=obnext]'); }
    else if(/obbodyskip/.test(k)){ await p.click(on+'[data-act=obbodyskip]'); } else await p.click(on+'[data-act=obnext]'); await p.waitForTimeout(1100); } throw new Error('the last screen was not reached'); };
  const startAt=async(p,hour)=>{ await p.click('#obStart .pk-row'); await p.waitForTimeout(500); await p.evaluate(h=>{ const c=document.querySelector('#obStart [data-c=h]'); c.scrollTo({top:(h+ +c.dataset.loop*3)*36}); },hour); await p.waitForTimeout(800); await p.click('#obStart .pk-row'); await p.waitForTimeout(400); };
 

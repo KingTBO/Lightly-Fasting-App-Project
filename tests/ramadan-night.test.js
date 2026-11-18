@@ -1,4 +1,4 @@
-/* Ramadan after sunset (v0.113.1, audit items M1 and M2).
+/* Ramadan after sunset (v0.114.1, audit items M1 and M2).
    1. At night Today shows when suhoor ends, with no Start button and no streak card; only the last two hours before dawn count down.
    2. A Ramadan fast that is still running at sunset ends by itself at sunset: saved with sunset as its end, no counting up, no summary sheet.
       If the app is open at that moment it turns to "Iftar"; later in the evening it says the day's fast is kept.

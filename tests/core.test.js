@@ -70,7 +70,7 @@ assert.strictEqual(C.flexBlock(C.dayKey(now),bs,now),'break');assert.strictEqual
 bs.off=[{id:'a',kind:'travel',start:now-D,days:3,endedAt:now}];assert.strictEqual(C.flexBlock(C.dayKey(now),bs,now),'');}
 // a running fast means today is not a day off; yesterday and the future are not affected
 {const cs={fasts:[],flex:{bank:2,used:[]},cur:{start:now-3600000}};assert.strictEqual(C.flexBlock(C.dayKey(now),cs,now),'fasting');assert.strictEqual(C.flexBlock(C.dayKey(now+D),cs,now),'window','no cheat day for a future date');cs.cur=null;assert.strictEqual(C.flexBlock(C.dayKey(now),cs,now),'');}
-assert.strictEqual(C.guessCity('Asia/Shanghai'),'shanghai');
+assert.strictEqual(C.guessCity('Asia/Shanghai'),'zone');
 // weight comparison: only the percent change, bucketed to day 30, 60 and 90
 {const D=864e5,t0=Date.UTC(2026,9,12),b={kg:72,at:t0,checks:[{key:'2026-10',kg:71,at:t0+24*D},{key:'2026-11',kg:70.2,at:t0+53*D},{key:'2026-12',kg:69,at:t0+83*D}]};
 const pts=C.trendPoints(b);assert.deepStrictEqual(pts.map(p=>p.day),[24,53,83]);assert.strictEqual(pts[0].pct,-1.4);assert.strictEqual(pts[2].pct,-4.2);
@@ -85,9 +85,20 @@ ks.forEach(k=>{const c=C.CITIES[k];assert.ok(c.en&&c.zh&&isFinite(c.lat)&&isFini
 {const want={mecca:[21.4,39.9],medina:[24.5,39.6],jeddah:[21.5,39.2],doha:[25.3,51.5],kuwaitcity:[29.4,48],baghdad:[33.3,44.4],tehran:[35.7,51.4],casablanca:[33.6,-7.6],algiers:[36.8,3.1],tunis:[36.8,10.2],khartoum:[15.5,32.6],kabul:[34.5,69.2],tashkent:[41.3,69.2]};
  Object.keys(want).forEach(k=>{const c=C.CITIES[k];assert.ok(c,k+' is in the list');assert.ok(Math.abs(c.lat-want[k][0])<.2&&Math.abs(c.lon-want[k][1])<.2,k+' sits where it should');assert.ok(/[\u4e00-\u9fff]/.test(c.zh)&&/^[A-Za-z ]+$/.test(c.en),k+' has English and Chinese names');
   if(k!=='casablanca'){[Date.UTC(2026,10,10,9),Date.UTC(2027,1,20,9)].forEach(at=>{const p=C.placeInfo({key:k},at),t=C.sunTimes(p,at);assert.ok(t.rise>4&&t.rise<8&&t.set>16&&t.set<19.5&&t.set-t.rise>9.5&&t.set-t.rise<12.5,k+' sun times are believable: '+t.rise+' to '+t.set);});}});
- assert.strictEqual(C.guessCity('Asia/Tehran'),'tehran');assert.strictEqual(C.guessCity('Asia/Qatar'),'doha');assert.strictEqual(C.guessCity('Asia/Riyadh'),'riyadh','a shared zone still maps to the first city');
+ 
  const m=C.placeInfo({key:'mecca'},Date.UTC(2027,1,20,9)),t=C.sunTimes(m,Date.UTC(2027,1,20,9));assert.ok(t.rise>6&&t.rise<7&&t.set>18&&t.set<18.7,'Mecca in February: sunrise about 6:45, sunset about 18:20 local (got '+t.rise+' / '+t.set+')');}
-assert.strictEqual(C.guessCity('Europe/Paris'),'paris');assert.strictEqual(C.guessCity('Europe/Berlin'),'berlin');assert.strictEqual(C.guessCity('Asia/Jakarta'),'jakarta');assert.strictEqual(C.guessCity('America/Toronto'),'toronto');}
+assert.strictEqual(C.guessCity('Europe/Paris'),'zone','every phone starts on its own time zone');}
+// a phone in Oslo without a shared location gets Oslo's own sky, never London (a tester in Oslo saw London, 2026-11-17)
+{['Europe/Oslo','Europe/Helsinki','Europe/Warsaw','Europe/Copenhagen','Asia/Calcutta','Europe/Kiev','America/Halifax','Asia/Urumqi'].forEach(z=>{assert.strictEqual(C.guessCity(z),'zone',z+' uses its own time zone');assert.ok(C.zoneSpot(z),z+' has a place');});
+ assert.deepStrictEqual(C.zoneSpot('Europe/Oslo'),{lat:59.9,lon:10.8,cc:'NO'});assert.strictEqual(C.zoneName('Europe/Oslo','en'),'Oslo');assert.strictEqual(C.zoneName('America/Argentina/Buenos_Aires','en'),'Buenos Aires');assert.strictEqual(C.zoneName('Europe/Oslo','zh'),'奥斯陆','the city, not the country');assert.strictEqual(C.zoneName('Europe/Helsinki','zh'),'赫尔辛基');assert.ok(/[一-鿿]/.test(C.zoneName('Europe/Vaduz','zh')),'others use the phone\'s own Chinese name');
+ assert.strictEqual(C.guessCity('Etc/GMT-1').length>0&&C.guessCity('Etc/GMT-1')!=='zone',true,'a zone with no city falls back to a listed city on the same clock');assert.strictEqual(C.guessCity(''),'shanghai');
+ assert.deepStrictEqual(C.placeFix({key:'london'},'Europe/Oslo'),{key:'zone'},'the old London guess in Oslo is put right');assert.deepStrictEqual(C.placeFix({key:'london'},'Europe/London'),{key:'london'});assert.deepStrictEqual(C.placeFix({key:'paris'},'Europe/Oslo'),{key:'paris'},'a city that was never the guess was chosen, and stays');assert.deepStrictEqual(C.placeFix({key:'here',lat:59.9,lon:10.7},'Europe/Oslo'),{key:'here',lat:59.9,lon:10.7});
+ assert.deepStrictEqual(C.placeFix({key:'shanghai'},'Asia/Urumqi'),{key:'zone'});}
+// Another city: search by city or country, English or Chinese; a time zone's place moves with the phone; a location from before a trip gives way
+{const n=(q,l)=>C.searchCities(q,l||'en').map(r=>r.name);assert.deepStrictEqual(n('os'),['Osaka','Oslo']);assert.ok(n('norway').includes('Bergen')&&n('norway').includes('Oslo'));assert.deepStrictEqual(n('成都','zh'),['成都']);assert.ok(n('wuhan').length===1,'China\'s big cities are there');assert.deepStrictEqual(n('xyzq'),[]);assert.deepStrictEqual(n(''),[]);
+ assert.deepStrictEqual(C.searchCities('mecca','en')[0].place,{key:'mecca'},'a listed city keeps its key');const o=C.searchCities('oslo','en')[0].place;assert.strictEqual(o.key,'pick');assert.strictEqual(o.zone,'Europe/Oslo');assert.strictEqual(C.searchCities('sao paulo','en').length,1,'one entry per city');
+ const pi=C.placeInfo(o,Date.UTC(2026,10,18,12));assert.ok(Math.abs(pi.lat-59.9)<.2&&pi.off===1);
+ assert.ok(!C.hereStale({key:'here',lat:1,lon:1}),'an old location without a zone is kept');assert.ok(C.hereStale({key:'here',lat:1,lon:1,zone:'Pacific/Fiji'}));assert.deepStrictEqual(C.placeFix({key:'beijing'},'Asia/Shanghai'),{key:'beijing'});}
 // everyday plan ladder
 {const f=(h,g)=>({id:String(Math.random()),start:0,end:h*H,goalH:g==null?h:g}),first={fastedBefore:false,safety:false},exp={fastedBefore:true,safety:false},st=(id,pr,fs)=>C.planStatus(id,pr,{fasts:fs});
 assert.strictEqual(st('13',first,[]).st,'ok');assert.strictEqual(st('16',first,[]).st,'ok','16:8 is open for first-timers');assert.strictEqual(st('16',exp,[]).st,'ok');
@@ -156,7 +167,7 @@ assert.deepStrictEqual(C.feelCount([{feel:'easy'},{feel:'easy'},{feel:'hard'},{}
 {const T=(d,h)=>new Date(2026,9,d,h).getTime(),fs=[{id:'a',start:T(3,20),end:T(4,12),goalH:16,feel:'ok'},{id:'b',start:T(5,20),end:T(6,12),goalH:16,feel:'hard'},{id:'c',start:T(7,20),end:T(8,12),goalH:16},{id:'d',start:new Date(2026,10,2,20).getTime(),end:new Date(2026,10,3,12).getTime(),goalH:16,feel:'easy'}];
  const r=C.monthReport(fs,2026,9,[],[]);assert.deepStrictEqual(r.feel,{easy:0,ok:1,hard:1,n:2},'the month counts only its own marked fasts');
  const st=C.streak(fs.map(f=>Object.assign({},f,{feel:undefined})),[],new Date(2026,10,3,13).getTime()),st2=C.streak(fs,[],new Date(2026,10,3,13).getTime());assert.deepStrictEqual(st,st2,'how a fast felt never changes a streak');}
-/* Ramadan by the hour (v0.113.1): the day, half an hour of iftar, then the night, which counts down only in its last two hours */
+/* Ramadan by the hour (v0.114.1): the day, half an hour of iftar, then the night, which counts down only in its last two hours */
 {const F=5,M=18,ph=h=>C.ramadanPhase(h,F,M,4.98);
  assert.strictEqual(ph(12).k,'day');assert.strictEqual(ph(12).toSet,6);assert.strictEqual(ph(5).k,'day','dawn itself starts the day');
  assert.strictEqual(ph(18).k,'iftar');assert.strictEqual(ph(18.49).k,'iftar');assert.strictEqual(ph(18.5).k,'night','after half an hour the night begins');
