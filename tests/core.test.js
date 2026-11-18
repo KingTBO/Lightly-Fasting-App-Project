@@ -156,4 +156,21 @@ assert.deepStrictEqual(C.feelCount([{feel:'easy'},{feel:'easy'},{feel:'hard'},{}
 {const T=(d,h)=>new Date(2026,9,d,h).getTime(),fs=[{id:'a',start:T(3,20),end:T(4,12),goalH:16,feel:'ok'},{id:'b',start:T(5,20),end:T(6,12),goalH:16,feel:'hard'},{id:'c',start:T(7,20),end:T(8,12),goalH:16},{id:'d',start:new Date(2026,10,2,20).getTime(),end:new Date(2026,10,3,12).getTime(),goalH:16,feel:'easy'}];
  const r=C.monthReport(fs,2026,9,[],[]);assert.deepStrictEqual(r.feel,{easy:0,ok:1,hard:1,n:2},'the month counts only its own marked fasts');
  const st=C.streak(fs.map(f=>Object.assign({},f,{feel:undefined})),[],new Date(2026,10,3,13).getTime()),st2=C.streak(fs,[],new Date(2026,10,3,13).getTime());assert.deepStrictEqual(st,st2,'how a fast felt never changes a streak');}
+/* Ramadan by the hour (v0.113.1): the day, half an hour of iftar, then the night, which counts down only in its last two hours */
+{const F=5,M=18,ph=h=>C.ramadanPhase(h,F,M,4.98);
+ assert.strictEqual(ph(12).k,'day');assert.strictEqual(ph(12).toSet,6);assert.strictEqual(ph(5).k,'day','dawn itself starts the day');
+ assert.strictEqual(ph(18).k,'iftar');assert.strictEqual(ph(18.49).k,'iftar');assert.strictEqual(ph(18.5).k,'night','after half an hour the night begins');
+ assert.strictEqual(ph(21).count,false,'no countdown in the evening');assert.ok(Math.abs(ph(21).toDawn-7.98)<1e-9,'to tomorrow\'s dawn');
+ assert.strictEqual(ph(2).k,'night');assert.strictEqual(ph(2).count,false);assert.strictEqual(ph(3.5).count,true,'the last two hours count down');assert.ok(Math.abs(ph(3.5).toDawn-1.5)<1e-9);
+ assert.ok(Math.abs(ph(18).left-1)<1e-9&&ph(4.9).left<.02,'the night is full at sunset and nearly gone at dawn');assert.ok(ph(23).left<ph(20).left,'the moon wanes through the night');
+ assert.strictEqual(C.ramadanPhase(25,F,M).k,'night','hours wrap');assert.strictEqual(C.RAM_COUNT,2);assert.strictEqual(C.RAM_IFTAR,.5);}
+/* dawn never goes missing: far north in summer the one-seventh-of-the-night rule stands in for Fajr */
+{const north={lat:64.15,lon:-21.94,off:0},june=Date.UTC(2027,5,20,12);assert.strictEqual(C.fajrHour(north,june),null);const d=C.dawnHour(north,june);assert.ok(d>0&&d<C.sunTimes(north,june).rise,'dawn before sunrise, got '+d);
+ const lon={lat:51.51,lon:-.13,off:0},feb=Date.UTC(2027,1,20,12);assert.strictEqual(C.dawnHour(lon,feb),C.fajrHour(lon,feb));}
+/* the regular streak pauses through a Ramadan in which the person kept a fast: the days hold it, they never add to it */
+{const at=(y,m,d,h)=>new Date(y,m,d,h).getTime(),reg=[{id:'r1',start:at(2027,1,5,20),end:at(2027,1,6,12),goalH:16,plan:'16'},{id:'r2',start:at(2027,1,6,20),end:at(2027,1,7,12),goalH:16,plan:'16'}],
+ ram=[{id:'m1',start:at(2027,1,9,5),end:at(2027,1,9,18),goalH:13,plan:'ramadan'}],now=at(2027,1,12,13),hold=C.ramadanHold(reg.concat(ram),now);
+ assert.ok(hold.indexOf('2027-02-08')>=0&&hold.indexOf('2027-02-12')>=0,'season days up to today hold');assert.ok(hold.indexOf('2027-02-20')<0,'not days still to come');
+ assert.strictEqual(C.streak(reg,[],now),0,'without the hold the streak breaks');assert.strictEqual(C.streak(reg,hold,now),2,'with it the two regular days stay');
+ assert.deepStrictEqual(C.ramadanHold(reg,now),[],'no Ramadan fast, nothing held');}
 console.log('core ok',s);
