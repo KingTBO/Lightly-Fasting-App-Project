@@ -1196,3 +1196,39 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 .srch input::placeholder{color:var(--label-2)}
 .srch input::-webkit-search-cancel-button{-webkit-appearance:none}
 #plR .gf{margin-top:0}
+/* Moons (v0.117.0): the Days tab in Ramadan mode. A ring per day: solid = kept, dashed = not fasting, solid with a dot = made up. The moon is that evening's moon. */
+.mo-t{padding:0 var(--m) 14px}
+.mo-t .lt{margin:0}
+.mo-s{font:400 0.8125rem/1.3 var(--font);color:var(--label-2);margin-top:2px}
+.mo-leg{display:flex;gap:8px;margin:0 var(--m) var(--group-gap)}
+.mo-leg span{flex:1;min-width:0;background:var(--card);border-radius:14px;padding:10px 6px 11px;display:flex;flex-direction:column;align-items:center;gap:4px;font:400 0.75rem/1.2 var(--font);color:var(--label-2);text-align:center}
+.mo-leg b{font:600 1.25rem/1.1 var(--font-r);color:var(--label);display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.mo-leg i{width:13px;height:13px;box-sizing:border-box;border-radius:50%;border:2px solid var(--mo-ring);display:block;position:relative}
+.mo-leg i.rest{border:1.6px dashed var(--label-2)}
+.mo-leg i.made::after,.mc .ring.made::after{content:"";position:absolute;right:-3px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--mo-ring);box-shadow:0 0 0 2px var(--card)}
+.mo-cal{padding:8px 10px 10px}
+.mo-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));row-gap:2px}
+.mo-g .wd{font:500 0.6875rem var(--font);color:var(--label-2);text-align:center;padding:4px 0 6px}
+.mc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;position:relative;min-width:0;min-height:60px;border:0;background:none;color:inherit;border-radius:12px}
+.mc .ring{width:38px;height:38px;box-sizing:border-box;border-radius:50%;border:2px solid transparent;display:grid;place-items:center;position:relative}
+.mc .ring svg{width:28px;height:28px;display:block}
+.mc .ring.kept,.mc .ring.made{border-color:var(--mo-ring)}
+.mc .ring.rest{border:1.6px dashed var(--label-2)}
+.mc .ring.rest svg{opacity:.45}
+.mc .ring.none svg{opacity:.75}
+.mc.fut .ring svg{opacity:.4}
+.mc em{font:500 0.75rem/1 var(--font);font-style:normal;color:var(--label-2);font-variant-numeric:tabular-nums;min-width:22px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 5px;box-sizing:border-box}
+.mc.today em{background:var(--tint);color:var(--on-tint);font-weight:700}
+.mc .star{position:absolute;top:1px;right:calc(50% - 25px);font:10px/1 var(--font);color:var(--mo-ring)}
+.mc:active .ring{transform:scale(.94)}
+.mc .ring{transition:transform .12s ease-out}
+.mo-d{fill:var(--mo-dark)}.mo-l{fill:var(--moon)}
+.mo-d{stroke:var(--sep);stroke-width:.6}
+.mo-cal svg,.mo-hero svg{overflow:visible}.mo-cal svg circle,.mo-hero svg circle{stroke:var(--sep);stroke-width:.6}
+.mo-hero{display:flex;justify-content:center;padding:4px 0 10px}
+.mo-hero svg{width:64px;height:64px}
+.mo-made{flex:none;margin-left:auto;min-height:44px;padding:0 4px 0 12px;border:0;background:none;color:var(--mo-ink);font:600 1rem var(--font)}
+:root{--mo-ring:#B97A10;--mo-dark:#232A52;--mo-ink:#855600}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--mo-ring:#F5C26B;--mo-dark:#2A3158;--mo-ink:#F5C26B}}
+:root[data-theme="dark"]{--mo-ring:#F5C26B;--mo-dark:#2A3158;--mo-ink:#F5C26B}
+@media (max-width:350px){.mo-cal{padding-left:4px;padding-right:4px}.mc .ring{width:34px;height:34px}.mc .ring svg{width:25px;height:25px}.mc .star{right:calc(50% - 22px)}}
