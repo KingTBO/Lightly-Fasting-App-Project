@@ -8,13 +8,14 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 /* ---------- state ---------- */
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
 function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null,careUndo:null},
-  planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
+  planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},placeV:1,cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
   prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,body:null,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
   try{ var raw=localStorage.getItem(KEY); if(raw){ var o=JSON.parse(raw), f=fresh(); for(var k in f) if(o[k]!==undefined) S[k]=o[k];
     ['profile','flex','prefs','unlocked'].forEach(function(k){ S[k]=Object.assign({},f[k],o[k]||{}); });
-    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; careMigrate(); } }
+    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; careMigrate();
+    if(o.placeV===undefined) S.place=C.placeFix(S.place,tzGuess()); S.placeV=1; } }   /* once: a guessed far-off city (Oslo used to get London) becomes the phone's own time zone */
   catch(e){ storageOk=false; }
 }
 /* Care mode keeps the three health answers in profile.care (profile.safety is true while any is ticked). People who answered before Care mode existed have safety true and no list: they are 'earlier'. */
@@ -58,8 +59,9 @@ function pName(p){ return S.lang==='zh'?p.zh:p.name; }
 
 /* ---------- place and sun ---------- */
 var pi, sun, sunDay='';
-function refreshSun(now){ var k=C.dayKey(now)+S.place.key+(S.place.lat||''); if(k===sunDay&&pi) return; sunDay=k; pi=C.placeInfo(S.place,now); sun=C.sunTimes(pi,now); }
-function placeName(){ return S.place.key==='here'?L('Your location','当前位置'):C.CITIES[S.place.key][S.lang==='zh'?'zh':'en']; }
+function refreshSun(now){ var k=C.dayKey(now)+S.place.key+(S.place.lat||'')+tzGuess(); if(k===sunDay&&pi) return; sunDay=k; pi=C.placeInfo(S.place,now); sun=C.sunTimes(pi,now); }
+function placeName(){ var p=S.place, c=C.CITIES[p.key];
+  return p.key==='here'&&!C.hereStale(p)?L('Your location','当前位置'):p.key==='pick'?(S.lang==='zh'?p.zh:p.en):c?c[S.lang==='zh'?'zh':'en']:C.zoneName(tzGuess(),S.lang); }
 function placeMs(hr,now){ /* today's local hour hr at the place, as a timestamp */ return now-C.placeHour(pi,now)*H+hr*H; }
 
 /* ---------- fasts ---------- */
@@ -1100,7 +1102,6 @@ function pkChange(id,v){
   else if(id==='cH'){ clearTimeout(pkTimer); pkTimer=setTimeout(function(){ customSet(+v); },300); }
   else if(id==='obStart'){ ob.start=v; obBigUpdate(); }
   else if(id==='obCustom'){ ob.customH=+v; ob.plan='custom'; ob.planAuto=false; obBigUpdate(); }
-  else if(id==='obCity') setPlace({key:v});
   else if(id==='rpWt') rp.wkg=C.toKg(+v,S.body.unit||'kg');
   else if(id==='obAge') ob.age=+v;
   else if(id==='obWt') ob.kg=C.toKg(+v,ob.unit);
@@ -1396,13 +1397,32 @@ function skySheet(){
   openSheet('<h3>'+L('Moon and sun','月亮和太阳')+'</h3><p class="lede">'+L('The pill counts to the next sunrise or sunset. It’s not your fast.','胶囊里是距离下一次日出或日落的时间，不是你的断食时间。')+'</p>'+
    '<div class="group"><div class="row"><span>'+L('Sunrise','日出')+'</span><span class="v">'+rise+'</span></div><div class="row"><span>'+L('Sunset','日落')+'</span><span class="v">'+set+'</span></div></div>');
 }
+/* Sunrise and sunset in Me: today's two times, then what they are matched to. The phone's time zone is the automatic answer (Oslo, 上海),
+   precise location is the optional better one, and any other city is a search away, never a long list (Tengbo picked this, 2026-11-18). */
 function placeSheet(){
-  var h='<h3>'+L('Sunrise and sunset','日出日落')+'</h3><p class="lede">'+L('Lightly uses your location on this phone only to find your local sunrise and sunset. It is never uploaded or shared. Prefer not to share? Choose a nearby city.','轻伴只在这台手机上用你的位置来算当地的日出日落，不会上传，也不会分享。不想分享？选一个附近的城市就行。')+'</p>';
-  h+='<div class="group"><button class="plan'+(S.place.key==='here'?' sel':'')+'" data-act="geo"><span class="pn"><b>'+L('Use my location','使用我的位置')+'</b><small>'+L('Most accurate. Stays on this phone.','最准确，只留在这台手机上。')+'</small></span>'+CHECK+'</button></div><div class="gh">'+L('Or choose a city','或选择城市')+'</div><div class="group">';
-  Object.keys(C.CITIES).forEach(function(k){ h+='<button class="plan'+(S.place.key===k?' sel':'')+'" data-act="city" data-k="'+k+'" style="min-height:48px"><span class="pn"><b style="font-weight:400">'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</b></span>'+CHECK+'</button>'; });
-  h+='</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'; openSheet(h);
-  var cur=sheetEl.querySelector('[data-act=city].sel'); if(cur) setTimeout(function(){ try{ cur.scrollIntoView({block:'center'}); }catch(x){} },0);   /* a long list opens on your own city */
+  var now=Date.now(), p=S.place, stale=C.hereStale(p), auto=p.key==='zone'||stale, here=p.key==='here'&&!stale, t=C.sunTimes(C.placeInfo(p,now),now), pol=!!t.polar;
+  var h='<h3>'+L('Sunrise and sunset','日出日落')+'</h3><div class="group"><div class="row"><span>'+L('Sunrise','日出')+'</span><span class="v">'+(pol?'–':clockH(t.rise))+'</span></div><div class="row"><span>'+L('Sunset','日落')+'</span><span class="v">'+(pol?'–':clockH(t.set))+'</span></div></div>';
+  h+='<div class="gh">'+L('Matched to','依据')+'</div><div class="group">'+
+    '<button class="plan'+(auto?' sel':'')+'" data-act="placeauto"><span class="pn"><b>'+esc(C.zoneName(tzGuess(),S.lang))+'</b><small>'+L('Your phone’s time zone. Automatic.','手机的时区，自动跟随。')+'</small></span>'+CHECK+'</button>'+
+    '<button class="plan'+(here?' sel':'')+'" data-act="geo"><span class="pn"><b>'+L('Precise location','精确位置')+'</b><small>'+(stale?L('Saved before your trip. Tap to update.','是旅行前的位置，点一下更新。'):L('A few minutes more exact.','再准确几分钟。'))+'</small></span>'+CHECK+'</button>'+
+    (!auto&&!here?'<button class="plan sel" data-act="close"><span class="pn"><b>'+esc(placeName())+'</b><small>'+L('Chosen by you','你选的城市')+'</small></span>'+CHECK+'</button>':'')+
+    '<button class="plan" data-act="placefind"><span class="pn"><b>'+L('Another city','其他城市')+'</b></span>'+CHEV+'</button></div>'+
+    '<div class="gf">'+L('Your location never leaves this phone.','你的位置不会离开这台手机。')+'</div>';
+  openSheet(h);
 }
+/* Another city: type a few letters of a city or a country, in English or Chinese */
+var plRes=[];
+function placeFind(){
+  openSheet('<h3>'+L('Another city','其他城市')+'</h3><label class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="plQ" type="search" placeholder="'+L('City or country','城市或国家')+'" aria-label="'+L('Search for a city','搜索城市')+'" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false"></label><div id="plR" aria-live="polite"></div><div class="btns"><button class="btn sec" data-act="place">'+L('Back','返回')+'</button></div>',placeSheet);
+  var q=$('plQ'); plPaint('');
+  q.addEventListener('input',function(){ plPaint(q.value); });
+  q.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); if(plRes.length) A.placepick({dataset:{i:'0'}}); } });
+  setTimeout(function(){ try{ q.focus({preventScroll:true}); }catch(x){} },60);
+}
+function plPaint(v){ var r=$('plR'); if(!r) return; plRes=C.searchCities(v,S.lang);
+  r.innerHTML=!String(v).trim()?'<div class="gf">'+L('For example Oslo, Chengdu or Mecca.','例如 奥斯陆、成都 或 麦加。')+'</div>':
+    !plRes.length?'<div class="gf">'+L('No city by that name. Try a bigger city nearby.','没有找到这个城市，试试附近的大城市。')+'</div>':
+    '<div class="group">'+plRes.map(function(c,i){ return '<button class="plan" data-act="placepick" data-i="'+i+'"><span class="pn"><b>'+esc(c.name)+'</b>'+(c.sub?'<small>'+esc(c.sub)+'</small>':'')+'</span>'+CHECK+'</button>'; }).join('')+'</div>'; }
 function setPlace(pl){ if(pl.key!=='here') geoTok++; S.place=pl; sunDay=''; save(); cache={}; updateToday(); }
 /* A fix can take several seconds on a phone (the permission prompt, then the radio), so the person always sees that Lightly is working, and is never left waiting:
    after 8 s it says so and offers the city list, and if the fix still arrives later (and no city was picked meanwhile) it is used quietly. */
@@ -1413,9 +1433,10 @@ function geo(then,late){
   var w=setTimeout(function(){ if(done||tok!==geoTok) return; done=true; toast(L('This is taking a while. Pick a city for now.','有点慢，先选一个城市吧。')); then&&then(false); },8000);
   navigator.geolocation.getCurrentPosition(function(p){
     clearTimeout(w); if(tok!==geoTok) return;
-    setPlace({key:'here',lat:Math.round(p.coords.latitude*100)/100,lon:Math.round(p.coords.longitude*100)/100}); toast(L('Using your location.','已使用你的位置。'));
+    setPlace({key:'here',lat:Math.round(p.coords.latitude*100)/100,lon:Math.round(p.coords.longitude*100)/100,zone:tzGuess()}); toast(L('Using your location.','已使用你的位置。'));
     if(done){ late&&late(); } else{ done=true; then&&then(true); } },
-    function(){ clearTimeout(w); if(tok!==geoTok||done) return; done=true; toast(L('Couldn’t get your location, so Lightly is using '+placeName()+'.','没能获取你的位置，先使用'+placeName()+'。')); then&&then(false); },
+    function(e){ clearTimeout(w); if(tok!==geoTok||done) return; done=true;
+      toast(e&&e.code===1?L('Location wasn’t allowed, so Lightly is using '+placeName()+'.','没有获得位置权限，先使用'+placeName()+'。'):L('Couldn’t get your location, so Lightly is using '+placeName()+'.','没能获取你的位置，先使用'+placeName()+'。')); then&&then(false); },
     {timeout:30000,maximumAge:3600000});
 }
 
@@ -1605,7 +1626,7 @@ function applyTheme(){ var r=document.documentElement; if(S.theme==='auto') r.re
 function applyLang(){ document.documentElement.lang=S.lang==='zh'?'zh-Hans':'en'; tabLabels(); document.title=S.lang==='zh'?'轻伴':'Lightly'; }
 
 /* ---------- onboarding ---------- */
-var ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',city:false};
+var ob={step:0,fasted:null,safe:[],plan:null,start:'20:00'};
 /* a small ladder of everyday plans: lit where you start, outlined where it opens later */
 function softNote(){ return L('New to fasting? Start at 13:11 or 16:8 and step up after a few fasts.','第一次断食？先从 13:11 或 16:8 开始，几次之后再往上加。'); }
 function obCMax(){ return C.customMax({fastedBefore:ob.fasted==='before',safety:obRisky()}); }   /* setup has no fasts yet: 23 h for people who have fasted before, 16 h for first-timers, 13 h in Care mode */
@@ -1687,15 +1708,14 @@ function obHtml(i){
   }else if(key==='import'){
     body='<div class="grow"></div>'+IMP_GLYPH+'<h1 style="text-align:center">'+L('Bring your fasts with you','带上你的断食记录')+'</h1><p class="lede" style="text-align:center">'+L('Optional. Zero’s data zip, or a CSV or JSON file.','可选。Zero 的数据 zip，或 CSV、JSON 文件。')+'</p><div class="grow"></div><input id="obImpFile" type="file" accept=".zip,.json,.csv,.txt,application/zip,application/x-zip-compressed,application/json,text/csv,text/plain" hidden>';
     cta='<label class="btn" for="obImpFile">'+L('Choose a file','选择文件')+'</label><button class="btn sec" data-act="obnext">'+L('Skip for now','暂时跳过')+'</button>';
-  }else if(key==='set'){
-    var hereOn=S.place.key==='here';
-    body='<h1>'+L('Match the sky to your day','让天空跟着你的一天')+'</h1><p class="lede">'+L('Lightly uses your precise location only to match the moon and sun to your own sunrise and sunset. It stays on this phone and is never uploaded or shared.','轻伴只用你的精确位置，让月亮和太阳对上你当地的日出日落。位置只留在这台手机上，不会上传或分享。')+'</p>'+
-     obSkyHtml()+(hereOn?'<div class="group"><div class="row"><span>'+L('Using your location','正在使用你的位置')+'</span><span class="v">'+CHECK+'</span></div></div>':ob.geoBusy?'<div class="group"><div class="row" role="status"><span>'+L('Finding your location…','正在定位…')+'</span><span class="v"><i class="spin" aria-hidden="true"></i></span></div></div>':'')+
-     (!hereOn&&ob.city?'<div class="group">'+pkField('obCity',L('Nearest city','最近的城市'),S.place.key,'sel',Object.keys(C.CITIES).map(function(k){ return [k,C.CITIES[k][S.lang==='zh'?'zh':'en']]; }))+'</div>':'')+
+  }else if(key==='set'){   /* the phone's time zone already matches the sky; precise location is optional (Tengbo picked this, 2026-11-18) */
+    var hereOn=S.place.key==='here'&&!C.hereStale(S.place);
+    body='<h1>'+L('Match the sky to your day','让天空跟着你的一天')+'</h1><p class="lede">'+(hereOn?L('Matched to your own sunrise and sunset. Your location never leaves this phone.','已对上你当地的日出日落。你的位置不会离开这台手机。'):
+       S.place.key==='zone'?L('Matched to '+placeName()+' by your phone’s time zone. Precise location never leaves this phone.','已按手机时区对上'+placeName()+'。精确位置不会离开这台手机。'):
+       L('Matched to '+placeName()+'. Precise location never leaves this phone.','已对上'+placeName()+'。精确位置不会离开这台手机。'))+'</p>'+
+     obSkyHtml()+(ob.geoBusy?'<div class="group"><div class="row" role="status"><span>'+L('Finding your location…','正在定位…')+'</span><span class="v"><i class="spin" aria-hidden="true"></i></span></div></div>':'')+
      '<div class="grow"></div>';
-    cta=ob.geoBusy?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>':   /* never without a Continue: a slow GPS fix no longer holds the step */
-      hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn sec" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
-      :'<button class="btn" data-act="obgeo">'+L('Use my location','使用我的位置')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>';
+    cta='<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn||ob.geoBusy?'':'<button class="btn sec" data-act="obgeo">'+L('Use precise location','使用精确位置')+'</button>');   /* never without a Continue: a slow fix never holds the step */
   }else if(key==='body'){
     body='<h1>'+L('A little about you','关于你')+'</h1><p class="lede">'+L('Add them and see your weight trend, with a check-in every month.','填写后，每月回顾会带你看体重变化的趋势。')+'</p><div class="group">'+pkField('obAge',L('Age','年龄'),ob.age,'sel',obAgeOpts())+pkField('obWt',L('Weight','体重'),Math.round(C.kgTo(ob.kg,ob.unit)),'sel',obWtOpts())+pkField('obHt',L('Height','身高'),obHtKey(),'sel',obHtOpts())+'</div>'+
       '<div class="seg" role="group" aria-label="'+L('Units','单位')+'">'+['kg','lb','jin'].map(function(u){ return '<button type="button" data-act="obunit" data-v="'+u+'" aria-pressed="'+(ob.unit===u)+'">'+uLbl(u)+'</button>'; }).join('')+'</div>'+
@@ -1992,7 +2012,9 @@ var A={
   more:function(){ moreOpen=!moreOpen; planSheet(); },
   pickplan:function(b){ pickPlan(b.dataset.id); },
   geo:function(){ toast(L('Finding your location…','正在定位…')); geo(function(){ placeSheet(); },function(){ if(sheetOpen) placeSheet(); }); },
-  city:function(b){ setPlace({key:b.dataset.k}); placeSheet(); },
+  placeauto:function(){ setPlace({key:'zone'}); placeSheet(); },
+  placefind:function(){ placeFind(); },
+  placepick:function(b){ var c=plRes[+b.dataset.i]; if(!c) return; setPlace(c.place); fx('select'); placeSheet(); },
   plan:planSheet, place:placeSheet, cheat:cheatSheet, sky:skySheet, care:careSheet,
   nowsheet:function(){ nowSheet(); }, nowrow:function(b){ var i=+b.dataset.i; nowSheet(i===nowOpen?-2:i); },
   carerow:careRow,
@@ -2075,7 +2097,7 @@ var A={
   pktog:function(b){ pkToggle(b.dataset.id); },
   tl:function(b){ S.prefs.tl=b.dataset.v; save(); cache={}; renderMe(); updateToday(); },
   tstyle:function(b){ S.prefs.timerStyle=b.dataset.v; ph.dataset.ts=b.dataset.v; save(); renderMe(); cache={}; fitDisc(); },
-  obnext:function(){ if(ob.geoBusy){ geoTok++; ob.geoBusy=false; }   /* moving on while the location is still coming: keep the nearest city */
+  obnext:function(){ if(ob.geoBusy){ geoTok++; ob.geoBusy=false; }   /* moving on while the location is still coming: keep the time zone */
     if(ob.step<obFlow().length-1){ ob.step++; obRender(); } },
   obback:function(){ obBackTo(); },
   bodyinfo:bodySheet,
@@ -2098,9 +2120,8 @@ var A={
     if(id==='custom'&&was!=='custom') setTimeout(function(){ if($('obCustom')) pkToggle('obCustom'); },80);
     var tile=document.querySelector('.ob-step.on .plan[data-id="'+id+'"]'); if(tile&&tile.hasAttribute('data-soft')&&was!==id){ fx('nope'); if(!reduce){ tile.classList.remove('bump'); void tile.offsetWidth; tile.classList.add('bump'); setTimeout(function(){ tile.classList.remove('bump'); },700); } } },
   obgeo:function(){ if(ob.geoBusy) return; ob.geoBusy=true; obRefresh();
-    geo(function(ok){ ob.geoBusy=false; if(!ok) ob.city=true; obRefresh(); obRoll(); },
+    geo(function(ok){ ob.geoBusy=false; obRefresh(); obRoll(); },
       function(){ if(!$('ob').hidden&&obFlow()[ob.step]==='set'){ ob.geoBusy=false; obRefresh(); obRoll(); } }); },
-  obcityshow:function(){ geoTok++; ob.geoBusy=false; ob.city=true; obRefresh(); },
   obdone:obFinish
 };
 document.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){ e.preventDefault(); A.namesave(); } });

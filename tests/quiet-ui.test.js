@@ -99,7 +99,7 @@ const hhmm=ms=>{ const d=new Date(ms+8*H); return String(d.getUTCHours()).padSta
    let k=''; for(let i=0;i<12;i++){ k=await key(); if(/obdone/.test(k)) break;
     if(/obopt:before/.test(k)){ await q.click('#ob .ob-step.on [data-act=obopt][data-v=before]'); await q.click('#ob .ob-step.on [data-act=obnext]'); }
     else if(/obsafe/.test(k)){ const e=await q.$('#ob .ob-step.on [data-act=obsafe][data-v=none]'); await e.scrollIntoViewIfNeeded(); await e.click(); await q.click('#ob .ob-step.on [data-act=obnext]'); }
-    else if(/obcityshow/.test(k)){ await q.click('#ob .ob-step.on [data-act=obcityshow]'); await q.waitForTimeout(300); await q.click('#ob .ob-step.on [data-act=obnext]'); }
+    else if(/obcityshow/.test(k)){  await q.waitForTimeout(300); await q.click('#ob .ob-step.on [data-act=obnext]'); }
     else if(/obbodyskip/.test(k)){ await q.click('#ob .ob-step.on [data-act=obbodyskip]'); }
     else { const sec=await q.$('#ob .ob-step.on .btn.sec[data-act=obnext]'); if(sec) await sec.click(); else await q.click('#ob .ob-step.on [data-act=obnext]'); }
     await q.waitForTimeout(900); }

@@ -17,7 +17,7 @@ function merge(a,b){
   out.flex=Object.assign({},n.flex||{}); out.flex.used=Object.keys(used).sort();
   var sa=[a.startedAt,b.startedAt].filter(Boolean); out.startedAt=sa.length?Math.min.apply(null,sa):null;
   var lp=[a.place,b.place].filter(function(x){ return x&&x.key==='here'&&x.lat!=null; })[0]; /* keep this device's own coordinates */
-  if(out.place&&out.place.key==='here'&&out.place.lat==null) out.place=lp||{key:'shanghai'};
+  if(out.place&&out.place.key==='here'&&out.place.lat==null) out.place=lp||{key:'zone'};   /* no coordinates here: the phone's own time zone */
   var os={}; (a.off||[]).concat(b.off||[]).forEach(function(o){ var x=os[o.id]; if(!x||(o.endedAt&&!x.endedAt)) os[o.id]=o; }); out.off=Object.keys(os).map(function(i){return os[i];}).sort(function(x,y){return x.start-y.start;});
   out.unwell=Math.max(a.unwell||0,b.unwell||0)||null;
   var un={}; [a.unlocked||{},b.unlocked||{}].forEach(function(u){ for(var x in u) un[x]=un[x]?Math.min(un[x],u[x]):u[x]; }); out.unlocked=un;
