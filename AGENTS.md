@@ -61,6 +61,7 @@ NODE_PATH=$(npm root -g) node tests/short-page.test.js       # iPhone Home Scree
 NODE_PATH=$(npm root -g) node tests/days-detail.test.js      # Days: part-filled disc for an early day, the tapped day inside the calendar card, no floating button, Today's moon; example-first empty states on Days and Friends (about 1 minute)
 NODE_PATH=$(npm root -g) node tests/firstfast.test.js        # Today at rest: the loaded time, dimmed, with First fast or Ready above it; Start lights it
 NODE_PATH=$(npm root -g) node tests/tester.test.js           # tester options: the Ramadan preview switch and the screen-size pop-up are hidden until seven taps on the version line (about 20 seconds)
+NODE_PATH=$(npm root -g) node tests/ramadan-day.test.js      # the Ramadan day: dates from the Islamic calendar (29 days in 1448), the fast starts itself at dawn, Iftar in, I'm not fasting today with no reason and only the date stored, 中文, 320 px, concept page (about 40 seconds)
 NODE_PATH=$(npm root -g) node tests/ramadan-night.test.js    # Ramadan after sunset: a running fast ends at sunset, Iftar, the night shows when suhoor ends (countdown only in the last two hours), no Start and no streak card, 中文, 320 px, concept page (about 40 seconds)
 NODE_PATH=$(npm root -g) node tests/care.test.js              # Care mode: health answers, plan caps, no streaks or cheat days, the 14-day wait (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright

@@ -184,4 +184,9 @@ assert.deepStrictEqual(C.feelCount([{feel:'easy'},{feel:'easy'},{feel:'hard'},{}
  assert.ok(hold.indexOf('2027-02-08')>=0&&hold.indexOf('2027-02-12')>=0,'season days up to today hold');assert.ok(hold.indexOf('2027-02-20')<0,'not days still to come');
  assert.strictEqual(C.streak(reg,[],now),0,'without the hold the streak breaks');assert.strictEqual(C.streak(reg,hold,now),2,'with it the two regular days stay');
  assert.deepStrictEqual(C.ramadanHold(reg,now),[],'no Ramadan fast, nothing held');}
+/* Ramadan dates follow the Islamic calendar (v0.115.0): 29 or 30 days, local dates, and the written-out table agrees with the calendar */
+{assert.deepStrictEqual(C.ramadanSeason('2027-02-08'),{start:'2027-02-08',days:29,n:1});assert.strictEqual(C.ramadanSeason('2027-03-08').n,29,'1448 has 29 days');
+ assert.strictEqual(C.ramadanSeason('2027-03-09'),null,'Eid is not Ramadan');assert.strictEqual(C.ramadanSeason('2027-02-07'),null);assert.strictEqual(C.ramadanSeason('2026-02-18').days,30,'1447 had 30');
+ assert.strictEqual(C.ramadanDay(new Date(2027,1,20,23,30).getTime()),13,'local date, late in the evening');assert.strictEqual(C.ramadanDay(new Date(2026,10,18,12).getTime()),0);
+ C.RAMADAN.forEach(r=>{const s=C.ramadanSeason(r[0]);assert(s&&s.start===r[0]&&s.days===r[1],'table entry '+r[0]+' matches the calendar');});}
 console.log('core ok',s);

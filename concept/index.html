@@ -1570,15 +1570,12 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
         <div class="home"></div>
         <div class="scrim" id="rScrim"></div>
         <div class="sheet rsheet" id="rSheet" aria-hidden="true"><div class="grab"></div>
-          <span class="k" data-zh="今天不守斋">Not fasting today</span>
-          <p data-zh="没关系。会记在只有你能看到的“待补天数”里，不会有任何提醒或扣分。">That's okay. It goes into a private count of days to make up, with no reminders and nothing lost.</p>
+          <span class="k" data-zh="今天不斋戒？">Not fasting today?</span>
+          <p data-zh="不需要理由。这一天会记入待补天数，只有你能看到。">No reason needed. The day joins your days to make up, and only you see it.</p>
           <div class="ob-list" id="rWhy">
-            <button type="button" class="ob-opt" data-why="travel"><span data-zh="在旅途中">Travelling</span></button>
-            <button type="button" class="ob-opt" data-why="unwell"><span data-zh="身体不舒服">Unwell</span></button>
-            <button type="button" class="ob-opt" data-why="period"><span data-zh="生理期">Period</span></button>
-            <button type="button" class="ob-opt" data-why="other"><span data-zh="其他原因">Another reason</span></button>
+            <button type="button" class="ob-opt" data-why="off"><span data-zh="今天不斋戒">Not fasting today</span></button>
           </div>
-          <button type="button" class="done" id="rCancel" data-zh="取消">Cancel</button>
+          <button type="button" class="done" id="rCancel" data-zh="继续斋戒">Keep fasting</button>
         </div>
       </div>
 
@@ -1599,7 +1596,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
       <div><b data-zh="时间跟着你的天空">Times from your own sky</b><p data-zh="黎明用你选的算法算，日落就是当地真实的日落。可以一分钟一分钟地调，跟你的清真寺时间表对齐。">Dawn uses the method you choose and sunset is your real local sunset. Nudge either one minute at a time to match your mosque's timetable.</p></div>
       <div><b data-zh="安静，不是游戏">Calm, not a game</b><p data-zh="这个月没有连续天数、徽章和挑战，也不提体重或燃脂。只有一个只给你看的“已守天数”。">No streaks, badges or challenges this month, and no talk of weight or fat burning. Just a count of days kept that only you see.</p></div>
       <div><b data-zh="守斋时不提醒喝水">No water reminders while fasting</b><p data-zh="白天不会出现任何喝水或进食的提示。补水提醒挪到封斋饭和开斋之后。">Nothing during the day asks you to drink or eat. Water reminders move to suhoor and after iftar.</p></div>
-      <div><b data-zh="不守斋的日子，不内疚">Days you don't fast, without guilt</b><p data-zh="旅行、生病、生理期或其他原因，轻点“今天不守斋”就行。会记在只有你能看到的“待补天数”里。">Travelling, unwell, on your period or any other reason: tap Not fasting today. It goes into a private count of days to make up.</p></div>
+      <div><b data-zh="不守斋的日子，不内疚">Days you don't fast, without guilt</b><p data-zh="每天的斋戒在黎明自己开始，日落自己完成。不斋戒的日子，轻点“今天不斋戒”就行，不需要理由。会记在只有你能看到的“待补天数”里。">Each day's fast starts by itself at dawn and is kept at sunset. On a day you don't fast, tap I'm not fasting today. No reason needed: it goes into a private count of days to make up.</p></div>
       <div><b data-zh="健康优先">Health comes first</b><p data-zh="有糖尿病或每天需要吃药的人，斋月前请先咨询医生。白天特别长的地方（超过 18 小时），会有一条温和的健康提示。">If you have diabetes or take daily medication, talk to your doctor before Ramadan. Where days run very long (over 18 hours), Lightly shows a gentle health note.</p></div>
       <div><b data-zh="和家人朋友一起开斋">Break the fast together</b><p data-zh="把今晚的开斋时间分享给家人和朋友，昏礼时大家各收到一条轻提醒。可以不开。">Share tonight's iftar time with family and friends, and everyone gets one gentle note at Maghrib. Off if you prefer.</p></div>
       <div><b data-zh="时间在手机上算">Worked out on your phone</b><p data-zh="礼拜时间在手机本地计算，位置从不离开你的手机，也绝不出售。">Prayer times are calculated on the phone. Your location never leaves it and is never sold.</p></div>
@@ -2640,8 +2637,8 @@ window.LightlySphere=(function(){
   var $=function(i){ return document.getElementById(i); };
   var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   function L(en,zh){ return api.lang()==='zh'?zh:en; }
-  /* Expected dates. The real start follows the local moon sighting, so the window allows for 30 days. */
-  var SEASONS=[{start:new Date(2027,1,8),days:30},{start:new Date(2028,0,28),days:30}];
+  /* Expected dates from the Islamic calendar (Umm al-Qura). The real start follows the local moon sighting; moving your first day comes later. */
+  var SEASONS=[{start:new Date(2027,1,8),days:29},{start:new Date(2028,0,28),days:29}];   /* Umm al-Qura: 29 days each, as in the app (C.ramadanSeason) */
   var CITY={shanghai:{en:'Shanghai',zh:'上海',lat:31.23,lon:121.47,zone:'Asia/Shanghai',m:'mwl'},
     singapore:{en:'Singapore',zh:'新加坡',lat:1.35,lon:103.82,zone:'Asia/Singapore',m:'sg'},
     kl:{en:'Kuala Lumpur',zh:'吉隆坡',lat:3.14,lon:101.69,zone:'Asia/Kuala_Lumpur',m:'sg'},
@@ -2723,10 +2720,10 @@ window.LightlySphere=(function(){
     put('rSub',L('Ramadan · Day '+n,'斋月 · 第 '+n+' 天'));
     var k,big,tip,a,glass=true;
     if(s.m==='suhoor'){ /* the night shows when suhoor ends; only its last two hours count down (C.RAM_COUNT) */ k=T.f-t<=2?L('Fast begins in','离开始斋戒还有'):L('Suhoor ends at','封斋结束于'); big=T.f-t<=2?fmt(T.f-t):clock(T.f); tip=L('Eat and drink well now. Water helps the whole day.','现在好好吃、好好喝。多喝水，一整天都会轻松些。'); a=S.remind?L('Suhoor Reminder · ','封斋饭提醒 · ')+clock(T.f-.5):L('Remind Me Before Dawn','黎明前提醒我'); }
-    else if(ex){ k=L('Not fasting today','今天不守斋'); big=L('Rest','休息'); tip=L('That’s okay. It’s in your private count to make up later.','没关系，已经记在你自己的待补天数里。'); a=L('Undo','撤销'); }
-    else if(s.m==='fast'){ k=L('Until iftar','距离开斋'); big=fmt(T.m-t);
+    else if(ex){ k=L('Iftar at','开斋时间'); big=clock(T.m); tip=L('Not fasting today. It joins your days to make up.','今天不斋戒，已记入待补天数。'); a=L('I’m fasting after all','其实我在斋戒'); }
+    else if(s.m==='fast'){ k=L('Iftar in','离开斋还有'); big=fmt(T.m-t);
       tip=t<T.f+.6?L('Fajr has passed. The fast has begun.','晨礼已过，守斋开始了。'):t<T.rise+.5?L('The sun is coming up.','太阳正在升起。'):T.m-t<1?L('Iftar is close. Dates and water are ready when you are.','快开斋了。椰枣和水都准备好了。'):Math.abs(s.p-.5)<.08?L('Halfway through the day.','一天过了一半。'):L('A quiet day. The disc fills as the sun crosses the sky.','安静的一天。太阳走过天空，圆也慢慢变满。');
-      a=L('Not Fasting Today','今天不守斋'); }
+      a=L('I’m not fasting today','今天不斋戒'); }
     else if(s.m==='iftar'){ k=L('It’s time','时间到了'); big=L('Iftar','开斋'); glass=S.kept; tip=S.kept?L('Day '+n+' kept. Drink water slowly through the evening.','第 '+n+' 天守好了。晚上慢慢多喝点水。'):L('The sun has set. Time to break your fast.','太阳落山了，可以开斋了。'); a=S.kept?L('Day '+n+' Kept','第 '+n+' 天已守'):L('Break the Fast','开斋'); }
     else { k=L('Suhoor ends at','封斋结束于'); big=clock(T.f); tip=L('Rest well. Have some water before you sleep.','好好休息，睡前喝点水。'); a=S.remind?L('Suhoor Reminder · ','封斋饭提醒 · ')+clock(T.f-.5):L('Remind Me Before Dawn','黎明前提醒我'); }
     put('rK',k); put('rBig',big,1); put('rTip',tip); put('rAct',a); act.classList.toggle('glass',glass);

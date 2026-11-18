@@ -231,15 +231,30 @@ function planById(id,custom){
 }
 function planLabel(p){ return p.long?p.fast+'h':p.fast+':'+p.eat; }
 
-/* Ramadan: opt-in, shown only in season (expected 2027-02-08 for 30 days, 2028-01-28 for 30 days) */
-var RAMADAN=[[Date.UTC(2027,1,8),30],[Date.UTC(2028,0,28),30]];
+/* Ramadan dates (audit item M3, v0.115.0). They come from the Islamic calendar the phone already has (Umm al-Qura, Intl "islamic-umalqura"):
+   day 1 is the first local date in month 9, and the month has 29 or 30 days, so a season is never assumed to be 30 days.
+   RAMADAN is the same calendar written out, used only where the browser has no Islamic calendar. Dates are local calendar dates, not UTC.
+   Where the moon is sighted a day later, the person will be able to move their first day (a later release). */
+var RAMADAN=[['2025-03-01',29],['2026-02-18',30],['2027-02-08',29],['2028-01-28',29],['2029-01-16',29],['2030-01-05',30],['2030-12-26',29],['2031-12-16',29],['2032-12-04',30],['2033-11-23',30],['2034-11-12',30],['2035-11-01',30],['2036-10-21',29]];
+var hijriFmt=null; try{ hijriFmt=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn',{day:'numeric',month:'numeric',timeZone:'UTC'}); if(+hijriFmt.formatToParts(new Date(Date.UTC(2027,1,8,12))).filter(function(x){ return x.type==='month'; })[0].value!==9) hijriFmt=null; }catch(e){ hijriFmt=null; }
+/* the Hijri month and day of a local date key, or null without the calendar */
+function hijri(k){ if(!hijriFmt) return null; var a=k.split('-'), pts=hijriFmt.formatToParts(new Date(Date.UTC(+a[0],+a[1]-1,+a[2],12))), o={};
+  pts.forEach(function(x){ if(x.type==='month'||x.type==='day') o[x.type]=+x.value; }); return {m:o.month,d:o.day}; }
+var seasonCache={};
+/* the Ramadan season that a local date key falls in: {start: key of day 1, days: 29 or 30, n: the day number}, or null */
+function ramadanSeason(k){ if(typeof k==='number') k=dayKey(k);
+  if(seasonCache[k]!==undefined) return seasonCache[k]; var r=null, h=hijri(k);
+  if(h){ if(h.m===9){ var st=addDays(k,1-h.d), e=hijri(addDays(st,29)); r={start:st,days:e&&e.m===9?30:29,n:h.d}; } }
+  else RAMADAN.forEach(function(x){ var n=Math.round((keyToDate(k)-keyToDate(x[0]))/D)+1; if(n>=1&&n<=x[1]) r={start:x[0],days:x[1],n:n}; });
+  seasonCache[k]=r; return r; }
+/* the day of Ramadan today (1 to 29 or 30), or 0 outside it */
+function ramadanDay(at){ var s=ramadanSeason(dayKey(at==null?Date.now():at)); return s?s.n:0; }
 /* the days of a Ramadan season the regular streak waits through: every day of a season in which the person kept a Ramadan fast, up to today.
    Ramadan fasts never count towards the streak (they are a different fast), so these days hold it like a break: it pauses and does not break. */
-function ramadanHold(fasts,now){ now=now==null?Date.now():now; var out=[];
-  RAMADAN.forEach(function(r){ var a=r[0], b=r[0]+(r[1]+1)*D; if(!(fasts||[]).some(function(f){ return f.plan==='ramadan'&&f.end>=a&&f.end<b; })) return;
-    for(var i=0;i<=r[1];i++){ var t=a+i*D+12*H; if(t>now+D) break; var k=dayKey(t); if(out.indexOf(k)<0) out.push(k); } });
+function ramadanHold(fasts,now){ now=now==null?Date.now():now; var out=[], seen={}, today=dayKey(now);
+  (fasts||[]).forEach(function(f){ if(f.plan!=='ramadan') return; var s=ramadanSeason(dayKey(f.end)); if(!s||seen[s.start]) return; seen[s.start]=1;
+    for(var i=0;i<s.days;i++){ var k=addDays(s.start,i); if(k>today) break; out.push(k); } });
   return out; }
-function ramadanDay(at){ at=at==null?Date.now():at; for(var i=0;i<RAMADAN.length;i++){ var n=Math.floor((at-RAMADAN[i][0])/D); if(n>=0&&n<RAMADAN[i][1]) return n+1; } return 0; }
 
 /* ---------- dates ---------- */
 function pad(n){ return (n<10?'0':'')+n; }
@@ -487,7 +502,7 @@ function trendBuckets(points){
   return out;
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneSpot:zoneSpot,zoneName:zoneName,deviceZone:deviceZone,placeFix:placeFix,searchCities:searchCities,hereStale:hereStale,country:country,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,dawnHour:dawnHour,ramadanPhase:ramadanPhase,RAM_IFTAR:RAM_IFTAR,RAM_COUNT:RAM_COUNT,ramadanHold:ramadanHold,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,ramadanSeason:ramadanSeason,hijri:hijri,RAMADAN:RAMADAN,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);
