@@ -185,10 +185,16 @@ assert.deepStrictEqual(C.feelCount([{feel:'easy'},{feel:'easy'},{feel:'hard'},{}
  assert.strictEqual(C.streak(reg,[],now),0,'without the hold the streak breaks');assert.strictEqual(C.streak(reg,hold,now),2,'with it the two regular days stay');
  assert.deepStrictEqual(C.ramadanHold(reg,now),[],'no Ramadan fast, nothing held');}
 /* Ramadan dates follow the Islamic calendar (v0.115.0): 29 or 30 days, local dates, and the written-out table agrees with the calendar */
-{assert.deepStrictEqual(C.ramadanSeason('2027-02-08'),{start:'2027-02-08',days:29,n:1});assert.strictEqual(C.ramadanSeason('2027-03-08').n,29,'1448 has 29 days');
+{assert.deepStrictEqual(C.ramadanSeason('2027-02-08'),{start:'2027-02-08',days:29,n:1,cal:'2027-02-08'});assert.strictEqual(C.ramadanSeason('2027-03-08').n,29,'1448 has 29 days');
  assert.strictEqual(C.ramadanSeason('2027-03-09'),null,'Eid is not Ramadan');assert.strictEqual(C.ramadanSeason('2027-02-07'),null);assert.strictEqual(C.ramadanSeason('2026-02-18').days,30,'1447 had 30');
  assert.strictEqual(C.ramadanDay(new Date(2027,1,20,23,30).getTime()),13,'local date, late in the evening');assert.strictEqual(C.ramadanDay(new Date(2026,10,18,12).getTime()),0);
  C.RAMADAN.forEach(r=>{const s=C.ramadanSeason(r[0]);assert(s&&s.start===r[0]&&s.days===r[1],'table entry '+r[0]+' matches the calendar');});}
+/* the person's own first day and Eid (v0.118.0) */
+{C.setRamadanAdjust({shift:{'2027-02-08':1},eid:{'2027-02-08':'no'}});
+ assert.strictEqual(C.ramadanSeason('2027-02-08'),null,'a day later: the calendar\'s day 1 is not day 1');assert.strictEqual(C.ramadanCal('2027-02-08').n,1,'the calendar still knows it');
+ assert.deepStrictEqual(C.ramadanSeason('2027-02-09'),{start:'2027-02-09',days:30,n:1,cal:'2027-02-08'});assert.strictEqual(C.ramadanSeason('2027-03-10').n,30,'not yet: a day 30');assert.strictEqual(C.ramadanSeason('2027-03-11'),null);
+ C.setRamadanAdjust({shift:{},eid:{'2026-02-18':'eid'}});assert.strictEqual(C.ramadanSeason('2026-02-18').days,29,'Eid after day 29 shortens a 30-day month');assert.strictEqual(C.ramadanSeason('2026-03-19'),null);
+ C.setRamadanAdjust({});assert.strictEqual(C.ramadanSeason('2027-02-08').n,1);}
 /* the moon tonight (v0.116.0): new on 6 Feb 2027, full around 20 Feb */
 {assert(C.moonAge(Date.UTC(2027,1,6,16))<.5);assert(Math.abs(C.moonAge(Date.UTC(2027,1,20,13))-14)<.5);assert(Math.abs(C.moonPhase(Date.UTC(2027,1,20,13))-Math.PI)<.2,'full is pi');assert(C.moonAge(Date.UTC(1999,0,1))>=0);}
 console.log('core ok',s);

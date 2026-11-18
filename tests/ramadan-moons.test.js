@@ -40,7 +40,7 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{
  assert.strictEqual((await p.textContent('#tabD')).trim(),'Moons'); await tab(p,'days');
  assert.strictEqual((await p.textContent('#days h1')).trim(),'Moons'); assert(/^Ramadan 1448 · Feb 8 to Mar 8$/.test((await p.textContent('#days .mo-s')).trim()),await p.textContent('#days .mo-s'));
  assert.deepStrictEqual(await tiles(p),[4,1,0],'Kept 4, Not fasting 1, Made up 0');
- assert.strictEqual(await p.locator('#days .mc').count(),29,'29 days'); assert.strictEqual(await p.locator('#days .mc .star').count(),5,'✦ on nights 21, 23, 25, 27 and 29');
+ assert.strictEqual(await p.locator('#days .mc[data-k]').count(),29,'29 days'); assert.strictEqual(await p.locator('#days .mc .ring.open').count(),1,'and a "?" day 30 until Eid is answered (v0.118.0)'); assert.strictEqual(await p.locator('#days .mc .star').count(),5,'✦ on nights 21, 23, 25, 27 and 29');
  assert.strictEqual(await p.getAttribute('#days .mc.today','data-k'),'2027-02-20'); assert.strictEqual(await p.locator('#days .mc .ring.kept').count(),4); assert.strictEqual(await p.locator('#days .mc .ring.rest').count(),1);
  assert(/Day 10, Wednesday, February 17, Not fasting/.test(await p.getAttribute(dayBtn(10),'aria-label')));
  assert.strictEqual((await p.textContent('#days [data-act=rammakeup] .v')).trim(),'1'); assert(/Only you can see this/.test(await p.textContent('#days')));
@@ -67,7 +67,9 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{
  await tab(p,'me'); assert(/Days to make up\s*1/.test(await p.textContent('#me [data-act=rammakeup]')),'Me shows the days owed');
  await p.click('#me [data-act=rammakeup]'); await p.waitForSelector('#sheet.open [data-act=rammade]'); await p.waitForTimeout(600); assert(/Day 11/.test(await p.textContent('#sheet'))); await shot(p,'moons-makeup');
  await p.click('#sheet [data-act=rammade]'); await p.waitForTimeout(500); s=await S(p); assert.strictEqual(s.ramMade['2027-02-18'],'2027-02-20'); assert(/Nothing to make up/.test(await p.textContent('#sheet')));
- await p.click('#sheet [data-act=close]'); await p.waitForTimeout(400); assert.strictEqual(await p.locator('#me [data-act=rammakeup]').count(),0,'the row goes when nothing is owed'); await p.context().close();
+ await p.click('#sheet [data-act=close]'); await p.waitForTimeout(400); assert.strictEqual((await p.textContent('#me [data-act=rammakeup] .v')).trim(),'0','nothing owed now'); await p.context().close();
+ p=await open(seed({planId:'16',ramNext:null}),Date.UTC(2027,2,15,4)); await tab(p,'me'); assert(/Days to make up\s*1/.test(await p.textContent('#me [data-act=rammakeup]')),'after Eid the row stays in Me while a day is owed'); await p.context().close();
+ p=await open(seed({planId:'16',ramNext:null,ramMade:{'2027-02-17':'2027-03-14'}}),Date.UTC(2027,2,15,4)); await tab(p,'me'); assert.strictEqual(await p.locator('#me [data-act=rammakeup]').count(),0,'and goes when nothing is owed'); await p.context().close();
  ok('days to make up: a list to mark made up, also in Me while days are owed');
 
  /* 5. out of Ramadan mode; 中文, dark, 320 px */
