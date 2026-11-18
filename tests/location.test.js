@@ -6,7 +6,7 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
 (async()=>{await new Promise(r=>srv.listen(0,r));const url='http://localhost:'+srv.address().port+'/';
  const b=await chromium.launch();const errs=[];const ok=n=>console.log('ok -',n);
  /* delay: ms before the phone answers; fail: the person says no */
- async function atLocation(delay,fail){const c=await b.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,geolocation:{latitude:51.5,longitude:-0.12},permissions:['geolocation']});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));
+ async function atLocation(delay,fail,tz){const c=await b.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,timezoneId:tz||'Asia/Shanghai',geolocation:{latitude:51.5,longitude:-0.12},permissions:['geolocation']});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));
   await q.addInitScript(([delay,fail])=>{window.__geoCalls=0;navigator.geolocation.getCurrentPosition=(good,bad)=>{window.__geoCalls++;setTimeout(()=>fail?bad({code:1}):good({coords:{latitude:51.5074,longitude:-0.1278}}),delay);};
    if(!sessionStorage.s){localStorage.setItem('lightly:v1',JSON.stringify({v:1,lang:'en',theme:'auto',onboarded:false,prefs:{sound:false,haptics:false,d3:false}}));sessionStorage.s=1}},[delay,fail]);
   await q.goto(url);await q.waitForTimeout(700);
@@ -32,12 +32,24 @@ const srv=http.createServer((q,r)=>{let f=path.join(root,decodeURIComponent(q.ur
   ok('after 8 s it offers cities, a late fix is still used');await q.context().close();}
 
  // 5. refused: the city list opens with the guess, nothing hangs
- {const q=await atLocation(600,true);await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1200);assert(await q.$('#obCity'),'city list after a refusal');assert.match(await q.textContent('#toast'),/Couldn.t get your location/);assert.notStrictEqual((await place(q)).key,'here');assert(!/Finding/.test((await q.btns()).join('|')));
+ {const q=await atLocation(600,true);await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1200);assert(await q.$('#obCity'),'city list after a refusal');assert.match(await q.textContent('#toast'),/wasn.t allowed/);assert.notStrictEqual((await place(q)).key,'here');assert(!/Finding/.test((await q.btns()).join('|')));
   ok('refused: city list, no hanging button');await q.context().close();}
 
  // 6. refused, then 'Use my location instead' with a working phone: the list swaps for the location row without an error
  {const q=await atLocation(500,true);await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1000);assert(await q.$('#obCity'));await q.evaluate(()=>{navigator.geolocation.getCurrentPosition=g=>setTimeout(()=>g({coords:{latitude:51.5,longitude:-0.12}}),300);});await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1200);assert(!(await q.$('#obCity')),'the list is gone');assert.match(await q.textContent('.ob-step.on'),/Using your location/);assert.deepStrictEqual(await q.btns(),['Continue']);
   ok('retry after a refusal swaps the city list for the location row');await q.context().close();}
+
+ // 7. Oslo, location refused: the fallback is Oslo's own time zone, never London (a tester in Oslo saw London, 2026-11-17)
+ {const q=await atLocation(500,true,'Europe/Oslo');assert.strictEqual((await place(q)).key,'zone','a fresh phone in Oslo starts on its own time zone');await q.click('.ob-step.on [data-act=obgeo]');await q.waitForTimeout(1000);
+  assert.match(await q.textContent('#toast'),/wasn.t allowed, so Lightly is using Oslo/);assert.strictEqual((await place(q)).key,'zone');assert.match(await q.evaluate(()=>document.querySelector('.ob-step.on .pkf, .ob-step.on [data-pk=obCity], .ob-step.on .row')?.textContent||''),/Nearest city\s*Oslo/,'the row reads Oslo');
+  ok('Oslo, refused: Oslo time zone, not London');await q.context().close();}
+
+ // 8. someone set up before the fix in Oslo, still on the old London guess: it becomes Oslo once, and a city picked later stays
+ {const c=await b.newContext({viewport:{width:390,height:844},timezoneId:'Europe/Oslo'});const q=await c.newPage();q.on('pageerror',e=>errs.push(e.message));
+  await q.addInitScript(()=>{if(!sessionStorage.s){localStorage.setItem('lightly:v1',JSON.stringify({v:1,lang:'en',theme:'auto',onboarded:true,profile:{fastedBefore:true,safety:false},place:{key:'london'},prefs:{sound:false,haptics:false,d3:false}}));sessionStorage.s=1}});
+  await q.goto(url);await q.waitForTimeout(700);assert.strictEqual((await place(q)).key,'zone','the old guess is put right');
+  await q.evaluate(()=>__lightly.state.place={key:'london'});await q.evaluate(()=>localStorage.setItem('lightly:v1',JSON.stringify(__lightly.state)));await q.reload();await q.waitForTimeout(600);assert.strictEqual((await place(q)).key,'london','a city picked after the fix is kept');
+  ok('the old London guess in Oslo becomes Oslo once');await c.close();}
 
  await b.close();srv.close();assert.deepStrictEqual(errs,[],'no page errors');console.log('done');
 })().catch(e=>{console.error(e);process.exit(1)});

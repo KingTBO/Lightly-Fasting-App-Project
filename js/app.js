@@ -8,13 +8,14 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 /* ---------- state ---------- */
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
 function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null,careUndo:null},
-  planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
+  planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},placeV:1,cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
   prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,body:null,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
   try{ var raw=localStorage.getItem(KEY); if(raw){ var o=JSON.parse(raw), f=fresh(); for(var k in f) if(o[k]!==undefined) S[k]=o[k];
     ['profile','flex','prefs','unlocked'].forEach(function(k){ S[k]=Object.assign({},f[k],o[k]||{}); });
-    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; careMigrate(); } }
+    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; careMigrate();
+    if(o.placeV===undefined) S.place=C.placeFix(S.place,tzGuess()); S.placeV=1; } }   /* once: a guessed far-off city (Oslo used to get London) becomes the phone's own time zone */
   catch(e){ storageOk=false; }
 }
 /* Care mode keeps the three health answers in profile.care (profile.safety is true while any is ticked). People who answered before Care mode existed have safety true and no list: they are 'earlier'. */
@@ -58,8 +59,10 @@ function pName(p){ return S.lang==='zh'?p.zh:p.name; }
 
 /* ---------- place and sun ---------- */
 var pi, sun, sunDay='';
-function refreshSun(now){ var k=C.dayKey(now)+S.place.key+(S.place.lat||''); if(k===sunDay&&pi) return; sunDay=k; pi=C.placeInfo(S.place,now); sun=C.sunTimes(pi,now); }
-function placeName(){ return S.place.key==='here'?L('Your location','当前位置'):C.CITIES[S.place.key][S.lang==='zh'?'zh':'en']; }
+function refreshSun(now){ var k=C.dayKey(now)+S.place.key+(S.place.lat||'')+(S.place.key==='zone'?tzGuess():''); if(k===sunDay&&pi) return; sunDay=k; pi=C.placeInfo(S.place,now); sun=C.sunTimes(pi,now); }
+function placeName(){ var c=C.CITIES[S.place.key]; return S.place.key==='here'?L('Your location','当前位置'):c?c[S.lang==='zh'?'zh':'en']:C.zoneName(tzGuess(),S.lang); }
+/* the phone's time zone is offered as a place of its own when none of the listed cities shares it (Oslo, Helsinki, Warsaw…) */
+function zoneOffer(){ return S.place.key==='zone'||C.guessCity(tzGuess())==='zone'; }
 function placeMs(hr,now){ /* today's local hour hr at the place, as a timestamp */ return now-C.placeHour(pi,now)*H+hr*H; }
 
 /* ---------- fasts ---------- */
@@ -1398,7 +1401,7 @@ function skySheet(){
 }
 function placeSheet(){
   var h='<h3>'+L('Sunrise and sunset','日出日落')+'</h3><p class="lede">'+L('Lightly uses your location on this phone only to find your local sunrise and sunset. It is never uploaded or shared. Prefer not to share? Choose a nearby city.','轻伴只在这台手机上用你的位置来算当地的日出日落，不会上传，也不会分享。不想分享？选一个附近的城市就行。')+'</p>';
-  h+='<div class="group"><button class="plan'+(S.place.key==='here'?' sel':'')+'" data-act="geo"><span class="pn"><b>'+L('Use my location','使用我的位置')+'</b><small>'+L('Most accurate. Stays on this phone.','最准确，只留在这台手机上。')+'</small></span>'+CHECK+'</button></div><div class="gh">'+L('Or choose a city','或选择城市')+'</div><div class="group">';
+  h+='<div class="group"><button class="plan'+(S.place.key==='here'?' sel':'')+'" data-act="geo"><span class="pn"><b>'+L('Use my location','使用我的位置')+'</b><small>'+L('Most accurate. Stays on this phone.','最准确，只留在这台手机上。')+'</small></span>'+CHECK+'</button>'+(zoneOffer()?'<button class="plan'+(S.place.key==='zone'?' sel':'')+'" data-act="city" data-k="zone"><span class="pn"><b>'+L('Use my time zone','使用我的时区')+'</b><small>'+esc(C.zoneName(tzGuess(),S.lang))+L('. No location needed.','。不需要位置。')+'</small></span>'+CHECK+'</button>':'')+'</div><div class="gh">'+L('Or choose a city','或选择城市')+'</div><div class="group">';
   Object.keys(C.CITIES).forEach(function(k){ h+='<button class="plan'+(S.place.key===k?' sel':'')+'" data-act="city" data-k="'+k+'" style="min-height:48px"><span class="pn"><b style="font-weight:400">'+C.CITIES[k][S.lang==='zh'?'zh':'en']+'</b></span>'+CHECK+'</button>'; });
   h+='</div><div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'; openSheet(h);
   var cur=sheetEl.querySelector('[data-act=city].sel'); if(cur) setTimeout(function(){ try{ cur.scrollIntoView({block:'center'}); }catch(x){} },0);   /* a long list opens on your own city */
@@ -1415,7 +1418,8 @@ function geo(then,late){
     clearTimeout(w); if(tok!==geoTok) return;
     setPlace({key:'here',lat:Math.round(p.coords.latitude*100)/100,lon:Math.round(p.coords.longitude*100)/100}); toast(L('Using your location.','已使用你的位置。'));
     if(done){ late&&late(); } else{ done=true; then&&then(true); } },
-    function(){ clearTimeout(w); if(tok!==geoTok||done) return; done=true; toast(L('Couldn’t get your location, so Lightly is using '+placeName()+'.','没能获取你的位置，先使用'+placeName()+'。')); then&&then(false); },
+    function(e){ clearTimeout(w); if(tok!==geoTok||done) return; done=true;
+      toast(e&&e.code===1?L('Location wasn’t allowed, so Lightly is using '+placeName()+'.','没有获得位置权限，先使用'+placeName()+'。'):L('Couldn’t get your location, so Lightly is using '+placeName()+'.','没能获取你的位置，先使用'+placeName()+'。')); then&&then(false); },
     {timeout:30000,maximumAge:3600000});
 }
 
@@ -1691,7 +1695,7 @@ function obHtml(i){
     var hereOn=S.place.key==='here';
     body='<h1>'+L('Match the sky to your day','让天空跟着你的一天')+'</h1><p class="lede">'+L('Lightly uses your precise location only to match the moon and sun to your own sunrise and sunset. It stays on this phone and is never uploaded or shared.','轻伴只用你的精确位置，让月亮和太阳对上你当地的日出日落。位置只留在这台手机上，不会上传或分享。')+'</p>'+
      obSkyHtml()+(hereOn?'<div class="group"><div class="row"><span>'+L('Using your location','正在使用你的位置')+'</span><span class="v">'+CHECK+'</span></div></div>':ob.geoBusy?'<div class="group"><div class="row" role="status"><span>'+L('Finding your location…','正在定位…')+'</span><span class="v"><i class="spin" aria-hidden="true"></i></span></div></div>':'')+
-     (!hereOn&&ob.city?'<div class="group">'+pkField('obCity',L('Nearest city','最近的城市'),S.place.key,'sel',Object.keys(C.CITIES).map(function(k){ return [k,C.CITIES[k][S.lang==='zh'?'zh':'en']]; }))+'</div>':'')+
+     (!hereOn&&ob.city?'<div class="group">'+pkField('obCity',L('Nearest city','最近的城市'),S.place.key,'sel',(zoneOffer()?[['zone',C.zoneName(tzGuess(),S.lang)]]:[]).concat(Object.keys(C.CITIES).map(function(k){ return [k,C.CITIES[k][S.lang==='zh'?'zh':'en']]; })))+'</div>':'')+
      '<div class="grow"></div>';
     cta=ob.geoBusy?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button><button class="btn sec" data-act="obcityshow">'+L('Choose a city instead','改选城市')+'</button>':   /* never without a Continue: a slow GPS fix no longer holds the step */
       hereOn||ob.city?'<button class="btn" data-act="obnext">'+L('Continue','继续')+'</button>'+(hereOn?'':'<button class="btn sec" data-act="obgeo">'+L('Use my location instead','改用我的位置')+'</button>')
