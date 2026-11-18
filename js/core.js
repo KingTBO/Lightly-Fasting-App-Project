@@ -80,11 +80,14 @@ function zoneSpot(zone){
     ZA.split(';').forEach(function(e){ var x=e.split('='); if(ZONES[x[1]]) ZONES[x[0]]=ZONES[x[1]]; }); }
   var z=ZONES[zone]; return z?{lat:z[0],lon:z[1]}:null;
 }
+/* Chinese names for the time zone cities people are most likely to live in; the rest use the phone's own wording */
+var ZH='Europe/Oslo=奥斯陆;Europe/Helsinki=赫尔辛基;Europe/Copenhagen=哥本哈根;Europe/Warsaw=华沙;Europe/Prague=布拉格;Europe/Vienna=维也纳;Europe/Budapest=布达佩斯;Europe/Bucharest=布加勒斯特;Europe/Sofia=索非亚;Europe/Athens=雅典;Europe/Lisbon=里斯本;Europe/Brussels=布鲁塞尔;Europe/Zurich=苏黎世;Europe/Luxembourg=卢森堡;Europe/Kyiv=基辅;Europe/Kiev=基辅;Europe/Minsk=明斯克;Europe/Vilnius=维尔纽斯;Europe/Riga=里加;Europe/Tallinn=塔林;Europe/Belgrade=贝尔格莱德;Europe/Zagreb=萨格勒布;Europe/Ljubljana=卢布尔雅那;Europe/Sarajevo=萨拉热窝;Europe/Skopje=斯科普里;Europe/Tirane=地拉那;Europe/Chisinau=基希讷乌;Europe/Bratislava=布拉迪斯拉发;Europe/Malta=马耳他;Europe/Monaco=摩纳哥;Europe/Andorra=安道尔;Europe/Gibraltar=直布罗陀;Europe/Samara=萨马拉;Europe/Volgograd=伏尔加格勒;Europe/Kaliningrad=加里宁格勒;Atlantic/Reykjavik=雷克雅未克;Atlantic/Canary=加那利群岛;Atlantic/Azores=亚速尔群岛;Asia/Kathmandu=加德满都;Asia/Colombo=科伦坡;Asia/Yangon=仰光;Asia/Phnom_Penh=金边;Asia/Vientiane=万象;Asia/Ulaanbaatar=乌兰巴托;Asia/Pyongyang=平壤;Asia/Urumqi=乌鲁木齐;Asia/Almaty=阿拉木图;Asia/Bishkek=比什凯克;Asia/Dushanbe=杜尚别;Asia/Ashgabat=阿什哈巴德;Asia/Baku=巴库;Asia/Tbilisi=第比利斯;Asia/Yerevan=埃里温;Asia/Amman=安曼;Asia/Beirut=贝鲁特;Asia/Damascus=大马士革;Asia/Jerusalem=耶路撒冷;Asia/Muscat=马斯喀特;Asia/Bahrain=巴林;Asia/Aden=亚丁;Asia/Brunei=文莱;Asia/Makassar=望加锡;Asia/Jayapura=查亚普拉;Asia/Dili=帝力;Asia/Thimphu=廷布;Asia/Macau=澳门;Asia/Vladivostok=符拉迪沃斯托克;Asia/Novosibirsk=新西伯利亚;Asia/Yekaterinburg=叶卡捷琳堡;Asia/Krasnoyarsk=克拉斯诺亚尔斯克;Asia/Irkutsk=伊尔库茨克;Asia/Calcutta=加尔各答;Asia/Kolkata=加尔各答;Asia/Saigon=胡志明市;Asia/Kuching=古晋;Asia/Karachi=卡拉奇;Africa/Accra=阿克拉;Africa/Abidjan=阿比让;Africa/Dakar=达喀尔;Africa/Addis_Ababa=亚的斯亚贝巴;Africa/Dar_es_Salaam=达累斯萨拉姆;Africa/Kampala=坎帕拉;Africa/Kigali=基加利;Africa/Kinshasa=金沙萨;Africa/Luanda=罗安达;Africa/Maputo=马普托;Africa/Harare=哈拉雷;Africa/Lusaka=卢萨卡;Africa/Windhoek=温得和克;Africa/Tripoli=的黎波里;Africa/Douala=杜阿拉;Africa/Bamako=巴马科;Africa/Niamey=尼亚美;Africa/Ndjamena=恩贾梅纳;Africa/Djibouti=吉布提;Indian/Mauritius=毛里求斯;Indian/Maldives=马尔代夫;America/Halifax=哈利法克斯;America/St_Johns=圣约翰斯;America/Winnipeg=温尼伯;America/Edmonton=埃德蒙顿;America/Regina=里贾纳;America/Phoenix=菲尼克斯;America/Anchorage=安克雷奇;America/Detroit=底特律;America/Lima=利马;America/Santiago=圣地亚哥;America/Caracas=加拉加斯;America/La_Paz=拉巴斯;America/Montevideo=蒙得维的亚;America/Asuncion=亚松森;America/Guayaquil=瓜亚基尔;America/Panama=巴拿马;America/Havana=哈瓦那;America/Santo_Domingo=圣多明各;America/Puerto_Rico=波多黎各;America/Jamaica=牙买加;America/Guatemala=危地马拉;America/Costa_Rica=哥斯达黎加;America/El_Salvador=萨尔瓦多;America/Managua=马那瓜;America/Tegucigalpa=特古西加尔巴;America/Monterrey=蒙特雷;America/Tijuana=蒂华纳;America/Cancun=坎昆;America/Manaus=马瑙斯;America/Fortaleza=福塔雷萨;America/Recife=累西腓;America/Bahia=巴伊亚;America/Belem=贝伦;America/Argentina/Cordoba=科尔多瓦;Pacific/Honolulu=檀香山;Pacific/Fiji=斐济;Pacific/Guam=关岛;Pacific/Port_Moresby=莫尔兹比港;Pacific/Tahiti=塔希提;Pacific/Tongatapu=汤加塔布;Pacific/Apia=阿皮亚;Australia/Brisbane=布里斯班;Australia/Perth=珀斯;Australia/Adelaide=阿德莱德;Australia/Darwin=达尔文;Australia/Hobart=霍巴特', ZHN=null;
 function deviceZone(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){ return ''; } }
-/* the phone's time zone in words: "Oslo" in English (the city the zone is named after), "挪威" in Chinese (what the phone itself calls it) */
+/* the phone's time zone in words: the city the zone is named after ("Oslo", 奥斯陆). In Chinese a zone missing from ZH uses the phone's own wording, which can be the country (挪威) */
 function zoneName(zone,lang){
   zone=zone||deviceZone(); var en=String(zone.split('/').pop()||'').replace(/_/g,' ');
   if(lang==='zh'){ for(var k in CITIES) if(CITIES[k].zone===zone&&CITIES[k].en===en) return CITIES[k].zh;
+    if(!ZHN){ ZHN={}; ZH.split(';').forEach(function(e){ var x=e.split('='); ZHN[x[0]]=x[1]; }); } if(ZHN[zone]) return ZHN[zone];
     try{ var n=new Intl.DateTimeFormat('zh-CN',{timeZone:zone,timeZoneName:'shortGeneric'}).formatToParts(0).filter(function(x){ return x.type==='timeZoneName'; })[0].value.replace(/时间$/,''); if(n&&!/GMT|UTC|[+\-]\d/.test(n)) return n; }catch(e){} }
   return en;
 }
@@ -96,7 +99,7 @@ function guessCity(zone){
   var off=zoneOffset(zone); for(k in CITIES) if(zoneOffset(CITIES[k].zone)===off) return k;
   return 'shanghai';
 }
-/* what versions before 0.113.1 picked, so a guess that was never the person's own choice can be put right once */
+/* what versions before 0.113.2 picked, so a guess that was never the person's own choice can be put right once */
 function oldGuess(zone){
   if(!zone) return 'shanghai';
   for(var k in CITIES) if(CITIES[k].zone===zone) return k;
