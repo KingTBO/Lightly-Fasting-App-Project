@@ -45,7 +45,7 @@ window.LightlySphere=(function(){
   ' alb+=.14*smoothstep(55.,4.,ta)*pow(abs(sin(ang*7.+fbm(d*6.)*4.)),6.)*(1.-m);',
   ' gl_FragColor=vec4(clamp(alb,0.,1.),clamp(.5+ht*3.2,0.,1.));}'].join('\n');
   var FS=HEAD+'\n'+NOISE+'\n'+[
-  'uniform sampler2D uTex;uniform vec2 uRes,uTilt,uLib;uniform float uP,uW,uMoon,uTime,uNight,uAlpha,uGlow,uHalo,uSw;',
+  'uniform sampler2D uTex;uniform vec2 uRes,uTilt,uLib;uniform float uP,uW,uMoon,uTime,uNight,uAlpha,uGlow,uHalo,uSw,uPh;',
   'mat3 rY(float a){float c=cos(a),s=sin(a);return mat3(c,0.,-s,0.,1.,0.,s,0.,c);}',
   'mat3 rX(float a){float c=cos(a),s=sin(a);return mat3(1.,0.,0.,0.,c,s,0.,-s,c);}',
   'void main(){vec2 uv=gl_FragCoord.xy/uRes*2.-1.;float R=84./118.;vec2 q=uv/R;float r=length(q);float px=2./(uRes.x*R);',
@@ -60,6 +60,8 @@ window.LightlySphere=(function(){
   ' vec3 L=normalize(vec3(.3,.25,.9));',
     /* progress is a wedge that fills counter-clockwise from 12 o'clock with a soft edge; while it wanes the wedge is taken away in the same direction */
   ' float ca=fract(1.-atan(q.x,q.y)/6.2831853);float ax=uW>0.?ca:1.-ca;float lit=clamp((uP*1.07-ax)/.07,0.,1.);lit=lit*lit*(3.-2.*lit);',
+  /* a Ramadan night: tonight's real phase. The light comes from the side, so the shadow edge wraps the ball (uPh 0 new, pi full; below 0 off) */
+  ' if(uPh>=0.){vec3 Lp=vec3(sin(uPh),0.,-cos(uPh));lit=smoothstep(-.12,.03,dot(n,Lp));}',
   ' mat3 M=rX(uTilt.y)*rY(uTilt.x);vec3 o=M*n,Lo=M*L;',
   /* moon: sample the baked surface */
   ' float lon=atan(o.x,o.z)+uLib.x,lat=asin(clamp(o.y,-1.,1.))+uLib.y;vec2 tc=vec2(lon/6.2831853+.5,lat/3.14159265+.5);',
@@ -102,7 +104,7 @@ window.LightlySphere=(function(){
     gl.useProgram(pb); attr(pb); gl.viewport(0,0,TW,TH); gl.uniform2f(gl.getUniformLocation(pb,'uSize'),TW,TH); gl.disable(gl.BLEND); gl.drawArrays(gl.TRIANGLES,0,3);
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);
     gl.useProgram(pd); attr(pd);
-    var U={}; ['uRes','uP','uW','uMoon','uTime','uNight','uAlpha','uTilt','uLib','uGlow','uHalo','uSw','uTex'].forEach(function(k){ U[k]=gl.getUniformLocation(pd,k); });
+    var U={}; ['uRes','uP','uW','uMoon','uTime','uNight','uAlpha','uTilt','uLib','uGlow','uHalo','uSw','uPh','uTex'].forEach(function(k){ U[k]=gl.getUniformLocation(pd,k); });
     var wrap=svg.parentNode, dpr=Math.min(window.devicePixelRatio||1,2);
     cv.className='orb'; cv.setAttribute('aria-hidden','true'); cv.width=cv.height=Math.round(236*dpr); wrap.appendChild(cv);
     var seen=true, lost=false, on=true, night=0, last=performance.now(), t0=last, key='';
@@ -113,14 +115,14 @@ window.LightlySphere=(function(){
       draw:function(o){ var now=performance.now(), dt=Math.min((now-last)/1000,.05); last=now; if(!api.ok()||!seen) return;
         night+=((o.night?1:0)-night)*Math.min(dt*3,1);
         var T=(now-t0)/1000, lx=reduce?0:Math.sin(T*.07)*.05, ly=reduce?0:Math.sin(T*.05+1)*.035; /* the real moon never spins; it only rocks a little (libration) */
-        var k=[o.p.toFixed(4),o.wane,o.moon.toFixed(3),o.tx.toFixed(3),o.ty.toFixed(3),night.toFixed(3),(o.alpha==null?1:o.alpha).toFixed(3),(o.glow||0).toFixed(3),(o.halo||0).toFixed(3),(o.sw||0),lx.toFixed(3),ly.toFixed(3),reduce?0:(o.moon<.99?Math.floor(T*10):0)].join();
+        var k=[o.p.toFixed(4),o.wane,o.moon.toFixed(3),o.tx.toFixed(3),o.ty.toFixed(3),night.toFixed(3),(o.alpha==null?1:o.alpha).toFixed(3),(o.glow||0).toFixed(3),(o.halo||0).toFixed(3),(o.sw||0),(o.ph==null?-1:o.ph).toFixed(3),lx.toFixed(3),ly.toFixed(3),reduce?0:(o.moon<.99?Math.floor(T*10):0)].join();
         cv.style.transform='translate('+(o.ox||0).toFixed(2)+'px,'+(o.oy||0).toFixed(2)+'px) scale('+(o.scale||1).toFixed(4)+')';
         if(k===key) return; key=k;
         gl.viewport(0,0,cv.width,cv.height); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,tex); gl.uniform1i(U.uTex,0);
         gl.uniform2f(U.uRes,cv.width,cv.height); gl.uniform1f(U.uP,Math.min(Math.max(o.p,0),1)); gl.uniform1f(U.uW,o.wane?-1:1);
         gl.uniform1f(U.uMoon,o.moon); gl.uniform1f(U.uTime,reduce?0:T); gl.uniform1f(U.uNight,night);
-        gl.uniform1f(U.uSw,o.sw||0); gl.uniform1f(U.uAlpha,o.alpha==null?1:o.alpha); gl.uniform1f(U.uGlow,o.glow||0); gl.uniform1f(U.uHalo,o.halo||0);
+        gl.uniform1f(U.uSw,o.sw||0); gl.uniform1f(U.uPh,o.ph==null?-1:o.ph); gl.uniform1f(U.uAlpha,o.alpha==null?1:o.alpha); gl.uniform1f(U.uGlow,o.glow||0); gl.uniform1f(U.uHalo,o.halo||0);
         gl.uniform2f(U.uTilt,(o.tx||0)*Math.PI/180*1.6,(o.ty||0)*Math.PI/180*1.6); gl.uniform2f(U.uLib,lx,ly);
         gl.drawArrays(gl.TRIANGLES,0,3); } };
     return api; };

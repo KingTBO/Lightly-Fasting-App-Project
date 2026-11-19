@@ -189,4 +189,6 @@ assert.deepStrictEqual(C.feelCount([{feel:'easy'},{feel:'easy'},{feel:'hard'},{}
  assert.strictEqual(C.ramadanSeason('2027-03-09'),null,'Eid is not Ramadan');assert.strictEqual(C.ramadanSeason('2027-02-07'),null);assert.strictEqual(C.ramadanSeason('2026-02-18').days,30,'1447 had 30');
  assert.strictEqual(C.ramadanDay(new Date(2027,1,20,23,30).getTime()),13,'local date, late in the evening');assert.strictEqual(C.ramadanDay(new Date(2026,10,18,12).getTime()),0);
  C.RAMADAN.forEach(r=>{const s=C.ramadanSeason(r[0]);assert(s&&s.start===r[0]&&s.days===r[1],'table entry '+r[0]+' matches the calendar');});}
+/* the moon tonight (v0.116.0): new on 6 Feb 2027, full around 20 Feb */
+{assert(C.moonAge(Date.UTC(2027,1,6,16))<.5);assert(Math.abs(C.moonAge(Date.UTC(2027,1,20,13))-14)<.5);assert(Math.abs(C.moonPhase(Date.UTC(2027,1,20,13))-Math.PI)<.2,'full is pi');assert(C.moonAge(Date.UTC(1999,0,1))>=0);}
 console.log('core ok',s);

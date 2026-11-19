@@ -1727,7 +1727,7 @@ window.LightlySphere=(function(){
   ' alb+=.14*smoothstep(55.,4.,ta)*pow(abs(sin(ang*7.+fbm(d*6.)*4.)),6.)*(1.-m);',
   ' gl_FragColor=vec4(clamp(alb,0.,1.),clamp(.5+ht*3.2,0.,1.));}'].join('\n');
   var FS=HEAD+'\n'+NOISE+'\n'+[
-  'uniform sampler2D uTex;uniform vec2 uRes,uTilt,uLib;uniform float uP,uW,uMoon,uTime,uNight,uAlpha,uGlow,uHalo,uSw;',
+  'uniform sampler2D uTex;uniform vec2 uRes,uTilt,uLib;uniform float uP,uW,uMoon,uTime,uNight,uAlpha,uGlow,uHalo,uSw,uPh;',
   'mat3 rY(float a){float c=cos(a),s=sin(a);return mat3(c,0.,-s,0.,1.,0.,s,0.,c);}',
   'mat3 rX(float a){float c=cos(a),s=sin(a);return mat3(1.,0.,0.,0.,c,s,0.,-s,c);}',
   'void main(){vec2 uv=gl_FragCoord.xy/uRes*2.-1.;float R=84./118.;vec2 q=uv/R;float r=length(q);float px=2./(uRes.x*R);',
@@ -1742,6 +1742,7 @@ window.LightlySphere=(function(){
   ' vec3 L=normalize(vec3(.3,.25,.9));',
     /* progress is a wedge that fills counter-clockwise from 12 o'clock with a soft edge; while it wanes the wedge is taken away in the same direction */
   ' float ca=fract(1.-atan(q.x,q.y)/6.2831853);float ax=uW>0.?ca:1.-ca;float lit=clamp((uP*1.07-ax)/.07,0.,1.);lit=lit*lit*(3.-2.*lit);',
+  ' if(uPh>=0.){vec3 Lp=vec3(sin(uPh),0.,-cos(uPh));lit=smoothstep(-.12,.03,dot(n,Lp));}',
   ' mat3 M=rX(uTilt.y)*rY(uTilt.x);vec3 o=M*n,Lo=M*L;',
   /* moon: sample the baked surface */
   ' float lon=atan(o.x,o.z)+uLib.x,lat=asin(clamp(o.y,-1.,1.))+uLib.y;vec2 tc=vec2(lon/6.2831853+.5,lat/3.14159265+.5);',
@@ -1784,7 +1785,7 @@ window.LightlySphere=(function(){
     gl.useProgram(pb); attr(pb); gl.viewport(0,0,TW,TH); gl.uniform2f(gl.getUniformLocation(pb,'uSize'),TW,TH); gl.disable(gl.BLEND); gl.drawArrays(gl.TRIANGLES,0,3);
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);
     gl.useProgram(pd); attr(pd);
-    var U={}; ['uRes','uP','uW','uMoon','uTime','uNight','uAlpha','uTilt','uLib','uGlow','uHalo','uSw','uTex'].forEach(function(k){ U[k]=gl.getUniformLocation(pd,k); });
+    var U={}; ['uRes','uP','uW','uMoon','uTime','uNight','uAlpha','uTilt','uLib','uGlow','uHalo','uSw','uPh','uTex'].forEach(function(k){ U[k]=gl.getUniformLocation(pd,k); });
     var wrap=svg.parentNode, dpr=Math.min(window.devicePixelRatio||1,2);
     cv.className='orb'; cv.setAttribute('aria-hidden','true'); cv.width=cv.height=Math.round(236*dpr); wrap.appendChild(cv);
     var seen=true, lost=false, on=true, night=0, last=performance.now(), t0=last, key='';
@@ -1795,14 +1796,14 @@ window.LightlySphere=(function(){
       draw:function(o){ var now=performance.now(), dt=Math.min((now-last)/1000,.05); last=now; if(!api.ok()||!seen) return;
         night+=((o.night?1:0)-night)*Math.min(dt*3,1);
         var T=(now-t0)/1000, lx=reduce?0:Math.sin(T*.07)*.05, ly=reduce?0:Math.sin(T*.05+1)*.035; /* the real moon never spins; it only rocks a little (libration) */
-        var k=[o.p.toFixed(4),o.wane,o.moon.toFixed(3),o.tx.toFixed(3),o.ty.toFixed(3),night.toFixed(3),(o.alpha==null?1:o.alpha).toFixed(3),(o.glow||0).toFixed(3),(o.halo||0).toFixed(3),(o.sw||0),lx.toFixed(3),ly.toFixed(3),reduce?0:(o.moon<.99?Math.floor(T*10):0)].join();
+        var k=[o.p.toFixed(4),o.wane,o.moon.toFixed(3),o.tx.toFixed(3),o.ty.toFixed(3),night.toFixed(3),(o.alpha==null?1:o.alpha).toFixed(3),(o.glow||0).toFixed(3),(o.halo||0).toFixed(3),(o.sw||0),(o.ph==null?-1:o.ph).toFixed(3),lx.toFixed(3),ly.toFixed(3),reduce?0:(o.moon<.99?Math.floor(T*10):0)].join();
         cv.style.transform='translate('+(o.ox||0).toFixed(2)+'px,'+(o.oy||0).toFixed(2)+'px) scale('+(o.scale||1).toFixed(4)+')';
         if(k===key) return; key=k;
         gl.viewport(0,0,cv.width,cv.height); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,tex); gl.uniform1i(U.uTex,0);
         gl.uniform2f(U.uRes,cv.width,cv.height); gl.uniform1f(U.uP,Math.min(Math.max(o.p,0),1)); gl.uniform1f(U.uW,o.wane?-1:1);
         gl.uniform1f(U.uMoon,o.moon); gl.uniform1f(U.uTime,reduce?0:T); gl.uniform1f(U.uNight,night);
-        gl.uniform1f(U.uSw,o.sw||0); gl.uniform1f(U.uAlpha,o.alpha==null?1:o.alpha); gl.uniform1f(U.uGlow,o.glow||0); gl.uniform1f(U.uHalo,o.halo||0);
+        gl.uniform1f(U.uSw,o.sw||0); gl.uniform1f(U.uPh,o.ph==null?-1:o.ph); gl.uniform1f(U.uAlpha,o.alpha==null?1:o.alpha); gl.uniform1f(U.uGlow,o.glow||0); gl.uniform1f(U.uHalo,o.halo||0);
         gl.uniform2f(U.uTilt,(o.tx||0)*Math.PI/180*1.6,(o.ty||0)*Math.PI/180*1.6); gl.uniform2f(U.uLib,lx,ly);
         gl.drawArrays(gl.TRIANGLES,0,3); } };
     return api; };
@@ -2660,7 +2661,7 @@ window.LightlySphere=(function(){
   var preview=!!live;
   /* the day shown: today while Ramadan is on, otherwise a sample day in the next Ramadan */
   var DAY=live?today:addDays(season.start,12);
-  function dayNum(){ return Math.max(1,Math.round((DAY-addDays(season.start,S.first))/864e5)+1); }
+  function dayNum(){ return Math.max(1,Math.floor((DAY-addDays(season.start,S.first))/864e5)+1); }   /* floor: DAY is noon while Ramadan is on */
 
   /* ---------- sun and dawn for that date (NOAA equations, the same as the main timer) ---------- */
   function zoneOff(zone,d){ try{ var a=new Date(d.toLocaleString('en-US',{timeZone:zone})), u=new Date(d.toLocaleString('en-US',{timeZone:'UTC'})); return (a-u)/36e5; }catch(e){ return 0; } }
@@ -2717,7 +2718,7 @@ window.LightlySphere=(function(){
 
   function text(){ var s=stateAt(t), n=dayNum(), ex=S.excused&&(s.m==='fast'||s.m==='iftar');
     put('rClock',clock(t));
-    put('rSub',L('Ramadan · Day '+n,'斋月 · 第 '+n+' 天'));
+    put('rSub',s.m==='suhoor'?L('Ramadan · Night '+n,'斋月 · 第 '+n+' 夜'):s.m==='night'?L('Ramadan · Night '+(n+1),'斋月 · 第 '+(n+1)+' 夜'):L('Ramadan · Day '+n,'斋月 · 第 '+n+' 天'));   /* as the app's chip: a Hijri day starts at sunset */
     var k,big,tip,a,glass=true;
     if(s.m==='suhoor'){ /* the night shows when suhoor ends; only its last two hours count down (C.RAM_COUNT) */ k=T.f-t<=2?L('Fast begins in','离开始斋戒还有'):L('Suhoor ends at','封斋结束于'); big=T.f-t<=2?fmt(T.f-t):clock(T.f); tip=L('Eat and drink well now. Water helps the whole day.','现在好好吃、好好喝。多喝水，一整天都会轻松些。'); a=S.remind?L('Suhoor Reminder · ','封斋饭提醒 · ')+clock(T.f-.5):L('Remind Me Before Dawn','黎明前提醒我'); }
     else if(ex){ k=L('Iftar at','开斋时间'); big=clock(T.m); tip=L('Not fasting today. It joins your days to make up.','今天不斋戒，已记入待补天数。'); a=L('I’m fasting after all','其实我在斋戒'); }
@@ -2739,10 +2740,11 @@ window.LightlySphere=(function(){
     if(lapse){ var k=Math.min((now-lapse.t0)/lapse.dur,1), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; t=lapse.from+(lapse.to-lapse.from)*e; if(k>=1){ var d=lapse.done; lapse=null; if(d) d(); } }
     var s=stateAt(t); sP.t=s.p; sB.t=moonAmt(t); sG.t=(s.m==='iftar'&&!S.excused)?1:0; stepS(sP,dt); stepS(sB,dt); stepS(sG,dt);
     if(s.w!==frame.w){ frame.w=s.w; if(sP.x<.05||sP.x>.95){} else { sP.x=s.p; sP.v=0; } }
-    lit.setAttribute('d',wedgePath(sP.x,84,s.w)); lit.removeAttribute('transform');
+    var nightPh=(s.m==='suhoor'||s.m==='night')?2*Math.PI*((dayNum()+(s.m==='night'?.6:-.4))%29.53)/29.53:null;   /* at night the moon is tonight's real moon, as in the app */
+    if(nightPh!=null){ lit.setAttribute('d',phasePath((1-Math.cos(nightPh))/2,84)); if(nightPh>Math.PI) lit.setAttribute('transform','scale(-1 1)'); else lit.removeAttribute('transform'); } else { lit.setAttribute('d',wedgePath(sP.x,84,s.w)); lit.removeAttribute('transform'); }
     sun.setAttribute('opacity',(1-sB.x).toFixed(3)); crat.setAttribute('opacity',sB.x.toFixed(3)); glow.setAttribute('opacity',(sG.x*.9).toFixed(3));
     var dim=S.excused&&(s.m==='fast'||s.m==='iftar')?.45:1; bodyG.style.opacity=dim;
-    if(orb&&orb.ok()){ bodyG.style.opacity=0; glow.setAttribute('opacity','0'); orb.draw({p:sP.x,wane:s.w,moon:sB.x,tx:0,ty:0,alpha:dim,night:/night|first|evening/.test(ph.dataset.sky),glow:(1-sB.x)*Math.min(Math.max(sP.x,0),1)*(.35+.65*sG.x),halo:sB.x*sG.x}); }
+    if(orb&&orb.ok()){ bodyG.style.opacity=0; glow.setAttribute('opacity','0'); orb.draw({p:sP.x,wane:s.w,ph:nightPh,moon:sB.x,tx:0,ty:0,alpha:dim,night:/night|first|evening/.test(ph.dataset.sky),glow:(1-sB.x)*Math.min(Math.max(sP.x,0),1)*(.35+.65*sG.x),halo:sB.x*sG.x}); }
     var q=Math.min(Math.max((t-T.f)/T.len,0),1), pts=[]; for(var i=0;i<=40;i++){ var r=tPt(q*i/40); pts.push((i?'L':'M')+r.x.toFixed(1)+' '+r.y.toFixed(1)); }
     done.setAttribute('d',q>0?pts.join(''):''); var m=tPt(q); mark.setAttribute('cx',m.x.toFixed(1)); mark.setAttribute('cy',m.y.toFixed(1));
     var rq=(T.rise-T.f)/T.len, rp=tPt(rq); $('rRise').setAttribute('transform','translate('+rp.x.toFixed(1)+' '+rp.y.toFixed(1)+')');

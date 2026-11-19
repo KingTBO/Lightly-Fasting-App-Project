@@ -25,9 +25,9 @@ const ramFast=()=>({cur:{start:at(F),goalH:sun.set-F,planId:'ramadan',reached:fa
   await p.clock.setFixedTime(new Date(t)); await p.goto('http://localhost:'+port+'/'); await p.waitForTimeout(1300); return p; };
  const shot=async(p,n)=>{ if(SHOTS) await p.screenshot({path:path.join(SHOTS,n+'.png')}); };
  const S=p=>p.evaluate(()=>JSON.parse(localStorage.getItem('lightly:v1')));
- const read=p=>p.evaluate(()=>{ const t=id=>(document.getElementById(id).textContent||'').trim(), act=document.getElementById('act'), big=document.getElementById('readBig');
+ const read=p=>p.evaluate(()=>{ const lit=document.getElementById('lit').getAttribute('d')||'', t=id=>(document.getElementById(id).textContent||'').trim(), act=document.getElementById('act'), big=document.getElementById('readBig');
    return {k:t('readK'),big:t('readBig'),alt:t('readAlt'),tip:document.getElementById('readTip').classList.contains('quiet')?'':t('readTip'),act:getComputedStyle(act).visibility!=='hidden',actTab:act.tabIndex,act:getComputedStyle(act).visibility!=='hidden',actLbl:t('actLbl'),
-     streak:!document.getElementById('streakBtn').hidden,sheet:!!document.querySelector('#sheet.open'),endA:t('endA'),endB:t('endB'),bigFits:big.scrollWidth<=big.clientWidth+1}; });
+     streak:!document.getElementById('streakBtn').hidden,sheet:!!document.querySelector('#sheet.open'),endA:t('endA'),endB:t('endB'),bigFits:big.scrollWidth<=big.clientWidth+1,chip:t('planChip'),litArcs:(lit.match(/A/g)||[]).length,litWedge:/L/.test(lit)}; });
 
  /* 1. the night */
  let p=await open(seed(),at(21)), r=await read(p);
@@ -36,6 +36,10 @@ const ramFast=()=>({cur:{start:at(F),goalH:sun.set-F,planId:'ramadan',reached:fa
  await p.clock.setFixedTime(new Date(at(26))); await p.waitForTimeout(1300); r=await read(p); assert.strictEqual(r.k,'Suhoor ends at','still a time, not a countdown, after midnight'); await p.context().close();
  p=await open(seed(),at(F-1.5)); r=await read(p);
  assert.strictEqual(r.k,'Fast begins in'); assert(/^1:(29|30):\d\d$/.test(r.big),'the last two hours count down: '+r.big); assert.strictEqual(r.alt,'Fajr '+hhmm(F)); assert(!r.act,'still no Start button'); await shot(p,'ram-predawn'); await p.context().close();
+ p=await open(seed(),at(21)); r=await read(p); assert.strictEqual(r.chip,'Night 14','after sunset on day 13 the chip names the night that has begun'); assert(r.litArcs===2&&!r.litWedge,'the moon is tonight\'s real phase, not a wedge'); await p.context().close();
+ p=await open(seed(),at(3)); r=await read(p); assert.strictEqual(r.chip,'Night 13','before dawn the night still belongs to day 13'); await p.context().close();
+ p=await open(seed(ramFast()),at(12)); r=await read(p); assert.strictEqual(r.chip,'Day 13'); assert(r.litWedge,'by day the disc fills as before'); await p.context().close();
+ p=await open(seed({lang:'zh'}),at(21)); r=await read(p); assert.strictEqual(r.chip,'第 14 夜'); await p.context().close();
  ok('the night shows when suhoor ends, counts down only in its last two hours, and offers no Start and no streak');
 
  /* 2. sunset ends the fast by itself */
@@ -66,7 +70,7 @@ const ramFast=()=>({cur:{start:at(F),goalH:sun.set-F,planId:'ramadan',reached:fa
  /* 5. the concept page */
  p=await open(seed(),at(21)); await p.goto('http://localhost:'+port+'/concept/'); await p.waitForTimeout(1200);
  await p.click('#rMoments [data-r=night]'); await p.waitForTimeout(1500);
- assert.strictEqual((await p.textContent('#rK')).trim(),'Suhoor ends at'); assert(/^\d\d:\d\d$/.test((await p.textContent('#rBig')).trim()),'the concept phone shows a time at night');
+ assert.strictEqual((await p.textContent('#rK')).trim(),'Suhoor ends at'); assert(/^\d\d:\d\d$/.test((await p.textContent('#rBig')).trim()),'the concept phone shows a time at night'); assert.strictEqual((await p.textContent('#rSub')).trim(),'Ramadan · Night 14','the concept names the night'); assert(!/L/.test(await p.getAttribute('#rLit','d')),'the concept moon at night is a phase, not a wedge');
  await p.click('#rMoments [data-r=suhoor]'); await p.waitForTimeout(1500); assert.strictEqual((await p.textContent('#rK')).trim(),'Fast begins in','within two hours of dawn it counts down');
  await p.click('#rMoments [data-r=iftar]'); await p.waitForTimeout(1600); assert.strictEqual((await p.textContent('#rK')).trim(),'It’s time'); await p.context().close();
  ok('the concept page\'s Ramadan phone says the same at night');

@@ -231,6 +231,11 @@ function planById(id,custom){
 }
 function planLabel(p){ return p.long?p.fast+'h':p.fast+':'+p.eat; }
 
+/* the moon tonight: its age in days since the last new moon (mean synodic month from the new moon of 6 January 2000, 18:14 UTC; within about half a day),
+   and the phase angle the moon on Today is lit with on a Ramadan night: 0 new, pi full. Ramadan begins with the new crescent, so night 1 is a thin sliver. */
+var SYNODIC=29.530588853, NEW0=Date.UTC(2000,0,6,18,14);
+function moonAge(at){ var a=((at==null?Date.now():at)-NEW0)/D%SYNODIC; return a<0?a+SYNODIC:a; }
+function moonPhase(at){ return 2*Math.PI*moonAge(at)/SYNODIC; }
 /* Ramadan dates (audit item M3, v0.115.0). They come from the Islamic calendar the phone already has (Umm al-Qura, Intl "islamic-umalqura"):
    day 1 is the first local date in month 9, and the month has 29 or 30 days, so a season is never assumed to be 30 days.
    RAMADAN is the same calendar written out, used only where the browser has no Islamic calendar. Dates are local calendar dates, not UTC.
@@ -502,7 +507,7 @@ function trendBuckets(points){
   return out;
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneSpot:zoneSpot,zoneName:zoneName,deviceZone:deviceZone,placeFix:placeFix,searchCities:searchCities,hereStale:hereStale,country:country,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,dawnHour:dawnHour,ramadanPhase:ramadanPhase,RAM_IFTAR:RAM_IFTAR,RAM_COUNT:RAM_COUNT,ramadanHold:ramadanHold,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,ramadanSeason:ramadanSeason,hijri:hijri,RAMADAN:RAMADAN,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,moonAge:moonAge,moonPhase:moonPhase,ramadanSeason:ramadanSeason,hijri:hijri,RAMADAN:RAMADAN,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);
