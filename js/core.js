@@ -165,6 +165,21 @@ function solar(pi,at,zenith){
 }
 function sunTimes(pi,at){ var s=solar(pi,at,90.833); if(s.polar==='night'){s.rise=12;s.set=12;} if(s.polar==='day'){s.rise=0;s.set=24;} return s; }
 function fajrHour(pi,at){ var s=solar(pi,at,108); return s.polar?null:s.rise; }
+/* dawn for the Ramadan day: Fajr, or where the sun never goes 18 degrees down (high latitudes in summer) the one-seventh-of-the-night rule, as on the concept page */
+function dawnHour(pi,at){ var f=fajrHour(pi,at); if(f!=null) return f; var s=sunTimes(pi,at), night=((s.rise-s.set)%24+24)%24; return ((s.rise-night/7)%24+24)%24; }
+/* Ramadan, hour by hour (audit items M1 and M2, v0.114.1). The day runs from dawn (Fajr) to sunset (Maghrib). Sunset opens half an hour of iftar,
+   then the night, which lasts until the next dawn. The night shows the time suhoor ends and only counts down in its last RAM_COUNT hours.
+   h, fajr, set and fajrNext are hours in the place's own clock; fajrNext is tomorrow's dawn (today's if left out).
+   Returns {k:'day'|'iftar'|'night', toSet, toDawn (hours), count (the night's countdown is on), left (share of the night still to come, 1 at sunset, 0 at dawn)}. */
+var RAM_IFTAR=.5, RAM_COUNT=2;
+function ramadanPhase(h,fajr,set,fajrNext){
+  h=((h%24)+24)%24; if(fajrNext==null) fajrNext=fajr;
+  var night=24-set+fajrNext;
+  if(h<fajr){ var a=fajr-h; return {k:'night',toDawn:a,count:a<=RAM_COUNT,left:Math.min(a/night,1)}; }
+  if(h<set) return {k:'day',toSet:set-h};
+  var b=24-h+fajrNext, k=h-set<RAM_IFTAR?'iftar':'night';
+  return {k:k,toDawn:b,count:k==='night'&&b<=RAM_COUNT,left:Math.min(b/night,1)};
+}
 
 function smooth(x){ x=Math.min(Math.max(x,0),1); return x*x*(3-2*x); }
 var FADE=1/3;
@@ -218,6 +233,12 @@ function planLabel(p){ return p.long?p.fast+'h':p.fast+':'+p.eat; }
 
 /* Ramadan: opt-in, shown only in season (expected 2027-02-08 for 30 days, 2028-01-28 for 30 days) */
 var RAMADAN=[[Date.UTC(2027,1,8),30],[Date.UTC(2028,0,28),30]];
+/* the days of a Ramadan season the regular streak waits through: every day of a season in which the person kept a Ramadan fast, up to today.
+   Ramadan fasts never count towards the streak (they are a different fast), so these days hold it like a break: it pauses and does not break. */
+function ramadanHold(fasts,now){ now=now==null?Date.now():now; var out=[];
+  RAMADAN.forEach(function(r){ var a=r[0], b=r[0]+(r[1]+1)*D; if(!(fasts||[]).some(function(f){ return f.plan==='ramadan'&&f.end>=a&&f.end<b; })) return;
+    for(var i=0;i<=r[1];i++){ var t=a+i*D+12*H; if(t>now+D) break; var k=dayKey(t); if(out.indexOf(k)<0) out.push(k); } });
+  return out; }
 function ramadanDay(at){ at=at==null?Date.now():at; for(var i=0;i<RAMADAN.length;i++){ var n=Math.floor((at-RAMADAN[i][0])/D); if(n>=0&&n<RAMADAN[i][1]) return n+1; } return 0; }
 
 /* ---------- dates ---------- */
@@ -465,7 +486,7 @@ function trendBuckets(points){
     if(best) out.push({day:t,pct:best.p.pct}); });
   return out;
 }
-var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneSpot:zoneSpot,zoneName:zoneName,deviceZone:deviceZone,placeFix:placeFix,searchCities:searchCities,hereStale:hereStale,country:country,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
+var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneSpot:zoneSpot,zoneName:zoneName,deviceZone:deviceZone,placeFix:placeFix,searchCities:searchCities,hereStale:hereStale,country:country,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,dawnHour:dawnHour,ramadanPhase:ramadanPhase,RAM_IFTAR:RAM_IFTAR,RAM_COUNT:RAM_COUNT,ramadanHold:ramadanHold,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;

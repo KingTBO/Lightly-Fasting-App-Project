@@ -2701,7 +2701,7 @@ window.LightlySphere=(function(){
   function stateAt(t){ var night=T.f+24-T.m;
     if(t<T.f) return {m:'suhoor',p:1-(t+24-T.m)/night,w:1};
     if(t<T.m) return {m:'fast',p:(t-T.f)/T.len,w:0};
-    return {m:t<T.m+1.25?'iftar':'night',p:1-(t-T.m)/night,w:1}; }
+    return {m:t<T.m+.5?'iftar':'night',p:1-(t-T.m)/night,w:1}; }   /* half an hour of iftar, as in the app (C.RAM_IFTAR) */
   var actx=null;
   function chime(){ if($('sndSw')&&$('sndSw').getAttribute('aria-checked')!=='true') return;
     try{ if(!actx){ var C=window.AudioContext||window.webkitAudioContext; if(!C) return; actx=new C(); } if(actx.state==='suspended') actx.resume();
@@ -2722,13 +2722,13 @@ window.LightlySphere=(function(){
     put('rClock',clock(t));
     put('rSub',L('Ramadan · Day '+n,'斋月 · 第 '+n+' 天'));
     var k,big,tip,a,glass=true;
-    if(s.m==='suhoor'){ k=L('Suhoor ends in','封斋饭还剩'); big=fmt(T.f-t); tip=L('Eat and drink well now. Water helps the whole day.','现在好好吃、好好喝。多喝水，一整天都会轻松些。'); a=S.remind?L('Suhoor Reminder · ','封斋饭提醒 · ')+clock(T.f-.5):L('Remind Me Before Dawn','黎明前提醒我'); }
+    if(s.m==='suhoor'){ /* the night shows when suhoor ends; only its last two hours count down (C.RAM_COUNT) */ k=T.f-t<=2?L('Fast begins in','离开始斋戒还有'):L('Suhoor ends at','封斋结束于'); big=T.f-t<=2?fmt(T.f-t):clock(T.f); tip=L('Eat and drink well now. Water helps the whole day.','现在好好吃、好好喝。多喝水，一整天都会轻松些。'); a=S.remind?L('Suhoor Reminder · ','封斋饭提醒 · ')+clock(T.f-.5):L('Remind Me Before Dawn','黎明前提醒我'); }
     else if(ex){ k=L('Not fasting today','今天不守斋'); big=L('Rest','休息'); tip=L('That’s okay. It’s in your private count to make up later.','没关系，已经记在你自己的待补天数里。'); a=L('Undo','撤销'); }
     else if(s.m==='fast'){ k=L('Until iftar','距离开斋'); big=fmt(T.m-t);
       tip=t<T.f+.6?L('Fajr has passed. The fast has begun.','晨礼已过，守斋开始了。'):t<T.rise+.5?L('The sun is coming up.','太阳正在升起。'):T.m-t<1?L('Iftar is close. Dates and water are ready when you are.','快开斋了。椰枣和水都准备好了。'):Math.abs(s.p-.5)<.08?L('Halfway through the day.','一天过了一半。'):L('A quiet day. The disc fills as the sun crosses the sky.','安静的一天。太阳走过天空，圆也慢慢变满。');
       a=L('Not Fasting Today','今天不守斋'); }
-    else if(s.m==='iftar'){ k=L('Maghrib · ','昏礼 · ')+clock(T.m); big=L('Iftar','开斋'); glass=S.kept; tip=S.kept?L('Day '+n+' kept. Drink water slowly through the evening.','第 '+n+' 天守好了。晚上慢慢多喝点水。'):L('The sun has set. Time to break your fast.','太阳落山了，可以开斋了。'); a=S.kept?L('Day '+n+' Kept','第 '+n+' 天已守'):L('Break the Fast','开斋'); }
-    else { k=L('Suhoor ends in','封斋饭还剩'); big=fmt(T.f+24-t); tip=L('Rest well. Have some water before you sleep.','好好休息，睡前喝点水。'); a=S.remind?L('Suhoor Reminder · ','封斋饭提醒 · ')+clock(T.f-.5):L('Remind Me Before Dawn','黎明前提醒我'); }
+    else if(s.m==='iftar'){ k=L('It’s time','时间到了'); big=L('Iftar','开斋'); glass=S.kept; tip=S.kept?L('Day '+n+' kept. Drink water slowly through the evening.','第 '+n+' 天守好了。晚上慢慢多喝点水。'):L('The sun has set. Time to break your fast.','太阳落山了，可以开斋了。'); a=S.kept?L('Day '+n+' Kept','第 '+n+' 天已守'):L('Break the Fast','开斋'); }
+    else { k=L('Suhoor ends at','封斋结束于'); big=clock(T.f); tip=L('Rest well. Have some water before you sleep.','好好休息，睡前喝点水。'); a=S.remind?L('Suhoor Reminder · ','封斋饭提醒 · ')+clock(T.f-.5):L('Remind Me Before Dawn','黎明前提醒我'); }
     put('rK',k); put('rBig',big,1); put('rTip',tip); put('rAct',a); act.classList.toggle('glass',glass);
     var kept=n-1-S.makeup+(S.kept?1:0)-(S.excused?0:0);
     put('rCount',L(kept+(kept===1?' day':' days')+' kept · '+(S.makeup+(S.excused?1:0))+' to make up · only you see this','已守 '+kept+' 天 · 待补 '+(S.makeup+(S.excused?1:0))+' 天 · 只有你能看到'));
