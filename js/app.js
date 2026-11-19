@@ -9,12 +9,12 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
 function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null,careUndo:null},
   planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},placeV:1,cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
-  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,ramOff:[],body:null,startedAt:null,mod:0,del:[]}; }
+  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,ramOff:[],ramMade:{},ramNext:null,body:null,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
   try{ var raw=localStorage.getItem(KEY); if(raw){ var o=JSON.parse(raw), f=fresh(); for(var k in f) if(o[k]!==undefined) S[k]=o[k];
     ['profile','flex','prefs','unlocked'].forEach(function(k){ S[k]=Object.assign({},f[k],o[k]||{}); });
-    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; if(!Array.isArray(S.ramOff)) S.ramOff=[]; careMigrate();
+    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; if(!Array.isArray(S.ramOff)) S.ramOff=[]; if(!S.ramMade||typeof S.ramMade!=='object'||Array.isArray(S.ramMade)) S.ramMade={}; if(S.planId==='ramadan'&&!S.ramNext) S.ramNext=today(); careMigrate();
     if(o.placeV===undefined) S.place=C.placeFix(S.place,tzGuess()); S.placeV=1; } }   /* once: a guessed far-off city (Oslo used to get London) becomes the phone's own time zone */
   catch(e){ storageOk=false; }
 }
@@ -289,7 +289,8 @@ function skyGlyph(moon){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><ci
 function updateToday(){
   careTick(); nowMs=Date.now(); var now=nowMs; refreshSun(now); planTimes();
   if(S.cur&&S.cur.planId==='ramadan'&&now>=S.cur.start+S.cur.goalH*H) ramadanKeep(now);   /* sunset ends the day's fast by itself; nothing counts up after it */
-  if(!S.cur&&S.planId==='ramadan'&&inRamadan()) ramadanAuto(now);   /* and dawn starts it: there is no Start button in Ramadan */
+  if(!S.cur&&S.planId==='ramadan'&&inRamadan()){ ramadanFill(now); ramadanAuto(now); }
+  if(moonsOn()!==tabMo){ tabLabels(); if(curTab==='days') renderDays(); }   /* in Ramadan mode the Days tab is Moons */   /* and dawn starts it: there is no Start button in Ramadan */
   var hp=C.placeHour(pi,now), sk=C.skyAt(hp,sun), p=plan(), cur=S.cur, le=lastFast();
   moonV=C.moonAmt(hp,sun);
   mode=cur?'fast':(le&&now-le.end<eatH(le)*H?'eat':'idle');
@@ -501,7 +502,7 @@ function beginFast(p,start,extra){
 function startRamadan(){
   if(restNow()){ breakNudge(); return; }
   /* Ramadan has no Start: choosing it is enough. Between dawn and sunset the day's fast starts from dawn (ramadanAuto); at night Today shows when suhoor ends */
-  S.planId='ramadan'; save(); cache={}; updateToday();
+  S.planId='ramadan'; S.ramNext=today(); save(); cache={}; updateToday(); if(curTab==='days') renderDays();
 }
 /* Ramadan by the hour: today's dawn and sunset, tomorrow's dawn, and where the night begins and ends (a0, a1) as timestamps */
 var ramNight=false, ramPh=null;
@@ -522,11 +523,69 @@ function ramChip(now,hp){ var n=C.ramadanDay(now); if(!n) return L('Ramadan','�
   if(hp>=sun.set){ return n<ss.days?L('Night '+(n+1),'第 '+(n+1)+' 夜'):L('Eid night','开斋节之夜'); }
   return hp<C.dawnHour(pi,now)?L('Night '+n,'第 '+n+' 夜'):L('Day '+n,'第 '+n+' 天'); }
 /* a Ramadan fast kept today, by its end (sunset) */
-function keptToday(now){ var k=C.dayKey(now); return S.fasts.some(function(f){ return f.plan==='ramadan'&&C.dayKey(f.end)===k&&C.isDone(f); }); }
+function keptToday(now){ return ramKept(C.dayKey(now)); }
+function ramKept(k){ return S.fasts.some(function(f){ return f.plan==='ramadan'&&C.dayKey(f.end)===k&&C.isDone(f); }); }
 /* sunset ends the fast by itself: it is saved as ending at sunset, with no summary sheet (Today shows Iftar). One chime if the app is open at that moment. */
 function ramadanKeep(now){ var cur=S.cur, end=cur.start+cur.goalH*H; S.cur=null;
   S.fasts.push({id:uid(),start:cur.start,end:end,goalH:cur.goalH,plan:'ramadan'}); save(); cancelGoal(); shownP=-1; cache={};
   if(now-end<2*60000){ fx('success'); boost=1; } }
+/* ---------- Moons (look B): in Ramadan mode the Days tab shows the season as a month of moons ----------
+   A day marks itself at sunset: kept, unless the person said "not fasting". Not fasting days join the days to make up, and "made up" remembers
+   the date it was made up. Nothing asks for a reason, and only the person sees any of it. */
+function moonsOn(){ return S.planId==='ramadan'&&inRamadan(); }
+/* this season, or (in the preview, outside the season) the next one */
+function ramSeasonNow(){ var t=today(), s=C.ramadanSeason(t); if(s) return s;
+  var nx=C.RAMADAN.filter(function(x){ return x[0]>t; })[0]; return nx?{start:nx[0],days:nx[1],n:0}:null; }
+function ramYear(k){ var i=C.RAMADAN.map(function(x){ return x[0]; }).indexOf(k); if(i>=0) return 1446+i;
+  try{ return +new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn',{year:'numeric',timeZone:'UTC'}).formatToParts(new Date(C.keyToDate(k).getTime()+12*H)).filter(function(x){ return x.type==='year'; })[0].value; }catch(e){ return 0; } }
+/* dawn and sunset of any date at the person's place, as timestamps */
+function ramTimes(k){ var at=C.keyToDate(k).getTime()+12*H, p2=C.placeInfo(S.place,at), base=at-C.placeHour(p2,at)*H;
+  return {dawn:base+C.dawnHour(p2,at)*H, set:base+C.sunTimes(p2,at).set*H}; }
+function ramMark(k){ if(S.ramMade[k]) return 'made'; if(S.ramOff.indexOf(k)>=0) return 'rest'; return ramKept(k)?'kept':''; }
+function ramMarkTxt(m){ return m==='kept'?L('Kept','已完成'):m==='rest'?L('Not fasting','不斋戒'):m==='made'?L('Made up','已补'):''; }
+function ramOwed(){ return S.ramOff.filter(function(k){ return !S.ramMade[k]; }).sort(); }
+/* a day can be changed once its sunset has passed, or once it has a mark */
+function ramSettable(k){ var t=today(); return k<t||(k===t&&(!!ramMark(k)||Date.now()>=ramTimes(k).set)); }
+function ramDrop(k){ S.fasts=S.fasts.filter(function(f){ if(f.plan==='ramadan'&&C.dayKey(f.end)===k){ (S.del=S.del||[]).push(f.id); return false; } return true; }); }
+function ramPutKept(k){ ramDrop(k); var t=ramTimes(k); S.fasts.push({id:uid(),start:t.dawn,end:t.set,goalH:(t.set-t.dawn)/H,plan:'ramadan'}); }
+/* days that passed in Ramadan mode while the app stayed closed mark themselves as kept. Each day only once: ramNext moves on, so a day the person changes stays changed */
+function ramadanFill(now){ var t=C.dayKey(now), k=S.ramNext||t, k0=k, ch=false, offK=null;
+  for(var i=0;i<40&&k<=t;i++){ if(k===t&&now<placeMs(sun.set,now)) break;
+    if(C.ramadanSeason(k)&&!ramMark(k)){ offK=offK||C.offKeys(S.off); if(offK.indexOf(k)<0&&S.flex.used.indexOf(k)<0){ ramPutKept(k); ch=true; } }
+    k=C.addDays(k,1); }
+  if(k!==k0) S.ramNext=k; if(ch||k!==k0){ save(); cache={}; } }
+function ramSet(k,m){ if(!ramSettable(k)||m===ramMark(k)) return;
+  if(m==='kept'){ S.ramOff=S.ramOff.filter(function(x){ return x!==k; }); delete S.ramMade[k]; if(!ramKept(k)) ramPutKept(k); }
+  else { if(S.ramOff.indexOf(k)<0) S.ramOff.push(k); if(m==='made') S.ramMade[k]=today(); else delete S.ramMade[k]; ramDrop(k);
+    if(k===today()&&S.cur&&S.cur.planId==='ramadan'){ S.cur=null; cancelGoal(); } }
+  save(); fx('select'); cache={}; shownP=-1; updateToday(); if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); }
+/* the moon on the evening of a date, flat: a dark disc with its lit part */
+function moonIco(k,sz){ var d=phasePath(C.moonPhase(C.keyToDate(k).getTime()+19*H),10);
+  return '<svg viewBox="-12 -12 24 24" width="'+sz+'" height="'+sz+'" aria-hidden="true"><circle r="10" class="mo-d"/>'+(d?'<path d="'+d+'" class="mo-l"/>':'')+'</svg>'; }
+function shortDate(k){ return new Intl.DateTimeFormat(loc(),{month:'short',day:'numeric'}).format(C.keyToDate(k)); }
+function moonsHtml(){ var s=ramSeasonNow(); if(!s) return ''; var t=today(), c={kept:0,rest:0,made:0}, cells='', i, end=C.addDays(s.start,s.days-1);
+  var wd=S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S'], lead=(C.keyToDate(s.start).getDay()+6)%7;
+  for(i=0;i<lead;i++) cells+='<span aria-hidden="true"></span>';
+  for(var n=1;n<=s.days;n++){ var k=C.addDays(s.start,n-1), m=ramMark(k), odd=n>=21&&n%2===1; if(m) c[m]++;
+    cells+='<button type="button" class="mc'+(k===t?' today':'')+(k>t?' fut':'')+'" data-act="ramday" data-k="'+k+'" aria-label="'+L('Day '+n,'第 '+n+' 天')+', '+dateLbl(C.keyToDate(k).getTime(),{weekday:'long',month:'long',day:'numeric'})+(m?', '+ramMarkTxt(m):'')+(odd?', '+L('odd night','单数夜'):'')+'"'+(k===t?' aria-current="date"':'')+'>'+(odd?'<span class="star" aria-hidden="true">✦</span>':'')+'<span class="ring '+(m||'none')+'">'+moonIco(k,28)+'</span><em>'+n+'</em></button>'; }
+  var ow=ramOwed().length, y=ramYear(s.start);
+  return '<div class="mo-t"><h1 class="lt">'+L('Moons','月相')+'</h1><div class="mo-s">'+L('Ramadan','斋月')+(y?' '+y:'')+' · '+shortDate(s.start)+L(' to ',' 至 ')+shortDate(end)+'</div></div>'+
+    '<div class="mo-leg"><span><b><i class="kept"></i>'+c.kept+'</b>'+L('Kept','已完成')+'</span><span><b><i class="rest"></i>'+c.rest+'</b>'+L('Not fasting','不斋戒')+'</span><span><b><i class="made"></i>'+c.made+'</b>'+L('Made up','已补')+'</span></div>'+
+    '<div class="group mo-cal"><div class="mo-g">'+wd.map(function(w){ return '<span class="wd" aria-hidden="true">'+w+'</span>'; }).join('')+cells+'</div></div>'+
+    '<p class="gf">'+L('Each day marks itself at sunset. Tap a day to change it. ✦ Odd nights of the last ten.','每天日落时自动标记，点一天可以更改。✦ 最后十夜里的单数夜。')+'</p>'+
+    '<div class="group"><button class="row" data-act="rammakeup"><span>'+L('Days to make up','待补天数')+'</span><span class="v">'+ow+'</span>'+CHEV+'</button></div><p class="gf">'+L('Only you can see this.','只有你自己看得到。')+'</p>'; }
+function ramDaySheet(k){ var s=C.ramadanSeason(k), n=s?s.n:0, m=ramMark(k), tt=ramTimes(k), ok=ramSettable(k);
+  function pick(v,lbl,sub){ return '<button class="plan'+(m===v?' sel':'')+'" data-act="ramset" data-k="'+k+'" data-v="'+v+'" role="radio" aria-checked="'+(m===v)+'"><span class="pn"><b>'+lbl+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+CHECK+'</button>'; }
+  var h='<div class="mo-hero">'+moonIco(k,64)+'</div><h3 class="ctr">'+(n?L('Day '+n,'第 '+n+' 天')+' · ':'')+dateLbl(C.keyToDate(k).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</h3>'+
+    '<p class="lede ctr">'+L('Fajr ','晨礼 ')+clockMs(tt.dawn)+' · '+L('Iftar ','开斋 ')+clockMs(tt.set)+'</p>';
+  if(ok) h+='<div class="group" role="radiogroup" aria-label="'+L('This day','这一天')+'">'+pick('kept',L('Kept','已完成'),'')+pick('rest',L('Not fasting','不斋戒'),L('Joins your days to make up','记入待补天数'))+
+    pick('made',L('Made up','已补'),m==='made'?L('On '+shortDate(S.ramMade[k]),'补于 '+shortDate(S.ramMade[k])):L('Fasted on another day','在另一天补上了'))+'</div>';
+  else h+='<p class="lede ctr">'+(k===today()?L('Today marks itself at sunset.','今天会在日落时自动标记。'):L('This day hasn’t come yet.','这一天还没到。'))+'</p>';
+  openSheet(h+'<div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'); }
+function ramMakeupSheet(){ var ow=ramOwed(), h='<h3 class="ctr">'+L('Days to make up','待补天数')+'</h3><p class="lede ctr">'+L('Only you can see this. Tap Made up once you have fasted it.','只有你自己看得到。补完一天就点“已补”。')+'</p>';
+  if(ow.length) h+='<div class="group">'+ow.map(function(k){ var s=C.ramadanSeason(k); return '<div class="row"><span class="stack"><span>'+(s?L('Day '+s.n,'第 '+s.n+' 天'):shortDate(k))+'</span><small>'+dateLbl(C.keyToDate(k).getTime(),{weekday:'long',month:'long',day:'numeric',year:'numeric'})+'</small></span><button class="mo-made" data-act="rammade" data-k="'+k+'">'+L('Made up','已补')+'</button></div>'; }).join('')+'</div>';
+  else h+='<p class="lede ctr">'+L('Nothing to make up.','没有待补的天数。')+'</p>';
+  openSheet(h+'<div class="btns"><button class="btn sec" data-act="close">'+L('Done','完成')+'</button></div>'); }
 function endFast(){
   var cur=S.cur; if(!cur) return; var now=Date.now(), hrs=(now-cur.start)/H, openBefore=['16','18','20','23'].filter(planEarned);
   S.cur=null;
@@ -616,7 +675,8 @@ function showTab(t,instant){
   chrome(); backSync();
   $(t).scrollTop=0;
 }
-function tabLabels(){ $('tabF').textContent=L('Friends','朋友'); $('tabT').textContent=L('Today','今天'); $('tabD').textContent=L('Days','日子'); $('tabM').textContent=L('Me','我的'); }
+var tabMo=false;
+function tabLabels(){ $('tabF').textContent=L('Friends','朋友'); $('tabT').textContent=L('Today','今天'); var mo=moonsOn(); $('tabD').textContent=mo?L('Moons','月相'):L('Days','日子'); $('days').setAttribute('aria-label',mo?L('Moons','月相'):L('Days','日子')); tabMo=mo; $('tabM').textContent=L('Me','我的'); }
 
 /* ---------- Days ---------- */
 /* ---------- time off ---------- */
@@ -1025,6 +1085,7 @@ function gridInner(y,m){ var h='', t=today(), all=S.fasts;
 function sampleWeek(){ var wd=S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S'], k=['full','full','part','full','full','none','none'];
   return '<div class="fu-wk" aria-hidden="true"><span class="fu-ex">'+L('Example','示例')+'</span><div class="fu-g">'+wd.map(function(w,i){ return '<span><small>'+w+'</small><i class="'+k[i]+'"></i></span>'; }).join('')+'</div></div>'; }
 function renderDays(){
+  if(moonsOn()){ $('days').innerHTML=moonsHtml(); selDay=null; return; }
   var fs=streakFasts(), all=S.fasts, t=today(), first=all.length?new Date(Math.min.apply(null,all.map(function(f){return f.start;}))):new Date();
   var canPrev=calY*12+calM>first.getFullYear()*12+first.getMonth()-0, canNext=calY*12+calM<new Date().getFullYear()*12+new Date().getMonth();
     var first1=!C.finished(all).length, h=first1?'<div class="group firstuse">'+sampleWeek()+'<p>'+L('Fasts you finish show up here as filled days.','完成的断食会在这里显示为实心的日子。')+'</p><button class="btn sec" data-act="gotoday">'+L('Start a fast','开始断食')+'</button></div>':recapHtml()+totalsHtml();
@@ -1631,7 +1692,8 @@ function renderMe(){
   h+='<div class="gh">'+L('Fasting','断食')+'</div><div class="group">'+
    '<button class="row" data-act="place">'+mi('sun','gold')+'<span>'+L('Sunrise and sunset','日出日落')+'</span><span class="v">'+esc(placeName())+'</span>'+CHEV+'</button>'+
    (S.prefs.usualStart?pkField('usualStart',L('Usual start time','通常开始时间'),S.prefs.usualStart,'t').replace('aria-controls="usualStart-w"><span>','aria-controls="usualStart-w">'+mi('clock','gold')+'<span>'):'<button class="row" data-act="usualset">'+mi('clock','gold')+'<span>'+L('Usual start time','通常开始时间')+'</span><span class="v">'+L('Not set','未设置')+'</span>'+CHEV+'</button>')+
-   (offNow()||care()?'':'<button class="row" data-act="cheat">'+mi('cal','gold')+'<span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button>')+'</div>';
+   (offNow()||care()?'':'<button class="row" data-act="cheat">'+mi('cal','gold')+'<span>'+L('Cheat days','弹性日')+'</span><span class="v">'+L(S.flex.bank+' left',S.flex.bank+' 个可用')+'</span>'+CHEV+'</button>')+
+   (!care()&&ramOwed().length?'<button class="row" data-act="rammakeup">'+mi('moon','gold')+'<span>'+L('Days to make up','待补天数')+'</span><span class="v">'+ramOwed().length+'</span>'+CHEV+'</button>':'')+'</div>';
   h+='<div class="gh">'+L('App','应用')+'</div><div class="group">'+
    '<button class="row" data-act="choice" data-k="lang">'+mi('globe','navy')+'<span>'+L('Language','语言')+'</span><span class="v">'+(S.lang==='zh'?'中文':'English')+'</span>'+CHEV+'</button>'+
    '<button class="row" data-act="choice" data-k="theme">'+mi('half','navy')+'<span>'+L('Appearance','外观')+'</span><span class="v">'+choiceLabel('theme',S.theme)+'</span>'+CHEV+'</button>'+
@@ -2018,6 +2080,10 @@ var A={
   lwgo:function(b){ longPick(C.planById(b.dataset.p)); },
   lwback:function(){ planSheet(); },
   ramoffgo:function(){ ramOffGo(); },
+  ramday:function(b){ ramDaySheet(b.dataset.k); },
+  ramset:function(b){ var k=b.dataset.k; ramSet(k,b.dataset.v); if(sheetOpen) ramDaySheet(k); },
+  rammakeup:function(){ ramMakeupSheet(); },
+  rammade:function(b){ var k=b.dataset.k; if(S.ramOff.indexOf(k)<0) return; S.ramMade[k]=today(); save(); fx('select'); cache={}; if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); ramMakeupSheet(); toast(L('Marked as made up.','已标记为已补。')); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
   day:function(b){ selDay=b.dataset.k; ddIn=true; renderDays(); ddShow(); },
