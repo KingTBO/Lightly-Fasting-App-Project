@@ -295,14 +295,14 @@ function updateToday(){
   mode=cur?'fast':(le&&now-le.end<eatH(le)*H?'eat':'idle');
   /* Ramadan: no eating window to count down. After sunset and before dawn Today shows the night (rn): iftar, then the time suhoor ends */
   var rmd=S.planId==='ramadan'&&inRamadan(), rp=rmd?ramPhase(now,hp):null, rn=!!rp&&!cur&&rp.k!=='day';
-  if(rmd&&!cur) mode='idle'; ramNight=rn;
+  if(rmd&&!cur) mode='idle'; ramNight=rn; ramPh=rn?C.moonPhase(now):null;   /* B: at night the moon on Today is tonight's real moon */
   var offA=offNow(), brk=!!offA&&!cur, chd=cheatToday(); if(brk||chd) mode='idle';
   setSky(sk[1]);
   if(S.planId==='ramadan'&&!inRamadan()){ S.planId='16'; normalisePlan(); p=plan(); save(); }
   var ram=S.planId==='ramadan'&&!cur, goal=cur?cur.goalH:(mode==='eat'?le.goalH:p.fast), eatLen=le?eatH(le):0, eatEl=mode==='eat'?(now-le.end)/H:0;
   el=cur?(now-cur.start)/H:0;
   /* disc: new to full during the fast, then waning through the eating window */
-  tgtP=mode==='fast'?C.discFill(el,goal):mode==='eat'?1-Math.min(eatEl/eatLen,1):rn?rp.left:0;   /* a Ramadan night: full at sunset, waning until dawn */
+  tgtP=mode==='fast'?C.discFill(el,goal):mode==='eat'?1-Math.min(eatEl/eatLen,1):rn?1:0;   /* a Ramadan night shows tonight's real moon (ramPh) */
   /* closing moment: the disc keeps the phase you reached for a beat after you end, before the summary opens */
   if(endHold){ if(Date.now()<endHold.until) tgtP=endHold.p; else endHold=null; }
   var moonNow=moonV>=.5;
@@ -316,7 +316,7 @@ function updateToday(){
   put($('skyTx'),'skx',skyTxt);
   var skyAria=skyName+', '+skyTxt+'. '+L('Opens an explanation.','打开说明。'); if(cache.skal!==skyAria){ cache.skal=skyAria; $('sub').setAttribute('aria-label',skyAria); }
   var bar=$('offBar'); bar.hidden=!offA&&!chd; bar.dataset.act=chd&&!offA?'cheat':'timeoff'; if(chd&&!offA) put(bar,'ob',L('Cheat day today','今天是弹性日')+'<span>'+L('Take back','收回')+'</span>',1); else if(offA) { var dn0=Math.min(C.offDayNo(offA),offA.days); put(bar,'ob',(offA.kind==='travel'?L('Travelling · day '+dn0+' of '+offA.days,'旅行中 · 第 '+dn0+' 天，共 '+offA.days+' 天'):L('Resting · day '+dn0+' of '+offA.days,'休养中 · 第 '+dn0+' 天，共 '+offA.days+' 天'))+'<span>'+L('End break','结束休息')+'</span>',1); }
-  put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?L('Ramadan','斋月'):chipHours(cur?C.planById(cur.planId,cur.goalH):p));
+  put($('planChip'),'pc',(cur&&cur.planId==='ramadan')||ram?ramChip(now,hp):chipHours(cur?C.planById(cur.planId,cur.goalH):p));
   var ramadan=cur&&cur.planId==='ramadan';
   bigEl.classList.toggle('greet',!!brk); /* a break greets in words, set smaller than the numerals */ bigEl.classList.toggle('set',mode==='idle'&&!brk&&!chd&&!ram); /* the loaded time, not yet running: dimmed */
   if(brk){ var dn=Math.min(C.offDayNo(offA),offA.days);
@@ -400,6 +400,10 @@ function drawStrip(a0,wl,spent,kind){
 }
 
 var holdOn=false;
+/* tonight's moon, flat: the lit part for a phase angle (0 new, pi full), lit on the right while it waxes and on the left as it wanes */
+function phasePath(a,r){ var f=(1-Math.cos(a))/2; if(f<=.005) return ''; if(f>=.995) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z';
+  var wax=a<Math.PI, rx=(r*Math.abs(1-2*f)).toFixed(2), side=wax?1:0, inner=(f<.5)===wax?0:1;
+  return 'M0 '+(-r)+' A'+r+' '+r+' 0 0 '+side+' 0 '+r+' A'+rx+' '+r+' 0 0 '+inner+' 0 '+(-r)+'Z'; }
 /* the lit part of the disc: a wedge that fills counter-clockwise from 12 o'clock (and is taken away the same way while it wanes) */
 function wedgePath(p,r,wane){ p=Math.min(Math.max(p,0),1); if(p<=.001) return ''; if(p>=.999) return 'M0 '+(-r)+' A'+r+' '+r+' 0 1 0 0 '+r+' A'+r+' '+r+' 0 1 0 0 '+(-r)+'Z';
   var f=wane?(1-p):0, t=wane?1:p, a0=f*2*Math.PI, a1=t*2*Math.PI, sx=-r*Math.sin(a0), sy=-r*Math.cos(a0), ex=-r*Math.sin(a1), ey=-r*Math.cos(a1);
@@ -411,8 +415,8 @@ function drawDisc(dt){
   boost=Math.max(0,boost-dt/2.5);
   var wane=mode==='eat'||ramNight, night=/night|first|evening/.test(ph.getAttribute('data-sky'));
   var o3=orb&&orb.ok();
-  if(o3){ flatShow(false); orb.draw({p:shownP,wane:wane,moon:moonV,tx:tiltX,ty:tiltY,ox:0,oy:0,scale:1,alpha:1,night:night,glow:(1-moonV)*shownP*(.35+.65*fullS)+boost*.3,halo:moonV*Math.max(fullS,boost)}); }
-  else{ flatShow(true); var lit=$('lit'); lit.setAttribute('d',wedgePath(shownP,84,wane)); lit.removeAttribute('transform'); $('litMoon').style.opacity=moonV; $('litSun').style.opacity=1-moonV; $('disc').style.transform=reduce?'':'rotateY('+tiltX.toFixed(1)+'deg) rotateX('+(-tiltY).toFixed(1)+'deg)'; }
+  if(o3){ flatShow(false); orb.draw({p:shownP,wane:wane,ph:ramPh,moon:moonV,tx:tiltX,ty:tiltY,ox:0,oy:0,scale:1,alpha:1,night:night,glow:(1-moonV)*shownP*(.35+.65*fullS)+boost*.3,halo:moonV*Math.max(fullS,boost)}); }
+  else{ flatShow(true); var lit=$('lit'); lit.setAttribute('d',ramPh!=null?phasePath(ramPh,84):wedgePath(shownP,84,wane)); lit.removeAttribute('transform'); $('litMoon').style.opacity=moonV; $('litSun').style.opacity=1-moonV; $('disc').style.transform=reduce?'':'rotateY('+tiltX.toFixed(1)+'deg) rotateX('+(-tiltY).toFixed(1)+'deg)'; }
 }
 function flatShow(v){ if(flat===v) return; flat=v; $('unlit').style.display=$('litMoon').parentNode.style.display=v?'':'none'; if(!v) $('disc').style.transform=''; }
 
@@ -500,7 +504,7 @@ function startRamadan(){
   S.planId='ramadan'; save(); cache={}; updateToday();
 }
 /* Ramadan by the hour: today's dawn and sunset, tomorrow's dawn, and where the night begins and ends (a0, a1) as timestamps */
-var ramNight=false;
+var ramNight=false, ramPh=null;
 function ramPhase(now,hp){ var F=C.dawnHour(pi,now), Fn=C.dawnHour(pi,now+D), r=C.ramadanPhase(hp,F,sun.set,Fn);
   if(hp<F){ r.F=F; r.a0=placeMs(sun.set,now)-D; r.a1=placeMs(F,now); } else { r.F=Fn; r.a0=placeMs(sun.set,now); r.a1=placeMs(Fn,now)+D; }
   return r; }
@@ -513,6 +517,10 @@ function ramOffSheet(){ openSheet('<h3 class="ctr">'+L('Not fasting today?','今
   '<div class="btns"><button class="btn" data-act="ramoffgo">'+L('Not fasting today','今天不斋戒')+'</button><button class="btn sec" data-act="close">'+L('Keep fasting','继续斋戒')+'</button></div>'); }
 function ramOffGo(){ var k=today(); if(S.ramOff.indexOf(k)<0) S.ramOff.push(k); S.cur=null; cancelGoal(); save(); closeSheet(); shownP=-1; cache={}; updateToday(); }
 function ramBack(){ S.ramOff=S.ramOff.filter(function(k){ return k!==today(); }); save(); cache={}; updateToday(); fx('medium'); }
+/* B: the chip names the day ("Day 13"), and after sunset the night that has begun ("Night 14"); a Hijri day starts at sunset. Never "of 30": the month may have 29. */
+function ramChip(now,hp){ var n=C.ramadanDay(now); if(!n) return L('Ramadan','斋月'); var ss=C.ramadanSeason(now);
+  if(hp>=sun.set){ return n<ss.days?L('Night '+(n+1),'第 '+(n+1)+' 夜'):L('Eid night','开斋节之夜'); }
+  return hp<C.dawnHour(pi,now)?L('Night '+n,'第 '+n+' 夜'):L('Day '+n,'第 '+n+' 天'); }
 /* a Ramadan fast kept today, by its end (sunset) */
 function keptToday(now){ var k=C.dayKey(now); return S.fasts.some(function(f){ return f.plan==='ramadan'&&C.dayKey(f.end)===k&&C.isDone(f); }); }
 /* sunset ends the fast by itself: it is saved as ending at sunset, with no summary sheet (Today shows Iftar). One chime if the app is open at that moment. */
