@@ -247,11 +247,23 @@ function hijri(k){ if(!hijriFmt) return null; var a=k.split('-'), pts=hijriFmt.f
   pts.forEach(function(x){ if(x.type==='month'||x.type==='day') o[x.type]=+x.value; }); return {m:o.month,d:o.day}; }
 var seasonCache={};
 /* the Ramadan season that a local date key falls in: {start: key of day 1, days: 29 or 30, n: the day number}, or null */
-function ramadanSeason(k){ if(typeof k==='number') k=dayKey(k);
-  if(seasonCache[k]!==undefined) return seasonCache[k]; var r=null, h=hijri(k);
+function calSeason(k){ if(calCache[k]!==undefined) return calCache[k]; var r=null, h=hijri(k);
   if(h){ if(h.m===9){ var st=addDays(k,1-h.d), e=hijri(addDays(st,29)); r={start:st,days:e&&e.m===9?30:29,n:h.d}; } }
   else RAMADAN.forEach(function(x){ var n=Math.round((keyToDate(k)-keyToDate(x[0]))/D)+1; if(n>=1&&n<=x[1]) r={start:x[0],days:x[1],n:n}; });
+  calCache[k]=r; return r; }
+/* the person's own Ramadan (v0.118.0): where the moon is sighted a day later, day 1 can move to the next day (shift), and on the evening of day 29
+   the person says whether Eid was announced (eid: 'eid' ends the month at 29 days, 'no' makes it 30). Both are kept per season, by the calendar's day 1.
+   ramadanSeason gives {start, days, n, cal}: the person's day 1, the month's length, today's day number and the calendar's own day 1. */
+var ramAdj={shift:{},eid:{}}, calCache={};
+function setRamadanAdjust(a){ ramAdj={shift:(a&&a.shift)||{},eid:(a&&a.eid)||{}}; seasonCache={}; }
+function ramadanSeason(k){ if(typeof k==='number') k=dayKey(k);
+  if(seasonCache[k]!==undefined) return seasonCache[k]; var r=null;
+  for(var i=0;i<3&&!r;i++){ var b=calSeason(addDays(k,-i)); if(!b) continue;
+    var st=addDays(b.start,ramAdj.shift[b.start]?1:0), e=ramAdj.eid[b.start], len=e==='no'?30:e==='eid'?29:b.days, n=Math.round((keyToDate(k)-keyToDate(st))/D)+1;
+    if(n>=1&&n<=len) r={start:st,days:len,n:n,cal:b.start}; }
   seasonCache[k]=r; return r; }
+/* the calendar's own season for a date, before the person's changes */
+function ramadanCal(k){ return calSeason(typeof k==='number'?dayKey(k):k); }
 /* the day of Ramadan today (1 to 29 or 30), or 0 outside it */
 function ramadanDay(at){ var s=ramadanSeason(dayKey(at==null?Date.now():at)); return s?s.n:0; }
 /* the days of a Ramadan season the regular streak waits through: every day of a season in which the person kept a Ramadan fast, up to today.
@@ -507,7 +519,7 @@ function trendBuckets(points){
   return out;
 }
 var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneSpot:zoneSpot,zoneName:zoneName,deviceZone:deviceZone,placeFix:placeFix,searchCities:searchCities,hereStale:hereStale,country:country,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,dawnHour:dawnHour,ramadanPhase:ramadanPhase,RAM_IFTAR:RAM_IFTAR,RAM_COUNT:RAM_COUNT,ramadanHold:ramadanHold,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
-  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,moonAge:moonAge,moonPhase:moonPhase,ramadanSeason:ramadanSeason,hijri:hijri,RAMADAN:RAMADAN,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
+  PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,moonAge:moonAge,moonPhase:moonPhase,ramadanSeason:ramadanSeason,ramadanCal:ramadanCal,setRamadanAdjust:setRamadanAdjust,hijri:hijri,RAMADAN:RAMADAN,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
 })(typeof self!=='undefined'?self:this);
