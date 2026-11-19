@@ -1232,3 +1232,4 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--mo-ring:#F5C26B;--mo-dark:#2A3158;--mo-ink:#F5C26B}}
 :root[data-theme="dark"]{--mo-ring:#F5C26B;--mo-dark:#2A3158;--mo-ink:#F5C26B}
 @media (max-width:350px){.mo-cal{padding-left:4px;padding-right:4px}.mc .ring{width:34px;height:34px}.mc .ring svg{width:25px;height:25px}.mc .star{right:calc(50% - 22px)}}
+.mc .ring.open{border:1.6px dashed var(--label-2);font:600 0.9375rem var(--font);color:var(--label-2)}
