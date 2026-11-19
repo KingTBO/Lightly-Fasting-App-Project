@@ -2,7 +2,7 @@
    1. At night Today shows when suhoor ends, with no Start button and no streak card; only the last two hours before dawn count down.
    2. A Ramadan fast that is still running at sunset ends by itself at sunset: saved with sunset as its end, no counting up, no summary sheet.
       If the app is open at that moment it turns to "Iftar"; later in the evening it says the day's fast is kept.
-   3. During the day nothing changes yet (Start fast, then the countdown to sunset). Picking Ramadan at night starts nothing.
+   3. During the day the fast runs from dawn (v0.115.0: it starts by itself, see tests/ramadan-day.test.js). Picking Ramadan at night starts nothing.
    4. 中文 and a 320 px phone.
    5. The concept page's Ramadan phone says the same at night.
    NODE_PATH=$(npm root -g) node tests/ramadan-night.test.js   (SHOTS=<dir> also saves pictures) */
@@ -42,20 +42,19 @@ const ramFast=()=>({cur:{start:at(F),goalH:sun.set-F,planId:'ramadan',reached:fa
  p=await open(seed(ramFast()),at(21)); let s=await S(p), f=s.fasts.filter(x=>x.plan==='ramadan')[0];
  assert.strictEqual(s.cur,null,'the fast is no longer running'); assert(f,'it was saved'); assert(Math.abs(f.end-at(sun.set))<1000,'it ends at sunset, not when the app was opened'); assert(C.isDone(f),'and counts as kept');
  r=await read(p); assert(!r.sheet,'no summary sheet pops up hours later'); assert.strictEqual(r.k,'Suhoor ends at'); assert.strictEqual(r.tip,'Today’s fast is kept.'); assert(!r.streak); await shot(p,'ram-kept'); await p.context().close();
- p=await open(seed(ramFast()),at(sun.set)-20000); r=await read(p); assert.strictEqual(r.k,'Time left'); assert(/^0:00:[12]\d$/.test(r.big),r.big);
+ p=await open(seed(ramFast()),at(sun.set)-20000); r=await read(p); assert.strictEqual(r.k,'Iftar in'); assert(/^0:00:[12]\d$/.test(r.big),r.big);
  await p.clock.setFixedTime(new Date(at(sun.set)+3000)); await p.waitForTimeout(1500); r=await read(p);
  assert.strictEqual(r.k,'It’s time'); assert.strictEqual(r.big,'Iftar','the moment of sunset says Iftar, never a count up'); assert.strictEqual(r.tip,'Today’s fast is kept.'); assert(!r.act&&!r.sheet&&!r.streak);
  s=await S(p); assert.strictEqual(s.cur,null); assert(Math.abs(s.fasts.filter(x=>x.plan==='ramadan')[0].end-at(sun.set))<1000); await shot(p,'ram-iftar');
  await p.clock.setFixedTime(new Date(at(sun.set+.6))); await p.waitForTimeout(1300); r=await read(p); assert.strictEqual(r.k,'Suhoor ends at','after half an hour the night begins'); await p.context().close();
  ok('a fast running at sunset ends at sunset: saved, kept, Iftar at the moment, then the night; nothing counts up');
 
- /* 3. the day is as before; picking Ramadan at night starts nothing */
- p=await open(seed(),at(12)); r=await read(p); assert(r.act&&r.actLbl==='Start fast','the day still has Start fast'); assert.strictEqual(r.k,'Dawn to sunset'); assert(!r.streak); await p.context().close();
- p=await open(seed(ramFast()),at(12)); r=await read(p); assert.strictEqual(r.k,'Time left'); assert(r.act&&/Hold to end/.test(r.actLbl)); await p.context().close();
+ /* 3. the day counts down to iftar; picking Ramadan at night starts nothing */
+ p=await open(seed(ramFast()),at(12)); r=await read(p); assert.strictEqual(r.k,'Iftar in'); assert(!r.streak); await p.context().close();
  p=await open(seed({planId:'16'}),at(21)); r=await read(p); assert(r.streak,'with a regular plan the streak card is there'); assert(r.act);
  await p.click('#planBtn'); await p.waitForSelector('#sheet.open [data-id=ramadan]'); await p.click('#sheet [data-id=ramadan]'); await p.waitForTimeout(900);
  s=await S(p); assert.strictEqual(s.cur,null,'no fast starts at night'); assert.strictEqual(s.planId,'ramadan'); r=await read(p); assert.strictEqual(r.k,'Suhoor ends at'); assert(!/already ended/.test(await p.textContent('body'))); await p.context().close();
- ok('the day keeps Start fast and the countdown to sunset; choosing Ramadan at night starts nothing and shows the night');
+ ok('the day counts down to iftar; choosing Ramadan at night starts nothing and shows the night');
 
  /* 4. 中文 and 320 px */
  p=await open(seed({lang:'zh'}),at(21)); r=await read(p); assert.strictEqual(r.k,'封斋结束于'); assert(/日落/.test(r.endA)&&/晨礼/.test(r.endB)); await p.context().close();

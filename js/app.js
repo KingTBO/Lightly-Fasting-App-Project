@@ -9,12 +9,12 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
 function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null,careUndo:null},
   planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},placeV:1,cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
-  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,body:null,startedAt:null,mod:0,del:[]}; }
+  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,ramOff:[],body:null,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
   try{ var raw=localStorage.getItem(KEY); if(raw){ var o=JSON.parse(raw), f=fresh(); for(var k in f) if(o[k]!==undefined) S[k]=o[k];
     ['profile','flex','prefs','unlocked'].forEach(function(k){ S[k]=Object.assign({},f[k],o[k]||{}); });
-    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; careMigrate();
+    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; if(!Array.isArray(S.ramOff)) S.ramOff=[]; careMigrate();
     if(o.placeV===undefined) S.place=C.placeFix(S.place,tzGuess()); S.placeV=1; } }   /* once: a guessed far-off city (Oslo used to get London) becomes the phone's own time zone */
   catch(e){ storageOk=false; }
 }
@@ -289,6 +289,7 @@ function skyGlyph(moon){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><ci
 function updateToday(){
   careTick(); nowMs=Date.now(); var now=nowMs; refreshSun(now); planTimes();
   if(S.cur&&S.cur.planId==='ramadan'&&now>=S.cur.start+S.cur.goalH*H) ramadanKeep(now);   /* sunset ends the day's fast by itself; nothing counts up after it */
+  if(!S.cur&&S.planId==='ramadan'&&inRamadan()) ramadanAuto(now);   /* and dawn starts it: there is no Start button in Ramadan */
   var hp=C.placeHour(pi,now), sk=C.skyAt(hp,sun), p=plan(), cur=S.cur, le=lastFast();
   moonV=C.moonAmt(hp,sun);
   mode=cur?'fast':(le&&now-le.end<eatH(le)*H?'eat':'idle');
@@ -322,6 +323,8 @@ function updateToday(){
       put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Safe travels','旅途平安'):L('Get well soon','早日康复'));
       tip(offA.kind==='travel'?LC('Your streak will wait.','连续记录会等你。','Enjoy your trip.','旅途愉快。'):LC('Rest up. Your streak is safe.','好好休息，连续记录不会断。','Rest up. There is nothing to catch up on.','好好休息，没有什么需要补的。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(chd){ put($('readK'),'k',L('Cheat day','弹性日')); setBigText(L('Day off','休息')); tip(L('Your streak holds. Take back the cheat day above to start a fast.','连续记录保持。想断食，请先收回上方的弹性日。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
+  else if(rmd&&!cur&&rp.k==='day'&&ramOffToday()){ put($('readK'),'k',L('Iftar at','开斋时间')); setBigText(clockMs(placeMs(sun.set,now))); put(altEl,'alt','');
+    tip(L('Not fasting today. It joins your days to make up.','今天不斋戒，已记入待补天数。'),1); put($('actLbl'),'a',L('I’m fasting after all','其实我在斋戒')); }
   else if(rn){ var kept=keptToday(now);
     if(rp.k==='iftar'){ put($('readK'),'k',L('It’s time','时间到了')); setBigText(L('Iftar','开斋')); put(altEl,'alt',''); tip(kept?L('Today’s fast is kept.','今天的斋戒已完成。'):L('Time to break the fast.','可以开斋了。'),1); }
     else if(rp.count){ put($('readK'),'k',L('Fast begins in','离开始斋戒还有')); setBigTime(Math.max(0,Math.ceil(rp.toDawn*3600))); put(altEl,'alt',L('Fajr ','晨礼 ')+clockMs(rp.a1)); tip('',1); }
@@ -333,10 +336,10 @@ function updateToday(){
     else{ put($('readK'),'k',S.fasts.length?L('Ready','准备好了'):L('First fast','首次断食')); setBigTime(p.fast*3600); put(altEl,'alt',L(p.fast+'-hour plan',p.fast+' 小时计划')); }
     tip(ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。'),1); put($('actLbl'),'a',L('Start fast','开始断食'));
   }else if(mode==='fast'){
-    if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); tip(tp?tp[S.lang==='zh'?1:0]:'',0,tp?Math.floor(el):null); }
+    if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):ramadan?L('Iftar in','离开斋还有'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); tip(tp?tp[S.lang==='zh'?1:0]:'',0,tp?Math.floor(el):null); }
     else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); setBigTime(Math.floor(el*3600)); put(altEl,'alt',L('Goal ','目标 ')+Math.round(goal)+L(' h',' 小时')); tip(ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
       if(!ramadan&&over>=2&&!cur.nudged){ cur.nudged=true; save(); toast(L('You’re well past your goal. Eat when you’re ready; extra time isn’t scored.','已经超过目标很久了。准备好就可以吃东西，超出的时间不计分。')); } }
-    if(!holdOn) put($('actLbl'),'a',L('Hold to end fast','按住结束断食'));
+    if(!holdOn) put($('actLbl'),'a',ramadan?L('I’m not fasting today','今天不斋戒'):L('Hold to end fast','按住结束断食'));   /* a Ramadan fast is not ended by hand: sunset ends it */
     if(nowOn()){ var bst=NOWTX[C.BODY[C.bodyStage(el)].id]; put(nowBtn,'now','<span>'+L('Your body now: ','身体此刻：')+'</span><b>'+bst.s[S.lang==='zh'?1:0]+'</b>'+CHEV,1); }
   }else{
     put($('readK'),'k',L('Eating window left','进食窗口还剩')); setBigTime(Math.max(0,Math.ceil((eatLen-eatEl)*3600))); put(altEl,'alt','');
@@ -344,15 +347,15 @@ function updateToday(){
   }
   nowBtn.hidden=!(mode==='fast'&&nowOn());
   act.style.visibility=rn?'hidden':''; act.tabIndex=rn?-1:0; if(rn) act.setAttribute('aria-hidden','true'); else act.removeAttribute('aria-hidden');   /* nothing to start at night in Ramadan: the next fast begins at dawn */
-  act.setAttribute('aria-disabled',brk||chd); /* stays tappable during a break or a cheat day: a tap shakes it and says why (see restNudge) */ act.classList.toggle('end',mode==='fast'&&!brk&&!chd); /* quiet glass while a fast runs, yellow for Start */ $('track').style.visibility=brk||chd?'hidden':'';
+  act.setAttribute('aria-disabled',brk||chd); /* stays tappable during a break or a cheat day: a tap shakes it and says why (see restNudge) */ act.classList.toggle('end',(mode==='fast'||(rmd&&!cur))&&!brk&&!chd); /* quiet glass while a fast runs, yellow for Start */ $('track').style.visibility=brk||chd?'hidden':'';
   /* timeline */
-  var a0=mode==='eat'?le.end:mode==='fast'?cur.start:rn?rp.a0:now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:rn?rp.a1:ram?placeMs(sun.set,now):now+p.fast*H;
+  var a0=mode==='eat'?le.end:mode==='fast'?cur.start:rn?rp.a0:rmd?placeMs(C.dawnHour(pi,now),now):now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:rn?rp.a1:ram?placeMs(sun.set,now):now+p.fast*H;
   var n=Math.min(Math.round(mode==='eat'?eatLen:rn?(a1-a0)/H:ram?13:goal),36)||1; buildTicks(n);
   var tt=mode==='fast'?Math.min(el/goal,1):mode==='eat'?Math.min(eatEl/eatLen,1):rn?Math.min(Math.max((now-a0)/(a1-a0),0),1):0;
   /* the two times: a caption, the sky at that moment (moon or sun), then the clock time. Only the start is tappable, and only once a fast exists */
-  var capA=rn?L('Sunset','日落'):mode==='eat'?L('Ended','结束于'):L('Start','开始'), capB=rn?L('Fajr','晨礼'):mode==='eat'?L('Next fast','下次断食'):L('Finish','完成'),
-      gA=skyGlyph(C.moonAmt(C.placeHour(pi,a0),sun)>=.5), gB=skyGlyph(C.moonAmt(C.placeHour(pi,a1),sun)>=.5), edA=mode==='fast'||mode==='eat';
-  put($('endA'),'ea','<span class="cap">'+capA+'</span><span class="trow"><span class="eg">'+gA+'</span><span class="tm">'+(edA||rn?clockMs(a0):L('Now','现在'))+'</span>'+(edA?'<svg class="ic-edit" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>':'')+'</span>',1);
+  var rday=rmd&&!rn, capA=rn?L('Sunset','日落'):rday?L('Fajr','晨礼'):mode==='eat'?L('Ended','结束于'):L('Start','开始'), capB=rn?L('Fajr','晨礼'):rday?L('Iftar','开斋'):mode==='eat'?L('Next fast','下次断食'):L('Finish','完成'),
+      gA=skyGlyph(C.moonAmt(C.placeHour(pi,a0),sun)>=.5), gB=skyGlyph(C.moonAmt(C.placeHour(pi,a1),sun)>=.5), edA=(mode==='fast'||mode==='eat')&&!rday;   /* a Ramadan day runs dawn to sunset: its start is not edited by hand */
+  put($('endA'),'ea','<span class="cap">'+capA+'</span><span class="trow"><span class="eg">'+gA+'</span><span class="tm">'+(edA||rmd?clockMs(a0):L('Now','现在'))+'</span>'+(edA?'<svg class="ic-edit" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>':'')+'</span>',1);
   put($('endB'),'eb','<span class="cap">'+capB+'</span><span class="trow"><span class="eg">'+gB+'</span><span class="tm">'+clockMs(a1)+'</span></span>',1);
   if($('endA').dataset.ed!==String(edA)){ $('endA').dataset.ed=edA; if(edA){ $('endA').setAttribute('role','button'); $('endA').tabIndex=0; } else { $('endA').removeAttribute('role'); $('endA').removeAttribute('tabindex'); } }
   var lineOn=mode!=='idle'||rn; $('tDone').style.strokeDasharray=(lineOn?lenAt(tt):0)+' 9999';
@@ -426,10 +429,11 @@ var act=$('act'), holdT0=0, holdRaf=0, HOLD_MS=1200, swallow=false;
 function holdStep(){ if(!holdOn) return; var f=Math.min((performance.now()-holdT0)/HOLD_MS,1); act.style.setProperty('--hold',f); if(f>=1){ holdEnd(false); swallow=true; fx('medium'); endFast(); return; } holdRaf=requestAnimationFrame(holdStep); }
 function holdBegin(){ if(!S.cur||holdOn) return; holdOn=true; holdT0=performance.now(); act.classList.add('holding','pressed'); put($('actLbl'),'a',L('Keep holding…','继续按住…')); fx('light'); holdRaf=requestAnimationFrame(holdStep); }
 function holdEnd(cancel){ if(!holdOn) return; holdOn=false; cancelAnimationFrame(holdRaf); act.classList.remove('holding','pressed'); act.style.setProperty('--hold',0); if(cancel) cache.a=null; }
-act.addEventListener('pointerdown',function(e){ if(S.cur){ e.preventDefault(); try{ act.setPointerCapture(e.pointerId); }catch(x){} holdBegin(); } else if(!restNow()) act.classList.add('pressed'); });
+function ramCur(){ return !!S.cur&&S.cur.planId==='ramadan'; }
+act.addEventListener('pointerdown',function(e){ if(S.cur&&!ramCur()){ e.preventDefault(); try{ act.setPointerCapture(e.pointerId); }catch(x){} holdBegin(); } else if(!restNow()) act.classList.add('pressed'); });
 ['pointerup','pointercancel','pointerleave'].forEach(function(n){ act.addEventListener(n,function(){ holdEnd(true); act.classList.remove('pressed'); if(S.cur) updateToday(); if(swallow) setTimeout(function(){ swallow=false; },80); }); });
-act.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&S.cur){ e.preventDefault(); if(!e.repeat) holdBegin(); } });
-act.addEventListener('keyup',function(e){ if((e.key==='Enter'||e.key===' ')&&S.cur){ holdEnd(true); updateToday(); } if(swallow) setTimeout(function(){ swallow=false; },80); });
+act.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&S.cur&&!ramCur()){ e.preventDefault(); if(!e.repeat) holdBegin(); } });
+act.addEventListener('keyup',function(e){ if((e.key==='Enter'||e.key===' ')&&S.cur&&!ramCur()){ holdEnd(true); updateToday(); } if(swallow) setTimeout(function(){ swallow=false; },80); });
 /* Start fast during time off: the button looks unavailable but is still a real control. A tap gives a short Apple-style shake (still under Reduce Motion: no movement, just the words), two light haptic taps, and says what to do; the End break pill lights up so the eye goes there. */
 function breakMsg(){ return offNow()?L('Ready to fast? Tap End break at the top first.','准备好断食了吗？先点上方的“结束休息”。'):L('Today is a cheat day. Tap Take back at the top first.','今天是弹性日。先点上方的“收回”。'); }
 function breakNudge(){
@@ -438,7 +442,7 @@ function breakNudge(){
   if(act.animate&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){ if(breakNudge.a) breakNudge.a.cancel();
     breakNudge.a=act.animate([{transform:'translateX(0)'},{transform:'translateX(-9px)',offset:.16},{transform:'translateX(8px)',offset:.34},{transform:'translateX(-6px)',offset:.52},{transform:'translateX(4px)',offset:.7},{transform:'translateX(-2px)',offset:.86},{transform:'translateX(0)'}],{duration:480,easing:'cubic-bezier(.36,.07,.19,.97)'}); }
 }
-act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } if(!S.cur){ if(restNow()) breakNudge(); else startFlow(); } });
+act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } if(ramCur()) return ramOffSheet(); if(!S.cur&&S.planId==='ramadan'&&ramOffToday()) return ramBack(); if(!S.cur){ if(restNow()) breakNudge(); else startFlow(); } });
 
 /* a button in a sheet that must be held to confirm, the same press-and-hold as ending a fast */
 var HB=null;
@@ -492,16 +496,23 @@ function beginFast(p,start,extra){
 }
 function startRamadan(){
   if(restNow()){ breakNudge(); return; }
-  /* only between dawn and sunset: at night Today shows when suhoor ends instead, and nothing starts */
-  var now=Date.now(), s=placeMs(C.dawnHour(pi,now),now), e=placeMs(sun.set,now);
-  if(now<s||now>=e){ cache={}; updateToday(); return; }
-  beginFast({id:'ramadan',fast:(e-s)/H},s);
+  /* Ramadan has no Start: choosing it is enough. Between dawn and sunset the day's fast starts from dawn (ramadanAuto); at night Today shows when suhoor ends */
+  S.planId='ramadan'; save(); cache={}; updateToday();
 }
 /* Ramadan by the hour: today's dawn and sunset, tomorrow's dawn, and where the night begins and ends (a0, a1) as timestamps */
 var ramNight=false;
 function ramPhase(now,hp){ var F=C.dawnHour(pi,now), Fn=C.dawnHour(pi,now+D), r=C.ramadanPhase(hp,F,sun.set,Fn);
   if(hp<F){ r.F=F; r.a0=placeMs(sun.set,now)-D; r.a1=placeMs(F,now); } else { r.F=Fn; r.a0=placeMs(sun.set,now); r.a1=placeMs(Fn,now)+D; }
   return r; }
+/* dawn starts the day's fast by itself, from dawn, unless today is marked "not fasting", today's fast is already kept, or a break is on */
+function ramOffToday(){ return (S.ramOff||[]).indexOf(today())>=0; }
+function ramadanAuto(now){ if(restNow()||ramOffToday()||keptToday(now)) return; var s=placeMs(C.dawnHour(pi,now),now), e=placeMs(sun.set,now); if(now<s||now>=e) return;
+  S.cur={start:s,goalH:(e-s)/H,planId:'ramadan',reached:false}; save(); scheduleGoal(); shownP=-1; lastHour=-1; cache={}; }
+/* "I'm not fasting today": no reason asked, nothing stored but the date. The day joins the days to make up, and only the person sees it. */
+function ramOffSheet(){ openSheet('<h3 class="ctr">'+L('Not fasting today?','今天不斋戒？')+'</h3><p class="lede ctr">'+L('No reason needed. The day joins your days to make up, and only you see it.','不需要理由。这一天会记入待补天数，只有你能看到。')+'</p>'+
+  '<div class="btns"><button class="btn" data-act="ramoffgo">'+L('Not fasting today','今天不斋戒')+'</button><button class="btn sec" data-act="close">'+L('Keep fasting','继续斋戒')+'</button></div>'); }
+function ramOffGo(){ var k=today(); if(S.ramOff.indexOf(k)<0) S.ramOff.push(k); S.cur=null; cancelGoal(); save(); closeSheet(); shownP=-1; cache={}; updateToday(); }
+function ramBack(){ S.ramOff=S.ramOff.filter(function(k){ return k!==today(); }); save(); cache={}; updateToday(); fx('medium'); }
 /* a Ramadan fast kept today, by its end (sunset) */
 function keptToday(now){ var k=C.dayKey(now); return S.fasts.some(function(f){ return f.plan==='ramadan'&&C.dayKey(f.end)===k&&C.isDone(f); }); }
 /* sunset ends the fast by itself: it is saved as ending at sunset, with no summary sheet (Today shows Iftar). One chime if the app is open at that moment. */
@@ -1998,6 +2009,7 @@ var A={
   delkeep:function(){ closeSheet(); renderMe(); },
   lwgo:function(b){ longPick(C.planById(b.dataset.p)); },
   lwback:function(){ planSheet(); },
+  ramoffgo:function(){ ramOffGo(); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
   day:function(b){ selDay=b.dataset.k; ddIn=true; renderDays(); ddShow(); },

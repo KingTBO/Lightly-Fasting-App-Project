@@ -44,7 +44,7 @@ const fasting=(elH,goal,plan,o)=>seed(Object.assign({cur:{start:AT-elH*H,goalH:g
  /* 2. early, Care mode, Ramadan */
  p=await open(fasting(9)); await endFast(p); assert(/Ended early/.test(await p.textContent('#sheet .k'))); assert(await seg(p),'a fast that ended early is asked too'); await p.click('#sheet .feel [data-v=hard]'); await p.waitForTimeout(600); assert.strictEqual((await last(p)).feel,'hard'); await p.context().close();
  p=await open(fasting(13.2,13,'13',{profile:{fastedBefore:true,safety:true,care:['preg']}})); await endFast(p); assert(await seg(p),'Care mode is asked too'); assert(!/streak/i.test(await p.textContent('#sheet')),'and still shows no streak'); await p.context().close();
- p=await open(fasting(13,14,'ramadan',{ramadanPreview:true})); await endFast(p); assert.strictEqual(await seg(p),null,'a Ramadan fast is not asked'); assert.strictEqual((await last(p)).plan,'ramadan'); await p.context().close();
+ p=await open(fasting(14.2,14,'ramadan',{ramadanPreview:true})); await p.waitForTimeout(600); assert(!(await p.$('#sheet.open')),'a Ramadan fast ends by itself at sunset with no summary (v0.114.1)'); assert.strictEqual(await seg(p),null,'a Ramadan fast is not asked'); assert.strictEqual((await last(p)).plan,'ramadan'); await p.context().close();
  ok('asked after an early end and in Care mode; not after a Ramadan fast');
 
  /* 3. Days: the line, the edit sheet, a fast added by hand */
