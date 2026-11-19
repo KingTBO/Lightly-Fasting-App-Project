@@ -300,7 +300,7 @@ function updateToday(){
   moonV=C.moonAmt(hp,sun);
   mode=cur?'fast':(le&&now-le.end<eatH(le)*H?'eat':'idle');
   /* Ramadan: no eating window to count down. After sunset and before dawn Today shows the night (rn): iftar, then the time suhoor ends */
-  var rmd=S.planId==='ramadan'&&inRamadan(), rp=rmd?ramPhase(now,hp):null, rw=rmd&&!cur&&!C.ramadanDay(now)&&hp<sun.set, rn=!!rp&&!cur&&rp.k!=='day'&&!rw;
+  var rmd=S.planId==='ramadan'&&inRamadan(), rp=rmd?ramPhase(now,hp):null, rw=rmd&&!cur&&ramWait()&&hp<sun.set, rn=!!rp&&!cur&&rp.k!=='day'&&!rw;
   var rs=rn&&hp>=sun.set?C.ramadanSeason(now):null; eidAsk=!!rs&&rs.n===29&&!S.ramAdj.eid[rs.cal];   /* the evening of day 29: has Eid been announced? */
   if(rmd&&!cur) mode='idle'; ramNight=rn; ramPh=rn?C.moonPhase(now):null;   /* B: at night the moon on Today is tonight's real moon */
   var offA=offNow(), brk=!!offA&&!cur, chd=cheatToday(); if(brk||chd) mode='idle';
@@ -520,7 +520,7 @@ function ramPhase(now,hp){ var F=C.dawnHour(pi,now), Fn=C.dawnHour(pi,now+D), r=
   return r; }
 /* dawn starts the day's fast by itself, from dawn, unless today is marked "not fasting", today's fast is already kept, or a break is on */
 function ramOffToday(){ return (S.ramOff||[]).indexOf(today())>=0; }
-function ramadanAuto(now){ if(!C.ramadanDay(now)||restNow()||ramOffToday()||keptToday(now)) return; var s=placeMs(C.dawnHour(pi,now),now), e=placeMs(sun.set,now); if(now<s||now>=e) return;
+function ramadanAuto(now){ if(ramWait()||restNow()||ramOffToday()||keptToday(now)) return; var s=placeMs(C.dawnHour(pi,now),now), e=placeMs(sun.set,now); if(now<s||now>=e) return;
   S.cur={start:s,goalH:(e-s)/H,planId:'ramadan',reached:false}; save(); scheduleGoal(); shownP=-1; lastHour=-1; cache={}; }
 /* "I'm not fasting today": no reason asked, nothing stored but the date. The day joins the days to make up, and only the person sees it. */
 function ramOffSheet(){ openSheet('<h3 class="ctr">'+L('Not fasting today?','今天不斋戒？')+'</h3><p class="lede ctr">'+L('No reason needed. The day joins your days to make up, and only you see it.','不需要理由。这一天会记入待补天数，只有你能看到。')+'</p>'+

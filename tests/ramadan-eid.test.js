@@ -59,5 +59,10 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{
  assert(/新月宣布了吗/.test(await t(p,'sheet'))&&/是，明天开斋节/.test(await t(p,'sheet'))); await shot(p,'eid-zh-320'); await p.context().close();
  ok('the evening of day 29 asks about Eid: Not yet gives day 30, Yes ends Ramadan; 中文 and 320 px');
 
+ /* 4. the preview outside Ramadan (v0.118.1): never "Ramadan begins · Tomorrow"; the day's fast runs as before, and Moons shows the next season */
+ p=await open(seed({ramadanPreview:true}),Date.UTC(2026,10,19,4)); s=await S(p); assert(s.cur&&s.cur.planId==='ramadan','the preview runs the day\'s fast'); assert.notStrictEqual(await t(p,'readK'),'Ramadan begins'); assert.strictEqual(await t(p,'readK'),'Iftar in');
+ await tab(p,'days'); assert(/^Ramadan 1448 · Feb 8 to Mar 8$/.test((await p.textContent('#days .mo-s')).trim())); await p.context().close();
+ ok('the preview outside Ramadan runs the day as before and shows the next season in Moons');
+
  assert.deepStrictEqual(errs,[],'no page errors: '+errs.join(' | ')); await b.close(); srv.close(); console.log('ramadan eid ok');
 })().catch(e=>{ console.error(e); process.exit(1); });
