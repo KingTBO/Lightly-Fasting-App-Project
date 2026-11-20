@@ -209,4 +209,13 @@ assert.deepStrictEqual(C.feelCount([{feel:'easy'},{feel:'easy'},{feel:'hard'},{}
  C.setPrayerMethod('nope',3);P=C.prayerTimes(sh,at);near(P.fajr,5+11/60);
  const north={lat:64.15,lon:-21.94,off:0},june=Date.UTC(2027,5,20,12),Q=C.prayerTimes(north,june);['fajr','sunrise','dhuhr','asr','maghrib','isha'].forEach(k=>assert(isFinite(Q[k])&&Q[k]>=0&&Q[k]<24,k+' '+Q[k]));
  C.setPrayerMethod('mwl',1);}
+// Qibla: direction and distance to the Kaaba, and magnetic declination (WMM2025 official test values)
+{const near=(a,b,w)=>assert(Math.abs(a-b)<=w,a+" vs "+b);const q=C.qibla(31.2304,121.4737);near(q.deg,284.7,.2);assert(Math.abs(q.km-8033)<5,'km '+q.km);
+ near(C.qibla(51.5074,-0.1278).deg,119,1);near(C.qibla(40.7128,-74.006).deg,58.5,1);near(C.qibla(-6.2,106.8).deg,295.1,1);near(C.qibla(-33.87,151.21).deg,277.5,1.5);
+ assert(C.qibla(21.4225,39.8262).km<.01,'at the Kaaba');
+ assert.strictEqual(C.compassPoint(284.7),'wnw');assert.strictEqual(C.compassPoint(359),'n');assert.strictEqual(C.compassPoint(-90),'w');
+ assert.strictEqual(C.turnBy(285,252),33);assert.strictEqual(C.turnBy(10,350),20);assert.strictEqual(C.turnBy(350,10),-20);assert.strictEqual(C.turnBy(90,270),-180);
+ [[2025,28,89,-121,-99.77],[2025,48,80,-96,-29.91],[2025,54,82,87,54.89],[2027.5,8,62,53,19.39],[2027.5,77,-68,-7,-16.19],[2027.5,98,-5,159,7.79],[2027.5,34,-29,-107,15.64]]
+  .forEach(([y,alt,la,lo,dec])=>near(C.magDecl(la,lo,y,alt),dec,.02));
+ near(C.magDecl(31.23,121.47,2027.1),-6.6,.3);}
 console.log('core ok',s);
