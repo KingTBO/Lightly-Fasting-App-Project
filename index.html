@@ -63,11 +63,13 @@ try{ var h=document.documentElement; if(/access_token=|error=/.test(location.has
         <path id="tLine" d="M8 52 Q171 4 334 52" fill="none" stroke-width="3" stroke-linecap="round" style="stroke:var(--unlit)"/>
         <path id="tDone" d="M8 52 Q171 4 334 52" fill="none" stroke-width="3" stroke-linecap="round" style="stroke:var(--ink)"/>
         <g id="ticks"></g>
+        <g id="prayG"></g>
         <g id="evt" opacity="0"><line id="evtL" stroke-width="1.5" stroke-linecap="round" style="stroke:var(--ink-2)"/><text id="evtT" text-anchor="middle" font-size="10.5" font-weight="600" style="fill:var(--ink-2)"></text></g>
         <circle id="marker" r="9" stroke-width="3" style="stroke:var(--sky);fill:var(--ink)"/>
       </svg>
       <div class="strip" id="strip" aria-hidden="true"><div class="sev" id="sEv"></div><div class="sbar" id="sBar"><i class="sdash" id="sDash"></i><i class="sfill" id="sFill"></i><i class="snow" id="sNow"></i></div></div>
       <div class="ends"><span id="endA"></span><span id="endB"></span></div>
+      <button type="button" class="pray-hit" id="prayBtn" data-act="prayers" hidden></button>
     </div>
     <button class="streak" id="streakBtn" type="button"><span class="tx" id="streakTx"></span><span class="dots" id="streakDots" aria-hidden="true"></span></button>
     <div class="gap sp" id="gap"></div>

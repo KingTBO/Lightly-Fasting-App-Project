@@ -197,4 +197,16 @@ assert.deepStrictEqual(C.feelCount([{feel:'easy'},{feel:'easy'},{feel:'hard'},{}
  C.setRamadanAdjust({});assert.strictEqual(C.ramadanSeason('2027-02-08').n,1);}
 /* the moon tonight (v0.116.0): new on 6 Feb 2027, full around 20 Feb */
 {assert(C.moonAge(Date.UTC(2027,1,6,16))<.5);assert(Math.abs(C.moonAge(Date.UTC(2027,1,20,13))-14)<.5);assert(Math.abs(C.moonPhase(Date.UTC(2027,1,20,13))-Math.PI)<.2,'full is pi');assert(C.moonAge(Date.UTC(1999,0,1))>=0);}
+/* prayer times (v0.120.0): Shanghai, 20 Feb 2027, Muslim World League: Fajr 05:11, Sunrise 06:32, Dhuhr 12:10, Asr 15:19, Maghrib 17:45, Isha 19:01 (within 2 minutes) */
+{const at=Date.UTC(2027,1,20,4), sh=C.placeInfo({key:'shanghai'},at), near=(a,b,w)=>assert(Math.abs(a-b)<=(w||2)/60,a+' vs '+b);
+ C.setPrayerMethod('mwl',1);let P=C.prayerTimes(sh,at);
+ near(P.fajr,5+11/60);near(P.sunrise,6+32/60);near(P.dhuhr,12+10/60);near(P.asr,15+19/60);near(P.maghrib,17+45/60);near(P.isha,19+1/60);
+ assert(P.fajr<P.sunrise&&P.sunrise<P.dhuhr&&P.dhuhr<P.asr&&P.asr<P.maghrib&&P.maghrib<P.isha,'in order');
+ assert.strictEqual(P.fajr,C.dawnHour(sh,at),'the fast starts at the method\'s Fajr');
+ C.setPrayerMethod('isna',1);assert(C.prayerTimes(sh,at).fajr>P.fajr,'ISNA 15 degrees: later Fajr');assert(C.dawnHour(sh,at)>P.fajr,'dawn follows the method');
+ C.setPrayerMethod('mwl',2);assert(C.prayerTimes(sh,at).asr-P.asr>.4,'Hanafi Asr is later');
+ C.setPrayerMethod('uqa',1);near(C.prayerTimes(sh,at).isha,P.maghrib+1.5,1);C.setPrayerMethod('uqa',1,true);near(C.prayerTimes(sh,at).isha,P.maghrib+2,1);
+ C.setPrayerMethod('nope',3);P=C.prayerTimes(sh,at);near(P.fajr,5+11/60);
+ const north={lat:64.15,lon:-21.94,off:0},june=Date.UTC(2027,5,20,12),Q=C.prayerTimes(north,june);['fajr','sunrise','dhuhr','asr','maghrib','isha'].forEach(k=>assert(isFinite(Q[k])&&Q[k]>=0&&Q[k]<24,k+' '+Q[k]));
+ C.setPrayerMethod('mwl',1);}
 console.log('core ok',s);

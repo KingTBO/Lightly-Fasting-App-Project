@@ -1233,3 +1233,43 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 :root[data-theme="dark"]{--mo-ring:#F5C26B;--mo-dark:#2A3158;--mo-ink:#F5C26B}
 @media (max-width:350px){.mo-cal{padding-left:4px;padding-right:4px}.mc .ring{width:34px;height:34px}.mc .ring svg{width:25px;height:25px}.mc .star{right:calc(50% - 22px)}}
 .mc .ring.open{border:1.6px dashed var(--label-2);font:600 0.9375rem var(--font);color:var(--label-2)}
+
+/* ---------- prayer times (v0.120.0) ---------- */
+#prayG .pd{fill:var(--sky);stroke:var(--ink);stroke-width:2}
+#prayG .pd.past{fill:var(--ink);stroke:none}
+#prayG .pl{font:600 10.5px var(--font);fill:var(--ink-2)}
+#prayG .pl.nx{font-weight:700;fill:var(--ink)}
+.track .pray-hit{position:absolute;left:0;right:0;top:-14px;height:calc(100% - 34px);border:0;background:transparent;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.track .pray-hit[hidden]{display:none}
+.track .pray-hit:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:12px}
+.pr-card{padding:16px 16px 12px}
+.pr-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font:400 0.8125rem/1.3 var(--font);color:var(--label-2)}
+.pr-chip{padding:5px 10px;border-radius:999px;background:var(--fill);color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+.pr-nx{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:2px 0 6px}
+.pr-nx b{font:700 1.75rem/1.2 var(--font-d);color:var(--label)}
+.pr-nx span{font:600 1.375rem var(--font-r);font-variant-numeric:tabular-nums;color:var(--label)}
+.pr-sky{display:block;width:100%;height:auto;overflow:visible}
+.pr-sky .hz{stroke:var(--sep);stroke-width:1}
+.pr-sky .day{fill:#FFCC00;opacity:.14}
+.pr-sky .cv{fill:none;stroke:var(--label-3);stroke-width:2.5;stroke-linecap:round}
+.pr-sky .cv.done{stroke:var(--label)}
+.pr-sky circle{fill:var(--card);stroke:var(--label-2);stroke-width:1.8}
+.pr-sky circle.past{fill:var(--label);stroke:none}
+.pr-sky circle.nx{stroke:var(--mo-ring);stroke-width:2.5}
+.pr-sky circle.sun{fill:#FFCC00;stroke:none}.pr-sky circle.sunh{fill:#FFCC00;opacity:.25;stroke:none}
+.pr-sky circle.moon{fill:#F4EFE2;stroke:#B9AF96;stroke-width:1}.pr-sky circle.moonh{fill:#F4EFE2;opacity:.2;stroke:none}
+.pr-row{display:flex;gap:2px;margin-top:8px}
+.pr-c{flex:1;min-width:0;text-align:center;padding:8px 0;border-radius:12px;display:flex;flex-direction:column;gap:2px}
+.pr-c span{font:400 0.8125rem/1.2 var(--font);color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-c b{font:500 0.9375rem/1.2 var(--font-r);font-variant-numeric:tabular-nums;color:var(--label)}
+.pr-c.nx{background:rgba(255,204,0,.22)}
+.pr-c.nx span{font-weight:600;color:var(--label)}.pr-c.nx b{font-weight:700}
+.pr-asr{padding:8px}
+.pt{padding:4px 0}
+.pt-r{display:grid;grid-template-columns:1.25fr repeat(5,1fr);align-items:center;min-height:44px;padding:0 12px;font:400 0.9375rem var(--font-r);font-variant-numeric:tabular-nums;color:var(--label);text-align:center}
+.pt-r+.pt-r{border-top:.5px solid var(--sep)}
+.pt-r.pt-h{min-height:36px;font:600 0.75rem var(--font);color:var(--label-2)}
+.pt-r.on{background:rgba(255,204,0,.18)}
+.pt-d{display:flex;align-items:baseline;gap:6px;text-align:left}
+.pt-d b{font:600 0.9375rem var(--font-r)}.pt-d small{font:400 0.75rem var(--font);color:var(--label-2)}
+.pt-r .pt-h span:first-child,.pt-r.pt-h span:first-child{text-align:left}
