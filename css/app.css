@@ -1233,3 +1233,42 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 :root[data-theme="dark"]{--mo-ring:#F5C26B;--mo-dark:#2A3158;--mo-ink:#F5C26B}
 @media (max-width:350px){.mo-cal{padding-left:4px;padding-right:4px}.mc .ring{width:34px;height:34px}.mc .ring svg{width:25px;height:25px}.mc .star{right:calc(50% - 22px)}}
 .mc .ring.open{border:1.6px dashed var(--label-2);font:600 0.9375rem var(--font);color:var(--label-2)}
+
+/* ---------- prayer times (v0.120.0) ---------- */
+#prayG .pd{fill:var(--sky);stroke:var(--ink);stroke-width:2}
+#prayG .pd.past{fill:var(--ink);stroke:none}
+#prayG .pl{font:600 10.5px var(--font);fill:var(--ink-2)}
+#prayG .pl.nx{font-weight:700;fill:var(--ink)}
+.track .pray-hit{position:absolute;left:0;right:0;top:-14px;height:calc(100% - 34px);border:0;background:transparent;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.track .pray-hit[hidden]{display:none}
+.track .pray-hit:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:12px}
+.pr-card{padding:16px 16px 12px}
+.pr-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font:400 0.8125rem/1.3 var(--font);color:var(--label-2)}
+.pr-chip{padding:5px 10px;border-radius:999px;background:var(--fill);color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+.pr-nx{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:2px 0 6px}
+.pr-nx b{font:700 1.75rem/1.2 var(--font-d);color:var(--label)}
+.pr-nx span{font:600 1.375rem var(--font-r);font-variant-numeric:tabular-nums;color:var(--label)}
+.pr-sky{display:block;width:100%;height:auto;overflow:visible}
+.pr-sky .hz{stroke:var(--sep);stroke-width:1}
+.pr-sky .day{fill:#FFCC00;opacity:.14}
+.pr-sky .cv{fill:none;stroke:var(--label-3);stroke-width:2.5;stroke-linecap:round}
+.pr-sky .cv.done{stroke:var(--label)}
+.pr-sky circle{fill:var(--card);stroke:var(--label-2);stroke-width:1.8}
+.pr-sky circle.past{fill:var(--label);stroke:none}
+.pr-sky circle.nx{stroke:var(--mo-ring);stroke-width:2.5}
+.pr-sky circle.sun{fill:#FFCC00;stroke:none}.pr-sky circle.sunh{fill:#FFCC00;opacity:.25;stroke:none}
+.pr-sky circle.moon{fill:#F4EFE2;stroke:#B9AF96;stroke-width:1}.pr-sky circle.moonh{fill:#F4EFE2;opacity:.2;stroke:none}
+.pr-row{display:flex;gap:2px;margin-top:8px}
+.pr-c{flex:1;min-width:0;text-align:center;padding:8px 0;border-radius:12px;display:flex;flex-direction:column;gap:2px}
+.pr-c span{font:400 0.8125rem/1.2 var(--font);color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-c b{font:500 0.9375rem/1.2 var(--font-r);font-variant-numeric:tabular-nums;color:var(--label)}
+.pr-c.nx{background:rgba(255,204,0,.22)}
+.pr-c.nx span{font-weight:600;color:var(--label)}.pr-c.nx b{font-weight:700}
+.pr-asr{padding:8px}
+.row .v.pt-ch,.pt-ch{font:500 1.0625rem var(--font-r);font-variant-numeric:tabular-nums;color:var(--label);display:flex;gap:6px;align-items:baseline;white-space:nowrap}.pt-ch i{font-style:normal;color:var(--label-2)}
+.pt-day{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.pt-day>span{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:0}
+.pt-day b{font:600 1.0625rem var(--font)}.pt-day small{font:400 0.8125rem var(--font);color:var(--label-2)}
+.pt-arr{flex:none;width:44px;height:44px;border-radius:22px;border:0;background:var(--fill);display:flex;align-items:center;justify-content:center}
+.pt-arr svg{width:8px;height:14px;fill:none;stroke:var(--label);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pt-arr:disabled{opacity:.35}

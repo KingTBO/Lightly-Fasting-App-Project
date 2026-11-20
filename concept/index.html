@@ -1542,6 +1542,8 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
               <path d="M8 52 Q171 4 334 52" fill="none" stroke-width="3" stroke-linecap="round" style="stroke:var(--unlit)"/>
               <path id="rDone" fill="none" stroke-width="3" stroke-linecap="round" style="stroke:var(--tint)"/>
               <g id="rRise"><circle r="3" style="fill:var(--ink-2)"/><text y="-9" text-anchor="middle" font-size="10.5" font-weight="600" style="fill:var(--ink-2);font-family:var(--font)" id="rRiseT">Sunrise</text></g>
+              <g id="rDh"><circle r="4" style="fill:var(--sky);stroke:var(--ink);stroke-width:2"/><text y="-10" text-anchor="middle" font-size="10.5" font-weight="600" style="fill:var(--ink-2);font-family:var(--font)" id="rDhT">Dhuhr</text></g>
+              <g id="rAs"><circle r="4" style="fill:var(--sky);stroke:var(--ink);stroke-width:2"/><text y="-10" text-anchor="middle" font-size="10.5" font-weight="600" style="fill:var(--ink-2);font-family:var(--font)" id="rAsT">Asr</text></g>
               <circle id="rMark" r="9" stroke-width="3" style="stroke:var(--sky);fill:var(--tint)"/>
             </svg>
             <div class="ends"><span><small id="rEndAk"></small><b id="rEndA"></b></span><span><small id="rEndBk"></small><b id="rEndB"></b></span></div>
@@ -1601,6 +1603,7 @@ html:lang(zh-Hans) .fr-hero h3{letter-spacing:0;max-width:none}
       <div><b data-zh="跟着你的清真寺">Follow your mosque</b><p data-zh="各国开始和结束斋月的日子不同。第一天可以往后挪一天；第 29 天晚上，轻伴会问一句：“明天是开斋节吗？”回答“还没有”就再斋戒一天。">Countries begin and end Ramadan on different days. Your first day can move a day later, and on the evening of day 29 Lightly asks one question: is Eid tomorrow? Answer "Not yet" for a day 30.</p></div>
       <div><b data-zh="健康优先">Health comes first</b><p data-zh="有糖尿病或每天需要吃药的人，斋月前请先咨询医生。白天特别长的地方（超过 18 小时），会有一条温和的健康提示。">If you have diabetes or take daily medication, talk to your doctor before Ramadan. Where days run very long (over 18 hours), Lightly shows a gentle health note.</p></div>
       <div><b data-zh="和家人朋友一起开斋">Break the fast together</b><p data-zh="把今晚的开斋时间分享给家人和朋友，昏礼时大家各收到一条轻提醒。可以不开。">Share tonight's iftar time with family and friends, and everyone gets one gentle note at Maghrib. Off if you prefer.</p></div>
+      <div><b data-zh="五次礼拜时间">The five prayer times</b><p data-zh="弧线上标着当天的礼拜，倒计时旁边写着下一次礼拜。点一下弧线，就能看到一整天的太阳轨迹、六个时间、下一次礼拜的倒计时，还能选计算方法和晡礼学派、设安静的提醒，看封斋和开斋时间整个月怎么变，也能一天一天往后翻。没有宣礼声，也没有朝向罗盘：轻伴是礼拜 App 的伙伴，不是替代。">The day's prayers sit on the arc, and the next one is named beside the countdown. Tap the arc for the whole day's sun path, the six times and a countdown to the next prayer, then pick your calculation method and Asr school, turn on quiet reminders, or see how suhoor and iftar move over the month and step through any day. No call to prayer and no Qibla compass: Lightly sits next to a prayer app, not in its place.</p></div>
       <div><b data-zh="时间在手机上算">Worked out on your phone</b><p data-zh="礼拜时间在手机本地计算，位置从不离开你的手机，也绝不出售。">Prayer times are calculated on the phone. Your location never leaves it and is never sold.</p></div>
       <div><b data-zh="和平时的计划分开">Kept apart from your plans</b><p data-zh="斋月不计入长时间断食的解锁，你平时的计划这个月先休息，开斋节后再回来。">Ramadan doesn't count towards long-fast unlocks. Your usual plan rests for the month and comes back after Eid.</p></div>
       <div><b data-zh="陪伴，而不是权威">A companion, not an authority</b><p data-zh="轻伴不替代你的礼拜应用，也不对宗教问题下结论。上线前会和穆斯林用户一起测试用词和细节。">Lightly sits alongside your prayer app, never replaces it, and never rules on religious questions. We'll test the words and details with Muslim users before launch.</p></div>
@@ -2676,7 +2679,10 @@ window.LightlySphere=(function(){
     T.rise=noon-hs/15; T.set=noon+hs/15;
     T.high=hf==null; /* no true dawn at high latitudes in summer: use the one-seventh-of-the-night rule */
     T.f=(T.high?T.rise-(24-(T.set-T.rise))/7:noon-hf/15)+(S.meth==='mosque'?S.offF/60:0);
-    T.m=T.set+(S.meth==='mosque'?S.offM/60:0); T.len=T.m-T.f; }
+    T.m=T.set+(S.meth==='mosque'?S.offM/60:0); T.len=T.m-T.f;
+    /* the other prayers, as in the app (v0.120.0): Dhuhr just after noon, Asr when a shadow is its object's length plus its noon shadow, Isha at 17 degrees */
+    var la=c.lat*Math.PI/180, asrZ=90-Math.atan(1/(1+Math.tan(Math.abs(la-dec))))*180/Math.PI, ha2=ha(c.lat,dec,asrZ), hi=ha(c.lat,dec,107);
+    T.dh=noon+2/60; T.as=ha2==null?noon+3:noon+ha2/15; T.is=hi==null?T.set+(24-(T.set-T.rise))/7:noon+hi/15; }
 
   /* ---------- helpers ---------- */
   function clock(hDay){ hDay=((hDay%24)+24)%24; var hh=Math.floor(hDay), mm=Math.round((hDay-hh)*60); if(mm===60){mm=0;hh=(hh+1)%24;}
@@ -2724,15 +2730,15 @@ window.LightlySphere=(function(){
     var k,big,tip,a,glass=true;
     if(s.m==='suhoor'){ /* the night shows when suhoor ends; only its last two hours count down (C.RAM_COUNT) */ k=T.f-t<=2?L('Fast begins in','离开始斋戒还有'):L('Suhoor ends at','封斋结束于'); big=T.f-t<=2?fmt(T.f-t):clock(T.f); tip=L('Eat and drink well now. Water helps the whole day.','现在好好吃、好好喝。多喝水，一整天都会轻松些。'); a=S.remind?L('Reminder at ','提醒时间 ')+clock(T.f-.5):L('Remind me before dawn','黎明前提醒我'); }
     else if(ex){ k=L('Iftar at','开斋时间'); big=clock(T.m); tip=L('Not fasting today. It joins your days to make up.','今天不斋戒，已记入待补天数。'); a=L('I’m fasting after all','其实我在斋戒'); }
-    else if(s.m==='fast'){ k=L('Iftar in','离开斋还有'); big=fmt(T.m-t);
+    else if(s.m==='fast'){ k=L('Iftar in','离开斋还有')+(t<T.as?L(' · Next: ',' · 下一次：')+(t<T.dh?L('Dhuhr ','晌礼 ')+clock(T.dh):L('Asr ','晡礼 ')+clock(T.as)):''); big=fmt(T.m-t);
       tip=t<T.f+.6?L('Fajr has passed. The fast has begun.','晨礼已过，守斋开始了。'):t<T.rise+.5?L('The sun is coming up.','太阳正在升起。'):T.m-t<1?L('Iftar is close. Dates and water are ready when you are.','快开斋了。椰枣和水都准备好了。'):Math.abs(s.p-.5)<.08?L('Halfway through the day.','一天过了一半。'):L('A quiet day. The disc fills as the sun crosses the sky.','安静的一天。太阳走过天空，圆也慢慢变满。');
       a=L('I’m not fasting today','今天不斋戒'); }
     else if(s.m==='iftar'){ k=L('It’s time','时间到了'); big=L('Iftar','开斋'); glass=S.kept; tip=S.kept?L('Enjoy your iftar.','开斋愉快。'):L('Today’s fast is kept.','今天的斋戒已完成。'); a=S.kept?(S.remind?L('Reminder at ','提醒时间 ')+clock(T.f-.5):L('Remind me before dawn','黎明前提醒我')):L('Break the fast','开斋'); }   /* as the app (v0.119.0): the day is kept at sunset; Break the fast is an optional tap */
-    else { k=L('Suhoor ends at','封斋结束于'); big=clock(T.f); tip=L('Rest well. Have some water before you sleep.','好好休息，睡前喝点水。'); a=S.remind?L('Reminder at ','提醒时间 ')+clock(T.f-.5):L('Remind me before dawn','黎明前提醒我'); }
+    else { k=L('Suhoor ends at','封斋结束于')+(t<T.is?L(' · Next: Isha ',' · 下一次：宵礼 ')+clock(T.is):''); big=clock(T.f); tip=L('Rest well. Have some water before you sleep.','好好休息，睡前喝点水。'); a=S.remind?L('Reminder at ','提醒时间 ')+clock(T.f-.5):L('Remind me before dawn','黎明前提醒我'); }
     put('rK',k); put('rBig',big,1); put('rTip',tip); put('rAct',a); act.classList.toggle('glass',glass);
     var kept=n-1-S.makeup+(S.kept?1:0)-(S.excused?0:0);
     put('rCount',L(kept+(kept===1?' day':' days')+' kept · '+(S.makeup+(S.excused?1:0))+' to make up · only you see this','已守 '+kept+' 天 · 待补 '+(S.makeup+(S.excused?1:0))+' 天 · 只有你能看到'));
-    put('rEndAk',L('Suhoor ends','封斋饭结束')); put('rEndA',clock(T.f)); put('rEndBk',L('Iftar','开斋')); put('rEndB',clock(T.m)); put('rRiseT',L('Sunrise','日出'));
+    put('rEndAk',L('Suhoor ends','封斋饭结束')); put('rEndA',clock(T.f)); put('rEndBk',L('Iftar','开斋')); put('rEndB',clock(T.m)); put('rRiseT',L('Sunrise','日出')); put('rDhT',L('Dhuhr','晌礼')); put('rAsT',L('Asr','晡礼'));
     var tw=S.together&&t>=T.m-.25&&t<T.m+1.1; $('rToast').classList.toggle('show',tw&&preview);
     put('rToastB',L('Iftar together · ','一起开斋 · ')+clock(T.m)); put('rToastS',L('Mum, Aisha and 2 others are breaking their fast too','妈妈、Aisha 和另外 2 人也在开斋'));
     if(s.m!==lastM){ if(lastM==='fast'&&s.m==='iftar'&&!S.excused){ chime(); buzz([30,60,30]); } lastM=s.m; }
@@ -2750,6 +2756,7 @@ window.LightlySphere=(function(){
     var q=Math.min(Math.max((t-T.f)/T.len,0),1), pts=[]; for(var i=0;i<=40;i++){ var r=tPt(q*i/40); pts.push((i?'L':'M')+r.x.toFixed(1)+' '+r.y.toFixed(1)); }
     done.setAttribute('d',q>0?pts.join(''):''); var m=tPt(q); mark.setAttribute('cx',m.x.toFixed(1)); mark.setAttribute('cy',m.y.toFixed(1));
     var rq=(T.rise-T.f)/T.len, rp=tPt(rq); $('rRise').setAttribute('transform','translate('+rp.x.toFixed(1)+' '+rp.y.toFixed(1)+')');
+    [['rDh',T.dh],['rAs',T.as]].forEach(function(x){ var pp=tPt((x[1]-T.f)/T.len), g=$(x[0]); g.setAttribute('transform','translate('+pp.x.toFixed(1)+' '+pp.y.toFixed(1)+')'); g.firstChild.style.fill=t>=x[1]?'var(--ink)':'var(--sky)'; });   /* prayers on the arc, filled once passed */
     if(preview) text();
     requestAnimationFrame(frame); }
 

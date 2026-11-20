@@ -9,12 +9,12 @@ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').mat
 function tzGuess(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } }
 function fresh(){ return {v:1,lang:/^zh/i.test(navigator.language||'')?'zh':'en',theme:'auto',onboarded:false,profile:{fastedBefore:null,safety:false,care:[],careOff:null,careUndo:null},
   planId:'16',customH:16,avatar:null,name:null,place:{key:C.guessCity(tzGuess())},placeV:1,cur:null,fasts:[],flex:{bank:1,mon:null,used:[]},off:[],unwell:null,unlocked:{},
-  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,ramOff:[],ramMade:{},ramNext:null,ramAdj:{shift:{},eid:{}},body:null,startedAt:null,mod:0,del:[]}; }
+  prefs:{sound:true,haptics:true,d3:true,notify:false},ramadanPreview:false,ramOff:[],ramMade:{},ramNext:null,ramAdj:{shift:{},eid:{}},pray:{m:'mwl',asr:1,rem:[]},body:null,startedAt:null,mod:0,del:[]}; }
 var S=fresh(), storageOk=true;
 function load(){
   try{ var raw=localStorage.getItem(KEY); if(raw){ var o=JSON.parse(raw), f=fresh(); for(var k in f) if(o[k]!==undefined) S[k]=o[k];
     ['profile','flex','prefs','unlocked'].forEach(function(k){ S[k]=Object.assign({},f[k],o[k]||{}); });
-    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; if(!Array.isArray(S.ramOff)) S.ramOff=[]; if(!S.ramMade||typeof S.ramMade!=='object'||Array.isArray(S.ramMade)) S.ramMade={}; if(!S.ramAdj||typeof S.ramAdj!=='object') S.ramAdj={}; if(!S.ramAdj.shift||typeof S.ramAdj.shift!=='object') S.ramAdj.shift={}; if(!S.ramAdj.eid||typeof S.ramAdj.eid!=='object') S.ramAdj.eid={}; ramAdjSync(); if(S.planId==='ramadan'&&!S.ramNext) S.ramNext=today(); careMigrate();
+    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; if(!Array.isArray(S.ramOff)) S.ramOff=[]; if(!S.ramMade||typeof S.ramMade!=='object'||Array.isArray(S.ramMade)) S.ramMade={}; if(!S.ramAdj||typeof S.ramAdj!=='object') S.ramAdj={}; if(!S.ramAdj.shift||typeof S.ramAdj.shift!=='object') S.ramAdj.shift={}; if(!S.ramAdj.eid||typeof S.ramAdj.eid!=='object') S.ramAdj.eid={}; ramAdjSync(); prayFix(); if(S.planId==='ramadan'&&!S.ramNext) S.ramNext=today(); careMigrate();
     if(o.placeV===undefined) S.place=C.placeFix(S.place,tzGuess()); S.placeV=1; } }   /* once: a guessed far-off city (Oslo used to get London) becomes the phone's own time zone */
   catch(e){ storageOk=false; }
 }
@@ -73,9 +73,11 @@ function today(){ return C.dayKey(Date.now()); }
 function care(){ return C.careOn(S.profile); }
 /* a line that differs in Care mode (no streaks there) */
 function LC(en,zh,enc,zhc){ return care()?L(enc,zhc):L(en,zh); }
-function inRamadan(){ ramAdjSync(); return !care()&&(C.ramadanDay()>0||ramWait()||S.ramadanPreview); }
+function inRamadan(){ ramAdjSync(); praySync(); return !care()&&(C.ramadanDay()>0||ramWait()||S.ramadanPreview); }
 /* the person's own first day and Eid (v0.118.0) reach the Ramadan rules in core.js */
 var ramAdjKey='';
+/* prayer settings (v0.120.0): method, Asr school and which prayers remind */
+function prayFix(){ var p=S.pray&&typeof S.pray==='object'&&!Array.isArray(S.pray)?S.pray:{}; S.pray={m:C.PRAYER_METHODS[p.m]?p.m:'mwl',asr:p.asr===2?2:1,rem:Array.isArray(p.rem)?p.rem.filter(function(k){ return ['fajr','dhuhr','asr','maghrib','isha'].indexOf(k)>=0; }):[]}; }
 function ramAdjSync(){ var k=JSON.stringify(S.ramAdj||{}); if(k!==ramAdjKey){ ramAdjKey=k; C.setRamadanAdjust(S.ramAdj); } }
 /* the calendar's day 1 when the person begins a day later: still Ramadan mode, with nothing to fast yet */
 function ramWait(){ var t=today(), s=C.ramadanSeason(C.addDays(t,1)); return !!s&&s.n===1&&!!C.ramadanCal(t); }
@@ -331,14 +333,14 @@ function updateToday(){
       put($('readK'),'k',L('Day '+dn+' of '+offA.days,'第 '+dn+' 天，共 '+offA.days+' 天')); setBigText(offA.kind==='travel'?L('Safe travels','旅途平安'):L('Get well soon','早日康复'));
       tip(offA.kind==='travel'?LC('Your streak will wait.','连续记录会等你。','Enjoy your trip.','旅途愉快。'):LC('Rest up. Your streak is safe.','好好休息，连续记录不会断。','Rest up. There is nothing to catch up on.','好好休息，没有什么需要补的。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
   else if(chd){ put($('readK'),'k',L('Cheat day','弹性日')); setBigText(L('Day off','休息')); tip(L('Your streak holds. Take back the cheat day above to start a fast.','连续记录保持。想断食，请先收回上方的弹性日。'),1); put($('actLbl'),'a',L('Start fast','开始断食')); }
-  else if(rmd&&!cur&&rp.k==='day'&&ramOffToday()){ put($('readK'),'k',L('Iftar at','开斋时间')); setBigText(clockMs(placeMs(sun.set,now))); put(altEl,'alt','');
+  else if(rmd&&!cur&&rp.k==='day'&&ramOffToday()){ put($('readK'),'k',L('Iftar at','开斋时间')); setBigText(clockMs(placeMs(sun.set,now))); put(altEl,'alt',prayLine(now));
     tip(L('Not fasting today. It joins your days to make up.','今天不斋戒，已记入待补天数。'),1); put($('actLbl'),'a',L('I’m fasting after all','其实我在斋戒')); }
   else if(rw){ put($('readK'),'k',L('Ramadan begins','斋月开始')); setBigText(L('Tomorrow','明天')); put(altEl,'alt','');
     tip(L('Your first day is tomorrow, as you chose. Suhoor ends at ','按你的选择，第一天是明天。封斋结束于 ')+clockMs(placeMs(C.dawnHour(pi,now+D),now)+D)+L('.','。'),1); }
   else if(rn){ var kept=keptToday(now);
-    if(rp.k==='iftar'){ put($('readK'),'k',L('It’s time','时间到了')); setBigText(L('Iftar','开斋')); put(altEl,'alt',''); tip(kept?(keptFast(now)&&keptFast(now).broke?L('Enjoy your iftar.','开斋愉快。'):L('Today’s fast is kept.','今天的斋戒已完成。')):L('Time to break the fast.','可以开斋了。'),1); }
+    if(rp.k==='iftar'){ put($('readK'),'k',L('It’s time','时间到了')); setBigText(L('Iftar','开斋')); put(altEl,'alt',prayLine(now)); tip(kept?(keptFast(now)&&keptFast(now).broke?L('Enjoy your iftar.','开斋愉快。'):L('Today’s fast is kept.','今天的斋戒已完成。')):L('Time to break the fast.','可以开斋了。'),1); }
     else if(rp.count){ put($('readK'),'k',L('Fast begins in','离开始斋戒还有')); setBigTime(Math.max(0,Math.ceil(rp.toDawn*3600))); put(altEl,'alt',L('Fajr ','晨礼 ')+clockMs(rp.a1)); tip('',1); }
-    else{ put($('readK'),'k',L('Suhoor ends at','封斋结束于')); setBigText(clockMs(rp.a1));   /* the same clock as the Fajr end of the line below */ put(altEl,'alt',''); tip(kept&&hp>=sun.set?L('Today’s fast is kept.','今天的斋戒已完成。'):'',1); }
+    else{ put($('readK'),'k',L('Suhoor ends at','封斋结束于')); setBigText(clockMs(rp.a1));   /* the same clock as the Fajr end of the line below */ put(altEl,'alt',prayLine(now)); tip(kept&&hp>=sun.set?L('Today’s fast is kept.','今天的斋戒已完成。'):'',1); }
   }
   else if(mode==='idle'){
     /* at rest the readout shows the time that is loaded, like a timer that has been set: Start lights the same digits and they begin to count. Ramadan keeps its words. */
@@ -346,7 +348,7 @@ function updateToday(){
     else{ put($('readK'),'k',S.fasts.length?L('Ready','准备好了'):L('First fast','首次断食')); setBigTime(p.fast*3600); put(altEl,'alt',L(p.fast+'-hour plan',p.fast+' 小时计划')); }
     tip(ram?L('The fast ends at sunset, ','斋戒在日落时结束，')+clockH(sun.set)+L('.','。'):(S.prefs.usualStart?L('Your usual start is ','你习惯的开始时间是 ')+usualTxt()+L('. ','。'):'')+L('Start now and you finish at ','现在开始，')+clockMs(now+p.fast*H)+L('.',' 结束。'),1); put($('actLbl'),'a',L('Start fast','开始断食'));
   }else if(mode==='fast'){
-    if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):ramadan?L('Iftar in','离开斋还有'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); tip(tp?tp[S.lang==='zh'?1:0]:'',0,tp?Math.floor(el):null); }
+    if(el<goal){ var elS=Math.floor(el*3600), leftS=Math.max(0,Math.ceil((goal-el)*3600)), showEl=!!S.prefs.showElapsed; put($('readK'),'k',showEl?L('Elapsed','已断食'):ramadan?L('Iftar in','离开斋还有'):L('Time left','剩余时间')); setBigTime(showEl?elS:leftS); var pln=ramadan?prayLine(now):''; put(altEl,'alt',showEl?L('Left ','剩余 ')+hms(leftS):pln||L('Elapsed ','已断食 ')+hms(elS)); var tp=tipFor(ramadan?{id:'ramadan'}:C.planById(cur.planId,cur.goalH)); tip(tp?tp[S.lang==='zh'?1:0]:'',0,tp?Math.floor(el):null); }
     else{ var over=el-goal; put($('readK'),'k',ramadan?L('Sunset has come','日落了'):over<1/60?L('Goal reached','目标达成'):overTxt(over)); setBigTime(Math.floor(el*3600)); put(altEl,'alt',L('Goal ','目标 ')+Math.round(goal)+L(' h',' 小时')); tip(ramadan?L('You can break the fast. May it be easy.','可以开斋了。愿一切顺利。'):L('Extra time isn’t scored, so end whenever you like.','超出的时间不计分，想什么时候结束都可以。'));
       if(!ramadan&&over>=2&&!cur.nudged){ cur.nudged=true; save(); toast(L('You’re well past your goal. Eat when you’re ready; extra time isn’t scored.','已经超过目标很久了。准备好就可以吃东西，超出的时间不计分。')); } }
     if(!holdOn) put($('actLbl'),'a',ramadan?L('I’m not fasting today','今天不斋戒'):L('Hold to end fast','按住结束断食'));   /* a Ramadan fast is not ended by hand: sunset ends it */
@@ -381,6 +383,7 @@ function updateToday(){
     $('evtT').setAttribute('x',ex); $('evtT').setAttribute('y',(eq.y-18).toFixed(1)); put($('evtT'),'ev',(tn.k==='rise'?L('Sunrise ','日出 '):L('Sunset ','日落 '))+clockH(tn.at)); $('evt').setAttribute('opacity','1'); } else $('evt').setAttribute('opacity','0');
   var tls=S.prefs.tl==='strip'; $('track').classList.toggle('tls',tls); if(tls) drawStrip(a0,(a1-a0)/H,mode==='fast'?el:mode==='eat'?eatEl:0,mode);
   var done=lineOn?Math.floor(tt*n+1e-6):0; tickEls.forEach(function(c,i){ c.style.fill=i<done?'var(--ink)':''; });
+  prayArc(rmd&&!brk&&!chd&&!rw?a0:0,rmd&&!brk&&!chd&&!rw?a1:0,now); schedulePray(now); prayTick(now);   /* v0.120.0: the prayers on the arc, their reminders, the open sheet's countdown */
   /* streak card */
   var st=curStreak(), cm=care(); $('streakBtn').hidden=!streakFasts().length||rmd; /* no streak in Ramadan: it waits until after Eid (C.ramadanHold) */ $('streakBtn').disabled=!!offA||cm; /* during time off the card only shows the streak; cheat days are not offered. In Care mode it is just "This week": no number, no cheat days */
   put($('streakTx'),'st','<span>'+(cm?L('This week','这一周'):st>0?L(st+(st===1?' day':' days')+' in a row',st+' 天连续'):L('No streak running','目前没有连续记录'))+'</span>',1);
@@ -537,6 +540,104 @@ function suhoorToggle(){
   if(!('Notification' in window)){ toast(L('This browser can’t show notifications.','这个浏览器不支持通知。')); return; }
   Notification.requestPermission().then(function(r){ if(r!=='granted'){ toast(L('Notifications are off in your browser settings.','通知在浏览器设置里是关闭的。')); return; }
     S.prefs.suhoorRem=true; save(); suhAt=0; fx('select'); cache={}; updateToday(); toast(L('You’ll get a reminder half an hour before dawn.','黎明前半小时会提醒你。')); }).catch(function(){}); }
+/* ---------- prayer times (v0.120.0): the five daily prayers in Ramadan mode, worked out on the phone with the method the person picks.
+   Today puts them as dots on the arc and names the next one; tapping the arc opens the Prayer times sheet (a whole-day sun path, the six times,
+   method, quiet reminders and the month's timetable). A companion to a prayer app: no call to prayer, no Qibla. ---------- */
+var PRAYERS=[['fajr','Fajr','晨礼'],['sunrise','Sunrise','日出'],['dhuhr','Dhuhr','晌礼'],['asr','Asr','晡礼'],['maghrib','Maghrib','昏礼'],['isha','Isha','宵礼']], PRAY5=['fajr','dhuhr','asr','maghrib','isha'];
+var PMETHODS=[['mwl','Muslim World League','穆斯林世界联盟','Europe, the Far East, parts of the Americas','欧洲、远东、美洲部分地区'],['uqa','Umm al-Qura, Makkah','乌姆库拉（麦加）','The Arabian Peninsula','阿拉伯半岛'],
+  ['isna','ISNA','北美伊斯兰协会（ISNA）','North America','北美'],['egypt','Egyptian General Authority','埃及测绘总局','Africa, Syria, Lebanon','非洲、叙利亚、黎巴嫩'],
+  ['karachi','University of Islamic Sciences, Karachi','卡拉奇伊斯兰科学大学','Pakistan, Bangladesh, India, Afghanistan','巴基斯坦、孟加拉、印度、阿富汗'],['sg','MUIS and JAKIM','新加坡 MUIS / 马来西亚 JAKIM','Singapore, Malaysia, Brunei','新加坡、马来西亚、文莱'],
+  ['kemenag','Kemenag','印尼宗教部（Kemenag）','Indonesia','印度尼西亚'],['diyanet','Diyanet','土耳其宗教事务局（Diyanet）','Türkiye','土耳其']];
+var PMSHORT={mwl:['MWL','穆斯林世界联盟'],uqa:['Umm al-Qura','乌姆库拉'],isna:['ISNA','ISNA'],egypt:['Egypt','埃及'],karachi:['Karachi','卡拉奇'],sg:['MUIS / JAKIM','MUIS / JAKIM'],kemenag:['Kemenag','印尼宗教部'],diyanet:['Diyanet','土耳其宗教事务局']};
+var prayKey='';
+function praySync(){ var p=S.pray||{}, k=p.m+'|'+p.asr; if(k!==prayKey){ prayKey=k; C.setPrayerMethod(p.m,p.asr,true); } }
+function prName(k){ for(var i=0;i<PRAYERS.length;i++) if(PRAYERS[i][0]===k) return L(PRAYERS[i][1],PRAYERS[i][2]); return k; }
+function prMethod(){ for(var i=0;i<PMETHODS.length;i++) if(PMETHODS[i][0]===S.pray.m) return PMETHODS[i]; return PMETHODS[0]; }
+function prayOn(){ return S.planId==='ramadan'&&inRamadan(); }
+/* the day's times as timestamps (Isha after midnight, at high latitudes, belongs to the evening before it) */
+function prayDay(at){ praySync(); var p2=C.placeInfo(S.place,at), P=C.prayerTimes(p2,at), base=at-C.placeHour(p2,at)*H, o={};
+  PRAYERS.forEach(function(x){ o[x[0]]=base+P[x[0]]*H; }); if(o.isha<o.maghrib) o.isha+=D; return o; }
+/* the next of the five prayers from now; after Isha it is tomorrow's Fajr */
+function prayNext(now){ var t=prayDay(now); for(var i=0;i<PRAY5.length;i++) if(t[PRAY5[i]]>now) return {k:PRAY5[i],at:t[PRAY5[i]],day:t,tmr:false};
+  var t2=prayDay(now+D); return {k:'fajr',at:t2.fajr,day:t2,tmr:true}; }
+/* the small line next to the countdown: only for prayers the line above doesn't already name (Fajr is the end of suhoor, Maghrib is iftar) */
+function prayLine(now){ if(!prayOn()) return ''; var n=prayNext(now); return n.k==='fajr'||n.k==='maghrib'?'':L('Next: ','下一次：')+prName(n.k)+' '+clockMs(n.at); }
+/* the prayers inside today's arc, as dots with their names */
+function prayArc(a0,a1,now){ var g=$('prayG'), hit=$('prayBtn'); if(!g) return;
+  if(!prayOn()||!(a1>a0)){ if(cache.prg!==''){ cache.prg=''; g.innerHTML=''; } hit.hidden=true; return; }
+  var dots=[], o='', nx=prayNext(now); [prayDay(now-D),prayDay(now),prayDay(now+D)].forEach(function(t){ PRAYERS.forEach(function(x){ var tt=(t[x[0]]-a0)/(a1-a0); if(tt>.04&&tt<.96) dots.push({k:x[0],t:tt,at:t[x[0]]}); }); });
+  var key=a0+'|'+a1+'|'+S.lang+'|'+nx.at+'|'+dots.filter(function(d){ return d.at<=now; }).length; hit.hidden=false;
+  if(cache.prg===key) return; cache.prg=key;
+  dots.forEach(function(d){ var q=tPt(d.t), past=d.at<=now, nxt=d.at===nx.at;
+    o+='<circle class="pd'+(past?' past':'')+'" cx="'+q.x.toFixed(1)+'" cy="'+q.y.toFixed(1)+'" r="'+(nxt?5.5:4.5)+'"/><text class="pl'+(nxt?' nx':'')+'" x="'+Math.min(Math.max(q.x,22),320).toFixed(1)+'" y="'+(q.y-11).toFixed(1)+'" text-anchor="middle">'+prName(d.k)+'</text>'; });
+  g.innerHTML=o; hit.setAttribute('aria-label',L('Prayer times. Next: ','礼拜时间。下一次：')+prName(nx.k)+' '+clockMs(nx.at)); }
+/* the sheet: next prayer and its countdown, the day's sun path (above the line is day; filled dots have passed, the sun or moon is now, hollow dots are ahead), the six times */
+function prayerSheet(){ if(!prayOn()) return; var now=Date.now(), nx=prayNext(now), live=true;
+  var t=nx.tmr?nx.day:prayDay(now), p2=C.placeInfo(S.place,now), hp=live&&!nx.tmr?C.placeHour(p2,now):-1, base=t.fajr-C.placeHour(p2,t.fajr)*H;
+  var hr=function(ms){ return (ms-base)/H; }, W=326, Hh=118, hz=72, amp=56, noon=hr(t.dhuhr)-2/60, c0=Math.cos(2*Math.PI*(hr(t.sunrise)-noon)/24),
+      v=function(x){ return (Math.cos(2*Math.PI*(x-noon)/24)-c0)/(1-c0); }, X=function(x){ return 8+(W-16)*Math.min(Math.max(x,0),24)/24; }, Y=function(x){ var y=v(x); return hz-amp*y*(y>0?1:.35); };
+  var d='', i; for(i=0;i<=96;i++){ d+=(i?'L':'M')+X(i/4).toFixed(1)+' '+Y(i/4).toFixed(1); }
+  var dots='', nowDot=''; PRAYERS.forEach(function(x){ var h=hr(t[x[0]]), past=hp>=0&&t[x[0]]<=now, n=live&&x[0]===nx.k; dots+='<circle class="'+(past?'past':n?'nx':'')+'" cx="'+X(h).toFixed(1)+'" cy="'+Y(h).toFixed(1)+'" r="'+(n?6:4.5)+'"/>'; });
+  if(hp>=0){ var day=now>=t.sunrise&&now<t.maghrib; nowDot='<circle class="'+(day?'sunh':'moonh')+'" cx="'+X(hp).toFixed(1)+'" cy="'+Y(hp).toFixed(1)+'" r="'+(day?13:11)+'"/><circle class="'+(day?'sun':'moon')+'" cx="'+X(hp).toFixed(1)+'" cy="'+Y(hp).toFixed(1)+'" r="8"/>'; }
+  var svg='<svg class="pr-sky" viewBox="0 0 '+W+' '+Hh+'" aria-hidden="true"><defs><clipPath id="prUp"><rect width="'+W+'" height="'+hz+'"/></clipPath><clipPath id="prPast"><rect width="'+(hp>=0?X(hp):0).toFixed(1)+'" height="'+Hh+'"/></clipPath></defs>'+
+    '<path class="day" d="'+d+' L'+X(24)+' '+hz+' L'+X(0)+' '+hz+'Z" clip-path="url(#prUp)"/><line class="hz" x1="0" x2="'+W+'" y1="'+hz+'" y2="'+hz+'"/><path class="cv" d="'+d+'"/><path class="cv done" d="'+d+'" clip-path="url(#prPast)"/>'+dots+nowDot+'</svg>';
+  var row=PRAYERS.map(function(x){ var n=live&&x[0]===nx.k; return '<div class="pr-c'+(n?' nx':'')+'"><span>'+prName(x[0])+'</span><b>'+clockMs(t[x[0]])+'</b></div>'; }).join('');
+  var m=prMethod(), dl=dateLbl(t.dhuhr,{weekday:'short',month:'short',day:'numeric'});
+  openSheet('<h3>'+L('Prayer times','礼拜时间')+'</h3><div class="group pr-card"><div class="pr-top"><span>'+(nx.tmr?L('Next prayer, tomorrow','下一次礼拜，明天'):L('Next prayer','下一次礼拜'))+'</span><span class="pr-chip">'+esc(placeName())+'</span></div>'+
+    '<div class="pr-nx"><b>'+prName(nx.k)+'</b><span id="prCd" role="timer" aria-label="'+L('Time until ','距离')+prName(nx.k)+'">'+hms((nx.at-now)/1000)+'</span></div>'+svg+'<div class="pr-row">'+row+'</div></div>'+
+    '<p class="gf">'+dl+' · '+L(m[1],m[2])+' · '+(S.pray.asr===2?L('Asr Hanafi','晡礼：哈乃斐'):L('Asr standard','晡礼：标准'))+L('. Worked out on this phone.','。在这台手机上计算。')+'</p>'+
+    '<div class="group"><button class="row" data-act="prmethod"><span>'+L('Calculation method','计算方法')+'</span><span class="v">'+L(PMSHORT[m[0]][0],PMSHORT[m[0]][1])+'</span>'+CHEV+'</button>'+
+    '<button class="row" data-act="prrem"><span>'+L('Reminders','提醒')+'</span><span class="v">'+prRemTxt()+'</span>'+CHEV+'</button>'+
+    '<button class="row" data-act="prtable"><span>'+L('This month’s timetable','本月时间表')+'</span>'+CHEV+'</button></div>');
+  prCdAt=nx.at; }
+/* This month's timetable (C, Tengbo 2026-11-20: a table of numbers is too messy). Only what changes over the month: when suhoor ends and when iftar comes,
+   first day to last. Then any one day, stepped with arrows, with its six times. */
+function prTableSheet(k){ var s=ramSeasonNow(); if(!s) return; var td=today(), last=C.addDays(s.start,s.days-1);
+  if(!k) k=td>=s.start&&td<=last?td:s.start; var n=Math.round((C.keyToDate(k)-C.keyToDate(s.start))/D)+1;
+  var dayAt=function(x){ return prayDay(C.keyToDate(x).getTime()+12*H); };
+  var a=dayAt(s.start), z=dayAt(last), t=dayAt(k);
+  function line(lbl,x,y){ var mn=function(ms){ var c=clockMs(ms).split(':'); return +c[0]*60+ +c[1]; }, d=mn(y)-mn(x), by=L(' by day '+s.days,'（到第 '+s.days+' 天）');
+    return '<div class="row"><span class="stack"><span>'+lbl+'</span><small>'+(d===0?L('The same all month','整个月不变'):d<0?L(-d+' min earlier'+by,'提前 '+(-d)+' 分钟'+by):L(d+' min later'+by,'推迟 '+d+' 分钟'+by))+'</small></span><span class="v pt-ch">'+clockMs(x)+'<i aria-hidden="true">→</i>'+clockMs(y)+'</span></div>'; }
+  var gap=Math.round((C.keyToDate(k)-C.keyToDate(td))/D), rel=gap===0?L('Today','今天'):gap===1?L('Tomorrow','明天'):gap===-1?L('Yesterday','昨天'):gap>1?L('In '+gap+' days',gap+' 天后'):L(-gap+' days ago',(-gap)+' 天前');
+  var prev=k>s.start?C.addDays(k,-1):'', next=k<last?C.addDays(k,1):'';
+  var arrow=function(to,dir){ return '<button type="button" class="pt-arr" data-act="prstep" data-k="'+to+'"'+(to?'':' disabled')+' aria-label="'+(dir<0?L('Day before','前一天'):L('Day after','后一天'))+'"><svg viewBox="0 0 8 14" aria-hidden="true"><path d="'+(dir<0?'M6.5 1.5 1 7l5.5 5.5':'M1.5 1.5 7 7l-5.5 5.5')+'"/></svg></button>'; };
+  openSheet('<h3>'+L('This month','本月')+'</h3><div class="group">'+line(L('Suhoor ends','封斋结束'),a.fajr,z.fajr)+line(L('Iftar','开斋'),a.maghrib,z.maghrib)+'</div>'+
+    '<div class="gh">'+L('Any day','任意一天')+'</div><div class="group pr-card"><div class="pt-day">'+arrow(prev,-1)+'<span role="status" aria-live="polite"><b>'+L('Day '+n,'第 '+n+' 天')+'</b><small>'+dateLbl(C.keyToDate(k).getTime(),{weekday:'short',month:'short',day:'numeric'})+' · '+rel+'</small></span>'+arrow(next,1)+'</div>'+
+    '<div class="pr-row">'+PRAYERS.map(function(x){ return '<div class="pr-c"><span>'+prName(x[0])+'</span><b>'+clockMs(t[x[0]])+'</b></div>'; }).join('')+'</div></div>'+
+    '<div class="btns"><button class="btn sec" data-act="prback">'+L('Done','完成')+'</button></div>',prayerSheet); }
+var prCdAt=0;
+/* the open sheet's countdown, every second; when it reaches the prayer the sheet moves on to the next one */
+function prayTick(now){ if(!sheetOpen||!prCdAt) return; var el=$('prCd'); if(!el){ prCdAt=0; return; } if(now>=prCdAt){ prayerSheet(); return; } el.textContent=hms((prCdAt-now)/1000); }
+function prRemTxt(){ var r=S.pray.rem; if(!r.length) return L('Off','关闭'); if(r.length===5) return L('All five','全部五次'); return PRAY5.filter(function(k){ return r.indexOf(k)>=0; }).map(prName).join(L(', ','、')); }
+function prMethodSheet(){ var m=S.pray.m;
+  function pick(x){ var on=x[0]===m; return '<button class="plan'+(on?' sel':'')+'" data-act="prm" data-v="'+x[0]+'" role="radio" aria-checked="'+on+'"><span class="pn"><b>'+L(x[1],x[2])+'</b><small>'+L(x[3],x[4])+'</small></span>'+CHECK+'</button>'; }
+  openSheet('<h3>'+L('Calculation method','计算方法')+'</h3><p class="lede">'+L('Countries work out Fajr and Isha a little differently. Pick the one your mosque uses. Fajr on Today, when the fast begins, follows it too.','各地计算晨礼和宵礼的方法略有不同。选择你的清真寺所用的方法。“今天”页上斋戒开始的晨礼时间也会跟着改变。')+'</p>'+
+    '<div class="group" role="radiogroup" aria-label="'+L('Calculation method','计算方法')+'">'+PMETHODS.map(pick).join('')+'</div>'+
+    '<div class="gh">'+L('Asr','晡礼')+'</div><div class="group pr-asr"><div class="seg" role="group" aria-label="'+L('Asr','晡礼')+'"><button type="button" data-act="prasr" data-v="1" aria-pressed="'+(S.pray.asr!==2)+'">'+L('Standard','标准')+'</button><button type="button" data-act="prasr" data-v="2" aria-pressed="'+(S.pray.asr===2)+'">'+L('Hanafi','哈乃斐')+'</button></div></div>'+
+    '<p class="gf">'+L('Standard is used by the Shafi‘i, Maliki and Hanbali schools. Hanafi Asr is later.','标准算法为沙斐仪、马立克、罕百里学派所用；哈乃斐学派的晡礼更晚。')+'</p>'+
+    '<div class="btns"><button class="btn sec" data-act="prback">'+L('Done','完成')+'</button></div>',prayerSheet); }
+function prSet(fn){ fn(); praySync(); var now=Date.now(), c=S.cur;
+  if(c&&c.planId==='ramadan'){ var st=placeMs(C.dawnHour(pi,now),now), e=placeMs(sun.set,now); if(st<=now&&now<e&&C.dayKey(c.start)===C.dayKey(now)){ c.start=st; c.goalH=(e-st)/H; scheduleGoal(); } }   /* today's fast began at the new method's Fajr */
+  save(); fx('select'); cache={}; ramSchedT=0; updateToday(); if(curTab==='me') renderMe(); }
+function prRemSheet(){ var r=S.pray.rem;
+  openSheet('<h3>'+L('Prayer reminders','礼拜提醒')+'</h3><p class="lede">'+L('A quiet notification at each time you choose. No call to prayer.','在你选择的时间收到一条安静的通知，没有宣礼声。')+'</p><div class="group">'+
+    PRAY5.map(function(k){ var on=r.indexOf(k)>=0, lbl=prName(k); return '<div class="row"><span>'+lbl+'</span><button class="sw" role="switch" aria-checked="'+on+'" aria-label="'+esc(lbl)+'" data-act="prremk" data-k="'+k+'"></button></div>'; }).join('')+'</div>'+
+    '<p class="gf">'+L('The web app can remind you while it’s open in the background. The Android app will do it fully.','网页版只能在后台打开时提醒你，安卓版会完整支持。')+'</p>'+
+    '<div class="btns"><button class="btn sec" data-act="prback">'+L('Done','完成')+'</button></div>',prayerSheet); }
+function prRemToggle(k){ var r=S.pray.rem, i=r.indexOf(k);
+  if(i>=0){ r.splice(i,1); prSet(function(){}); prRemSheet(); return; }
+  if(!('Notification' in window)){ toast(L('This browser can’t show notifications.','这个浏览器不支持通知。')); prRemSheet(); return; }
+  Notification.requestPermission().then(function(p){ if(p!=='granted'){ toast(L('Notifications are off in your browser settings.','通知在浏览器设置里是关闭的。')); prRemSheet(); return; }
+    if(S.pray.rem.indexOf(k)<0) S.pray.rem.push(k); prSet(function(){}); prRemSheet(); }).catch(function(){}); }
+/* one quiet notification at the next prayer the person chose; scheduled again after it fires */
+var ramSchedT=0, prT=0;
+function schedulePray(now){ if(!prayOn()||!S.pray.rem.length) return; var nx=null, ds=[prayDay(now),prayDay(now+D)];
+  ds.some(function(t){ return PRAY5.some(function(k){ if(S.pray.rem.indexOf(k)>=0&&t[k]>now){ nx={k:k,at:t[k]}; return true; } }); });
+  if(!nx||nx.at===ramSchedT) return; ramSchedT=nx.at; clearTimeout(prT);
+  if(!('Notification' in window)||Notification.permission!=='granted') return; var ms=nx.at-now; if(ms<=0||ms>2147000000) return;
+  var title=prName(nx.k)+' '+clockMs(nx.at), body=L('Time for '+prName(nx.k)+'.',prName(nx.k)+'时间到了。');
+  try{ if('showTrigger' in Notification.prototype&&window.TimestampTrigger&&navigator.serviceWorker){ navigator.serviceWorker.ready.then(function(r){ return r.showNotification(title,{body:body,icon:'icon-192.png',tag:'pray',showTrigger:new window.TimestampTrigger(nx.at)}); }); return; } }catch(e){}
+  prT=setTimeout(function(){ try{ navigator.serviceWorker.ready.then(function(r){ r.showNotification(title,{body:body,icon:'icon-192.png',tag:'pray'}); }); }catch(e){} },ms); }
 function ramPhase(now,hp){ var F=C.dawnHour(pi,now), Fn=C.dawnHour(pi,now+D), r=C.ramadanPhase(hp,F,sun.set,Fn);
   if(hp<F){ r.F=F; r.a0=placeMs(sun.set,now)-D; r.a1=placeMs(F,now); } else { r.F=Fn; r.a0=placeMs(sun.set,now); r.a1=placeMs(Fn,now)+D; }
   return r; }
@@ -636,7 +737,9 @@ function firstSet(v){ var s=ramSeasonNow(); if(!s) return; var c=s.cal; if((S.ra
   else delete S.ramAdj.shift[c];
   ramAdjDone(); firstSheet(); }
 function ramMeHtml(){ if(!moonsOn()) return ''; var s=ramSeasonNow(); if(!s) return ''; var e=S.ramAdj.eid[s.cal], ow=ramOwed().length;
+  var pn=prayNext(Date.now());
   return '<div class="gh">'+L('This Ramadan','这个斋月')+'</div><div class="group">'+
+    '<button class="row" data-act="prayers">'+mi('sun','gold')+'<span>'+L('Prayer times','礼拜时间')+'</span><span class="v">'+prName(pn.k)+' '+clockMs(pn.at)+'</span>'+CHEV+'</button>'+
     '<button class="row" data-act="ramfirstopen">'+mi('moon','gold')+'<span>'+L('First day','第一天')+'</span><span class="v">'+shortDate(s.start)+'</span>'+CHEV+'</button>'+
     '<button class="row" data-act="rameid">'+mi('cal','gold')+'<span>'+L('Last day','最后一天')+'</span><span class="v">'+(e?shortDate(C.addDays(s.start,s.days-1)):L('Day 29 or 30','第 29 或 30 天'))+'</span>'+CHEV+'</button>'+
     '<button class="row" data-act="rammakeup">'+mi('half','gold')+'<span>'+L('Days to make up','待补天数')+'</span><span class="v">'+ow+'</span>'+CHEV+'</button></div>'; }
@@ -1603,7 +1706,7 @@ function geo(then,late){
 var CL=window.LightlyCloud, sync={busy:false,msg:'',at:0,err:'',t:0};
 function cloudOn(){ return CL&&CL.ready()&&CL.getAuth(); }
 function cloudSoon(){ if(!cloudOn()) return; clearTimeout(sync.t); sync.t=setTimeout(function(){ syncNow(true); },4000); }
-function applyRemote(m){ quiet=true; Object.keys(m).forEach(function(k){ S[k]=m[k]; }); careMigrate(); if(S.onboarded) careApply(); if(S.place&&S.place.key==='here'&&S.place.lat==null) S.place={key:C.guessCity(tzGuess())}; /* coordinates stay on the phone */ quiet=false; saveNow(); }
+function applyRemote(m){ quiet=true; Object.keys(m).forEach(function(k){ S[k]=m[k]; }); careMigrate(); prayFix(); if(S.onboarded) careApply(); if(S.place&&S.place.key==='here'&&S.place.lat==null) S.place={key:C.guessCity(tzGuess())}; /* coordinates stay on the phone */ quiet=false; saveNow(); }
 function gone(deleted){ try{ localStorage.removeItem(AVG); }catch(e){} sync.err=''; sync.at=0; quiet=true; S.cloudUid=null; S.name=null; if(S.avatar&&S.avatar.t==='google') S.avatar=null; quiet=false; saveNow(); toast(deleted?L('This account no longer exists, so you’re signed out. Your fasts are still on this phone.','这个账号已不存在，已退出登录。断食记录仍在这台手机上。'):L('Your sign-in expired, so you’re signed out. Your fasts are still on this phone.','登录已过期，已退出登录。断食记录仍在这台手机上。')); }
 function syncNow(silent){
   if(!cloudOn()||sync.busy) return Promise.resolve(); sync.busy=true; sync.err=''; if(curTab==='me') renderMe();
@@ -2146,6 +2249,15 @@ var A={
   ramfirst:function(b){ firstSet(+b.dataset.v); },
   ramset:function(b){ var k=b.dataset.k; ramSet(k,b.dataset.v); if(sheetOpen) ramDaySheet(k); },
   rammakeup:function(){ ramMakeupSheet(); },
+  prayers:function(){ prayerSheet(); },
+  prmethod:function(){ prMethodSheet(); },
+  prm:function(b){ prSet(function(){ S.pray.m=b.dataset.v; }); prMethodSheet(); },
+  prasr:function(b){ prSet(function(){ S.pray.asr=+b.dataset.v===2?2:1; }); prMethodSheet(); },
+  prrem:function(){ prRemSheet(); },
+  prremk:function(b){ prRemToggle(b.dataset.k); },
+  prback:function(){ prayerSheet(); },
+  prtable:function(){ prTableSheet(); },
+  prstep:function(b){ if(!b.dataset.k) return; fx('select'); prTableSheet(b.dataset.k); },
   rammade:function(b){ var k=b.dataset.k; if(S.ramOff.indexOf(k)<0) return; S.ramMade[k]=today(); save(); fx('select'); cache={}; if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); ramMakeupSheet(); toast(L('Marked as made up.','已标记为已补。')); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },

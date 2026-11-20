@@ -164,7 +164,23 @@ function solar(pi,at,zenith){
   return {rise:((720-4*(pi.lon+ha)-eq)/60+pi.off+48)%24, set:((720-4*(pi.lon-ha)-eq)/60+pi.off+48)%24, polar:polar};
 }
 function sunTimes(pi,at){ var s=solar(pi,at,90.833); if(s.polar==='night'){s.rise=12;s.set=12;} if(s.polar==='day'){s.rise=0;s.set=24;} return s; }
-function fajrHour(pi,at){ var s=solar(pi,at,108); return s.polar?null:s.rise; }
+/* prayer time methods (v0.120.0): Fajr and Isha angles below the horizon, or Isha a fixed time after sunset (Umm al-Qura). Defaults to Muslim World League.
+   The person picks one in Me; Fajr on Today (the start of a Ramadan fast) follows it too. Umm al-Qura puts Isha two hours after sunset in Ramadan (ram). */
+var PRAYER_METHODS={mwl:{f:18,i:17},uqa:{f:18.5,im:90,imr:120},isna:{f:15,i:15},egypt:{f:19.5,i:17.5},karachi:{f:18,i:18},sg:{f:20,i:18},kemenag:{f:20,i:18},diyanet:{f:18,i:17}};
+var prayerCfg={m:'mwl',asr:1,ram:false};
+function setPrayerMethod(m,asr,ram){ prayerCfg={m:PRAYER_METHODS[m]?m:'mwl',asr:asr===2?2:1,ram:!!ram}; }
+function fajrHour(pi,at){ var s=solar(pi,at,90+PRAYER_METHODS[prayerCfg.m].f); return s.polar?null:s.rise; }
+/* the sun's declination (radians) and solar noon (local hours) for a date at a place */
+function noonDec(pi,at){ var d=new Date((at==null?Date.now():at)+pi.off*H), y0=Date.UTC(d.getUTCFullYear(),0,0), N=Math.floor((d.getTime()-y0)/D), g=2*Math.PI/365*(N-1);
+  var eq=229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
+  var dec=0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);
+  return {noon:((720-4*pi.lon-eq)/60+pi.off+48)%24, dec:dec}; }
+/* the five daily prayers and sunrise as local hours: Fajr, Sunrise, Dhuhr (just after noon), Asr (shadow = 1 or, Hanafi, 2 times the object plus its noon shadow),
+   Maghrib (sunset), Isha. Where the sun never sinks far enough (high latitudes in summer), Fajr and Isha use the one-seventh-of-the-night rule. */
+function prayerTimes(pi,at){ var m=PRAYER_METHODS[prayerCfg.m], st=sunTimes(pi,at), nd=noonDec(pi,at), la=pi.lat*Math.PI/180, night=((st.rise-st.set)%24+24)%24;
+  var asrAlt=Math.atan(1/(prayerCfg.asr+Math.tan(Math.abs(la-nd.dec)))), asr=solar(pi,at,90-asrAlt*180/Math.PI);
+  var isha=m.im?st.set+(prayerCfg.ram&&m.imr?m.imr:m.im)/60:(function(){ var x=solar(pi,at,90+m.i); return x.polar?st.set+night/7:x.set; })();
+  return {fajr:dawnHour(pi,at),sunrise:st.rise,dhuhr:nd.noon+2/60,asr:asr.polar?nd.noon+3:asr.set,maghrib:st.set,isha:((isha%24)+24)%24}; }
 /* dawn for the Ramadan day: Fajr, or where the sun never goes 18 degrees down (high latitudes in summer) the one-seventh-of-the-night rule, as on the concept page */
 function dawnHour(pi,at){ var f=fajrHour(pi,at); if(f!=null) return f; var s=sunTimes(pi,at), night=((s.rise-s.set)%24+24)%24; return ((s.rise-night/7)%24+24)%24; }
 /* Ramadan, hour by hour (audit items M1 and M2, v0.114.1). The day runs from dawn (Fajr) to sunset (Maghrib). Sunset opens half an hour of iftar,
@@ -518,7 +534,7 @@ function trendBuckets(points){
     if(best) out.push({day:t,pct:best.p.pct}); });
   return out;
 }
-var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneSpot:zoneSpot,zoneName:zoneName,deviceZone:deviceZone,placeFix:placeFix,searchCities:searchCities,hereStale:hereStale,country:country,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,dawnHour:dawnHour,ramadanPhase:ramadanPhase,RAM_IFTAR:RAM_IFTAR,RAM_COUNT:RAM_COUNT,ramadanHold:ramadanHold,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
+var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneSpot:zoneSpot,zoneName:zoneName,deviceZone:deviceZone,placeFix:placeFix,searchCities:searchCities,hereStale:hereStale,country:country,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,dawnHour:dawnHour,prayerTimes:prayerTimes,setPrayerMethod:setPrayerMethod,PRAYER_METHODS:PRAYER_METHODS,ramadanPhase:ramadanPhase,RAM_IFTAR:RAM_IFTAR,RAM_COUNT:RAM_COUNT,ramadanHold:ramadanHold,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,moonAge:moonAge,moonPhase:moonPhase,ramadanSeason:ramadanSeason,ramadanCal:ramadanCal,setRamadanAdjust:setRamadanAdjust,hijri:hijri,RAMADAN:RAMADAN,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;
