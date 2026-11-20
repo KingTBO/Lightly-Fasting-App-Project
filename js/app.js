@@ -549,7 +549,7 @@ function suhoorToggle(){
     S.prefs.suhoorRem=true; save(); suhAt=0; fx('select'); cache={}; updateToday(); toast(L('You’ll get a reminder half an hour before dawn.','黎明前半小时会提醒你。')); }).catch(function(){}); }
 /* ---------- prayer times (v0.120.0): the five daily prayers in Ramadan mode, worked out on the phone with the method the person picks.
    Today puts them as dots on the arc and names the next one; tapping the arc opens the Prayer times sheet (a whole-day sun path, the six times,
-   method, quiet reminders and the month's timetable). A companion to a prayer app: no call to prayer, no Qibla. ---------- */
+   method, quiet reminders and the month's timetable). A companion to a prayer app: no call to prayer. The Qibla compass sits in the Prayer times sheet (v0.122.0). ---------- */
 var PRAYERS=[['fajr','Fajr','晨礼'],['sunrise','Sunrise','日出'],['dhuhr','Dhuhr','晌礼'],['asr','Asr','晡礼'],['maghrib','Maghrib','昏礼'],['isha','Isha','宵礼']], PRAY5=['fajr','dhuhr','asr','maghrib','isha'];
 var PMETHODS=[['mwl','Muslim World League','穆斯林世界联盟','Europe, the Far East, parts of the Americas','欧洲、远东、美洲部分地区'],['uqa','Umm al-Qura, Makkah','乌姆库拉（麦加）','The Arabian Peninsula','阿拉伯半岛'],
   ['isna','ISNA','北美伊斯兰协会（ISNA）','North America','北美'],['egypt','Egyptian General Authority','埃及测绘总局','Africa, Syria, Lebanon','非洲、叙利亚、黎巴嫩'],
@@ -593,7 +593,7 @@ function prayerSheet(){ if(!prayOn()) return; var now=Date.now(), nx=prayNext(no
   openSheet('<h3>'+L('Prayer times','礼拜时间')+'</h3><div class="group pr-card"><div class="pr-top"><span>'+(nx.tmr?L('Next prayer, tomorrow','下一次礼拜，明天'):L('Next prayer','下一次礼拜'))+'</span><span class="pr-chip">'+esc(placeName())+'</span></div>'+
     '<div class="pr-nx"><b>'+prName(nx.k)+'</b><span id="prCd" role="timer" aria-label="'+L('Time until ','距离')+prName(nx.k)+'">'+hms((nx.at-now)/1000)+'</span></div>'+svg+'<div class="pr-row">'+row+'</div></div>'+
     '<p class="gf">'+dl+' · '+L(m[1],m[2])+' · '+(S.pray.asr===2?L('Asr Hanafi','晡礼：哈乃斐'):L('Asr standard','晡礼：标准'))+L('. Worked out on this phone.','。在这台手机上计算。')+'</p>'+
-    '<div class="group"><button class="row" data-act="prmethod"><span>'+L('Calculation method','计算方法')+'</span><span class="v">'+L(PMSHORT[m[0]][0],PMSHORT[m[0]][1])+'</span>'+CHEV+'</button>'+
+    '<div class="group"><button class="row" data-act="qibla"><span>'+L('Qibla','礼拜朝向')+'</span><span class="v">'+qbDir(C.qibla(p2.lat,p2.lon).deg)+'</span>'+CHEV+'</button><button class="row" data-act="prmethod"><span>'+L('Calculation method','计算方法')+'</span><span class="v">'+L(PMSHORT[m[0]][0],PMSHORT[m[0]][1])+'</span>'+CHEV+'</button>'+
     '<button class="row" data-act="prrem"><span>'+L('Reminders','提醒')+'</span><span class="v">'+prRemTxt()+'</span>'+CHEV+'</button>'+
     '<button class="row" data-act="prtable"><span>'+L('This month’s timetable','本月时间表')+'</span>'+CHEV+'</button></div>');
   prCdAt=nx.at; }
@@ -637,6 +637,87 @@ function prAnyGo(dir,from){ var to=prAnyNext(prAnyK,dir), vp=document.querySelec
     if((Math.abs(dx)>W*.25||(v>.4&&Math.abs(dx)>30))&&prAnyNext(prAnyK,dir)){ pg.style.transition=''; prAnyGo(dir,dx); }
     else{ pg.style.transition='transform .3s cubic-bezier(.22,1,.36,1)'; pg.style.transform='translateX(0)'; } }
   document.addEventListener('pointerup',end); document.addEventListener('pointercancel',end); })();
+/* ---------- Qibla (Tengbo 2026-11-20: people face the Qibla to pray, so it belongs next to prayer times). Worked out on the phone from the place;
+   the compass turns with the phone when it has one (Android: deviceorientationabsolute, iPhone: webkitCompassHeading after a tap to allow motion).
+   Phone compasses point to magnetic north, so the World Magnetic Model's declination turns it to true north. Without a compass: a still arrow
+   from north and the direction in words. A place known only from the time zone can be hundreds of km off, so it says so and offers precise location. ---------- */
+var QPTS={n:['north','北'],nne:['north-northeast','东北偏北'],ne:['northeast','东北'],ene:['east-northeast','东北偏东'],e:['east','东'],ese:['east-southeast','东南偏东'],se:['southeast','东南'],sse:['south-southeast','东南偏南'],
+  s:['south','南'],ssw:['south-southwest','西南偏南'],sw:['southwest','西南'],wsw:['west-southwest','西南偏西'],w:['west','西'],wnw:['west-northwest','西北偏西'],nw:['northwest','西北'],nnw:['north-northwest','西北偏北']};
+var qb={ok:false,src:'',head:null,shown:null,acc:null,flat:true,face:false,raf:0,late:false,ask:false,no:false,deg:0,dec:0,km:0,said:''};
+function qbInfo(){ var now=Date.now(), pi=C.placeInfo(S.place,now), q=C.qibla(pi.lat,pi.lon), d=new Date(now), y=d.getFullYear()+(now-new Date(d.getFullYear(),0,1).getTime())/(365.25*D);
+  return {deg:q.deg,km:q.km,dec:C.magDecl(pi.lat,pi.lon,y)}; }
+function qbDir(deg){ var p=QPTS[C.compassPoint(deg)]; return Math.round(deg)+'° · '+L(p[0],p[1]); }
+function qbRough(){ var p=S.place; return !p||p.key==='zone'||(p.key==='here'&&(p.lat==null||C.hereStale(p))); }
+function qbKm(km){ var k=km<100?Math.round(km):Math.round(km/10)*10; return String(k).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+var QC=170, QR=118;
+function qbPt(a,r){ return [QC+r*Math.sin(a*Math.PI/180), QC-r*Math.cos(a*Math.PI/180)]; }
+function qiblaSheet(){ if(!prayOn()) return; var q=qbInfo(), i, dial='';
+  qb.deg=q.deg; qb.dec=q.dec; qb.km=q.km;
+  for(i=0;i<360;i+=5){ var big=i%30===0, a=qbPt(i,QR), b=qbPt(i,QR-(big?14:7)); dial+='<line class="'+(big?'big':'')+'" x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'"/>'; }
+  [['n',0,'N','北'],['e',90,'E','东'],['s',180,'S','南'],['w',270,'W','西']].forEach(function(x){ var p=qbPt(x[1],QR-32); dial+='<text class="'+(x[0]==='n'?'nn':'')+'" x="'+p[0].toFixed(1)+'" y="'+(p[1]+7).toFixed(1)+'" transform="rotate('+x[1]+' '+p[0].toFixed(1)+' '+p[1].toFixed(1)+')">'+L(x[2],x[3])+'</text>'; });
+  var k=qbPt(q.deg,QR+22), ar=qbPt(q.deg,QR-46);
+  dial+='<g class="kb" transform="translate('+k[0].toFixed(1)+' '+k[1].toFixed(1)+') rotate('+q.deg+')"><rect x="-10" y="-10" width="20" height="20" rx="3"/><rect class="band" x="-10" y="-5" width="20" height="3.2"/></g>';
+  var svg='<svg class="qb-c" viewBox="0 0 340 340" aria-hidden="true"><circle class="glow" cx="'+QC+'" cy="'+QC+'" r="'+(QR-2)+'"/><circle class="ring" cx="'+QC+'" cy="'+QC+'" r="'+(QR+22)+'"/><path class="arc" id="qbArc" d=""/>'+
+    '<g id="qbDial">'+dial+'</g><path class="ptr" d="M'+(QC-8)+' '+(QC-QR-50)+' L'+(QC+8)+' '+(QC-QR-50)+' L'+QC+' '+(QC-QR-38)+'Z"/>'+
+    '<g class="still"><line x1="'+QC+'" y1="'+QC+'" x2="'+ar[0].toFixed(1)+'" y2="'+ar[1].toFixed(1)+'"/><circle cx="'+QC+'" cy="'+QC+'" r="6"/></g>'+
+    '<text class="big" id="qbBig" x="'+QC+'" y="'+(QC+8)+'"></text><text class="sm" id="qbSm" x="'+QC+'" y="'+(QC+36)+'"></text></svg>';
+  var here=q.km<1, rough=!here&&qbRough();
+  openSheet('<h3>'+L('Qibla','礼拜朝向')+'</h3><div class="qb" id="qb" data-st="still">'+svg+'</div>'+
+    '<p class="gf qb-f" id="qbF" aria-live="polite"></p>'+
+    (qbNeedAsk()&&!here?'<div class="btns qb-ask"><button class="btn" data-act="qbperm">'+L('Turn on the compass','打开指南针')+'</button></div>':'')+
+    (rough?'<div class="group qb-rough"><b>'+L('Only roughly placed','位置只是大概')+'</b><p>'+L('Your place comes from the time zone ('+esc(placeName())+'), so this can be a few degrees off.','位置是按时区推算的（'+esc(placeName())+'），方向可能差几度。')+'</p>'+
+      '<button class="btn sec" data-act="qbgeo">'+L('Use precise location','使用精确位置')+'</button></div>':'')+
+    '<div class="group"><div class="row"><span>'+L('Qibla','礼拜朝向')+'</span><span class="v" id="qbV">'+qbDir(q.deg)+'</span></div>'+
+    '<div class="row"><span>'+L('Mecca','麦加')+'</span><span class="v">'+(here?L('You’re here','你就在这里'):L(qbKm(q.km)+' km away','距离 '+qbKm(q.km)+' 公里'))+'</span></div></div>'+
+    '<div class="btns"><button class="btn sec" data-act="prback">'+L('Done','完成')+'</button></div>',prayerSheet);
+  qb.face=false; qb.said='';
+  if(here){ qbFoot(L('You’re at the Kaaba.','你就在天房旁。')); return; }
+  qbStart(); qbPaint(); }
+/* only Safari asks; a browser with the absolute (true-heading) event never needs the tap */
+function qbNeedAsk(){ return !qb.src&&!qb.ok&&!qb.no&&!('ondeviceorientationabsolute' in window)&&!!window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function'; }
+function qbFoot(t){ var f=$('qbF'); if(f&&f.textContent!==t) f.textContent=t; }
+function qbStill(){ return qb.head===null; }
+/* listeners stay on while the sheet is open and switch themselves off once the compass is gone (closed or another sheet) */
+function qbStart(){ qb.late=false;
+  if(!qb.src&&!qbNeedAsk()){
+    if('ondeviceorientationabsolute' in window){ qb.src='abs'; window.addEventListener('deviceorientationabsolute',qbEv); }
+    else if(window.DeviceOrientationEvent){ qb.src='ori'; window.addEventListener('deviceorientation',qbEv); } }
+  setTimeout(function(){ qb.late=true; qbPaint(); },1600); }
+function qbStop(){ if(qb.src==='abs') window.removeEventListener('deviceorientationabsolute',qbEv); else if(qb.src) window.removeEventListener('deviceorientation',qbEv);
+  qb.src=''; qb.head=qb.shown=qb.acc=null; cancelAnimationFrame(qb.raf); qb.raf=0; }
+function qbEv(e){ if(!$('qb')){ qbStop(); return; }
+  var h=null;
+  if(e.webkitCompassHeading!=null&&e.webkitCompassHeading>=0){ h=e.webkitCompassHeading; qb.acc=e.webkitCompassAccuracy; }
+  else if((qb.src==='abs'||e.absolute)&&e.alpha!=null){ h=360-e.alpha; qb.acc=null; }
+  if(h===null) return;
+  qb.flat=e.beta==null||Math.abs(e.beta)<55;
+  qb.head=((h+qb.dec)%360+360)%360;
+  if(!qb.raf) qb.raf=requestAnimationFrame(qbFrame); }
+function qbFrame(){ qb.raf=0; if(!$('qb')){ qbStop(); return; }
+  if(qb.head===null) return;
+  if(qb.shown===null||reduce) qb.shown=qb.head; else { var d=C.turnBy(qb.head,qb.shown); qb.shown=((qb.shown+d*.25)%360+360)%360; if(Math.abs(d)>.2) qb.raf=requestAnimationFrame(qbFrame); }
+  qbPaint(); }
+function qbPaint(){ var box=$('qb'); if(!box) return; var dial=$('qbDial'), arc=$('qbArc'), big=$('qbBig'), sm=$('qbSm');
+  if(qbStill()){ box.dataset.st='still'; dial.setAttribute('transform',''); arc.setAttribute('d',''); big.textContent=''; sm.textContent='';
+    var dir=L(QPTS[C.compassPoint(qb.deg)][0],QPTS[C.compassPoint(qb.deg)][1]), late=qb.late;
+    qbFoot($('qbF')&&document.querySelector('[data-act=qbperm]')?L('Tap below so the compass can turn with your phone. Or face '+dir+', '+Math.round(qb.deg)+'° from north.','点下面的按钮，指南针就能跟着手机转。也可以直接面向'+dir+'，从正北顺时针 '+Math.round(qb.deg)+'°。'):
+      qb.no?L('Motion access wasn’t allowed. Face '+dir+', '+Math.round(qb.deg)+'° from north.','没有获得运动权限。请面向'+dir+'，从正北顺时针 '+Math.round(qb.deg)+'°。'):
+      late?L('No compass on this device. Face '+dir+', '+Math.round(qb.deg)+'° from north.','这台设备没有指南针。请面向'+dir+'，从正北顺时针 '+Math.round(qb.deg)+'°。'):L('Hold the phone flat, away from metal.','把手机放平，远离金属。'));
+    return; }
+  var rel=C.turnBy(qb.deg,qb.shown), was=qb.face;
+  qb.face=was?Math.abs(rel)<=6:Math.abs(rel)<=3;
+  if(qb.face&&!was) buzz([14,60,14]);
+  box.dataset.st=qb.face?'face':'live';
+  dial.setAttribute('transform','rotate('+(-qb.shown).toFixed(2)+' '+QC+' '+QC+')');
+  var d='', i, n=Math.max(2,Math.round(Math.abs(rel)/3)); if(!qb.face) for(i=0;i<=n;i++){ var p=qbPt(rel*i/n,QR+22); d+=(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1); }
+  arc.setAttribute('d',d);
+  if(qb.face){ big.textContent=L('Facing','对准了'); sm.textContent=L('the Qibla','礼拜朝向'); }
+  else { big.textContent=Math.abs(Math.round(rel))+'°'; sm.textContent=rel>0?L('Turn right','向右转'):L('Turn left','向左转'); }
+  big.classList.toggle('w',qb.face);
+  qbFoot(!qb.flat?L('Hold the phone flat.','把手机放平。'):(qb.acc!=null&&(qb.acc<0||qb.acc>20))?L('Move your phone in a figure 8 to steady the compass.','把手机在空中画个 8 字，让指南针更准。'):
+    (qb.face?L('A soft buzz when you face it. ','对准时会轻轻振动。'):'')+L('Hold the phone flat, away from metal. From '+placeName()+'.','把手机放平，远离金属。按'+placeName()+'计算。'));
+  var say=qb.face?L('Facing the Qibla','已对准礼拜朝向'):(rel>0?L('Turn right','向右转'):L('Turn left','向左转'));
+  if(say!==qb.said){ qb.said=say; box.setAttribute('aria-label',say); } }
 var prCdAt=0;
 /* the open sheet's countdown, every second; when it reaches the prayer the sheet moves on to the next one */
 function prayTick(now){ if(!sheetOpen||!prCdAt) return; var el=$('prCd'); if(!el){ prCdAt=0; return; } if(now>=prCdAt){ prayerSheet(); return; } el.textContent=hms((prCdAt-now)/1000); }
@@ -2294,6 +2375,9 @@ var A={
   prback:function(){ prayerSheet(); },
   prtable:function(){ prTableSheet(); },
   prstep:function(b){ prAnyGo(+b.dataset.d); },
+  qibla:function(){ qiblaSheet(); },
+  qbperm:function(){ try{ DeviceOrientationEvent.requestPermission().then(function(r){ if(r==='granted'){ qb.ok=true; qb.src='ori'; window.addEventListener('deviceorientation',qbEv); } else qb.no=true; qiblaSheet(); },function(){ qb.no=true; qiblaSheet(); }); }catch(e){ qb.no=true; qiblaSheet(); } },
+  qbgeo:function(){ geo(function(ok){ if(ok&&$('qb')) qiblaSheet(); }); },
   rammade:function(b){ var k=b.dataset.k; if(S.ramOff.indexOf(k)<0) return; S.ramMade[k]=today(); save(); fx('select'); cache={}; if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); ramMakeupSheet(); toast(L('Marked as made up.','已标记为已补。')); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
