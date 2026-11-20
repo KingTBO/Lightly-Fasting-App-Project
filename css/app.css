@@ -1265,11 +1265,10 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 .pr-c.nx{background:rgba(255,204,0,.22)}
 .pr-c.nx span{font-weight:600;color:var(--label)}.pr-c.nx b{font-weight:700}
 .pr-asr{padding:8px}
-.pt{padding:4px 0}
-.pt-r{display:grid;grid-template-columns:1.25fr repeat(5,1fr);align-items:center;min-height:44px;padding:0 12px;font:400 0.9375rem var(--font-r);font-variant-numeric:tabular-nums;color:var(--label);text-align:center}
-.pt-r+.pt-r{border-top:.5px solid var(--sep)}
-.pt-r.pt-h{min-height:36px;font:600 0.75rem var(--font);color:var(--label-2)}
-.pt-r.on{background:rgba(255,204,0,.18)}
-.pt-d{display:flex;align-items:baseline;gap:6px;text-align:left}
-.pt-d b{font:600 0.9375rem var(--font-r)}.pt-d small{font:400 0.75rem var(--font);color:var(--label-2)}
-.pt-r .pt-h span:first-child,.pt-r.pt-h span:first-child{text-align:left}
+.pt-gh{display:flex;justify-content:space-between}
+.pt-v{font-variant-numeric:tabular-nums;display:flex;gap:6px;align-items:baseline}.pt-v i{font-style:normal;color:var(--label-3)}
+.pt-row .stack small{font:400 0.8125rem var(--font);color:var(--label-2)}
+.pt .row .chev{transition:transform .25s ease}.pt .row[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.pt-x{padding:0 12px 10px}.pt-past{padding:0}
+.pt-past .row{opacity:.6}
+.pr-sm .pr-c{padding:4px 0}.pr-sm .pr-c b{font-size:0.875rem}

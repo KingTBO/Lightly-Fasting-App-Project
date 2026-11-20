@@ -622,13 +622,21 @@ function schedulePray(now){ if(!prayOn()||!S.pray.rem.length) return; var nx=nul
   var title=prName(nx.k)+' '+clockMs(nx.at), body=L('Time for '+prName(nx.k)+'.',prName(nx.k)+'时间到了。');
   try{ if('showTrigger' in Notification.prototype&&window.TimestampTrigger&&navigator.serviceWorker){ navigator.serviceWorker.ready.then(function(r){ return r.showNotification(title,{body:body,icon:'icon-192.png',tag:'pray',showTrigger:new window.TimestampTrigger(nx.at)}); }); return; } }catch(e){}
   prT=setTimeout(function(){ try{ navigator.serviceWorker.ready.then(function(r){ r.showNotification(title,{body:body,icon:'icon-192.png',tag:'pray'}); }); }catch(e){} },ms); }
-/* the month: each Ramadan day's five prayers, today marked */
-function prTableSheet(){ var s=ramSeasonNow(); if(!s) return; var td=today(), h='';
-  for(var i=0;i<s.days;i++){ var k=C.addDays(s.start,i), t=prayDay(C.keyToDate(k).getTime()+12*H), on=k===td;
-    h+='<div class="pt-r'+(on?' on':'')+'"'+(on?' aria-current="date"':'')+'><span class="pt-d"><b>'+(i+1)+'</b><small>'+shortDate(k)+'</small></span>'+PRAY5.map(function(x){ return '<span>'+clockMs(t[x])+'</span>'; }).join('')+'</div>'; }
-  openSheet('<h3>'+L('This month’s timetable','本月时间表')+'</h3><p class="lede">'+esc(placeName())+' · '+L(prMethod()[1],prMethod()[2])+'</p>'+
-    '<div class="group pt"><div class="pt-r pt-h" aria-hidden="true"><span>'+L('Day','天')+'</span>'+PRAY5.map(function(x){ return '<span>'+prName(x)+'</span>'; }).join('')+'</div>'+h+'</div>'+
+/* the month (v0.120.0, calmer after Tengbo found the full grid messy): today as a card with all six times; each coming day is one row with
+   the two times that shape a fast (suhoor ends, iftar) and opens to its five prayers; days already passed wait behind one row */
+function prFive(t){ return '<div class="pr-row pr-sm">'+PRAY5.map(function(x){ return '<div class="pr-c"><span>'+prName(x)+'</span><b>'+clockMs(t[x])+'</b></div>'; }).join('')+'</div>'; }
+function prTableSheet(){ var s=ramSeasonNow(); if(!s) return; var td=today(), now=Date.now(), card='', up='', past='', np=0;
+  for(var i=0;i<s.days;i++){ var k=C.addDays(s.start,i), t=prayDay(C.keyToDate(k).getTime()+12*H), dl=dateLbl(C.keyToDate(k).getTime(),{weekday:'short',month:'short',day:'numeric'});
+    if(k===td){ card='<div class="group pr-card"><div class="pr-top"><span>'+L('Today','今天')+' · '+dl+'</span><span class="pr-chip">'+L('Day '+(i+1),'第 '+(i+1)+' 天')+'</span></div><div class="pr-row">'+
+      PRAYERS.map(function(x){ return '<div class="pr-c"><span>'+prName(x[0])+'</span><b>'+clockMs(t[x[0]])+'</b></div>'; }).join('')+'</div></div>'; continue; }
+    var r='<button type="button" class="row pt-row" data-act="prday" aria-expanded="false"><span class="stack"><span>'+L('Day '+(i+1),'第 '+(i+1)+' 天')+'</span><small>'+dl+'</small></span><span class="v pt-v">'+clockMs(t.fajr)+'<i aria-hidden="true">–</i>'+clockMs(t.maghrib)+'</span>'+CHEV+'</button><div class="pt-x" hidden>'+prFive(t)+'</div>';
+    if(k<td){ past+=r; np++; } else up+=r; }
+  openSheet('<h3>'+L('This month’s timetable','本月时间表')+'</h3><p class="lede">'+esc(placeName())+' · '+L(prMethod()[1],prMethod()[2])+'</p>'+card+
+    (up?'<div class="gh pt-gh"><span>'+L('Coming days','接下来的日子')+'</span><span>'+L('Suhoor ends – Iftar','封斋 – 开斋')+'</span></div><div class="group pt">'+up+'</div>':'')+
+    (np?'<div class="group pt"><button type="button" class="row" data-act="prpast" aria-expanded="false"><span>'+L('Earlier days','之前的日子')+'</span><span class="v">'+np+'</span>'+CHEV+'</button><div class="pt-x pt-past" hidden>'+past+'</div></div>':'')+
+    '<p class="gf">'+L('Tap a day for its five prayer times.','点一天查看五次礼拜时间。')+'</p>'+
     '<div class="btns"><button class="btn sec" data-act="prback">'+L('Done','完成')+'</button></div>',prayerSheet); }
+function prToggle(b){ var x=b.nextElementSibling, on=b.getAttribute('aria-expanded')!=='true'; b.setAttribute('aria-expanded',on); if(x) x.hidden=!on; fx('light'); }
 function ramPhase(now,hp){ var F=C.dawnHour(pi,now), Fn=C.dawnHour(pi,now+D), r=C.ramadanPhase(hp,F,sun.set,Fn);
   if(hp<F){ r.F=F; r.a0=placeMs(sun.set,now)-D; r.a1=placeMs(F,now); } else { r.F=Fn; r.a0=placeMs(sun.set,now); r.a1=placeMs(Fn,now)+D; }
   return r; }
@@ -2247,6 +2255,8 @@ var A={
   prrem:function(){ prRemSheet(); },
   prremk:function(b){ prRemToggle(b.dataset.k); },
   prtable:function(){ prTableSheet(); },
+  prday:function(b){ prToggle(b); },
+  prpast:function(b){ prToggle(b); },
   prback:function(){ prayerSheet(); },
   rammade:function(b){ var k=b.dataset.k; if(S.ramOff.indexOf(k)<0) return; S.ramMade[k]=today(); save(); fx('select'); cache={}; if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); ramMakeupSheet(); toast(L('Marked as made up.','已标记为已补。')); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },

@@ -50,8 +50,12 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{
  await p.click('#sheet [data-act=prremk][data-k=asr]'); await p.waitForTimeout(300); await p.click('#sheet [data-act=prremk][data-k=maghrib]'); await p.waitForTimeout(300);
  s=await S(p); assert.deepStrictEqual(s.pray.rem,['asr','maghrib']); assert.strictEqual(await p.getAttribute('#sheet [data-k=asr]','aria-checked'),'true'); await shot(p,'pr-rem');
  await p.click('#sheet [data-act=prback]'); await p.waitForSelector('#sheet .pr-card'); assert(/Reminders Asr, Maghrib/.test(await sheetTxt(p)));
- await p.click('#sheet [data-act=prtable]'); await p.waitForSelector('#sheet .pt'); assert.strictEqual(await p.$$eval('#sheet .pt-r:not(.pt-h)',a=>a.length),29,'one row a day');
- assert.strictEqual((await p.textContent('#sheet .pt-r.on')).replace(/\s+/g,''),'13Feb2005:1012:1015:1917:4419:00','today marked'); await shot(p,'pr-table');
+ await p.click('#sheet [data-act=prtable]'); await p.waitForSelector('#sheet .pt'); tx=await sheetTxt(p);
+ assert(/Today · Sat, Feb 20 Day 13 Fajr 05:10 Sunrise 06:31 Dhuhr 12:10 Asr 15:19 Maghrib 17:44 Isha 19:00/.test(tx),'today\'s card: '+tx.slice(0,300));
+ assert.strictEqual(await p.$$eval('#sheet [data-act=prday]',a=>a.length),28,'every other day is one row'); assert.strictEqual(await p.isVisible('#sheet .pt-past'),false,'earlier days wait');
+ assert(/Coming days Suhoor ends – Iftar Day 14 Sun, Feb 21 05:09 – 17:45/.test(tx),tx.slice(0,500)); assert(/Earlier days 12/.test(tx)); await shot(p,'pr-table');
+ const r14=await p.$('#sheet [data-act=prday]'); await r14.click(); assert.strictEqual(await r14.getAttribute('aria-expanded'),'true'); assert(/Isha19:01/.test((await p.textContent('#sheet .pt-x:not([hidden])')).replace(/\s+/g,'')));
+ await p.click('#sheet [data-act=prpast]'); assert.strictEqual(await p.isVisible('#sheet .pt-past'),true); await p.click('#sheet [data-act=prpast]'); await p.evaluate(()=>document.getElementById('sheet').scrollTop=0); await shot(p,'pr-table-open'); await r14.click();
  await p.click('#sheet [data-act=close]'); await p.waitForTimeout(400); await tab(p,'me'); assert(/Prayer times\s*Asr 15:19/.test(await t(p,'me')));
  await p.click('#me [data-act=prayers]'); await p.waitForSelector('#sheet .pr-card'); await p.context().close();
  ok('Today shows the prayers on the arc and the next one; the sheet, method, Asr, reminders, timetable and Me row work');
