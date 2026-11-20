@@ -302,6 +302,7 @@ function updateToday(){
   /* Ramadan: no eating window to count down. After sunset and before dawn Today shows the night (rn): iftar, then the time suhoor ends */
   var rmd=S.planId==='ramadan'&&inRamadan(), rp=rmd?ramPhase(now,hp):null, rw=rmd&&!cur&&ramWait()&&hp<sun.set, rn=!!rp&&!cur&&rp.k!=='day'&&!rw;
   var rs=rn&&hp>=sun.set?C.ramadanSeason(now):null; eidAsk=!!rs&&rs.n===29&&!S.ramAdj.eid[rs.cal];   /* the evening of day 29: has Eid been announced? */
+  var bf=rn&&hp>=sun.set&&hp-sun.set<RAM_BREAK?keptFast(now):null; breakAsk=!eidAsk&&!!bf&&!bf.broke; suhAsk=rn&&!eidAsk&&!breakAsk;   /* v0.119.0: the two optional taps of a Ramadan day */
   if(rmd&&!cur) mode='idle'; ramNight=rn; ramPh=rn?C.moonPhase(now):null;   /* B: at night the moon on Today is tonight's real moon */
   var offA=offNow(), brk=!!offA&&!cur, chd=cheatToday(); if(brk||chd) mode='idle';
   setSky(sk[1]);
@@ -335,7 +336,7 @@ function updateToday(){
   else if(rw){ put($('readK'),'k',L('Ramadan begins','斋月开始')); setBigText(L('Tomorrow','明天')); put(altEl,'alt','');
     tip(L('Your first day is tomorrow, as you chose. Suhoor ends at ','按你的选择，第一天是明天。封斋结束于 ')+clockMs(placeMs(C.dawnHour(pi,now+D),now)+D)+L('.','。'),1); }
   else if(rn){ var kept=keptToday(now);
-    if(rp.k==='iftar'){ put($('readK'),'k',L('It’s time','时间到了')); setBigText(L('Iftar','开斋')); put(altEl,'alt',''); tip(kept?L('Today’s fast is kept.','今天的斋戒已完成。'):L('Time to break the fast.','可以开斋了。'),1); }
+    if(rp.k==='iftar'){ put($('readK'),'k',L('It’s time','时间到了')); setBigText(L('Iftar','开斋')); put(altEl,'alt',''); tip(kept?(keptFast(now)&&keptFast(now).broke?L('Enjoy your iftar.','开斋愉快。'):L('Today’s fast is kept.','今天的斋戒已完成。')):L('Time to break the fast.','可以开斋了。'),1); }
     else if(rp.count){ put($('readK'),'k',L('Fast begins in','离开始斋戒还有')); setBigTime(Math.max(0,Math.ceil(rp.toDawn*3600))); put(altEl,'alt',L('Fajr ','晨礼 ')+clockMs(rp.a1)); tip('',1); }
     else{ put($('readK'),'k',L('Suhoor ends at','封斋结束于')); setBigText(clockMs(rp.a1));   /* the same clock as the Fajr end of the line below */ put(altEl,'alt',''); tip(kept&&hp>=sun.set?L('Today’s fast is kept.','今天的斋戒已完成。'):'',1); }
   }
@@ -355,9 +356,12 @@ function updateToday(){
     tip(L('Your next fast can start whenever you’re ready.','下一次断食可以在你准备好时开始。')); put($('actLbl'),'a',L('Start fast','开始断食'));
   }
   nowBtn.hidden=!(mode==='fast'&&nowOn());
-  var actOff=(rn||rw)&&!eidAsk; if(eidAsk) put($('actLbl'),'a',L('Is Eid tomorrow?','明天是开斋节吗？'));
+  var actOff=(rn&&!eidAsk&&!breakAsk&&!suhAsk)||rw; if(eidAsk) put($('actLbl'),'a',L('Is Eid tomorrow?','明天是开斋节吗？'));
+  else if(breakAsk) put($('actLbl'),'a',L('Break the fast','开斋'));
+  else if(suhAsk) put($('actLbl'),'a',S.prefs.suhoorRem?L('Reminder at ','提醒时间 ')+clockMs(rp.a1-SUH_BEFORE):L('Remind me before dawn','黎明前提醒我'));
+  if(suhAsk) scheduleSuhoor(rp.a1);
   act.style.visibility=actOff?'hidden':''; act.tabIndex=actOff?-1:0; if(actOff) act.setAttribute('aria-hidden','true'); else act.removeAttribute('aria-hidden');   /* nothing to start at night in Ramadan: the next fast begins at dawn */
-  act.setAttribute('aria-disabled',brk||chd); /* stays tappable during a break or a cheat day: a tap shakes it and says why (see restNudge) */ act.classList.toggle('end',(mode==='fast'||(rmd&&!cur))&&!brk&&!chd); /* quiet glass while a fast runs, yellow for Start */ $('track').style.visibility=brk||chd?'hidden':'';
+  act.setAttribute('aria-disabled',brk||chd); /* stays tappable during a break or a cheat day: a tap shakes it and says why (see restNudge) */ act.classList.toggle('end',(mode==='fast'||(rmd&&!cur))&&!brk&&!chd&&!breakAsk); /* quiet glass while a fast runs, yellow for Start */ $('track').style.visibility=brk||chd?'hidden':'';
   /* timeline */
   var a0=mode==='eat'?le.end:mode==='fast'?cur.start:rn?rp.a0:rmd?placeMs(C.dawnHour(pi,now),now):now, a1=mode==='eat'?le.end+eatLen*H:mode==='fast'?cur.start+goal*H:rn?rp.a1:ram?placeMs(sun.set,now):now+p.fast*H;
   var n=Math.min(Math.round(mode==='eat'?eatLen:rn?(a1-a0)/H:ram?13:goal),36)||1; buildTicks(n);
@@ -456,7 +460,7 @@ function breakNudge(){
   if(act.animate&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){ if(breakNudge.a) breakNudge.a.cancel();
     breakNudge.a=act.animate([{transform:'translateX(0)'},{transform:'translateX(-9px)',offset:.16},{transform:'translateX(8px)',offset:.34},{transform:'translateX(-6px)',offset:.52},{transform:'translateX(4px)',offset:.7},{transform:'translateX(-2px)',offset:.86},{transform:'translateX(0)'}],{duration:480,easing:'cubic-bezier(.36,.07,.19,.97)'}); }
 }
-act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } if(eidAsk) return eidSheet(); if(ramCur()) return ramOffSheet(); if(!S.cur&&S.planId==='ramadan'&&ramOffToday()) return ramBack(); if(!S.cur){ if(restNow()) breakNudge(); else startFlow(); } });
+act.addEventListener('click',function(){ if(swallow){ swallow=false; return; } if(eidAsk) return eidSheet(); if(breakAsk) return ramBreak(); if(suhAsk) return suhoorToggle(); if(ramCur()) return ramOffSheet(); if(!S.cur&&S.planId==='ramadan'&&ramOffToday()) return ramBack(); if(!S.cur){ if(restNow()) breakNudge(); else startFlow(); } });
 
 /* a button in a sheet that must be held to confirm, the same press-and-hold as ending a fast */
 var HB=null;
@@ -514,7 +518,25 @@ function startRamadan(){
   S.planId='ramadan'; S.ramNext=today(); save(); cache={}; updateToday(); if(curTab==='days') renderDays();
 }
 /* Ramadan by the hour: today's dawn and sunset, tomorrow's dawn, and where the night begins and ends (a0, a1) as timestamps */
-var ramNight=false, ramPh=null, eidAsk=false;
+var ramNight=false, ramPh=null, eidAsk=false, breakAsk=false, suhAsk=false, RAM_BREAK=2, SUH_BEFORE=30*60000;
+/* today's kept Ramadan fast, if any */
+function keptFast(now){ var k=C.dayKey(now); return S.fasts.filter(function(f){ return f.plan==='ramadan'&&C.dayKey(f.end)===k&&C.isDone(f); })[0]||null; }
+/* "Break the fast" (v0.119.0): optional. For two hours after sunset one tap marks the moment: the moon glows, a chime, and Today says "Enjoy your iftar."
+   The day is already kept at sunset; a day nobody taps counts the same and nothing shows that it wasn't tapped. */
+function ramBreak(){ var f=keptFast(Date.now()); if(!f||f.broke) return; f.broke=Date.now(); save(); fx('success'); boost=1; cache={}; updateToday(); }
+/* "Remind me before dawn" (v0.119.0): one reminder half an hour before Fajr, every night of Ramadan mode, until turned off. The web app can only
+   notify while it is open in the background (or where the browser can schedule one); the Android app will do it properly. */
+var suhT=0, suhAt=0;
+function scheduleSuhoor(dawnMs){ var at=dawnMs-SUH_BEFORE; if(at===suhAt) return; suhAt=at; clearTimeout(suhT);
+  if(!S.prefs.suhoorRem||!('Notification' in window)||Notification.permission!=='granted') return; var ms=at-Date.now(); if(ms<=0||ms>2147000000) return;
+  var title=L('Suhoor ends at ','封斋结束于 ')+clockMs(dawnMs), body=L('Half an hour left to eat and drink.','还有半小时可以吃喝。');
+  try{ if('showTrigger' in Notification.prototype&&window.TimestampTrigger&&navigator.serviceWorker){ navigator.serviceWorker.ready.then(function(r){ return r.showNotification(title,{body:body,icon:'icon-192.png',tag:'suhoor',showTrigger:new window.TimestampTrigger(at)}); }); return; } }catch(e){}
+  suhT=setTimeout(function(){ try{ navigator.serviceWorker.ready.then(function(r){ r.showNotification(title,{body:body,icon:'icon-192.png',tag:'suhoor'}); }); }catch(e){} },ms); }
+function suhoorToggle(){
+  if(S.prefs.suhoorRem){ S.prefs.suhoorRem=false; save(); clearTimeout(suhT); suhAt=0; fx('light'); cache={}; updateToday(); toast(L('Suhoor reminder off.','封斋提醒已关闭。')); return; }
+  if(!('Notification' in window)){ toast(L('This browser can’t show notifications.','这个浏览器不支持通知。')); return; }
+  Notification.requestPermission().then(function(r){ if(r!=='granted'){ toast(L('Notifications are off in your browser settings.','通知在浏览器设置里是关闭的。')); return; }
+    S.prefs.suhoorRem=true; save(); suhAt=0; fx('select'); cache={}; updateToday(); toast(L('You’ll get a reminder half an hour before dawn.','黎明前半小时会提醒你。')); }).catch(function(){}); }
 function ramPhase(now,hp){ var F=C.dawnHour(pi,now), Fn=C.dawnHour(pi,now+D), r=C.ramadanPhase(hp,F,sun.set,Fn);
   if(hp<F){ r.F=F; r.a0=placeMs(sun.set,now)-D; r.a1=placeMs(F,now); } else { r.F=Fn; r.a0=placeMs(sun.set,now); r.a1=placeMs(Fn,now)+D; }
   return r; }

@@ -19,7 +19,7 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{
   fasts:regular.slice(),flex:{bank:1,mon:null,used:[]},unwell:null,unlocked:{},prefs:{sound:false,haptics:false,d3:false,notify:false,backupAsked:true},ramadanPreview:false,startedAt:Date.UTC(2027,0,1)},o||{});
 const ramFast=()=>({cur:{start:at(F),goalH:sun.set-F,planId:'ramadan',reached:false}});
 (async()=>{ await new Promise(r=>srv.listen(0,r)); const port=srv.address().port; const b=await chromium.launch(); const errs=[];
- const open=async(s,t,o)=>{ o=o||{}; const ctx=await b.newContext({viewport:{width:o.w||390,height:o.h||844},deviceScaleFactor:SHOTS?2:1,colorScheme:'light',timezoneId:'Asia/Shanghai',reducedMotion:'reduce'}); const p=await ctx.newPage(); p.on('pageerror',e=>errs.push(e.message));
+ const open=async(s,t,o)=>{ o=o||{}; const ctx=await b.newContext({viewport:{width:o.w||390,height:o.h||844},deviceScaleFactor:SHOTS?2:1,colorScheme:'light',timezoneId:'Asia/Shanghai',reducedMotion:'reduce'}); if(o.notify) await ctx.grantPermissions(['notifications']); const p=await ctx.newPage(); p.on('pageerror',e=>errs.push(e.message));
   await ctx.route('**/js/config.js',rt=>rt.fulfill({contentType:'text/javascript',body:'window.LIGHTLY_CLOUD=null;'}));
   await p.addInitScript(s=>{ if(!sessionStorage.getItem('seeded')){ localStorage.setItem('lightly:v1',JSON.stringify(s)); sessionStorage.setItem('seeded','1'); } },s);
   await p.clock.setFixedTime(new Date(t)); await p.goto('http://localhost:'+port+'/'); await p.waitForTimeout(1300); return p; };
@@ -31,11 +31,11 @@ const ramFast=()=>({cur:{start:at(F),goalH:sun.set-F,planId:'ramadan',reached:fa
 
  /* 1. the night */
  let p=await open(seed(),at(21)), r=await read(p);
- assert.strictEqual(r.k,'Suhoor ends at'); assert.strictEqual(r.big,hhmm(Fn),'the big line is the time suhoor ends (tomorrow\'s dawn)'); assert(!r.act&&r.actTab===-1,'no Start button at night'); assert(!r.streak,'no streak card in Ramadan');
+ assert.strictEqual(r.k,'Suhoor ends at'); assert.strictEqual(r.big,hhmm(Fn),'the big line is the time suhoor ends (tomorrow\'s dawn)'); assert(r.act&&r.actLbl==='Remind me before dawn','no Start button at night: the only button is the optional suhoor reminder (v0.119.0)'); assert(!r.streak,'no streak card in Ramadan');
  assert(/Sunset/.test(r.endA)&&/Fajr/.test(r.endB),'the line runs from sunset to Fajr: '+r.endA+' | '+r.endB); assert(r.endB.indexOf(r.big)>=0,'the big time and the end of the line agree: '+r.big+' | '+r.endB); assert(!(await p.locator('#today').getByText('Start fast').filter({visible:true}).count()),'nothing visible on Today offers to start a fast'); await shot(p,'ram-night');
  await p.clock.setFixedTime(new Date(at(26))); await p.waitForTimeout(1300); r=await read(p); assert.strictEqual(r.k,'Suhoor ends at','still a time, not a countdown, after midnight'); await p.context().close();
  p=await open(seed(),at(F-1.5)); r=await read(p);
- assert.strictEqual(r.k,'Fast begins in'); assert(/^1:(29|30):\d\d$/.test(r.big),'the last two hours count down: '+r.big); assert.strictEqual(r.alt,'Fajr '+hhmm(F)); assert(!r.act,'still no Start button'); await shot(p,'ram-predawn'); await p.context().close();
+ assert.strictEqual(r.k,'Fast begins in'); assert(/^1:(29|30):\d\d$/.test(r.big),'the last two hours count down: '+r.big); assert.strictEqual(r.alt,'Fajr '+hhmm(F)); assert.strictEqual(r.actLbl,'Remind me before dawn','still no Start button'); await shot(p,'ram-predawn'); await p.context().close();
  p=await open(seed(),at(21)); r=await read(p); assert.strictEqual(r.chip,'Night 14','after sunset on day 13 the chip names the night that has begun'); assert(r.litArcs===2&&!r.litWedge,'the moon is tonight\'s real phase, not a wedge'); await p.context().close();
  p=await open(seed(),at(3)); r=await read(p); assert.strictEqual(r.chip,'Night 13','before dawn the night still belongs to day 13'); await p.context().close();
  p=await open(seed(ramFast()),at(12)); r=await read(p); assert.strictEqual(r.chip,'Day 13'); assert(r.litWedge,'by day the disc fills as before'); await p.context().close();
@@ -48,10 +48,18 @@ const ramFast=()=>({cur:{start:at(F),goalH:sun.set-F,planId:'ramadan',reached:fa
  r=await read(p); assert(!r.sheet,'no summary sheet pops up hours later'); assert.strictEqual(r.k,'Suhoor ends at'); assert.strictEqual(r.tip,'Today’s fast is kept.'); assert(!r.streak); await shot(p,'ram-kept'); await p.context().close();
  p=await open(seed(ramFast()),at(sun.set)-20000); r=await read(p); assert.strictEqual(r.k,'Iftar in'); assert(/^0:00:[12]\d$/.test(r.big),r.big);
  await p.clock.setFixedTime(new Date(at(sun.set)+3000)); await p.waitForTimeout(1500); r=await read(p);
- assert.strictEqual(r.k,'It’s time'); assert.strictEqual(r.big,'Iftar','the moment of sunset says Iftar, never a count up'); assert.strictEqual(r.tip,'Today’s fast is kept.'); assert(!r.act&&!r.sheet&&!r.streak);
+ assert.strictEqual(r.k,'It’s time'); assert.strictEqual(r.big,'Iftar','the moment of sunset says Iftar, never a count up'); assert.strictEqual(r.tip,'Today’s fast is kept.'); assert(r.act&&r.actLbl==='Break the fast'&&!r.sheet&&!r.streak,'at iftar the button offers Break the fast (v0.119.0)');
+ await shot(p,'ram-break'); await p.click('#act'); await p.waitForTimeout(600); r=await read(p); assert.strictEqual(r.tip,'Enjoy your iftar.'); assert.strictEqual(r.actLbl,'Remind me before dawn','after the tap the night button takes its place');
+ s=await S(p); assert(s.fasts.filter(x=>x.plan==='ramadan')[0].broke,'the tap is remembered with the kept fast'); assert(C.isDone(s.fasts.filter(x=>x.plan==='ramadan')[0]));
  s=await S(p); assert.strictEqual(s.cur,null); assert(Math.abs(s.fasts.filter(x=>x.plan==='ramadan')[0].end-at(sun.set))<1000); await shot(p,'ram-iftar');
  await p.clock.setFixedTime(new Date(at(sun.set+.6))); await p.waitForTimeout(1300); r=await read(p); assert.strictEqual(r.k,'Suhoor ends at','after half an hour the night begins'); await p.context().close();
  ok('a fast running at sunset ends at sunset: saved, kept, Iftar at the moment, then the night; nothing counts up');
+
+ /* 2b. Remind me before dawn (v0.119.0): one tap turns on a reminder half an hour before Fajr; another tap turns it off */
+ p=await open(seed(),at(21),{notify:true}); r=await read(p); assert.strictEqual(r.actLbl,'Remind me before dawn');
+ await p.click('#act'); await p.waitForTimeout(700); s=await S(p); assert.strictEqual(s.prefs.suhoorRem,true); r=await read(p); assert.strictEqual(r.actLbl,'Reminder at '+hhmm(Fn-.5),'the button shows the reminder time'); await shot(p,'ram-suhoor-on');
+ await p.click('#act'); await p.waitForTimeout(700); s=await S(p); assert.strictEqual(s.prefs.suhoorRem,false); assert.strictEqual((await read(p)).actLbl,'Remind me before dawn'); await p.context().close();
+ ok('Remind me before dawn: one tap on, the time half an hour before Fajr, another tap off');
 
  /* 3. the day counts down to iftar; picking Ramadan at night starts nothing */
  p=await open(seed(ramFast()),at(12)); r=await read(p); assert.strictEqual(r.k,'Iftar in'); assert(!r.streak); await p.context().close();
