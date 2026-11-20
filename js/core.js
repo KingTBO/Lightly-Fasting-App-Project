@@ -528,13 +528,40 @@ function trendPoints(body){
   return (body.checks||[]).map(function(c){ return {day:Math.round((c.at-body.at)/D),pct:Math.round((c.kg-body.kg)/body.kg*1000)/10}; })
     .filter(function(p){ return p.day>=1&&p.day<=400&&p.pct>=-30&&p.pct<=30; }).sort(function(a,b){ return a.day-b.day; });
 }
+/* Qibla: the great-circle direction from a place to the Kaaba (degrees clockwise from true north) and the distance there.
+   Phone compasses point to MAGNETIC north, which is 5 to 20 degrees off true north in many places (Shanghai about -7, Toronto about -10),
+   so the compass needs the declination: the World Magnetic Model WMM2025 (NOAA/BGS, public domain), degree 12, good to about half a degree
+   until its end date (Nov 2029); after that it drifts slowly, still far better than nothing. */
+var KAABA={lat:21.4225,lon:39.8262};
+function qibla(lat,lon){ var r=Math.PI/180, a=lat*r, b=KAABA.lat*r, dl=(KAABA.lon-lon)*r,
+  deg=Math.atan2(Math.sin(dl)*Math.cos(b),Math.cos(a)*Math.sin(b)-Math.sin(a)*Math.cos(b)*Math.cos(dl))/r,
+  h=Math.pow(Math.sin((b-a)/2),2)+Math.cos(a)*Math.cos(b)*Math.pow(Math.sin(dl/2),2);
+  return {deg:Math.round(((deg%360)+360)%360*10)/10, km:2*6371*Math.asin(Math.min(1,Math.sqrt(h)))}; }
+/* sixteen-point name of a direction, as a key the app translates: 285 -> 'wnw' */
+function compassPoint(deg){ return ['n','nne','ne','ene','e','ese','se','sse','s','ssw','sw','wsw','w','wnw','nw','nnw'][Math.round((((deg%360)+360)%360)/22.5)%16]; }
+/* how far to turn from a heading to a target: -180..180, positive = turn right (clockwise) */
+function turnBy(target,heading){ return ((((target-heading)%360)+540)%360)-180; }
+var WMM={ep:2025,g:[-29351.8,-1410.8,-2556.6,2951.1,1649.3,1361,-2404.1,1243.8,453.6,895,799.5,55.7,-281.1,12.1,-233.2,368.9,187.2,-138.7,-142,20.9,64.4,63.8,76.9,-115.7,-40.9,14.9,-60.7,79.5,-77,-8.8,59.3,15.8,2.5,-11.1,14.2,23.2,10.8,-17.5,2,-21.7,16.9,15,-16.8,0.9,4.6,7.8,3,-0.2,-2.5,-13.1,2.4,8.6,-8.7,-12.9,-1.3,-6.4,0.2,2,-1,-0.6,-0.9,1.5,0.9,-2.7,-3.9,2.9,-1.5,-2.5,2.4,-0.6,-0.1,-0.6,-0.1,1.1,-1,-0.2,2.6,-2,-0.2,0.3,1.2,-1.3,0.6,0.6,0.5,-0.1,-0.4,-0.2,-1.3,-0.7],h:[0,4545.4,0,-3133.6,-815.1,0,-56.6,237.5,-549.5,0,278.6,-133.9,212,-375.6,0,45.4,220.2,-122.9,43,106.1,0,-18.4,16.8,48.8,-59.8,10.9,72.7,0,-48.9,-14.4,-1,23.4,-7.4,-25.1,-2.3,0,7.1,-12.6,11.4,-9.7,12.7,0.7,-5.2,3.9,0,-24.8,12.2,8.3,-3.3,-5.2,7.2,-0.6,0.8,10,0,3.3,0,2.4,5.3,-9.1,0.4,-4.2,-3.8,0.9,-9.1,0,0,2.9,-0.6,0.2,0.5,-0.3,-1.2,-1.7,-2.9,-1.8,-2.3,0,-1.3,0.7,1,-1.4,0,0.6,-0.1,0.8,0.1,-1,0.1,0.2],gd:[12,9.7,-11.6,-5.2,-8,-1.3,-4.2,0.4,-15.6,-1.6,-2.4,-6,5.6,-7,0.6,1.4,0,0.6,2.2,0.9,-0.2,-0.4,0.9,1.2,-0.9,0.3,0.9,0,-0.1,-0.1,0.5,-0.1,-0.8,-0.8,0.8,-0.1,0.2,0,0.5,-0.1,0.3,0.2,0,0.2,0,-0.1,0.1,0.3,-0.3,0,0.3,-0.1,0.1,-0.1,0.1,0,0.1,0.1,0,-0.3,0,-0.1,-0.1,0,0,0,0,0,0,0,-0.1,0,0,-0.1,-0.1,-0.1,-0.1,0,0,0,0,0,0,0.1,0,0,0,-0.1,0,-0.1],hd:[0,-21.5,0,-27.7,-12.1,0,4,-0.3,-4.1,0,-1.1,4.1,1.6,-4.4,0,-0.5,2.2,0.4,1.7,1.9,0,0.3,-1.6,-0.4,0.9,0.7,0.9,0,0.6,0.5,-0.8,0,-1,0.6,-0.2,0,-0.2,0.5,-0.4,0.4,-0.5,-0.6,0.3,0.2,0,-0.3,0.3,-0.3,0.3,0.2,-0.1,-0.2,0.4,0.1,0,0,0,-0.2,0.1,-0.1,0.1,0,-0.1,0.2,0,0,0,0.1,0,0.1,0,0,0.1,0,0,0,0,0,0,0,-0.1,0.1,0,0,0,0,0,0,0,-0.1]};
+/* declination in degrees (east positive); year as a decimal (2027.1), height in km (0 = sea level). Spherical-harmonic sum as in the WMM report, Schmidt semi-normalised. */
+function magDecl(lat,lon,year,altKm){ var r=Math.PI/180, A=6378.137, f=1/298.257223563, e2=f*(2-f), RE=6371.2, alt=altKm||0, dt=year-WMM.ep,
+  phi=lat*r, sp=Math.sin(phi), N=A/Math.sqrt(1-e2*sp*sp), p=(N+alt)*Math.cos(phi), z=(N*(1-e2)+alt)*sp, rad=Math.sqrt(p*p+z*z), phc=Math.asin(z/rad),
+  ct=Math.sin(phc), st=Math.cos(phc), lam=lon*r, P=[[1]], dP=[[0]], S=[[1]], n, m, i=0, X=0, Y=0, Z=0;
+  for(n=1;n<=12;n++){ P[n]=[]; dP[n]=[]; S[n]=[]; for(m=0;m<=n;m++){
+    if(n===m){ P[n][m]=st*P[n-1][m-1]; dP[n][m]=st*dP[n-1][m-1]+ct*P[n-1][m-1]; }
+    else if(n===1){ P[n][m]=ct; dP[n][m]=-st; }
+    else { var K=((n-1)*(n-1)-m*m)/((2*n-1)*(2*n-3)), p2=m<=n-2?P[n-2][m]:0, d2=m<=n-2?dP[n-2][m]:0; P[n][m]=ct*P[n-1][m]-K*p2; dP[n][m]=ct*dP[n-1][m]-st*P[n-1][m]-K*d2; }
+    S[n][m]=m===0?(n===1?1:S[n-1][0]*(2*n-1)/n):S[n][m-1]*Math.sqrt((n-m+1)*(m===1?2:1)/(n+m));
+    var g=(WMM.g[i]+dt*WMM.gd[i])*S[n][m], h=(WMM.h[i]+dt*WMM.hd[i])*S[n][m], cm=Math.cos(m*lam), sm=Math.sin(m*lam), ar=Math.pow(RE/rad,n+2); i++;
+    X+=ar*(g*cm+h*sm)*dP[n][m]; Y+=ar*m*(g*sm-h*cm)*P[n][m]/(st||1e-9); Z-=ar*(n+1)*(g*cm+h*sm)*P[n][m]; } }
+  var psi=phc-phi, Xg=X*Math.cos(psi)-Z*Math.sin(psi);
+  return Math.atan2(Y,Xg)/r; }
 function trendBuckets(points){
   var out=[]; [30,60,90].forEach(function(t){ var best=null;
     (points||[]).forEach(function(p){ var d=Math.abs(p.day-t); if(d<=15&&(!best||d<best.d||(d===best.d&&p.day>best.p.day))) best={d:d,p:p}; });
     if(best) out.push({day:t,pct:best.p.pct}); });
   return out;
 }
-var api={H:H,D:D,CITIES:CITIES,guessCity:guessCity,zoneSpot:zoneSpot,zoneName:zoneName,deviceZone:deviceZone,placeFix:placeFix,searchCities:searchCities,hereStale:hereStale,country:country,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,dawnHour:dawnHour,prayerTimes:prayerTimes,setPrayerMethod:setPrayerMethod,PRAYER_METHODS:PRAYER_METHODS,ramadanPhase:ramadanPhase,RAM_IFTAR:RAM_IFTAR,RAM_COUNT:RAM_COUNT,ramadanHold:ramadanHold,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
+var api={H:H,D:D,qibla:qibla,compassPoint:compassPoint,turnBy:turnBy,magDecl:magDecl,KAABA:KAABA,CITIES:CITIES,guessCity:guessCity,zoneSpot:zoneSpot,zoneName:zoneName,deviceZone:deviceZone,placeFix:placeFix,searchCities:searchCities,hereStale:hereStale,country:country,zoneOffset:zoneOffset,placeInfo:placeInfo,placeHour:placeHour,solar:solar,sunTimes:sunTimes,fajrHour:fajrHour,dawnHour:dawnHour,prayerTimes:prayerTimes,setPrayerMethod:setPrayerMethod,PRAYER_METHODS:PRAYER_METHODS,ramadanPhase:ramadanPhase,RAM_IFTAR:RAM_IFTAR,RAM_COUNT:RAM_COUNT,ramadanHold:ramadanHold,moonAmt:moonAmt,skyAt:skyAt,nextTurn:nextTurn,discFill:discFill,BODY:BODY,bodyStage:bodyStage,bodyShown:bodyShown,
   PLANS:PLANS,planById:planById,planLabel:planLabel,ramadanDay:ramadanDay,moonAge:moonAge,moonPhase:moonPhase,ramadanSeason:ramadanSeason,ramadanCal:ramadanCal,setRamadanAdjust:setRamadanAdjust,hijri:hijri,RAMADAN:RAMADAN,dayKey:dayKey,keyToDate:keyToDate,addDays:addDays,mondayOf:mondayOf,hours:hours,isDone:isDone,longStatus:longStatus,longNote:longNote,planStatus:planStatus,CARE_KEYS:CARE_KEYS,CARE_WAIT:CARE_WAIT,CARE_UNDO:CARE_UNDO,careOn:careOn,customMax:customMax,CUSTOM_MIN:CUSTOM_MIN,careEase:careEase,weightFit:weightFit,trendPoints:trendPoints,trendBuckets:trendBuckets,kgTo:kgTo,toKg:toKg,WUNIT:WUNIT,planStatusLabel:planStatusLabel,
   OFF_MAX:OFF_MAX,offKeys:offKeys,offActive:offActive,offDayNo:offDayNo,fastDays:fastDays,dayStatus:dayStatus,streak:streak,flexRefill:flexRefill,flexBlock:flexBlock,finished:finished,totals:totals,weekAvgs:weekAvgs,monthAvgs:monthAvgs,monthRecap:monthRecap,monthReport:monthReport,skySplit:skySplit,FEELS:FEELS,feelOf:feelOf,feelCount:feelCount};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.LightlyCore=api;

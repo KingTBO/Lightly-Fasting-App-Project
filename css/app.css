@@ -1275,3 +1275,21 @@ html:lang(zh-Hans) .fr-h{letter-spacing:0}
 .pt-arr.l{left:16px}.pt-arr.r{right:16px}
 .pt-arr svg{width:8px;height:14px;fill:none;stroke:var(--label);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pt-arr:disabled{opacity:.35}
+/* Qibla compass: the dial turns with the phone; the pointer on top is where the phone faces; gold ring when facing the Qibla */
+.qb{padding:4px 0 0}
+.qb-c{display:block;width:min(300px,78vw);height:auto;margin:0 auto;overflow:visible}
+.qb-c line{stroke:var(--label-3);stroke-width:1.2;stroke-linecap:round}.qb-c line.big{stroke:var(--label);stroke-width:2}
+.qb-c text{font:500 19px var(--font-d);fill:var(--label-2);text-anchor:middle}.qb-c text.nn{font-weight:700;fill:#E0453A}
+.qb-c .ring{fill:none;stroke:var(--fill-2);stroke-width:1.5;transition:stroke .3s,stroke-width .3s}
+.qb-c .glow{fill:#FFCC00;opacity:0;transition:opacity .3s}
+.qb-c .arc{fill:none;stroke:#FFCC00;stroke-width:5;stroke-linecap:round;opacity:.85}
+.qb-c .kb rect{fill:#2C2C2E;stroke:rgba(255,255,255,.25);stroke-width:1.5}.qb-c .kb rect.band{fill:#E6B422;stroke:none}
+.qb-c .ptr{fill:var(--label)}
+.qb-c .still line{stroke:#FFCC00;stroke-width:5}.qb-c .still circle{fill:#FFCC00}
+.qb-c text.big{font:600 46px var(--font-r);fill:var(--label);font-variant-numeric:tabular-nums}.qb-c text.big.w{font:700 30px var(--font-d)}
+.qb-c text.sm{font:400 17px var(--font);fill:var(--label-2)}
+.qb[data-st=still] .ptr,.qb[data-st=still] .arc{display:none}
+.qb:not([data-st=still]) .still{display:none}
+.qb[data-st=face] .ring{stroke:#FFCC00;stroke-width:5}.qb[data-st=face] .glow{opacity:.1}.qb[data-st=face] .ptr{fill:#FFCC00}.qb[data-st=face] .kb rect:first-child{stroke:#FFCC00}
+.sheet .gf.qb-f{text-align:center;padding:6px 24px;min-height:2.8em}
+.qb-rough{padding:14px 16px}.qb-rough b{display:block;font:600 1rem var(--font);margin-bottom:4px}.qb-rough p{font:400 0.9375rem/1.4 var(--font);color:var(--label-2);margin:0 0 12px}.qb-rough .btn{width:100%}
