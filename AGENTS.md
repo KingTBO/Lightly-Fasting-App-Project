@@ -65,7 +65,7 @@ NODE_PATH=$(npm root -g) node tests/ramadan-day.test.js      # the Ramadan day: 
 NODE_PATH=$(npm root -g) node tests/ramadan-eid.test.js      # first day and Eid: a day later waits on the calendar's day 1, This Ramadan in Me, the evening of day 29 asks about Eid, Not yet gives day 30, 中文, 320 px (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/ramadan-moons.test.js    # Moons: the Days tab in Ramadan mode, days mark themselves at sunset once, tiles, rings, odd nights, a day's Kept / Not fasting / Made up, days to make up in Moons and Me, 中文, dark, 320 px (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/ramadan-night.test.js    # Ramadan after sunset: a running fast ends at sunset, Iftar, the night shows when suhoor ends (countdown only in the last two hours), no Start and no streak card, 中文, 320 px, concept page (about 40 seconds)
-NODE_PATH=$(npm root -g) node tests/ramadan-prayers.test.js  # prayer times in Ramadan mode: dots on the arc, "Next: Asr", the sheet and its countdown, method and Asr, reminders, the strip of days, Me row, after Isha, 中文 (about 40 seconds)
+NODE_PATH=$(npm root -g) node tests/ramadan-prayers.test.js  # prayer times in Ramadan mode: dots on the arc, "Next: Asr", the sheet and its countdown, method and Asr, reminders, This month (what changes, any day), Me row, after Isha, 中文 (about 40 seconds)
 NODE_PATH=$(npm root -g) node tests/care.test.js              # Care mode: health answers, plan caps, no streaks or cheat days, the 14-day wait (about 30 seconds)
 NODE_PATH=$(npm root -g) node tests/flow.test.js              # end-to-end flows, about 2 minutes, needs Playwright
 NODE_PATH=$(npm root -g) node qa/run-app.js --screens=idle    # alignment check for one scenario (idle, mid, goal, eat, empty, ob)

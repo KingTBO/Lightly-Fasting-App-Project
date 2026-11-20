@@ -572,9 +572,8 @@ function prayArc(a0,a1,now){ var g=$('prayG'), hit=$('prayBtn'); if(!g) return;
     o+='<circle class="pd'+(past?' past':'')+'" cx="'+q.x.toFixed(1)+'" cy="'+q.y.toFixed(1)+'" r="'+(nxt?5.5:4.5)+'"/><text class="pl'+(nxt?' nx':'')+'" x="'+Math.min(Math.max(q.x,22),320).toFixed(1)+'" y="'+(q.y-11).toFixed(1)+'" text-anchor="middle">'+prName(d.k)+'</text>'; });
   g.innerHTML=o; hit.setAttribute('aria-label',L('Prayer times. Next: ','礼拜时间。下一次：')+prName(nx.k)+' '+clockMs(nx.at)); }
 /* the sheet: next prayer and its countdown, the day's sun path (above the line is day; filled dots have passed, the sun or moon is now, hollow dots are ahead), the six times */
-function prayerSheet(selK){ if(!prayOn()) return; var now=Date.now(), nx=prayNext(now), liveK=C.dayKey(nx.tmr?nx.at:now), k=selK&&selK!==liveK?selK:null, live=!k, td=today(), s=ramSeasonNow();
-  /* B (Tengbo, 2026-11-20): no timetable screen. A strip of the month's days sits on top; tap one and the same card shows that day */
-  var t=live?(nx.tmr?nx.day:prayDay(now)):prayDay(C.keyToDate(k).getTime()+12*H), p2=C.placeInfo(S.place,now), hp=live&&!nx.tmr?C.placeHour(p2,now):-1, base=t.fajr-C.placeHour(p2,t.fajr)*H;
+function prayerSheet(){ if(!prayOn()) return; var now=Date.now(), nx=prayNext(now), live=true;
+  var t=nx.tmr?nx.day:prayDay(now), p2=C.placeInfo(S.place,now), hp=live&&!nx.tmr?C.placeHour(p2,now):-1, base=t.fajr-C.placeHour(p2,t.fajr)*H;
   var hr=function(ms){ return (ms-base)/H; }, W=326, Hh=118, hz=72, amp=56, noon=hr(t.dhuhr)-2/60, c0=Math.cos(2*Math.PI*(hr(t.sunrise)-noon)/24),
       v=function(x){ return (Math.cos(2*Math.PI*(x-noon)/24)-c0)/(1-c0); }, X=function(x){ return 8+(W-16)*Math.min(Math.max(x,0),24)/24; }, Y=function(x){ var y=v(x); return hz-amp*y*(y>0?1:.35); };
   var d='', i; for(i=0;i<=96;i++){ d+=(i?'L':'M')+X(i/4).toFixed(1)+' '+Y(i/4).toFixed(1); }
@@ -583,23 +582,29 @@ function prayerSheet(selK){ if(!prayOn()) return; var now=Date.now(), nx=prayNex
   var svg='<svg class="pr-sky" viewBox="0 0 '+W+' '+Hh+'" aria-hidden="true"><defs><clipPath id="prUp"><rect width="'+W+'" height="'+hz+'"/></clipPath><clipPath id="prPast"><rect width="'+(hp>=0?X(hp):0).toFixed(1)+'" height="'+Hh+'"/></clipPath></defs>'+
     '<path class="day" d="'+d+' L'+X(24)+' '+hz+' L'+X(0)+' '+hz+'Z" clip-path="url(#prUp)"/><line class="hz" x1="0" x2="'+W+'" y1="'+hz+'" y2="'+hz+'"/><path class="cv" d="'+d+'"/><path class="cv done" d="'+d+'" clip-path="url(#prPast)"/>'+dots+nowDot+'</svg>';
   var row=PRAYERS.map(function(x){ var n=live&&x[0]===nx.k; return '<div class="pr-c'+(n?' nx':'')+'"><span>'+prName(x[0])+'</span><b>'+clockMs(t[x[0]])+'</b></div>'; }).join('');
-  var m=prMethod(), dl=dateLbl(t.dhuhr,{weekday:'short',month:'short',day:'numeric'}), sel=k||liveK, strip='', dn=0;
-  if(s) for(i=0;i<s.days;i++){ var dk=C.addDays(s.start,i), on=dk===sel; if(dk===sel) dn=i+1;
-    strip+='<button type="button" class="pr-d'+(dk===td?' td':'')+'" data-act="prday" data-k="'+dk+'" aria-pressed="'+on+'" aria-label="'+L('Day '+(i+1),'第 '+(i+1)+' 天')+', '+dateLbl(C.keyToDate(dk).getTime(),{weekday:'long',month:'long',day:'numeric'})+(dk===td?', '+L('today','今天'):'')+'"><span>'+dateLbl(C.keyToDate(dk).getTime(),{weekday:'short'})+'</span>'+moonIco(dk,22)+'<b>'+(i+1)+'</b></button>'; }
-  var top, mid;
-  if(live){ top='<span>'+(nx.tmr?L('Next prayer, tomorrow','下一次礼拜，明天'):L('Next prayer','下一次礼拜'))+'</span>';
-    mid='<b>'+prName(nx.k)+'</b><span id="prCd" role="timer" aria-label="'+L('Time until ','距离')+prName(nx.k)+'">'+hms((nx.at-now)/1000)+'</span>'; }
-  else{ var gap=Math.round((C.keyToDate(k)-C.keyToDate(td))/D);
-    top='<span>'+(dn?L('Day '+dn,'第 '+dn+' 天')+' · ':'')+dl+'</span>';
-    mid='<b>'+(gap===1?L('Tomorrow','明天'):gap===-1?L('Yesterday','昨天'):gap>1?L('In '+gap+' days',gap+' 天后'):L(-gap+' days ago',(-gap)+' 天前'))+'</b><button type="button" class="pr-back" data-act="prday" data-k="'+liveK+'">'+L('Back to today','回到今天')+'</button>'; }
-  var sl=$('prDays')?$('prDays').scrollLeft:null;
-  openSheet('<h3>'+L('Prayer times','礼拜时间')+'</h3>'+(strip?'<div class="pr-days" id="prDays" role="group" aria-label="'+L('Days of Ramadan','斋月的日子')+'">'+strip+'</div>':'')+
-    '<div class="group pr-card"><div class="pr-top">'+top+'<span class="pr-chip">'+esc(placeName())+'</span></div><div class="pr-nx">'+mid+'</div>'+svg+'<div class="pr-row">'+row+'</div></div>'+
-    '<p class="gf">'+(live?dl+' · ':'')+L(m[1],m[2])+' · '+(S.pray.asr===2?L('Asr Hanafi','晡礼：哈乃斐'):L('Asr standard','晡礼：标准'))+L('. Worked out on this phone.','。在这台手机上计算。')+'</p>'+
+  var m=prMethod(), dl=dateLbl(t.dhuhr,{weekday:'short',month:'short',day:'numeric'});
+  openSheet('<h3>'+L('Prayer times','礼拜时间')+'</h3><div class="group pr-card"><div class="pr-top"><span>'+(nx.tmr?L('Next prayer, tomorrow','下一次礼拜，明天'):L('Next prayer','下一次礼拜'))+'</span><span class="pr-chip">'+esc(placeName())+'</span></div>'+
+    '<div class="pr-nx"><b>'+prName(nx.k)+'</b><span id="prCd" role="timer" aria-label="'+L('Time until ','距离')+prName(nx.k)+'">'+hms((nx.at-now)/1000)+'</span></div>'+svg+'<div class="pr-row">'+row+'</div></div>'+
+    '<p class="gf">'+dl+' · '+L(m[1],m[2])+' · '+(S.pray.asr===2?L('Asr Hanafi','晡礼：哈乃斐'):L('Asr standard','晡礼：标准'))+L('. Worked out on this phone.','。在这台手机上计算。')+'</p>'+
     '<div class="group"><button class="row" data-act="prmethod"><span>'+L('Calculation method','计算方法')+'</span><span class="v">'+L(PMSHORT[m[0]][0],PMSHORT[m[0]][1])+'</span>'+CHEV+'</button>'+
-    '<button class="row" data-act="prrem"><span>'+L('Reminders','提醒')+'</span><span class="v">'+prRemTxt()+'</span>'+CHEV+'</button></div>');
-  var ds=$('prDays'); if(ds){ if(sl!=null) ds.scrollLeft=sl; else { var c=ds.querySelector('[aria-pressed=true]'); if(c) ds.scrollLeft=c.offsetLeft-(ds.clientWidth-c.offsetWidth)/2; } }
-  prCdAt=live?nx.at:0; }
+    '<button class="row" data-act="prrem"><span>'+L('Reminders','提醒')+'</span><span class="v">'+prRemTxt()+'</span>'+CHEV+'</button>'+
+    '<button class="row" data-act="prtable"><span>'+L('This month’s timetable','本月时间表')+'</span>'+CHEV+'</button></div>');
+  prCdAt=nx.at; }
+/* This month's timetable (C, Tengbo 2026-11-20: a table of numbers is too messy). Only what changes over the month: when suhoor ends and when iftar comes,
+   first day to last. Then any one day, stepped with arrows, with its six times. */
+function prTableSheet(k){ var s=ramSeasonNow(); if(!s) return; var td=today(), last=C.addDays(s.start,s.days-1);
+  if(!k) k=td>=s.start&&td<=last?td:s.start; var n=Math.round((C.keyToDate(k)-C.keyToDate(s.start))/D)+1;
+  var dayAt=function(x){ return prayDay(C.keyToDate(x).getTime()+12*H); };
+  var a=dayAt(s.start), z=dayAt(last), t=dayAt(k);
+  function line(lbl,x,y){ var mn=function(ms){ var c=clockMs(ms).split(':'); return +c[0]*60+ +c[1]; }, d=mn(y)-mn(x), by=L(' by day '+s.days,'（到第 '+s.days+' 天）');
+    return '<div class="row"><span class="stack"><span>'+lbl+'</span><small>'+(d===0?L('The same all month','整个月不变'):d<0?L(-d+' min earlier'+by,'提前 '+(-d)+' 分钟'+by):L(d+' min later'+by,'推迟 '+d+' 分钟'+by))+'</small></span><span class="v pt-ch">'+clockMs(x)+'<i aria-hidden="true">→</i>'+clockMs(y)+'</span></div>'; }
+  var gap=Math.round((C.keyToDate(k)-C.keyToDate(td))/D), rel=gap===0?L('Today','今天'):gap===1?L('Tomorrow','明天'):gap===-1?L('Yesterday','昨天'):gap>1?L('In '+gap+' days',gap+' 天后'):L(-gap+' days ago',(-gap)+' 天前');
+  var prev=k>s.start?C.addDays(k,-1):'', next=k<last?C.addDays(k,1):'';
+  var arrow=function(to,dir){ return '<button type="button" class="pt-arr" data-act="prstep" data-k="'+to+'"'+(to?'':' disabled')+' aria-label="'+(dir<0?L('Day before','前一天'):L('Day after','后一天'))+'"><svg viewBox="0 0 8 14" aria-hidden="true"><path d="'+(dir<0?'M6.5 1.5 1 7l5.5 5.5':'M1.5 1.5 7 7l-5.5 5.5')+'"/></svg></button>'; };
+  openSheet('<h3>'+L('This month','本月')+'</h3><div class="group">'+line(L('Suhoor ends','封斋结束'),a.fajr,z.fajr)+line(L('Iftar','开斋'),a.maghrib,z.maghrib)+'</div>'+
+    '<div class="gh">'+L('Any day','任意一天')+'</div><div class="group pr-card"><div class="pt-day">'+arrow(prev,-1)+'<span role="status" aria-live="polite"><b>'+L('Day '+n,'第 '+n+' 天')+'</b><small>'+dateLbl(C.keyToDate(k).getTime(),{weekday:'short',month:'short',day:'numeric'})+' · '+rel+'</small></span>'+arrow(next,1)+'</div>'+
+    '<div class="pr-row">'+PRAYERS.map(function(x){ return '<div class="pr-c"><span>'+prName(x[0])+'</span><b>'+clockMs(t[x[0]])+'</b></div>'; }).join('')+'</div></div>'+
+    '<div class="btns"><button class="btn sec" data-act="prback">'+L('Done','完成')+'</button></div>',prayerSheet); }
 var prCdAt=0;
 /* the open sheet's countdown, every second; when it reaches the prayer the sheet moves on to the next one */
 function prayTick(now){ if(!sheetOpen||!prCdAt) return; var el=$('prCd'); if(!el){ prCdAt=0; return; } if(now>=prCdAt){ prayerSheet(); return; } el.textContent=hms((prCdAt-now)/1000); }
@@ -2251,7 +2256,8 @@ var A={
   prrem:function(){ prRemSheet(); },
   prremk:function(b){ prRemToggle(b.dataset.k); },
   prback:function(){ prayerSheet(); },
-  prday:function(b){ fx('select'); prayerSheet(b.dataset.k); },
+  prtable:function(){ prTableSheet(); },
+  prstep:function(b){ if(!b.dataset.k) return; fx('select'); prTableSheet(b.dataset.k); },
   rammade:function(b){ var k=b.dataset.k; if(S.ramOff.indexOf(k)<0) return; S.ramMade[k]=today(); save(); fx('select'); cache={}; if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); ramMakeupSheet(); toast(L('Marked as made up.','已标记为已补。')); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
