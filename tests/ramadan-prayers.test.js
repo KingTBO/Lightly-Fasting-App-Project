@@ -3,7 +3,7 @@
       Fajr and Maghrib are left to the line above them (suhoor ends, iftar). Outside Ramadan mode none of this shows.
    2. Tapping the arc opens Prayer times: the next prayer and its countdown, the day's sun path, the six times with the next one marked.
    3. Calculation method and Asr Hanafi change the times, and Fajr on Today follows the method.
-   4. Reminders per prayer, This month's timetable (what changes, then any day with arrows), the Me row. Night, after Isha: tomorrow's Fajr. 中文.
+   4. Reminders per prayer, This month's timetable (what changes, then any day with arrows or a swipe), the Me row. Night, after Isha: tomorrow's Fajr. 中文.
    NODE_PATH=$(npm root -g) node tests/ramadan-prayers.test.js   (SHOTS=<dir> also saves pictures) */
 const assert=require('assert'),http=require('http'),fs=require('fs'),path=require('path');
 const {chromium}=require('playwright'); const root=path.join(__dirname,'..'); const C=require('../js/core.js');
@@ -55,11 +55,28 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{
  assert(/This month .*Suhoor ends 26 min earlier by day 29 05:19 → 04:53 Iftar 22 min later by day 29 17:34 → 17:56 Any day Day 13 Sat, Feb 20 · Today Fajr 05:10 Sunrise 06:31 Dhuhr 12:10 Asr 15:19 Maghrib 17:44 Isha 19:00/.test(tx),tx.slice(0,500)); await shot(p,'pr-table');
  await p.click('#sheet .pt-arr[aria-label="Day after"]'); await p.waitForTimeout(300); tx=await sheetTxt(p); assert(/Day 14 Sun, Feb 21 · Tomorrow Fajr 05:09/.test(tx),tx.slice(0,500));
  await p.click('#sheet .pt-arr[aria-label="Day before"]'); await p.click('#sheet .pt-arr[aria-label="Day before"]'); await p.waitForTimeout(300); assert(/Day 12 Fri, Feb 19 · Yesterday/.test(await sheetTxt(p)));
- for(let i=0;i<11;i++){ await p.click('#sheet .pt-arr[aria-label="Day before"]'); } await p.waitForTimeout(300); assert(/Day 1 Mon, Feb 8 · 12 days ago/.test(await sheetTxt(p))); assert(await p.$eval('#sheet .pt-arr[aria-label="Day before"]',b=>b.disabled),'no day before day 1');
+ for(let i=0;i<11;i++){ await p.click('#sheet .pt-arr[aria-label="Day before"]'); } await p.waitForTimeout(300); assert(/Day 1 Mon, Feb 8 · 12 days ago/.test(await sheetTxt(p))); assert(await p.$eval('#sheet .pt-arr.l',b=>b.disabled),'no day before day 1');
  await p.click('#sheet [data-act=prback]'); await p.waitForSelector('#sheet .pr-card #prCd');
  await p.click('#sheet [data-act=close]'); await p.waitForTimeout(400); await tab(p,'me'); assert(/Prayer times\s*Asr 15:19/.test(await t(p,'me')));
  await p.click('#me [data-act=prayers]'); await p.waitForSelector('#sheet .pr-card'); await p.context().close();
  ok('Today shows the prayers on the arc and the next one; the sheet, method, Asr, reminders, timetable and Me row work');
+
+ /* 4b. swipe between days on Any day (v0.121.0): left is the next day, right the day before; vertical drags scroll; it gives at day 1 */
+ { const ctx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,hasTouch:true,isMobile:true,timezoneId:'Asia/Shanghai'}); p=await ctx.newPage(); p.on('pageerror',e=>errs.push(e.message));
+   await ctx.route('**/js/config.js',rt=>rt.fulfill({contentType:'text/javascript',body:'window.LIGHTLY_CLOUD=null;'})); await p.addInitScript(s=>{ localStorage.setItem('lightly:v1',JSON.stringify(s)); },seed());
+   await p.clock.setFixedTime(new Date(at(20,14))); await p.goto('http://localhost:'+port+'/'); await p.waitForTimeout(1300); const cdp=await ctx.newCDPSession(p);
+   const swipe=async(x0,y0,x1,y1)=>{ const send=(type,x,y)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]}); await send('touchStart',x0,y0); for(let i=1;i<=8;i++){ await send('touchMove',x0+(x1-x0)*i/8,y0+(y1-y0)*i/8); await p.waitForTimeout(12); } await send('touchEnd'); await p.waitForTimeout(800); };
+   const dayTxt=()=>p.$$eval('#prAny .pt-day b',a=>a.map(x=>x.textContent).join('|'));
+   await p.click('#prayBtn'); await p.waitForSelector('#sheet .pr-card'); await p.click('#sheet [data-act=prtable]'); await p.waitForSelector('#prAny'); await p.waitForTimeout(600);
+   const r=await p.$eval('#prAny .pr-row',e=>{ const b=e.getBoundingClientRect(); return {x:b.left+b.width/2,y:b.top+b.height/2}; });
+   await swipe(r.x+120,r.y,r.x-120,r.y); assert.strictEqual(await dayTxt(),'Day 14','swipe left: the next day');
+   await swipe(r.x-120,r.y,r.x+120,r.y); await swipe(r.x-120,r.y,r.x+120,r.y); assert.strictEqual(await dayTxt(),'Day 12','swipe right: the day before');
+   await swipe(r.x,r.y,r.x+10,r.y-120); assert.strictEqual(await dayTxt(),'Day 12','a vertical drag does not change the day');
+   await swipe(r.x,r.y,r.x-30,r.y); assert.strictEqual(await dayTxt(),'Day 12','a short drag springs back');
+   assert.strictEqual(await p.$eval('#prAny .pt-pg',e=>e.style.transform),'translateX(0px)');
+   for(let i=0;i<11;i++){ await p.click('#prAny .pt-arr.l'); await p.waitForTimeout(600); } assert.strictEqual(await dayTxt(),'Day 1'); assert(await p.$eval('#prAny .pt-arr.l',b=>b.disabled));
+   await swipe(r.x-120,r.y,r.x+120,r.y); assert.strictEqual(await dayTxt(),'Day 1','gives at day 1');
+   await ctx.close(); ok('swipe between days: left next, right before, vertical ignored, short drag springs back, day 1 holds'); }
 
  /* 5. evening: Isha ahead; after Isha the next is tomorrow's Fajr and the line stays quiet */
  p=await open(seed(),at(20,18,10),{dark:true}); assert.strictEqual(await t(p,'readAlt'),'Next: Isha 19:00'); assert.deepStrictEqual(await labels(p),['Isha']);

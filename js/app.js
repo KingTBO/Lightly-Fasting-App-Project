@@ -593,18 +593,43 @@ function prayerSheet(){ if(!prayOn()) return; var now=Date.now(), nx=prayNext(no
 /* This month's timetable (C, Tengbo 2026-11-20: a table of numbers is too messy). Only what changes over the month: when suhoor ends and when iftar comes,
    first day to last. Then any one day, stepped with arrows, with its six times. */
 function prTableSheet(k){ var s=ramSeasonNow(); if(!s) return; var td=today(), last=C.addDays(s.start,s.days-1);
-  if(!k) k=td>=s.start&&td<=last?td:s.start; var n=Math.round((C.keyToDate(k)-C.keyToDate(s.start))/D)+1;
+  if(!k) k=td>=s.start&&td<=last?td:s.start;
   var dayAt=function(x){ return prayDay(C.keyToDate(x).getTime()+12*H); };
-  var a=dayAt(s.start), z=dayAt(last), t=dayAt(k);
+  var a=dayAt(s.start), z=dayAt(last);
   function line(lbl,x,y){ var mn=function(ms){ var c=clockMs(ms).split(':'); return +c[0]*60+ +c[1]; }, d=mn(y)-mn(x), by=L(' by day '+s.days,'（到第 '+s.days+' 天）');
     return '<div class="row"><span class="stack"><span>'+lbl+'</span><small>'+(d===0?L('The same all month','整个月不变'):d<0?L(-d+' min earlier'+by,'提前 '+(-d)+' 分钟'+by):L(d+' min later'+by,'推迟 '+d+' 分钟'+by))+'</small></span><span class="v pt-ch">'+clockMs(x)+'<i aria-hidden="true">→</i>'+clockMs(y)+'</span></div>'; }
-  var gap=Math.round((C.keyToDate(k)-C.keyToDate(td))/D), rel=gap===0?L('Today','今天'):gap===1?L('Tomorrow','明天'):gap===-1?L('Yesterday','昨天'):gap>1?L('In '+gap+' days',gap+' 天后'):L(-gap+' days ago',(-gap)+' 天前');
-  var prev=k>s.start?C.addDays(k,-1):'', next=k<last?C.addDays(k,1):'';
-  var arrow=function(to,dir){ return '<button type="button" class="pt-arr" data-act="prstep" data-k="'+to+'"'+(to?'':' disabled')+' aria-label="'+(dir<0?L('Day before','前一天'):L('Day after','后一天'))+'"><svg viewBox="0 0 8 14" aria-hidden="true"><path d="'+(dir<0?'M6.5 1.5 1 7l5.5 5.5':'M1.5 1.5 7 7l-5.5 5.5')+'"/></svg></button>'; };
   openSheet('<h3>'+L('This month','本月')+'</h3><div class="group">'+line(L('Suhoor ends','封斋结束'),a.fajr,z.fajr)+line(L('Iftar','开斋'),a.maghrib,z.maghrib)+'</div>'+
-    '<div class="gh">'+L('Any day','任意一天')+'</div><div class="group pr-card"><div class="pt-day">'+arrow(prev,-1)+'<span role="status" aria-live="polite"><b>'+L('Day '+n,'第 '+n+' 天')+'</b><small>'+dateLbl(C.keyToDate(k).getTime(),{weekday:'short',month:'short',day:'numeric'})+' · '+rel+'</small></span>'+arrow(next,1)+'</div>'+
-    '<div class="pr-row">'+PRAYERS.map(function(x){ return '<div class="pr-c"><span>'+prName(x[0])+'</span><b>'+clockMs(t[x[0]])+'</b></div>'; }).join('')+'</div></div>'+
-    '<div class="btns"><button class="btn sec" data-act="prback">'+L('Done','完成')+'</button></div>',prayerSheet); }
+    '<div class="gh">'+L('Any day','任意一天')+'</div><div class="group pr-card pt-any" id="prAny">'+prArrow(-1)+prArrow(1)+'<div class="pt-vp"><div class="pt-pg">'+prAnyPage(k)+'</div></div></div>'+
+    '<div class="btns"><button class="btn sec" data-act="prback">'+L('Done','完成')+'</button></div>',prayerSheet);
+  prAnyK=k; prArrows(); }
+/* Any day: one day's six times. The arrows step a day; a swipe does too (v0.121.0, Tengbo): the card follows the finger, gives at day 1 and the last day,
+   and on release the old and new day move side by side, like the days on a Friends group */
+var prAnyK='', prAnyBusy=false;
+function prArrow(dir){ return '<button type="button" class="pt-arr '+(dir<0?'l':'r')+'" data-act="prstep" data-d="'+dir+'" aria-label="'+(dir<0?L('Day before','前一天'):L('Day after','后一天'))+'"><svg viewBox="0 0 8 14" aria-hidden="true"><path d="'+(dir<0?'M6.5 1.5 1 7l5.5 5.5':'M1.5 1.5 7 7l-5.5 5.5')+'"/></svg></button>'; }
+function prAnyNext(k,dir){ var s=ramSeasonNow(); if(!s) return ''; var to=C.addDays(k,dir), last=C.addDays(s.start,s.days-1); return to<s.start||to>last?'':to; }
+function prArrows(){ var c=$('prAny'); if(!c) return; [-1,1].forEach(function(d){ var b=c.querySelector('.pt-arr.'+(d<0?'l':'r')); if(b) b.disabled=!prAnyNext(prAnyK,d); }); }
+function prAnyPage(k){ var s=ramSeasonNow(), td=today(), n=Math.round((C.keyToDate(k)-C.keyToDate(s.start))/D)+1, t=prayDay(C.keyToDate(k).getTime()+12*H), gap=Math.round((C.keyToDate(k)-C.keyToDate(td))/D);
+  var rel=gap===0?L('Today','今天'):gap===1?L('Tomorrow','明天'):gap===-1?L('Yesterday','昨天'):gap>1?L('In '+gap+' days',gap+' 天后'):L(-gap+' days ago',(-gap)+' 天前');
+  return '<div class="pt-day" role="status" aria-live="polite"><b>'+L('Day '+n,'第 '+n+' 天')+'</b><small>'+dateLbl(C.keyToDate(k).getTime(),{weekday:'short',month:'short',day:'numeric'})+' · '+rel+'</small></div>'+
+    '<div class="pr-row">'+PRAYERS.map(function(x){ return '<div class="pr-c"><span>'+prName(x[0])+'</span><b>'+clockMs(t[x[0]])+'</b></div>'; }).join('')+'</div>'; }
+/* move to the next (dir 1) or previous (dir -1) day; from = where the old page already is, in px (a drag) */
+function prAnyGo(dir,from){ var to=prAnyNext(prAnyK,dir), vp=document.querySelector('#prAny .pt-vp'), old=vp&&vp.querySelector('.pt-pg'); if(!to||!old||prAnyBusy) return false;
+  prAnyK=to; prArrows(); fx('select'); var pg=document.createElement('div'); pg.className='pt-pg'; pg.innerHTML=prAnyPage(to); var W=vp.clientWidth||300; from=from||0;
+  if(reduce){ old.remove(); pg.style.opacity='0'; vp.appendChild(pg); void pg.offsetWidth; pg.style.transition='opacity .18s'; pg.style.opacity='1'; return true; }
+  prAnyBusy=true; pg.style.position='absolute'; pg.style.left='16px'; pg.style.top='0'; pg.style.width='calc(100% - 32px)'; pg.style.transform='translateX('+(from+dir*W)+'px)'; old.style.transform='translateX('+from+'px)'; vp.appendChild(pg); void pg.offsetWidth;
+  var ease='transform .52s cubic-bezier(.22,1,.36,1)'; old.style.transition=ease; pg.style.transition=ease; old.style.transform='translateX('+(-dir*W)+'px)'; pg.style.transform='translateX(0)';
+  setTimeout(function(){ old.remove(); pg.style.position=''; pg.style.left=''; pg.style.top=''; pg.style.transition=''; pg.style.transform=''; pg.style.width=''; prAnyBusy=false; },540); return true; }
+(function(){ var on=false, live=false, x0=0, y0=0, dx=0, t0=0, pg=null;
+  document.addEventListener('pointerdown',function(e){ var vp=e.target.closest&&e.target.closest('#prAny .pt-vp'); if(!vp||prAnyBusy||(e.pointerType==='mouse'&&e.button)) return;
+    var r=vp.getBoundingClientRect(); if(e.clientX<r.left+20&&e.clientX<20) return;   /* the screen's edge stays with the phone */
+    on=true; live=false; x0=e.clientX; y0=e.clientY; dx=0; t0=performance.now(); pg=vp.querySelector('.pt-pg'); });
+  document.addEventListener('pointermove',function(e){ if(!on||!pg) return; var mx=e.clientX-x0, my=e.clientY-y0;
+    if(!live){ if(Math.abs(mx)<8&&Math.abs(my)<8) return; if(Math.abs(my)>Math.abs(mx)){ on=false; return; } live=true; pg.style.transition='none'; }
+    dx=mx; var can=!!prAnyNext(prAnyK,dx<0?1:-1); pg.style.transform='translateX('+(can?dx:dx*.3)+'px)'; });   /* gives at the first and last day */
+  function end(){ if(!on) return; on=false; if(!live||!pg) return; live=false; var v=Math.abs(dx)/Math.max(1,performance.now()-t0), W=pg.parentNode.clientWidth||300, dir=dx<0?1:-1;
+    if((Math.abs(dx)>W*.25||(v>.4&&Math.abs(dx)>30))&&prAnyNext(prAnyK,dir)){ pg.style.transition=''; prAnyGo(dir,dx); }
+    else{ pg.style.transition='transform .3s cubic-bezier(.22,1,.36,1)'; pg.style.transform='translateX(0)'; } }
+  document.addEventListener('pointerup',end); document.addEventListener('pointercancel',end); })();
 var prCdAt=0;
 /* the open sheet's countdown, every second; when it reaches the prayer the sheet moves on to the next one */
 function prayTick(now){ if(!sheetOpen||!prCdAt) return; var el=$('prCd'); if(!el){ prCdAt=0; return; } if(now>=prCdAt){ prayerSheet(); return; } el.textContent=hms((prCdAt-now)/1000); }
@@ -2257,7 +2282,7 @@ var A={
   prremk:function(b){ prRemToggle(b.dataset.k); },
   prback:function(){ prayerSheet(); },
   prtable:function(){ prTableSheet(); },
-  prstep:function(b){ if(!b.dataset.k) return; fx('select'); prTableSheet(b.dataset.k); },
+  prstep:function(b){ prAnyGo(+b.dataset.d); },
   rammade:function(b){ var k=b.dataset.k; if(S.ramOff.indexOf(k)<0) return; S.ramMade[k]=today(); save(); fx('select'); cache={}; if(curTab==='days') renderDays(); if(curTab==='me') renderMe(); ramMakeupSheet(); toast(L('Marked as made up.','已标记为已补。')); },
   lsck:function(b){ b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'); var all=[].slice.call(document.querySelectorAll('#lsChecks .check')); $('lsGo').disabled=!all.every(function(x){return x.getAttribute('aria-checked')==='true';}); },
   lsgo:function(b){ var p=C.planById(b.dataset.p); if(S.cur){ S.planId=p.id; S.cur.planId=p.id; S.cur.goalH=p.fast; S.cur.reached=false; save(); closeSheet(); cache={}; ticksKey=''; updateToday(); scheduleGoal(); } else { S.planId=p.id; save(); beginFast(p,Date.now()); } },
