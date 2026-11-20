@@ -49,7 +49,7 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{
  assert(await actOn(p),'the button shows on the evening of day 29'); assert.strictEqual(await t(p,'actLbl'),'Is Eid tomorrow?'); await shot(p,'eid-ask');
  await tab(p,'days'); assert.strictEqual(await p.locator('#days .mc .ring.open').count(),1,'Moons shows a "?" day 30'); await tab(p,'today');
  await p.click('#act'); await p.waitForSelector('#sheet.open [data-act=rameidset]'); await p.waitForTimeout(600); assert(/Has the new moon been announced\?/.test(await t(p,'sheet'))&&/Your mosque decides/.test(await t(p,'sheet'))); await shot(p,'eid-sheet');
- await p.click('#sheet [data-v=no]'); await p.waitForTimeout(600); s=await S(p); assert.strictEqual(s.ramAdj.eid[CAL],'no'); assert.strictEqual(await t(p,'planChip'),'Night 30'); assert(!(await actOn(p)),'answered: the button goes');
+ await p.click('#sheet [data-v=no]'); await p.waitForTimeout(600); s=await S(p); assert.strictEqual(s.ramAdj.eid[CAL],'no'); assert.strictEqual(await t(p,'planChip'),'Night 30'); assert.strictEqual(await t(p,'actLbl'),'Break the fast','answered: the button goes back to the evening\'s own tap');
  await tab(p,'days'); assert.strictEqual(await p.locator('#days .mc[data-k]').count(),30); assert.strictEqual(await p.locator('#days .mc .ring.open').count(),0); await p.context().close();
  p=await open(seed({ramAdj:{shift:{},eid:{[CAL]:'no'}}}),noon(2,9)); s=await S(p); assert.strictEqual(s.planId,'ramadan'); assert(s.cur,'day 30 is a fast day'); assert.strictEqual(await t(p,'planChip'),'Day 30'); await p.context().close();
  p=await open(seed(),eve); await p.click('#act'); await p.waitForSelector('#sheet.open [data-act=rameidset]'); await p.click('#sheet [data-v=eid]'); await p.waitForTimeout(600);
