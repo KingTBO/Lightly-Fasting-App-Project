@@ -90,6 +90,28 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'light',onboarded:true,profile:
    const r=await p.evaluate(()=>new Promise(res=>{ addEventListener('popstate',()=>setTimeout(()=>res({snap:document.documentElement.classList.contains('bk-snap'),tr:getComputedStyle(document.getElementById('sheet')).transform,dim:+getComputedStyle(document.getElementById('scrim')).opacity}),30),{once:true}); history.back(); }));
    assert(!r.snap&&r.dim>0.05,'Android: the sheet slides down and the dim fades as usual: '+JSON.stringify(r)); await p.context().close(); ok('Android: Back closes with the usual slide'); }
 
+  // 8b. setup on iPhone (and on Android when Chrome draws its own back animation): the step swaps in the same frame. Nothing slides, fades or
+  //     staggers in afterwards, because that would show the step that was just swiped away again for a moment (the flash after the swipe)
+  for(const dev of ['iPhone 13','Pixel 7']){
+   const p=await open(seed({onboarded:false}),{dev:devices[dev]});
+   if(dev!=='iPhone 13') await p.evaluate(()=>{ Object.defineProperty(PopStateEvent.prototype,'hasUAVisualTransition',{configurable:true,get(){ return true; }}); });
+   await p.click('#ob .ob-step.on [data-act=obnext]'); await p.waitForTimeout(800); await p.click('#ob .ob-step.on [data-act=obopt][data-v=before]'); await p.waitForTimeout(300); await p.click('#ob .ob-step.on [data-act=obnext]'); await p.waitForTimeout(1200);
+   const r=await p.evaluate(()=>new Promise(res=>{ addEventListener('popstate',()=>{
+       const now=[].map.call(document.querySelectorAll('#ob .ob-step'),e=>({i:e.dataset.i,on:e.classList.contains('on'),tr:getComputedStyle(e).transform}));
+       setTimeout(()=>{ const box=document.getElementById('ob'), ml=document.getElementById('obLayer');
+         const anim=document.getAnimations().filter(a=>{ const t=a.effect&&a.effect.target; return t&&(box.contains(t)||t===ml)&&a.playState==='running'; }).map(a=>(a.animationName||a.transitionProperty||'js')+':'+(a.effect.target.className||a.effect.target.tagName));
+         res({now,anim,step:window.__lightly.setup.step}); },60); },{once:true}); history.back(); }));
+   assert.strictEqual(r.step,1,dev+': Back goes to the step before');
+   assert.strictEqual(r.now.length,1,dev+': only the step underneath is left, in the same frame: '+JSON.stringify(r.now));
+   assert(r.now[0].i==='1'&&r.now[0].on&&r.now[0].tr==='none',dev+': and it sits in place at once: '+JSON.stringify(r.now));
+   assert.deepStrictEqual(r.anim,[],dev+': nothing animates in after the swipe');
+   await p.waitForTimeout(400); assert(!(await p.evaluate(()=>document.documentElement.classList.contains('bk-snap'))),dev+': the mark goes again');
+   // the step still answers back as usual after a swipe
+   await p.click('#ob .ob-step.on [data-act=obopt][data-v=first]'); await p.waitForTimeout(100);
+   assert(await p.evaluate(()=>!document.querySelector('#ob .ob-step.on').classList.contains('snap')),dev+': the next answer animates again');
+   await p.context().close(); }
+  ok('setup on iPhone, and on Android with Chrome\'s own back animation: the step underneath is there in the same frame, with nothing sliding or fading in after');
+
   // 9. Friends: one group is the tab itself; with two, an open group closes into its card first
   for(const n of [1,2]){ mock.groups=[{group_id:'g1',name:'Morning crew',role:'owner',member_count:3,fasting:1,reached:0,resting:0}].concat(n>1?[{group_id:'g2',name:'Family',role:'member',member_count:2,fasting:0,reached:0,resting:0}]:[]);
    const p=await open(seed({fasts:[]}),{auth:true}); await tab(p,'friends');
