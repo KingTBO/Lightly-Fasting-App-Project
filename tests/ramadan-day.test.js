@@ -37,7 +37,7 @@ const ramFast=()=>({cur:{start:at(F),goalH:sun.set-F,planId:'ramadan',reached:fa
  /* 2. dawn starts the fast */
  p=await open(seed(),at(12)); s=await S(p);
  assert(s.cur&&s.cur.planId==='ramadan','opening the app at noon finds the day\'s fast running'); assert(Math.abs(s.cur.start-at(F))<60000,'it began at dawn'); assert(Math.abs(s.cur.start+s.cur.goalH*H-at(sun.set))<60000,'and ends at sunset');
- let r=await read(p); assert.strictEqual(r.k,'Iftar in'); assert(/^5:\d\d:\d\d$/.test(r.big),'counts down to iftar: '+r.big); assert(r.glass,'the button is quiet glass'); assert.strictEqual(r.actLbl,'I’m not fasting today'); assert(!r.streak);
+ let r=await read(p); assert(/^Iftar in( · Next: Dhuhr 12:10)?$/.test(r.k),'iftar, and the next prayer once it fades in (v0.120.0): '+r.k); assert(/^5:\d\d:\d\d$/.test(r.big),'counts down to iftar: '+r.big); assert(r.glass,'the button is quiet glass'); assert.strictEqual(r.actLbl,'I’m not fasting today'); assert(!r.streak);
  assert(!(await p.locator('#today').getByText(/Start fast|Hold to end/).filter({visible:true}).count()),'no Start and no hold to end in Ramadan'); await shot(p,'ram-day');
  ok('dawn starts the day\'s fast, even when the app opens at noon; Today counts down to iftar');
 
@@ -66,7 +66,7 @@ const ramFast=()=>({cur:{start:at(F),goalH:sun.set-F,planId:'ramadan',reached:fa
  /* 5. the concept page */
  p=await open(seed(),at(12)); await p.goto('http://localhost:'+port+'/concept/'); await p.waitForTimeout(1200);
  await p.click('#rMoments [data-r=mid]'); await p.waitForTimeout(1500);
- assert.strictEqual((await p.textContent('#rK')).trim(),'Iftar in'); assert.strictEqual((await p.textContent('#rAct')).trim(),'I’m not fasting today');
+ assert(/^Iftar in( · Next: \w+ [0-9:]+)?$/.test((await p.textContent('#rK')).trim())); assert.strictEqual((await p.textContent('#rAct')).trim(),'I’m not fasting today');
  await p.click('#rAct'); await p.waitForTimeout(700); const cs=await p.textContent('#rSheet'); assert(/No reason needed/.test(cs)&&!/Travelling|Unwell|Period/.test(cs),'the concept sheet asks no reason');
  await p.click('#rWhy [data-why=off]'); await p.waitForTimeout(600); assert.strictEqual((await p.textContent('#rK')).trim(),'Iftar at'); assert.strictEqual((await p.textContent('#rAct')).trim(),'I’m fasting after all'); await p.context().close();
  ok('the concept page\'s Ramadan phone: Iftar in, I\'m not fasting today with no reason, then the iftar time');
