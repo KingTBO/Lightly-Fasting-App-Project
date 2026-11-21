@@ -4,7 +4,7 @@ Lightly (轻伴). Every change that reaches GitHub gets a version number, a plai
 
 Categories: **feature**, **fix**, **design**, **copy**, **docs**, **performance**, **chore**. Version numbers are `0.MINOR.PATCH` until the first public launch: a feature or visible design change bumps MINOR, a fix, copy, docs or chore change bumps PATCH. Versions up to 0.19.2 were assigned afterwards from the commit history, so they are approximate; each has a git tag and a labelled issue.
 
-## 0.122.1
+## 0.122.2
 - **fix** Ramadan and everyday fasting are now two separate modes, and a running fast never carries from one into the other. Tengbo found two bugs on 2026-11-21. Picking 16:8 while the day's Ramadan fast was running moved that fast over and its timer kept going. Picking Ramadan during a 16:8 fast said "End this fast first" but changed the plan anyway, so the prayer dots showed on the 16:8 arc. Now both ask first. Out of Ramadan: "Today's Ramadan fast stops here. Classic starts fresh when you tap Start", then the timer stops and nothing starts again by itself, not even at the next dawn. Into Ramadan: "Ramadan runs from dawn to sunset, so this fast ends now and is saved", then the 16:8 fast is saved and Ramadan takes over from dawn with its prayers. Closing the sheet changes nothing. A phone already left in the mixed state goes back to the running fast's own plan. Turning off Preview Ramadan mode also stops a running Ramadan fast. Picking Ramadan again while in Ramadan just closes the plan sheet. The ramadan-day test now expects the "Next: Dhuhr" line that v0.120.0 added.
 
 ## 0.122.0

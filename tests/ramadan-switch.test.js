@@ -1,4 +1,4 @@
-/* Ramadan and everyday plans are two separate modes (v0.122.1, Tengbo 2026-11-21): a running fast never carries from one into the other.
+/* Ramadan and everyday plans are two separate modes (v0.122.2, Tengbo 2026-11-21): a running fast never carries from one into the other.
    1. In Ramadan mode with the day's fast running, picking 16:8 asks first ("Today's Ramadan fast stops here"). closing it changes nothing;
       Stop and switch ends the timer: Today is ready for a fresh 16:8 with no prayer dots, and nothing starts again by itself.
    2. A running 16:8 fast and Ramadan picked: it asks first ("this fast ends now and is saved"). closing it changes nothing (no prayer dots on the 16:8 arc);

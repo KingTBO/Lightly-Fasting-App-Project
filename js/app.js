@@ -295,7 +295,7 @@ function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-s
 function skyGlyph(moon){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="url(#'+(moon?'gMoon':'gSun')+')" stroke="var(--rim)" stroke-width=".8"/>'+(moon?'<circle cx="8.6" cy="9.4" r="2.1" fill="rgba(60,50,30,.10)"/><circle cx="14.6" cy="14.6" r="2.8" fill="rgba(60,50,30,.09)"/><circle cx="14" cy="7.4" r="1.2" fill="rgba(60,50,30,.08)"/>':'')+'</svg>'; }
 function updateToday(){
   careTick(); nowMs=Date.now(); var now=nowMs; refreshSun(now); planTimes();
-  if(S.planId==='ramadan'&&S.cur&&S.cur.planId!=='ramadan'){ S.planId=S.cur.planId; save(); }   /* before v0.122.1 picking Ramadan during a fast changed the plan anyway: the running fast's own plan wins */
+  if(S.planId==='ramadan'&&S.cur&&S.cur.planId!=='ramadan'){ S.planId=S.cur.planId; save(); }   /* before v0.122.2 picking Ramadan during a fast changed the plan anyway: the running fast's own plan wins */
   if(S.cur&&S.cur.planId==='ramadan'&&now>=S.cur.start+S.cur.goalH*H) ramadanKeep(now);   /* sunset ends the day's fast by itself; nothing counts up after it */
   if(!S.cur&&S.planId==='ramadan'&&inRamadan()){ ramadanFill(now); ramadanAuto(now); }
   if(moonsOn()!==tabMo){ tabLabels(); if(curTab==='days') renderDays(); }   /* in Ramadan mode the Days tab is Moons */   /* and dawn starts it: there is no Start button in Ramadan */
