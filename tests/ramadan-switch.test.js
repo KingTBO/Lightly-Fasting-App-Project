@@ -52,5 +52,19 @@ const seed=o=>Object.assign({v:1,lang:'en',theme:'auto',onboarded:true,profile:{
  p=await open(seed({lang:'zh'})); await pick(p,'16'); assert(/^切换到.+？ 今天的斋戒到此为止。.+在你点开始时重新计时。 停止并切换$/.test(await sheet(p)),await sheet(p)); await p.context().close();
  ok('old mixed state repaired; Ramadan again just closes; 中文');
 
+ /* 4. Days outside Ramadan mode: Ramadan days carry a crescent and say Ramadan; a day saved twice (two phones) is kept once */
+ { const day=(d,h,m)=>Date.UTC(2027,1,d,h-8,m||0), rf=(id,d)=>({id,start:day(d,5,1),end:day(d,16,54),goalH:(day(d,16,54)-day(d,5,1))/H,plan:'ramadan'});
+   const fasts=[{id:'a',start:day(17,20),end:day(18,12),goalH:16,plan:'16'},rf('r1',19),rf('r2',19),rf('r3',20)];
+   p=await open(seed({planId:'16',ramNext:null,fasts})); s=await S(p);
+   assert.strictEqual(s.fasts.filter(f=>f.plan==='ramadan').length,2,'19 Feb saved twice is kept once'); assert(s.del.includes('r2'),'the copy goes from the backup too');
+   await p.click('#tabs [data-tab=days]'); await p.waitForTimeout(700);
+   assert.strictEqual(await p.$$eval('.cal-g button .rm',a=>a.length),2,'a crescent on the two Ramadan days'); assert(/Ramadan/.test(await p.textContent('.legend')));
+   assert.strictEqual(await p.$('.cal-g button[data-k="2027-02-18"] .rm'),null,'not on an everyday fast');
+   await p.click('.cal-g button[data-k="2027-02-19"]'); await p.waitForTimeout(500);
+   const rows=await p.$$eval('#dayd .dd-row',a=>a.map(x=>x.innerText.replace(/\s+/g,' ').trim()));
+   assert.deepStrictEqual(rows,['Ramadan · Day 12 11 h 53 m · 05:01 → 16:54 · dawn to sunset Edit'],JSON.stringify(rows));
+   if(process.env.SHOTS){ fs.mkdirSync(process.env.SHOTS,{recursive:true}); await p.evaluate(()=>document.getElementById('dayd').scrollIntoView({block:'center'})); await p.waitForTimeout(600); await p.screenshot({path:path.join(process.env.SHOTS,'days-ramadan.png')}); }
+   await p.context().close(); ok('Days: crescent and "Ramadan · Day 12" outside Ramadan mode; a doubled day is kept once'); }
+
  assert.deepStrictEqual(errs,[],'no page errors'); await b.close(); srv.close(); console.log('ramadan switch ok');
 })().catch(e=>{ console.error(e); process.exit(1); });

@@ -788,6 +788,10 @@ input,select{caret-color:var(--link);accent-color:var(--tint)}
 .dd-m{flex:none;width:32px;height:32px;border-radius:50%;background:conic-gradient(var(--disc-u) 0 calc((1 - var(--p,.5))*1turn - .4deg),var(--tint) calc((1 - var(--p,.5))*1turn + .4deg) 1turn)}
 .dd-m.full{background:var(--tint)}
 .dd-m.flex{background:transparent;border:1.5px dashed var(--label-2);box-sizing:border-box}
+/* Ramadan days outside Ramadan mode: a crescent on the calendar disc, in the day's list and in the legend */
+.cal-g button .rm{position:absolute;top:1px;left:calc(50% + 9px);width:15px;height:15px;padding:2px;box-sizing:border-box;border-radius:50%;background:var(--card);fill:#B7791F;box-shadow:0 0 0 1px var(--sep)}
+.dd-m.ram{display:flex;align-items:center;justify-content:center}.dd-m.ram .rm{width:16px;height:16px;fill:var(--on-tint);opacity:.8}
+.legend .lg-ram{display:inline-flex;align-items:center;gap:4px}.legend .lg-ram .rm{width:12px;height:12px;fill:#B7791F}
 .dd-e{position:relative;flex:none;display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:var(--card);color:var(--label);font:600 0.9375rem var(--font);box-shadow:0 0 0 .5px var(--sep)}
 button.dd-e{min-height:44px;padding:0 16px}   /* Add a fast and Use a cheat day are buttons of their own, so they are 44 px; Edit is a label inside a 52 px row */
 button.dd-e:active,.dd-row:active .dd-e{opacity:.6}

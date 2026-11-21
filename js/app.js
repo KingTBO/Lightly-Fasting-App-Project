@@ -14,7 +14,7 @@ var S=fresh(), storageOk=true;
 function load(){
   try{ var raw=localStorage.getItem(KEY); if(raw){ var o=JSON.parse(raw), f=fresh(); for(var k in f) if(o[k]!==undefined) S[k]=o[k];
     ['profile','flex','prefs','unlocked'].forEach(function(k){ S[k]=Object.assign({},f[k],o[k]||{}); });
-    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; if(!Array.isArray(S.ramOff)) S.ramOff=[]; if(!S.ramMade||typeof S.ramMade!=='object'||Array.isArray(S.ramMade)) S.ramMade={}; if(!S.ramAdj||typeof S.ramAdj!=='object') S.ramAdj={}; if(!S.ramAdj.shift||typeof S.ramAdj.shift!=='object') S.ramAdj.shift={}; if(!S.ramAdj.eid||typeof S.ramAdj.eid!=='object') S.ramAdj.eid={}; ramAdjSync(); prayFix(); if(S.planId==='ramadan'&&!S.ramNext) S.ramNext=today(); careMigrate();
+    if(!Array.isArray(S.fasts)) S.fasts=[]; if(!Array.isArray(S.flex.used)) S.flex.used=[]; if(!Array.isArray(S.off)) S.off=[]; if(!Array.isArray(S.ramOff)) S.ramOff=[]; if(!S.ramMade||typeof S.ramMade!=='object'||Array.isArray(S.ramMade)) S.ramMade={}; if(!S.ramAdj||typeof S.ramAdj!=='object') S.ramAdj={}; if(!S.ramAdj.shift||typeof S.ramAdj.shift!=='object') S.ramAdj.shift={}; if(!S.ramAdj.eid||typeof S.ramAdj.eid!=='object') S.ramAdj.eid={}; ramAdjSync(); prayFix(); ramDedupe(); if(S.planId==='ramadan'&&!S.ramNext) S.ramNext=today(); careMigrate();
     if(o.placeV===undefined) S.place=C.placeFix(S.place,tzGuess()); S.placeV=1; } }   /* once: a guessed far-off city (Oslo used to get London) becomes the phone's own time zone */
   catch(e){ storageOk=false; }
 }
@@ -763,10 +763,15 @@ function ramChip(now,hp){ var n=C.ramadanDay(now); if(!n) return L('Ramadan','�
   return hp<C.dawnHour(pi,now)?L('Night '+n,'第 '+n+' 夜'):L('Day '+n,'第 '+n+' 天'); }
 /* a Ramadan fast kept today, by its end (sunset) */
 function keptToday(now){ return ramKept(C.dayKey(now)); }
+/* a Ramadan day is one fast. Two phones signed in to one account each save the day at sunset, with different ids, so the backup used to keep both
+   (Tengbo saw 20 Nov twice, 2026-11-21). Keep one per day (a kept one first) and let the other go everywhere through S.del. */
+function ramDedupe(){ var seen={}, drop={}, n=0; S.fasts.filter(function(f){ return f.plan==='ramadan'; }).sort(function(a,b){ return (C.isDone(b)?1:0)-(C.isDone(a)?1:0)||a.start-b.start||(a.id<b.id?-1:1); })
+  .forEach(function(f){ var k=C.dayKey(f.end); if(seen[k]){ drop[f.id]=1; n++; } else seen[k]=1; });
+  if(!n) return false; S.fasts=S.fasts.filter(function(f){ return !drop[f.id]; }); S.del=(S.del||[]).concat(Object.keys(drop)); return true; }
 function ramKept(k){ return S.fasts.some(function(f){ return f.plan==='ramadan'&&C.dayKey(f.end)===k&&C.isDone(f); }); }
 /* sunset ends the fast by itself: it is saved as ending at sunset, with no summary sheet (Today shows Iftar). One chime if the app is open at that moment. */
 function ramadanKeep(now){ var cur=S.cur, end=cur.start+cur.goalH*H; S.cur=null;
-  S.fasts.push({id:uid(),start:cur.start,end:end,goalH:cur.goalH,plan:'ramadan'}); save(); cancelGoal(); shownP=-1; cache={};
+  if(!ramKept(C.dayKey(end))) S.fasts.push({id:uid(),start:cur.start,end:end,goalH:cur.goalH,plan:'ramadan'}); save(); cancelGoal(); shownP=-1; cache={};
   if(now-end<2*60000){ fx('success'); boost=1; } }
 /* ---------- Moons (look B): in Ramadan mode the Days tab shows the season as a month of moons ----------
    A day marks itself at sunset: kept, unless the person said "not fasting". Not fasting days join the days to make up, and "made up" remembers
@@ -1343,11 +1348,15 @@ function calGo(y,m,dir,x0){ if(slideEnd) slideEnd(); calY=y; calM=m;
   days.addEventListener('pointerup',end); days.addEventListener('pointercancel',end);
   days.addEventListener('click',function(e){ if(performance.now()-gone<350){ e.stopPropagation(); e.preventDefault(); gone=0; } },true);
 })();
+/* Ramadan days outside Ramadan mode (Tengbo 2026-11-21: they looked like everyday fasts): a small crescent on the calendar, "Ramadan" in the day's list and the legend */
+var CRES='<svg class="rm" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3.5a9 9 0 1 0 5 15.8A7.4 7.4 0 0 1 15.5 3.5z"/></svg>';
+function ramInMonth(y,m){ var a=new Date(y,m,1).getTime(), b=new Date(y,m+1,1).getTime(); return S.fasts.some(function(f){ return f.plan==='ramadan'&&f.end>=a&&f.end<b; }); }
+function ramDayOf(list){ return !!list&&list.some(function(f){ return f.plan==='ramadan'; }); }
 function gridInner(y,m){ var h='', t=today(), all=S.fasts;
   var wd=S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S']; wd.forEach(function(w){ h+='<span class="wd">'+w+'</span>'; });
   var lead=(new Date(y,m,1).getDay()+6)%7, dim=new Date(y,m+1,0).getDate(); for(var i=0;i<lead;i++) h+='<button class="out" tabindex="-1" aria-hidden="true"></button>';
-  var offK=C.offKeys(S.off), fm=C.fastDays(all); for(var d=1;d<=dim;d++){ var k=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2), s=C.dayStatus(k,all,S.flex.used,offK), fut=k>t;
-    h+='<button class="'+s+(k===t?' today':'')+(k===selDay?' sel':'')+(fut?' fut':'')+'" data-act="day" data-k="'+k+'"'+(s==='early'?' style="--p:'+dayPart(fm[k]).toFixed(3)+'"':'')+' aria-label="'+dateLbl(C.keyToDate(k).getTime())+(s==='done'?', '+L('fast done','已完成'):s==='flex'?', '+L('cheat day','弹性日'):s==='off'?', '+L('time off','休息'):s==='early'?', '+L('ended early','提前结束'):'')+'"><span class="d">'+d+'</span></button>'; }
+  var offK=C.offKeys(S.off), fm=C.fastDays(all); for(var d=1;d<=dim;d++){ var k=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2), s=C.dayStatus(k,all,S.flex.used,offK), fut=k>t, rd=ramDayOf(fm[k]);
+    h+='<button class="'+s+(k===t?' today':'')+(k===selDay?' sel':'')+(fut?' fut':'')+'" data-act="day" data-k="'+k+'"'+(s==='early'?' style="--p:'+dayPart(fm[k]).toFixed(3)+'"':'')+' aria-label="'+dateLbl(C.keyToDate(k).getTime())+(s==='done'?', '+L('fast done','已完成'):s==='flex'?', '+L('cheat day','弹性日'):s==='off'?', '+L('time off','休息'):s==='early'?', '+L('ended early','提前结束'):'')+(rd?', '+L('Ramadan','斋月'):'')+'"><span class="d">'+d+'</span>'+(rd?CRES:'')+'</button>'; }
   return h; }
 /* before the first fast, Days shows what a week will look like: a made-up week of discs, marked "Example" (a picture, skipped by screen readers) */
 function sampleWeek(){ var wd=S.lang==='zh'?['一','二','三','四','五','六','日']:['M','T','W','T','F','S','S'], k=['full','full','part','full','full','none','none'];
@@ -1366,11 +1375,13 @@ function renderDays(){
   var list=(C.fastDays(all)[selDay]||[]).slice().sort(function(a,b){return a.end-b.end;}), fl=S.flex.used.indexOf(selDay)>=0, none=!list.length&&!fl;
   h+='<div class="dayd'+(ddIn&&!reduce?' in':'')+'" id="dayd"><div class="dd-h"><span>'+dateLbl(C.keyToDate(selDay).getTime(),{weekday:'long',month:'long',day:'numeric'})+'</span>'+(none?'<span class="dd-n">'+(selDay>t?L('Nothing here yet','这天还没有记录'):L('Nothing logged','没有记录'))+'</span>':'')+'</div>';
   if(none&&selDay<=t) h+='<div class="dd-acts"><button class="dd-e" data-act="addday">'+L('Add a fast','补记断食')+'</button>'+(care()||C.flexBlock(selDay,{fasts:S.fasts,flex:S.flex,off:S.off,cur:S.cur})?'':'<button class="dd-e" data-act="cheatday" data-k="'+selDay+'">'+L('Use a cheat day','使用弹性日')+'</button>')+'</div>';
-  list.forEach(function(f){ var dn=C.isDone(f); h+='<button class="dd-row" data-act="edit" data-id="'+f.id+'"><i class="dd-m'+(dn?' full':'')+'"'+(dn?'':' style="--p:'+dayPart([f]).toFixed(3)+'"')+' aria-hidden="true"></i><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(dn?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+nb(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+(C.feelOf(f)?' · '+nb(feltTxt(f)):'')+'</small></span><span class="dd-e">'+L('Edit','编辑')+'</span></button>'; });
+  list.forEach(function(f){ var dn=C.isDone(f);
+    if(f.plan==='ramadan'){ var rs=C.ramadanSeason(C.dayKey(f.end)); h+='<button class="dd-row" data-act="edit" data-id="'+f.id+'"><i class="dd-m ram'+(dn?' full':'')+'"'+(dn?'':' style="--p:'+dayPart([f]).toFixed(3)+'"')+' aria-hidden="true">'+CRES+'</i><span class="stack"><b>'+L('Ramadan','斋月')+(rs?' · '+L('Day '+rs.n,'第 '+rs.n+' 天'):'')+'</b><small>'+nb(durTxt(C.hours(f)))+' · '+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(dn?L('dawn to sunset','黎明到日落'):L('ended early','提前结束'))+'</small></span><span class="dd-e">'+L('Edit','编辑')+'</span></button>'; return; }
+    h+='<button class="dd-row" data-act="edit" data-id="'+f.id+'"><i class="dd-m'+(dn?' full':'')+'"'+(dn?'':' style="--p:'+dayPart([f]).toFixed(3)+'"')+' aria-hidden="true"></i><span class="stack"><b>'+durTxt(C.hours(f))+'</b><small>'+clockMs(f.start)+' → '+clockMs(f.end)+' · '+(dn?L('goal reached','达成目标')+(C.hours(f)-f.goalH>=1/60?' · '+nb(S.lang==='zh'?'多 '+durTxt(C.hours(f)-f.goalH):'+'+durTxt(C.hours(f)-f.goalH)):''):L('ended early','提前结束'))+(C.feelOf(f)?' · '+nb(feltTxt(f)):'')+'</small></span><span class="dd-e">'+L('Edit','编辑')+'</span></button>'; });
   if(fl) h+='<div class="dd-row"><i class="dd-m flex" aria-hidden="true"></i><span class="stack"><b>'+L('Cheat day','弹性日')+'</b><small>'+L('Your streak holds, and doesn’t grow.','连续记录保持不变，但不增加。')+'</small></span></div>';
   h+='</div>';
   }
-  h+=(first1?'':'<div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i class="wedge"></i>'+L('Ended early','提前结束')+'</span>'+(care()?'':'<span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span>')+'<span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span></div>')+'</div>';
+  h+=(first1?'':'<div class="legend"><span><i style="background:var(--tint)"></i>'+L('Goal reached','达成目标')+'</span><span><i class="wedge"></i>'+L('Ended early','提前结束')+'</span>'+(care()?'':'<span><i style="border:1.5px dashed var(--label-2)"></i>'+L('Cheat day','弹性日')+'</span>')+'<span><i style="border:1.5px dotted var(--label-2)"></i>'+L('Time off','休息')+'</span>'+(ramInMonth(calY,calM)?'<span class="lg-ram">'+CRES+L('Ramadan','斋月')+'</span>':'')+'</div>')+'</div>';
   if(!first1) h+='<div class="gh avgh">'+L('Average fast','平均断食时长')+'</div><div id="avgBox">'+avgHtml(avgPlay)+'</div>';
   $('days').innerHTML=h; avgPlay=false; ddIn=false;
   if(numPlay){ numPlay=false; odo($('days').querySelector('.tot .rn')); moonFill($('days').querySelector('.tot')); }
@@ -1828,7 +1839,7 @@ function geo(then,late){
 var CL=window.LightlyCloud, sync={busy:false,msg:'',at:0,err:'',t:0};
 function cloudOn(){ return CL&&CL.ready()&&CL.getAuth(); }
 function cloudSoon(){ if(!cloudOn()) return; clearTimeout(sync.t); sync.t=setTimeout(function(){ syncNow(true); },4000); }
-function applyRemote(m){ quiet=true; Object.keys(m).forEach(function(k){ S[k]=m[k]; }); careMigrate(); prayFix(); if(S.onboarded) careApply(); if(S.place&&S.place.key==='here'&&S.place.lat==null) S.place={key:C.guessCity(tzGuess())}; /* coordinates stay on the phone */ quiet=false; saveNow(); }
+function applyRemote(m){ quiet=true; Object.keys(m).forEach(function(k){ S[k]=m[k]; }); careMigrate(); prayFix(); ramDedupe(); if(S.onboarded) careApply(); if(S.place&&S.place.key==='here'&&S.place.lat==null) S.place={key:C.guessCity(tzGuess())}; /* coordinates stay on the phone */ quiet=false; saveNow(); }
 function gone(deleted){ try{ localStorage.removeItem(AVG); }catch(e){} sync.err=''; sync.at=0; quiet=true; S.cloudUid=null; S.name=null; if(S.avatar&&S.avatar.t==='google') S.avatar=null; quiet=false; saveNow(); toast(deleted?L('This account no longer exists, so you’re signed out. Your fasts are still on this phone.','这个账号已不存在，已退出登录。断食记录仍在这台手机上。'):L('Your sign-in expired, so you’re signed out. Your fasts are still on this phone.','登录已过期，已退出登录。断食记录仍在这台手机上。')); }
 function syncNow(silent){
   if(!cloudOn()||sync.busy) return Promise.resolve(); sync.busy=true; sync.err=''; if(curTab==='me') renderMe();
