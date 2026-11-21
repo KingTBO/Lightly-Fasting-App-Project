@@ -295,6 +295,7 @@ function setSky(k){ if(ph.getAttribute('data-sky')!==k){ ph.setAttribute('data-s
 function skyGlyph(moon){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="url(#'+(moon?'gMoon':'gSun')+')" stroke="var(--rim)" stroke-width=".8"/>'+(moon?'<circle cx="8.6" cy="9.4" r="2.1" fill="rgba(60,50,30,.10)"/><circle cx="14.6" cy="14.6" r="2.8" fill="rgba(60,50,30,.09)"/><circle cx="14" cy="7.4" r="1.2" fill="rgba(60,50,30,.08)"/>':'')+'</svg>'; }
 function updateToday(){
   careTick(); nowMs=Date.now(); var now=nowMs; refreshSun(now); planTimes();
+  if(S.planId==='ramadan'&&S.cur&&S.cur.planId!=='ramadan'){ S.planId=S.cur.planId; save(); }   /* before v0.122.1 picking Ramadan during a fast changed the plan anyway: the running fast's own plan wins */
   if(S.cur&&S.cur.planId==='ramadan'&&now>=S.cur.start+S.cur.goalH*H) ramadanKeep(now);   /* sunset ends the day's fast by itself; nothing counts up after it */
   if(!S.cur&&S.planId==='ramadan'&&inRamadan()){ ramadanFill(now); ramadanAuto(now); }
   if(moonsOn()!==tabMo){ tabLabels(); if(curTab==='days') renderDays(); }   /* in Ramadan mode the Days tab is Moons */   /* and dawn starts it: there is no Start button in Ramadan */
@@ -308,7 +309,7 @@ function updateToday(){
   if(rmd&&!cur) mode='idle'; ramNight=rn; ramPh=rn?C.moonPhase(now):null;   /* B: at night the moon on Today is tonight's real moon */
   var offA=offNow(), brk=!!offA&&!cur, chd=cheatToday(); if(brk||chd) mode='idle';
   setSky(sk[1]);
-  if(S.planId==='ramadan'&&!inRamadan()){ S.planId='16'; normalisePlan(); p=plan(); save(); }
+  if(S.planId==='ramadan'&&!inRamadan()){ S.planId='16'; normalisePlan(); p=plan(); if(cur&&cur.planId==='ramadan'){ S.cur=cur=null; cancelGoal(); mode=le&&now-le.end<eatH(le)*H?'eat':'idle'; } save(); }   /* Ramadan mode ended (preview off): its fast doesn't carry over */
   var ram=S.planId==='ramadan'&&!cur, goal=cur?cur.goalH:(mode==='eat'?le.goalH:p.fast), eatLen=le?eatH(le):0, eatEl=mode==='eat'?(now-le.end)/H:0;
   el=cur?(now-cur.start)/H:0;
   /* disc: new to full during the fast, then waning through the eating window */
@@ -1741,16 +1742,31 @@ function planRow(p,selId){
   return row;
 }
 /* the custom plan's wheel in the plan sheet: the new goal applies once the wheel rests, and only the custom row's label changes, so the open wheel stays put */
-function customSet(v){ v=Math.min(cMax(),Math.max(C.CUSTOM_MIN,Math.round(v)||16)); S.customH=v; S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; }
+function customSet(v){ v=Math.min(cMax(),Math.max(C.CUSTOM_MIN,Math.round(v)||16)); S.customH=v; if(ramCurOn()){ save(); return modeSheet('custom'); } S.planId='custom'; if(S.cur){ S.cur.planId='custom'; S.cur.goalH=v; }
   save(); cache={}; ticksKey=''; updateToday(); var r=sheetOpen&&sheetEl.querySelector('.plan[data-id="custom"] .pr'); if(r) r.textContent=C.planLabel(C.planById('custom',v)); }
 /* a daily plan row says when that fast would end (from now, or from the running fast's start) and draws its share of the day: fasting hours filled, eating hours empty */
 function planUntil(h){ var now=Date.now(), end=(S.cur?S.cur.start:now)+h*H; return end<=now?L(', reached','，已达成'):L(', until ','，到 ')+'<span class="pu" data-h="'+h+'">'+clockMs(end)+'</span>'; }
 function dayBar(p){ return '<span class="day" aria-hidden="true"><i style="flex:'+p.fast+'"></i><i style="flex:'+Math.max(p.eat,0)+'"></i></span>'; }
 function planTimes(){ if(!sheetOpen) return; var q=sheetEl.querySelectorAll('.pu'), now=Date.now(); for(var i=0;i<q.length;i++){ var t=clockMs((S.cur?S.cur.start:now)+q[i].dataset.h*H); if(q[i].textContent!==t) q[i].textContent=t; } } /* an open sheet keeps its end times current */
 function zhProgress(l){ return l.replace(/(\d+) of (\d+) fasts of (\d+) h or more/,'$3 小时以上 $1/$2 次').replace(/(\d+) of (\d+) of 18 h or more/,'18 小时以上 $1/$2 次').replace(/week (\d+) of (\d+)/,'第 $1/$2 周').replace(/(\d+) of (\d+) fast of 24 h/,'24 小时断食 $1/$2 次').replace('First finish a 24 h fast, ','先完成一次 24 小时断食，').replace('24 h done, ','24 小时已完成，'); }
+/* Ramadan and the everyday plans are two separate modes (Tengbo 2026-11-21): a running fast never carries from one into the other.
+   Into Ramadan, a running fast ends and is saved first; out of Ramadan, the day's Ramadan fast stops and the new plan starts fresh from Start. */
+function ramCurOn(){ return !!(S.cur&&S.cur.planId==='ramadan'); }
+function modeSheet(id){ var toRam=id==='ramadan', nm=toRam?'':esc(pName(C.planById(id,S.customH)));
+  openSheet('<h3 class="ctr">'+(toRam?L('Switch to Ramadan?','切换到斋月？'):L('Switch to '+nm+'?','切换到'+nm+'？'))+'</h3><p class="lede ctr">'+
+    (toRam?L('Ramadan runs from dawn to sunset, so this fast ends now and is saved.','斋月从黎明到日落，所以这次断食现在结束并保存。'):L('Today’s Ramadan fast stops here. '+nm+' starts fresh when you tap Start.','今天的斋戒到此为止。'+nm+'在你点开始时重新计时。'))+'</p>'+
+    '<div class="btns"><button class="btn" data-act="modego" data-id="'+esc(id)+'">'+(toRam?L('End fast and switch','结束断食并切换'):L('Stop and switch','停止并切换'))+'</button></div>'); }   /* the sheet's × keeps things as they are */
+function modeGo(id){ var cur=S.cur, now=Date.now(); if(!cur) return pickPlan(id);
+  S.cur=null; cancelGoal(); shownP=-1; lastHour=-1; cache={}; ticksKey='';
+  if(cur.planId!=='ramadan'&&now-cur.start>=10*60000){ S.fasts.push({id:uid(),start:cur.start,end:now,goalH:cur.goalH,plan:cur.planId}); checkUnlocks(); var mn=Math.round((now-cur.start)/60000), hh=Math.floor(mn/60), mm=mn%60; toast(L('Fast saved: '+hh+' h'+(mm?' '+mm+' min':'')+'.','断食已保存：'+hh+' 小时'+(mm?' '+mm+' 分':'')+'。')); }
+  if(cur.planId==='ramadan') S.planId='16';   /* never left on Ramadan while the new plan is checked */
+  save(); closeSheet(); return pickPlan(id); }
 function pickPlan(id){
   var p=C.planById(id,S.customH);
-  if(id==='ramadan'){ S.planId='ramadan'; if(S.cur){ toast(L('Ramadan runs dawn to sunset. End this fast first.','斋月从黎明到日落。先结束当前断食。')); return; } save(); closeSheet(); updateToday(); return startRamadan(); }
+  if(id==='ramadan'&&S.planId==='ramadan'&&!S.cur){ closeSheet(); return startRamadan(); }
+  if(id==='ramadan'&&ramCurOn()){ closeSheet(); return; }
+  if(S.cur&&(id==='ramadan'||ramCurOn())) return modeSheet(id);
+  if(id==='ramadan'){ closeSheet(); return startRamadan(); }
   if(p.long){ var st=longSt(p.fast); if(st.st!=='ok') return; if(st.exp) return longWarn(p,st); return longPick(p); }
   if(!planOk(id)) return;
   S.planId=id; if(S.cur){ S.cur.planId=id; S.cur.goalH=p.fast; S.cur.reached=(Date.now()-S.cur.start)/H>=p.fast; scheduleGoal(); }
@@ -2402,6 +2418,7 @@ var A={
   undocheat:function(b){ var k=(b&&b.dataset.k)||today(), i=S.flex.used.indexOf(k); if(i>=0){ S.flex.used.splice(i,1); S.flex.bank=Math.min(2,S.flex.bank+1); save(); closeSheet(); cache={}; updateToday(); if(curTab==='me') renderMe(); } },
   more:function(){ moreOpen=!moreOpen; planSheet(); },
   pickplan:function(b){ pickPlan(b.dataset.id); },
+  modego:function(b){ modeGo(b.dataset.id); },
   geo:function(){ toast(L('Finding your location…','正在定位…')); geo(function(){ placeSheet(); },function(){ if(sheetOpen) placeSheet(); }); },
   placeauto:function(){ setPlace({key:'zone'}); placeSheet(); },
   placefind:function(){ placeFind(); },
