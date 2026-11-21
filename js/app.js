@@ -167,7 +167,9 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&sheetOpen)
    Each layer that is open (another tab than Today, an open Friends group, the recap, a sheet, a step of setup) is one entry in the browser's history,
    so Back closes the top one: a sheet first, then the recap or the group, then the tab goes back to Today. Only Back on Today (or on the first step of setup) leaves the app.
    The app never has more entries than open layers: closing something with its own button takes its entry away again, so no Back press is ever spent on nothing.
-   On iPhone the swipe has already shown the screen underneath while the finger moved, so the layer goes at once, without its own animation. */
+   When the phone draws its own Back animation (the iPhone's edge swipe, and Android's back gesture in recent Chrome, which reports it as hasUAVisualTransition),
+   the screen underneath has already been shown while the finger moved, so the layer goes at once, in the same frame, without its own animation:
+   anything that waited a frame or slid would show the old screen again for a moment after the swipe. */
 var BK={d:0,q:false,skip:false,busy:false,t:0};
 function bkDepth(){ var s=history.state; return s&&typeof s==='object'&&typeof s.lightly==='number'?s.lightly:0; }
 function bkWant(){
@@ -183,7 +185,11 @@ function bkRun(){ BK.q=false; if(BK.skip||BK.busy) return; var w=bkWant(); if(w=
   }catch(e){ BK.skip=false; }
 }
 function backSync(){ if(BK.q) return; BK.q=true; Promise.resolve().then(bkRun); }
-var bkSnap=false; /* true while a Back from the iPhone's edge swipe is closing something: no animation */
+var bkSnap=false, bkTok=0; /* true while a Back the phone already animated is closing something: no animation */
+/* the new screen is settled before the mark goes: styles are worked out now, while transitions are off, and the mark stays for a few frames,
+   so a page that was paused during the swipe (its frames come late) still never sees a transition start */
+function bkUnsnap(R){ var t=++bkTok, t0=performance.now(); void getComputedStyle(R).color; void document.body.offsetWidth;
+  requestAnimationFrame(function f(){ if(t!==bkTok) return; if(performance.now()-t0<150) return requestAnimationFrame(f); requestAnimationFrame(function(){ if(t===bkTok) R.classList.remove('bk-snap'); }); }); }
 function goBack(){
   if(sheetOpen){ if(sheetHold) return; if(sheetBack){ sheetBack(); return; }
     var bb=sheetEl.querySelector('[data-act=lwback],[data-act=emback]'); if(bb&&!bb.disabled){ bb.click(); return; }   /* a sheet with its own way back goes there, like its Back button */
@@ -198,9 +204,10 @@ window.addEventListener('popstate',function(e){
   var d=e.state&&typeof e.state.lightly==='number'?e.state.lightly:0;
   if(BK.skip){ BK.skip=false; clearTimeout(BK.t); BK.d=d; backSync(); return; }
   var n=BK.d-d; BK.d=d;
-  if(n>0&&bkWant()>d){ BK.busy=true; bkSnap=IOS; var R=document.documentElement; if(IOS) R.classList.add('bk-snap');
+  var snap=IOS||e.hasUAVisualTransition===true;
+  if(n>0&&bkWant()>d){ BK.busy=true; bkSnap=snap; var R=document.documentElement; if(snap) R.classList.add('bk-snap');
     try{ for(var i=0;i<n&&bkWant()>d;i++) goBack(); }finally{ BK.busy=false; bkSnap=false; }
-    if(IOS) setTimeout(function(){ R.classList.remove('bk-snap'); },120); }
+    if(snap) bkUnsnap(R); }
   backSync();
 });
 var CHECK='<svg class="ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -2135,9 +2142,13 @@ function obRender(dir,pre){
   var n=pre;
   if(!n){ var html=obHtml(ob.step), tmp=document.createElement('div'); tmp.innerHTML=html; n=tmp.firstChild; if(dir<0&&box.children.length) n.classList.add('back'); box.appendChild(n); }
   var old=[].slice.call(box.children).filter(function(c){return c!==n;});
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transition=''; n.style.transform=''; n.style.opacity=''; n.classList.remove('back'); n.classList.add('on'); old.forEach(function(o){ o.style.transition=''; o.style.transform=''; o.style.opacity=''; o.classList.remove('on'); o.classList.add(dir<0?'out':'past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); chrome(); }); });
+  if(bkSnap){   /* the phone's own Back animation already showed this step: swap in the same frame, no slide, no stagger, no rolling numbers */
+    n.style.transition='none'; n.style.transform=''; n.style.opacity=''; n.classList.remove('back'); n.classList.add('on','snap');
+    old.forEach(function(o){ if(o.parentNode) o.parentNode.removeChild(o); }); void n.offsetWidth; n.style.transition=''; chrome();
+  }
+  else requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transition=''; n.style.transform=''; n.style.opacity=''; n.classList.remove('back'); n.classList.add('on'); old.forEach(function(o){ o.style.transition=''; o.style.transform=''; o.style.opacity=''; o.classList.remove('on'); o.classList.add(dir<0?'out':'past'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },600); }); chrome(); }); });
   var f=n.querySelector('h1'); if(f){ f.setAttribute('tabindex','-1'); } [].slice.call(n.children).filter(function(c){return !c.classList.contains('ob-top');}).forEach(function(c,i){ c.style.setProperty('--i',i); });
-  obIn(n);
+  obIn(n,bkSnap);
 }
 /* refresh a step in place: elements stay put, only changed attributes and text move, so selection states animate instead of flashing */
 function morph(o,n){
@@ -2196,7 +2207,7 @@ function obSwipe(){
   box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up);
 }
 obSwipe();
-function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); return; } c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement, was=[].map.call(c.querySelectorAll('.ob-say'),function(e){ return e.textContent; }); morph(c,n);
+function obRefresh(){ var box=$('ob'), c=box.querySelector('.ob-step.on')||box.lastChild; if(!c) return; var tmp=document.createElement('div'); tmp.innerHTML=obHtml(ob.step); var n=tmp.firstChild; if(c.getAttribute('data-i')!==n.getAttribute('data-i')){ n.classList.add('on'); n.style.transition='none'; box.replaceChild(n,c); return; } c.classList.remove('snap'); c.classList.add('nostagger'); n.className=c.className; var ap=document.activeElement, was=[].map.call(c.querySelectorAll('.ob-say'),function(e){ return e.textContent; }); morph(c,n);
   [].forEach.call(c.querySelectorAll('.ob-say'),function(e,j){ if(e.textContent&&e.textContent!==was[j]) obSwap(e); }); }
 function obStart(){ ph.classList.add('onb'); chrome(); ob={step:0,fasted:null,safe:[],plan:null,start:'20:00',age:30,kg:70,cm:170,unit:obUnit0(),sex:'n',skip:false,bodyDone:false}; $('ob').innerHTML=''; obLayerOff(); obRender(); }
 function obFinish(){
@@ -2247,19 +2258,19 @@ function obLoop(t){
   if(OL.fin) obFinStep(t);
   obPaint(); requestAnimationFrame(obLoop);
 }
-function obTo(p){ if(reduce){ OL.p=p; OL.tw=null; return; } OL.tw={from:OL.p,to:p,t0:performance.now(),ms:800}; }
+function obTo(p,now){ if(reduce||now){ OL.p=p; OL.tw=null; return; } OL.tw={from:OL.p,to:p,t0:performance.now(),ms:800}; }
 /* where a slot sits inside its step, ignoring any slide that is still running */
 function obSlot(st,cls){ var e=st.querySelector(cls); if(!e) return null; var x=0,y=0,n=e; while(n&&n!==st){ x+=n.offsetLeft; y+=n.offsetTop; n=n.offsetParent; } return {x:x,y:y-st.scrollTop,w:e.offsetWidth,p:+e.dataset.p||0}; }
 /* the moon goes to wherever this step keeps it: big on the welcome and You're set, small in the header on the steps between */
-function obMove(st){
+function obMove(st,now){
   var key=obFlow()[ob.step], kind=key==='welcome'?'wel':key==='summary'?'fin':'head', el=obLayer(), slot=obSlot(st,kind==='head'?'.ob-mslot':'.ob-bslot'); if(!slot) return;
   el.hidden=false; el.classList.toggle('head',kind==='head'); el.classList.toggle('onbg',kind==='fin'); el.classList.toggle('touch',kind==='wel');
-  var first=!OL.shown; OL.shown=true; if(first||reduce) el.style.transition='none';
+  var first=!OL.shown, jump=first||reduce||now; OL.shown=true; if(jump) el.style.transition='none';
   el.style.transform='translate('+slot.x+'px,'+slot.y+'px) scale('+(slot.w/236).toFixed(4)+')';
-  if(first||reduce){ void el.offsetWidth; el.style.transition=''; }
+  if(jump){ void el.offsetWidth; el.style.transition=''; }
   var prev=OL.mode; OL.mode=kind; OL.fin=null;
   if(kind!=='fin'){ OL.moon=1; OL.boost=0; }
-  if(kind==='head'){ var n=obFlow().length; obTo(ob.step/(n-1)); }
+  if(kind==='head'){ var n=obFlow().length; obTo(ob.step/(n-1),now); }
   else if(kind==='fin') obFin(st);
   if(!OL.loop){ OL.loop=true; OL.last=performance.now(); requestAnimationFrame(obLoop); }
   requestAnimationFrame(function(){ requestAnimationFrame(obOrbInit); });
@@ -2327,8 +2338,8 @@ function obBigHtml(pid){
 }
 function obRoll(delay){ setTimeout(function(){ var st=$('ob').lastElementChild; if(st) [].forEach.call(st.querySelectorAll('.rn[data-roll]'),function(n,j){ setTimeout(function(){ odo(n); },j*90); }); },delay||0); }
 /* everything that moves when a step arrives */
-function obIn(st){
-  var key=obFlow()[ob.step]; obMove(st);
+function obIn(st,now){
+  var key=obFlow()[ob.step]; obMove(st,now); if(now) return;
   if(key==='plan') setTimeout(function(){ odo(st.querySelector('#obBigN')); },380);
   else if(key==='set') obRoll(420);
 }
